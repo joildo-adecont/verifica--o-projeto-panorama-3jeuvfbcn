@@ -157,8 +157,8 @@ export async function triggerSourceCheck(): Promise<boolean> {
     })
     return true
   } catch (err) {
-    console.warn('Falha ao acionar verificação de fontes no backend:', err)
-    return false
+    console.error('Falha ao acionar verificação de fontes no backend:', err)
+    throw err
   }
 }
 

@@ -6,7 +6,7 @@ routerAdd('POST', '/backend/v1/check-sources', (e) => {
     {
       key: 'cgibs',
       name: 'CGIBS (Comitê Gestor IBS)',
-      url: 'https://www.gov.br/consext/pt-br',
+      url: 'https://www.cgibs.gov.br',
       order: 1,
     },
     {

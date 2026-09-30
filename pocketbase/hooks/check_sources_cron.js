@@ -7,7 +7,7 @@ cronAdd('check_tax_sources', '0 * * * *', () => {
     {
       key: 'cgibs',
       name: 'CGIBS (Comitê Gestor IBS)',
-      url: 'https://www.gov.br/consext/pt-br',
+      url: 'https://www.cgibs.gov.br',
       order: 1,
     },
     {
@@ -23,7 +23,6 @@ cronAdd('check_tax_sources', '0 * * * *', () => {
       order: 3,
     },
   ]
-
   for (let i = 0; i < sources.length; i++) {
     const src = sources[i]
     const startTime = new Date().getTime()

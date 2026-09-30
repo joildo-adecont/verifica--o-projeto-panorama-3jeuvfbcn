@@ -72,13 +72,9 @@ export function PanoramaHeader({
       // Recarrega o status atualizado do banco
       await loadSourceStatus()
       if (onManualRefresh) onManualRefresh()
-    } catch {
-      const now = new Date()
-      setLastCheck(
-        now.toLocaleDateString('pt-BR') +
-          ' às ' +
-          now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-      )
+    } catch (err) {
+      console.error('Erro ao verificar fontes:', err)
+      await loadSourceStatus()
     } finally {
       setIsRefreshing(false)
     }
