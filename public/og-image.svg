@@ -1,0 +1,114 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <!-- Gradiente de fundo elegante e sofisticado -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#070A1E" />
+      <stop offset="50%" stop-color="#0B1033" />
+      <stop offset="100%" stop-color="#141E4A" />
+    </linearGradient>
+
+    <!-- Gradiente da esfera ADECONT -->
+    <radialGradient id="sphereGradOG" cx="44%" cy="40%" r="56%" fx="40%" fy="34%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.95" />
+      <stop offset="25%" stop-color="#38BDF8" />
+      <stop offset="65%" stop-color="#0284C7" />
+      <stop offset="100%" stop-color="#0369A1" />
+    </radialGradient>
+
+    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.08" />
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.02" />
+    </linearGradient>
+
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#38BDF8" />
+      <stop offset="100%" stop-color="#818CF8" />
+    </linearGradient>
+  </defs>
+
+  <!-- Fundo escuro azul marinho profundo -->
+  <rect width="1200" height="630" fill="url(#bgGrad)" />
+
+  <!-- Efeitos luminosos de fundo -->
+  <circle cx="1050" cy="120" r="300" fill="#0284C7" opacity="0.12" filter="blur(60px)" />
+  <circle cx="150" cy="520" r="260" fill="#38BDF8" opacity="0.08" filter="blur(50px)" />
+
+  <!-- Grid decorativo geométrico suave -->
+  <g opacity="0.04" stroke="#FFFFFF" stroke-width="1">
+    <line x1="100" y1="0" x2="100" y2="630" />
+    <line x1="300" y1="0" x2="300" y2="630" />
+    <line x1="500" y1="0" x2="500" y2="630" />
+    <line x1="700" y1="0" x2="700" y2="630" />
+    <line x1="900" y1="0" x2="900" y2="630" />
+    <line x1="1100" y1="0" x2="1100" y2="630" />
+    <line x1="0" y1="126" x2="1200" y2="126" />
+    <line x1="0" y1="252" x2="1200" y2="252" />
+    <line x1="0" y1="378" x2="1200" y2="378" />
+    <line x1="0" y1="504" x2="1200" y2="504" />
+  </g>
+
+  <!-- Logo ADECONT topo à esquerda -->
+  <g transform="translate(90, 80) scale(0.65)">
+    <!-- Arco cúpula branco -->
+    <path
+      d="M 80 188 
+         C 150 92, 222 6, 310 2 
+         C 398 6, 470 92, 540 188 
+         C 460 52, 395 24, 310 24 
+         C 225 24, 160 52, 80 188 Z"
+      fill="#FFFFFF"
+    />
+    <!-- Esfera azul-claro -->
+    <circle cx="310" cy="118" r="40" fill="url(#sphereGradOG)" />
+    <!-- Tipografia ADECONT -->
+    <g fill="#FFFFFF">
+      <!-- A -->
+      <path d="M 52 258 L 86 194 L 94 194 L 128 258 L 110 258 L 100 238 L 80 238 L 70 258 Z M 85 224 L 95 224 L 90 211 Z" fill-rule="evenodd" />
+      <!-- D -->
+      <path d="M 138 194 L 174 194 C 192 194, 203 206, 203 226 C 203 246, 192 258, 174 258 L 138 258 Z M 155 210 L 155 242 L 172 242 C 182 242, 187 236, 187 226 C 187 216, 182 210, 172 210 Z" fill-rule="evenodd" />
+      <!-- E -->
+      <path d="M 214 194 L 268 194 L 268 209 L 231 209 L 231 218 L 262 218 L 262 233 L 231 233 L 231 243 L 268 243 L 268 258 L 214 258 Z" />
+      <!-- C -->
+      <path d="M 330 209 L 316 209 C 303 209, 296 215, 296 226 C 296 237, 303 243, 316 243 L 330 243 L 330 258 L 316 258 C 292 258, 279 245, 279 226 C 279 207, 292 194, 316 194 L 330 194 Z" />
+      <!-- O -->
+      <path d="M 358 194 C 382 194, 395 207, 395 226 C 395 245, 382 258, 358 258 C 334 258, 321 245, 321 226 C 321 207, 334 194, 358 194 Z M 358 210 C 347 210, 338 216, 338 226 C 338 236, 347 242, 358 242 C 369 242, 378 236, 378 226 C 378 216, 369 210, 358 210 Z" fill-rule="evenodd" />
+      <!-- N -->
+      <path d="M 406 194 L 423 194 L 451 238 L 451 194 L 468 194 L 468 258 L 451 258 L 423 214 L 423 258 L 406 258 Z" />
+      <!-- T -->
+      <path d="M 479 194 L 541 194 L 541 209 L 519 209 L 519 258 L 501 258 L 501 209 L 479 209 Z" />
+    </g>
+    <!-- ASSESSORIA -->
+    <text x="310" y="290" text-anchor="middle" fill="#FFFFFF" font-family="system-ui, sans-serif" font-size="24" font-weight="800" letter-spacing="18">A S S E S S O R I A</text>
+    <line x1="32" y1="298" x2="588" y2="298" stroke="#FFFFFF" stroke-width="1.5" stroke-opacity="0.8" />
+    <!-- TAGLINE -->
+    <text x="310" y="326" text-anchor="middle" fill="#94A3B8" font-family="system-ui, sans-serif" font-size="14.5" font-weight="700" letter-spacing="6.5">CONTÁBIL E ADMINISTRATIVA</text>
+  </g>
+
+  <!-- Badge temática -->
+  <g transform="translate(90, 330)">
+    <rect width="280" height="36" rx="18" fill="#38BDF8" fill-opacity="0.15" stroke="#38BDF8" stroke-opacity="0.4" stroke-width="1.2" />
+    <text x="140" y="23" text-anchor="middle" fill="#7DD3FC" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="700" letter-spacing="2">GUIA TÉCNICO &amp; OPERACIONAL</text>
+  </g>
+
+  <!-- Título principal -->
+  <text x="90" y="420" fill="#FFFFFF" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="52" font-weight="900" letter-spacing="-1">
+    Panorama da Reforma Tributária
+  </text>
+  <text x="90" y="475" fill="url(#goldGrad)" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="34" font-weight="800" letter-spacing="1">
+    IBS, CBS e o Novo Sistema Fiscal Brasileiro
+  </text>
+
+  <!-- Subtítulo / destaques -->
+  <text x="90" y="530" fill="#94A3B8" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="500">
+    Normas Oficiais • Fato Gerador • Alíquotas • Cronograma 2026–2033 • Fontes CGIBS &amp; RFB
+  </text>
+
+  <!-- Rodapé informativo -->
+  <line x1="90" y1="565" x2="1110" y2="565" stroke="#334155" stroke-width="1" />
+  <text x="90" y="595" fill="#64748B" font-family="system-ui, sans-serif" font-size="14" font-weight="600" letter-spacing="0.5">
+    ADECONT ASSESSORIA CONTÁBIL E ADMINISTRATIVA
+  </text>
+  <text x="1110" y="595" text-anchor="end" fill="#38BDF8" font-family="system-ui, sans-serif" font-size="14" font-weight="600">
+    www.adecont.com.br
+  </text>
+</svg>
