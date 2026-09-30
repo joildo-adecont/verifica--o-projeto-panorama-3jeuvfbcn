@@ -161,15 +161,15 @@ function renderAdecontSymbol(x, y, w, h, options = {}) {
   // Cúpula interna: corte elíptico inferior
   const dx = Math.abs(nx - 0.5)
 
-  // Curva externa do arco: parábola suave
-  // yExt(dx) = 0.18 + 1.75 * dx^1.65 (quando dx=0 -> 0.18, quando dx=0.42 -> ~0.78)
-  const yExt = 0.18 + 2.4 * Math.pow(dx, 1.7)
+  // Curva externa do arco (topo da cúpula):
+  // Em dx = 0 -> y = 0.21. Em dx = 0.40 -> y ~ 0.74
+  const yExt = 0.21 + 2.8 * Math.pow(dx, 1.8)
 
-  // Curva interna do arco (vão sob o arco):
-  // yInt(dx) = 0.27 + 2.8 * Math.pow(dx, 1.4)
-  const yInt = 0.26 + 3.2 * Math.pow(dx, 1.5)
+  // Curva interna do arco (intradorso):
+  // Em dx = 0 -> y = 0.28. Em dx = 0.38 -> y ~ 0.80
+  const yInt = 0.28 + 3.6 * Math.pow(dx, 1.6)
 
-  const inArch = ny >= yExt && ny <= yInt && dx <= 0.44 && ny <= 0.82
+  const inArch = ny >= yExt && ny <= yInt && dx <= 0.42 && ny <= 0.8
 
   if (inArch) {
     // Cor azul marinho #0B1033 (RGB: 11, 16, 51)
