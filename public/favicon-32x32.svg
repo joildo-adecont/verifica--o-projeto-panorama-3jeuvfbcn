@@ -1,36 +1,43 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
   <defs>
-    <radialGradient id="fav32Sphere" cx="48%" cy="42%" r="56%" fx="46%" fy="38%">
-      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.95" />
-      <stop offset="22%" stop-color="#A8DDF7" />
-      <stop offset="55%" stop-color="#4FA8DC" />
-      <stop offset="85%" stop-color="#1C75B7" />
-      <stop offset="100%" stop-color="#145A91" />
+    <radialGradient id="fav32Sphere" cx="49%" cy="46%" r="52%" fx="49%" fy="46%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="1" />
+      <stop offset="25%" stop-color="#AEE1FA" stop-opacity="0.98" />
+      <stop offset="55%" stop-color="#7EC8F0" />
+      <stop offset="78%" stop-color="#4FA8DC" />
+      <stop offset="92%" stop-color="#2A7EB8" />
+      <stop offset="100%" stop-color="#1B4F7D" />
     </radialGradient>
   </defs>
 
-  <g transform="scale(0.0625)">
-    <!-- Arco cúpula ADECONT em azul-marinho oficial #251A54 -->
+  <g transform="translate(16, 16.5) scale(0.043) translate(-486, -210)">
+    <!-- Arco azul-marinho oficial #2E2260 -->
     <path
-      d="M 64 395
-         C 118 315, 175 220, 256 135
-         C 320 68, 375 32, 425 22
-         C 475 32, 530 68, 594 135
-         C 675 220, 732 315, 786 395
-         C 712 255, 650 175, 570 115
-         C 510 70, 470 52, 425 52
-         C 380 52, 340 70, 280 115
-         C 200 175, 138 255, 64 395 Z"
-      fill="#251A54"
-      transform="translate(-169, 50)"
+      d="M 122 370
+         C 142 320, 206 182, 326 84
+         C 388 34, 452 0, 500 0
+         C 548 0, 612 34, 674 84
+         C 718 120, 742 186, 755 283
+         C 745 220, 715 156, 650 114
+         C 592 76, 540 106, 500 110
+         C 458 114, 404 80, 344 116
+         C 246 174, 178 266, 122 370 Z"
+      fill="#2E2260"
     />
 
     <!-- Esfera central azul com ponto de luz -->
     <circle
-      cx="256"
-      cy="265"
-      r="64"
+      cx="486"
+      cy="216"
+      r="59"
       fill="url(#fav32Sphere)"
+    />
+    <circle
+      cx="486"
+      cy="216"
+      r="16"
+      fill="#FFFFFF"
+      opacity="0.85"
     />
   </g>
 </svg>

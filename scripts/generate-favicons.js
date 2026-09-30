@@ -17,8 +17,8 @@ await checkImageTools()
 
 /**
  * Script de geração de ícones e favicons da ADECONT a partir do novo traço oficial:
- * - Arco azul-marinho profundo (#251A54) em formato curvo pontiagudo
- * - Esfera central em degradê esférico com ponto de luz (#FFFFFF -> #A8DDF7 -> #4FA8DC -> #1C75B7 -> #145A91)
+ * - Arco azul-marinho profundo (#2B2160) em formato curvo pontiagudo
+ * - Esfera central em degradê esférico com ponto de luz (#FFFFFF -> #AEE1FA -> #4FA8DC -> #2A7EB8 -> #1B4F7D)
  */
 function createPng(width, height, drawFn) {
   const buffer = Buffer.alloc(height * (1 + width * 4))
@@ -114,41 +114,46 @@ function renderAdecontSymbol(x, y, w, h, options = {}) {
     bgA = options.bg[3]
   }
 
-  // 1. Esfera central: centro (0.5, 0.52), raio ~ 0.135
-  const scx = 0.5
+  // 1. Esfera central: centro (0.49, 0.52), raio ~ 0.135
+  const scx = 0.49
   const scy = 0.52
   const sR = 0.135
   const sdist = Math.sqrt((nx - scx) * (nx - scx) + (ny - scy) * (ny - scy))
 
   if (sdist <= sR) {
-    // Ponto de luz no quadrante superior central
-    const lx = 0.47
-    const ly = 0.46
-    const ldist = Math.sqrt((nx - lx) * (nx - lx) + (ny - ly) * (ny - ly)) / (sR * 1.55)
+    // Ponto de luz no centro suave com glow
+    const lx = 0.49
+    const ly = 0.52
+    const ldist = Math.sqrt((nx - lx) * (nx - lx) + (ny - ly) * (ny - ly)) / (sR * 1.4)
     const t = Math.min(Math.max(ldist, 0), 1)
 
-    // Cores: #FFFFFF (255,255,255) -> #A8DDF7 (168,221,247) -> #4FA8DC (79,168,220) -> #1C75B7 (28,117,183) -> #145A91 (20,90,145)
+    // Cores: #FFFFFF (255,255,255) -> #AEE1FA (174,225,250) -> #7EC8F0 (126,200,240) -> #4FA8DC (79,168,220) -> #2A7EB8 (42,126,184) -> #1B4F7D (27,79,125)
     let r, g, b
     if (t < 0.25) {
       const f = t / 0.25
-      r = Math.round(255 + f * (168 - 255))
-      g = Math.round(255 + f * (221 - 255))
-      b = Math.round(255 + f * (247 - 255))
-    } else if (t < 0.6) {
-      const f = (t - 0.25) / 0.35
-      r = Math.round(168 + f * (79 - 168))
-      g = Math.round(221 + f * (168 - 221))
-      b = Math.round(247 + f * (220 - 247))
-    } else if (t < 0.85) {
-      const f = (t - 0.6) / 0.25
-      r = Math.round(79 + f * (28 - 79))
-      g = Math.round(168 + f * (117 - 168))
-      b = Math.round(220 + f * (183 - 220))
+      r = Math.round(255 + f * (174 - 255))
+      g = Math.round(255 + f * (225 - 255))
+      b = Math.round(255 + f * (250 - 255))
+    } else if (t < 0.55) {
+      const f = (t - 0.25) / 0.3
+      r = Math.round(174 + f * (126 - 174))
+      g = Math.round(225 + f * (200 - 225))
+      b = Math.round(250 + f * (240 - 250))
+    } else if (t < 0.78) {
+      const f = (t - 0.55) / 0.23
+      r = Math.round(126 + f * (79 - 126))
+      g = Math.round(200 + f * (168 - 200))
+      b = Math.round(240 + f * (220 - 240))
+    } else if (t < 0.92) {
+      const f = (t - 0.78) / 0.14
+      r = Math.round(79 + f * (42 - 79))
+      g = Math.round(168 + f * (126 - 168))
+      b = Math.round(220 + f * (184 - 220))
     } else {
-      const f = (t - 0.85) / 0.15
-      r = Math.round(28 + f * (20 - 28))
-      g = Math.round(117 + f * (90 - 117))
-      b = Math.round(183 + f * (145 - 183))
+      const f = (t - 0.92) / 0.08
+      r = Math.round(42 + f * (27 - 42))
+      g = Math.round(126 + f * (79 - 126))
+      b = Math.round(184 + f * (125 - 184))
     }
 
     // Suavização anti-aliasing
@@ -170,16 +175,16 @@ function renderAdecontSymbol(x, y, w, h, options = {}) {
   // Cúpula superior com pontas estendidas
   const dx = Math.abs(nx - 0.5)
 
-  // Curva externa superior
-  const yExt = 0.16 + 2.7 * Math.pow(dx, 1.7)
-  // Curva interna inferior
-  const yInt = 0.23 + 3.8 * Math.pow(dx, 1.55)
+  // Curva externa superior: pico central arredondado no topo (y ~ 0.14), abrindo suave
+  const yExt = 0.14 + 2.8 * Math.pow(dx, 1.72)
+  // Curva interna côncava inferior
+  const yInt = 0.24 + 4.1 * Math.pow(dx, 1.58)
 
-  const inArch = ny >= yExt && ny <= yInt && dx <= 0.42 && ny <= 0.82
+  const inArch = ny >= yExt && ny <= yInt && dx <= 0.44 && ny <= 0.84
 
   if (inArch) {
-    // Cor azul marinho oficial #251A54 (RGB: 37, 26, 84)
-    return [37, 26, 84, 255]
+    // Cor azul-marinho profunda oficial #2E2260 (RGB: 46, 34, 96)
+    return [46, 34, 96, 255]
   }
 
   return [bgR, bgG, bgB, bgA]

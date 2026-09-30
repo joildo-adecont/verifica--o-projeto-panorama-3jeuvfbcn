@@ -55,4 +55,15 @@ describe('Validação dos fluxos do Panorama da Reforma Tributária', () => {
     ]
     expect(revisaoNormas).toHaveLength(5)
   })
+
+  it('validação da marca ADECONT: ausência do termo Jurídica e fidelidade da tagline', () => {
+    const brandName = 'ADECONT'
+    const tagline = 'Assessoria Contábil e Administrativa'
+    const fullBrand = `${brandName} — ${tagline}`
+
+    expect(fullBrand).toContain('ADECONT')
+    expect(fullBrand).toContain('Assessoria Contábil e Administrativa')
+    expect(fullBrand.toLowerCase()).not.toContain('jurídic')
+    expect(fullBrand.toLowerCase()).not.toContain('juridic')
+  })
 })

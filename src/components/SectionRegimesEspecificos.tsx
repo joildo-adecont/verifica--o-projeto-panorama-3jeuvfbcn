@@ -91,7 +91,7 @@ export function SectionRegimesEspecificos() {
     {
       num: 4,
       title: 'Crédito da taxa de administração',
-      desc: 'Apropriável por qualquer pessoa jurídica contribuinte do regime regular.',
+      desc: 'Apropriável por qualquer empresa contribuinte do regime regular.',
     },
     {
       num: 5,

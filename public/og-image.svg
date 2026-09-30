@@ -4,16 +4,17 @@
     <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#0E0A24" />
       <stop offset="50%" stop-color="#1B133E" />
-      <stop offset="100%" stop-color="#251A54" />
+      <stop offset="100%" stop-color="#2E2260" />
     </linearGradient>
 
     <!-- Gradiente oficial da esfera ADECONT -->
-    <radialGradient id="sphereGradOG" cx="48%" cy="42%" r="56%" fx="46%" fy="38%">
-      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.95" />
-      <stop offset="22%" stop-color="#A8DDF7" />
-      <stop offset="55%" stop-color="#4FA8DC" />
-      <stop offset="85%" stop-color="#1C75B7" />
-      <stop offset="100%" stop-color="#145A91" />
+    <radialGradient id="sphereGradOG" cx="49%" cy="46%" r="52%" fx="49%" fy="46%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="1" />
+      <stop offset="25%" stop-color="#AEE1FA" stop-opacity="0.98" />
+      <stop offset="55%" stop-color="#7EC8F0" />
+      <stop offset="78%" stop-color="#4FA8DC" />
+      <stop offset="92%" stop-color="#2A7EB8" />
+      <stop offset="100%" stop-color="#1B4F7D" />
     </radialGradient>
 
     <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -47,45 +48,46 @@
   <g transform="translate(85, 45) scale(0.38)">
     <!-- Arco superior -->
     <path
-      d="M 120 370
-         C 175 295, 230 200, 315 115
-         C 385 45, 445 10, 500 0
-         C 555 10, 615 45, 685 115
-         C 770 200, 825 295, 880 370
-         C 800 230, 735 150, 650 90
-         C 585 45, 545 28, 500 28
-         C 455 28, 415 45, 350 90
-         C 265 150, 200 230, 120 370 Z"
+      d="M 122 370
+         C 142 320, 206 182, 326 84
+         C 388 34, 452 0, 500 0
+         C 548 0, 612 34, 674 84
+         C 718 120, 742 186, 755 283
+         C 745 220, 715 156, 650 114
+         C 592 76, 540 106, 500 110
+         C 458 114, 404 80, 344 116
+         C 246 174, 178 266, 122 370 Z"
       fill="#FFFFFF"
     />
 
     <!-- Esfera central -->
-    <circle cx="500" cy="215" r="58" fill="url(#sphereGradOG)" />
+    <circle cx="486" cy="216" r="59" fill="url(#sphereGradOG)" />
+    <circle cx="486" cy="216" r="16" fill="#FFFFFF" opacity="0.85" />
 
     <!-- Tipografia ADECONT -->
     <g fill="#FFFFFF">
       <!-- A -->
-      <path d="M 5 430 L 55 350 L 115 350 L 142 430 L 110 430 L 100 400 L 48 400 L 36 430 Z M 57 375 L 92 375 L 85 355 L 65 355 Z" fill-rule="evenodd" />
+      <path d="M 68 350 L 142 350 L 142 430 L 106 430 L 106 408 L 42 408 L 24 430 L 2 430 L 68 350 Z M 64 380 L 106 380 L 106 368 L 74 368 Z" fill-rule="evenodd" />
       <!-- D -->
-      <path d="M 155 350 L 225 350 C 255 350, 275 365, 275 390 C 275 415, 255 430, 225 430 L 155 430 Z M 183 373 L 183 407 L 218 407 C 235 407, 246 400, 246 390 C 246 380, 235 373, 218 373 Z" fill-rule="evenodd" />
+      <path d="M 156 350 L 230 350 C 264 350, 282 366, 282 390 C 282 414, 264 430, 230 430 L 156 430 Z M 190 373 L 190 407 L 225 407 C 244 407, 250 400, 250 390 C 250 380, 244 373, 225 373 Z" fill-rule="evenodd" />
       <!-- E -->
-      <path d="M 290 350 L 375 350 L 375 373 L 318 373 L 318 381 L 368 381 L 368 401 L 318 401 L 318 407 L 375 407 L 375 430 L 290 430 Z" />
+      <path d="M 296 350 L 404 350 L 404 373 L 330 373 L 330 378 L 396 378 L 396 401 L 330 401 L 330 407 L 404 407 L 404 430 L 296 430 Z" />
       <!-- C -->
-      <path d="M 470 373 L 448 373 C 432 373, 420 380, 420 390 C 420 400, 432 407, 448 407 L 470 407 L 470 430 L 445 430 C 410 430, 390 415, 390 390 C 390 365, 410 350, 445 350 L 470 350 Z" />
+      <path d="M 434 350 L 512 350 L 512 373 L 468 373 C 452 373, 444 380, 444 390 C 444 400, 452 407, 468 407 L 512 407 L 512 430 L 434 430 C 416 430, 410 416, 410 390 C 410 364, 416 350, 434 350 Z" />
       <!-- O -->
-      <path d="M 525 350 C 560 350, 582 365, 582 390 C 582 415, 560 430, 525 430 C 490 430, 468 415, 468 390 C 468 365, 490 350, 525 350 Z M 525 373 C 542 373, 553 380, 553 390 C 553 400, 542 407, 525 407 C 508 407, 497 400, 497 390 C 497 380, 508 373, 525 373 Z" fill-rule="evenodd" />
+      <path d="M 548 350 L 626 350 C 644 350, 650 364, 650 390 C 650 416, 644 430, 626 430 L 548 430 C 530 430, 524 416, 524 390 C 524 364, 530 350, 548 350 Z M 558 373 C 552 373, 548 380, 548 390 C 548 400, 552 407, 558 407 L 616 407 C 622 407, 626 400, 626 390 C 626 380, 622 373, 616 373 Z" fill-rule="evenodd" />
       <!-- N -->
-      <path d="M 598 350 L 626 350 L 674 407 L 674 350 L 702 350 L 702 430 L 674 430 L 626 373 L 626 430 L 598 430 Z" />
+      <path d="M 664 350 L 698 350 L 758 407 L 758 350 L 790 350 L 790 430 L 756 430 L 696 373 L 696 430 L 664 430 Z" />
       <!-- T -->
-      <path d="M 718 350 L 815 350 L 815 373 L 780 373 L 780 430 L 753 430 L 753 373 L 718 373 Z" />
+      <path d="M 798 350 L 960 350 L 960 373 L 896 373 L 896 430 L 862 430 L 862 373 L 798 373 Z" />
     </g>
 
     <!-- ASSESSORIA -->
-    <text x="500" y="472" text-anchor="middle" fill="#FFFFFF" font-family="system-ui, sans-serif" font-size="36" font-weight="900" letter-spacing="28">A S S E S S O R I A</text>
-    <line x1="5" y1="486" x2="995" y2="486" stroke="#94A3B8" stroke-width="3.2" stroke-opacity="0.8" />
+    <text x="486" y="473" text-anchor="middle" fill="#FFFFFF" font-family="system-ui, sans-serif" font-size="35" font-weight="900" letter-spacing="34">A S S E S S O R I A</text>
+    <line x1="2" y1="488" x2="970" y2="488" stroke="#94A3B8" stroke-width="3.2" stroke-opacity="0.85" />
 
-    <!-- TAGLINE SEM A PALAVRA JURÍDICA -->
-    <text x="500" y="534" text-anchor="middle" fill="#CBD5E1" font-family="system-ui, sans-serif" font-size="26" font-weight="800" letter-spacing="12">CONTÁBIL E ADMINISTRATIVA</text>
+    <!-- TAGLINE OFICIAL: CONTÁBIL E ADMINISTRATIVA -->
+    <text x="486" y="534" text-anchor="middle" fill="#E2E8F0" font-family="system-ui, sans-serif" font-size="25" font-weight="800" letter-spacing="16">CONTÁBIL E ADMINISTRATIVA</text>
   </g>
 
   <!-- Badge temática -->

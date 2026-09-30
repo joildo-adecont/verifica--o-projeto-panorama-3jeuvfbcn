@@ -1,12 +1,39 @@
 import fs from 'fs'
 import zlib from 'zlib'
 
-const buf = fs.readFileSync('src/assets/logojpg-0b037.jpg')
+const assetPath = fs.existsSync('src/assets/logojpg-ab589.jpg')
+  ? 'src/assets/logojpg-ab589.jpg'
+  : fs.existsSync('src/assets/logojpg-0b037.jpg')
+    ? 'src/assets/logojpg-0b037.jpg'
+    : null
+console.log('Using asset:', assetPath)
+const buf = fs.readFileSync(assetPath)
 console.log('--- ASSET INSPECTION ---')
 console.log('File size:', buf.length)
 
 const isPng = buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4e && buf[3] === 0x47
-console.log('Is PNG:', isPng)
+const isJpg = buf[0] === 0xff && buf[1] === 0xd8
+console.log('Is PNG:', isPng, 'Is JPG:', isJpg)
+
+// Read JPEG SOF markers to get width and height
+let jpgW = 0,
+  jpgH = 0
+if (isJpg) {
+  let offset = 2
+  while (offset < buf.length) {
+    if (buf[offset] !== 0xff) break
+    const marker = buf[offset + 1]
+    const len = buf.readUInt16BE(offset + 2)
+    // SOF0, SOF1, SOF2 markers
+    if ([0xc0, 0xc1, 0xc2].includes(marker)) {
+      jpgH = buf.readUInt16BE(offset + 5)
+      jpgW = buf.readUInt16BE(offset + 7)
+      const numComp = buf[offset + 9]
+      throw new Error(`JPEG dimensions: ${jpgW}x${jpgH}, components: ${numComp}`)
+    }
+    offset += 2 + len
+  }
+}
 
 let width = 0
 let height = 0
@@ -199,7 +226,7 @@ if (isPng) {
   console.log('Sphere edge pixel:', edgePix)
 
   fs.writeFileSync(
-    'scripts/asset-summary.json',
+    'src/assets/asset-summary.json',
     JSON.stringify(
       {
         width,
