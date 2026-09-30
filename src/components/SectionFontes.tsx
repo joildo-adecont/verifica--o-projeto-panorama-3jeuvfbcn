@@ -550,14 +550,14 @@ export function SectionFontes() {
           </div>
 
           <div className="flex flex-col items-start md:items-end shrink-0">
-            <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3 shadow-xs flex flex-col items-center">
+            <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 shadow-xs flex flex-col items-center">
               <AdecontLogo
                 variant="color"
                 showTagline={true}
-                className="h-14 sm:h-16 w-auto max-w-[220px]"
+                className="h-16 sm:h-18 w-auto max-w-[250px]"
               />
-              <span className="text-[10px] text-slate-500 font-semibold tracking-wider uppercase mt-1">
-                Atendimento Técnico Especializado
+              <span className="text-[10px] text-slate-500 font-bold tracking-wider uppercase mt-1.5 text-center">
+                Assessoria Contábil e Administrativa
               </span>
             </div>
           </div>

@@ -12,11 +12,11 @@ export function PanoramaHero() {
           <div className="lg:col-span-8 space-y-5">
             {/* Tag institucional com logo ADECONT e selo do guia */}
             <div className="flex flex-wrap items-center gap-3">
-              <div className="bg-white/95 rounded-lg px-2.5 py-1.5 shadow-sm inline-flex items-center">
+              <div className="bg-white/95 rounded-lg px-3 py-1.5 shadow-sm inline-flex items-center">
                 <AdecontLogo
                   variant="color"
                   showTagline={false}
-                  className="h-7 w-auto max-w-[130px]"
+                  className="h-8 w-auto max-w-[145px]"
                 />
               </div>
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-400/30 text-blue-300 text-xs font-semibold tracking-wide">

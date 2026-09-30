@@ -1,12 +1,13 @@
 import fs from 'fs'
 import path from 'path'
-
-// Gera PNG binário minimalista com canvas puro sem dependências externas ou gera ICO embutindo bitmaps
-// Como no Node padrão sem dependências gráficas gerar PNG puro requer encoder zlib:
 import zlib from 'zlib'
 
+/**
+ * Script de geração de ícones e favicons da ADECONT a partir do novo traço oficial:
+ * - Arco azul-marinho profundo (#251A54) em formato curvo pontiagudo
+ * - Esfera central em degradê esférico com ponto de luz (#FFFFFF -> #A8DDF7 -> #4FA8DC -> #1C75B7 -> #145A91)
+ */
 function createPng(width, height, drawFn) {
-  // Matriz RGBA
   const buffer = Buffer.alloc(height * (1 + width * 4))
   for (let y = 0; y < height; y++) {
     const rowOffset = y * (1 + width * 4)
@@ -23,7 +24,6 @@ function createPng(width, height, drawFn) {
 
   const compressed = zlib.deflateSync(buffer)
 
-  // Chunk helper
   function makeChunk(type, data) {
     const len = data.length
     const buf = Buffer.alloc(4 + 4 + len + 4)
@@ -35,10 +35,8 @@ function createPng(width, height, drawFn) {
     return buf
   }
 
-  // PNG Signature
   const sig = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])
 
-  // IHDR
   const ihdr = Buffer.alloc(13)
   ihdr.writeUInt32BE(width, 0)
   ihdr.writeUInt32BE(height, 4)
@@ -55,7 +53,6 @@ function createPng(width, height, drawFn) {
   return Buffer.concat([sig, ihdrChunk, idatChunk, iendChunk])
 }
 
-// CRC32 table
 const crcTable = []
 for (let n = 0; n < 256; n++) {
   let c = n
@@ -74,30 +71,25 @@ function calcCrc(buf) {
   return (c ^ 0xffffffff) >>> 0
 }
 
-// Desenhar o símbolo ADECONT:
-// Arco azul-marinho (#0B1033 -> RGB 11, 16, 51)
-// Esfera central com degradê azul-claro (#38BDF8 -> #0284C7)
+/**
+ * Renderiza o símbolo oficial ADECONT:
+ * - Cor primária do arco: #251A54 (R: 37, G: 26, B: 84)
+ * - Esfera central: ciano/azul com ponto de luz
+ */
 function renderAdecontSymbol(x, y, w, h, options = {}) {
   const nx = x / w
   const ny = y / h
 
-  // Se tiver fundo arredondado (estilo apple-touch-icon)
+  // Fundo arredondado suave caso solicitado
   if (options.roundedBg) {
-    const cornerR = 0.2
-    let inCard = true
+    const cornerR = 0.22
     const dx = Math.max(0, Math.abs(nx - 0.5) - (0.5 - cornerR))
     const dy = Math.max(0, Math.abs(ny - 0.5) - (0.5 - cornerR))
     if (dx * dx + dy * dy > cornerR * cornerR) {
-      return [0, 0, 0, 0] // fora dos cantos arredondados
+      return [0, 0, 0, 0]
     }
   }
 
-  // Normalização do símbolo ADECONT:
-  // Centro X = 0.5
-  // Arco superior: cúpula parabólica/gótica de y ~ 0.22 a y ~ 0.80
-  // Esfera central em (0.5, 0.52), raio ~ 0.13
-
-  // Fundo base se options.bg:
   let bgR = 0,
     bgG = 0,
     bgB = 0,
@@ -109,39 +101,44 @@ function renderAdecontSymbol(x, y, w, h, options = {}) {
     bgA = options.bg[3]
   }
 
-  // 1. Esfera central: centro cx = 0.5, cy = 0.53, raio = 0.14
+  // 1. Esfera central: centro (0.5, 0.52), raio ~ 0.135
   const scx = 0.5
-  const scy = 0.54
-  const sR = 0.14
+  const scy = 0.52
+  const sR = 0.135
   const sdist = Math.sqrt((nx - scx) * (nx - scx) + (ny - scy) * (ny - scy))
 
   if (sdist <= sR) {
-    // Gradiente esférico: ponto de luz em (0.46, 0.49)
-    const lx = 0.46
-    const ly = 0.48
-    const ldist = Math.sqrt((nx - lx) * (nx - lx) + (ny - ly) * (ny - ly)) / (sR * 1.6)
+    // Ponto de luz no quadrante superior central
+    const lx = 0.47
+    const ly = 0.46
+    const ldist = Math.sqrt((nx - lx) * (nx - lx) + (ny - ly) * (ny - ly)) / (sR * 1.55)
     const t = Math.min(Math.max(ldist, 0), 1)
 
-    // Interpolação de #FFFFFF -> #38BDF8 -> #0284C7 -> #0369A1
+    // Cores: #FFFFFF (255,255,255) -> #A8DDF7 (168,221,247) -> #4FA8DC (79,168,220) -> #1C75B7 (28,117,183) -> #145A91 (20,90,145)
     let r, g, b
-    if (t < 0.3) {
-      const f = t / 0.3
-      r = Math.round(255 + f * (56 - 255))
-      g = Math.round(255 + f * (189 - 255))
-      b = Math.round(255 + f * (248 - 255))
-    } else if (t < 0.75) {
-      const f = (t - 0.3) / 0.45
-      r = Math.round(56 + f * (2 - 56))
-      g = Math.round(189 + f * (132 - 189))
-      b = Math.round(248 + f * (199 - 248))
+    if (t < 0.25) {
+      const f = t / 0.25
+      r = Math.round(255 + f * (168 - 255))
+      g = Math.round(255 + f * (221 - 255))
+      b = Math.round(255 + f * (247 - 255))
+    } else if (t < 0.6) {
+      const f = (t - 0.25) / 0.35
+      r = Math.round(168 + f * (79 - 168))
+      g = Math.round(221 + f * (168 - 221))
+      b = Math.round(247 + f * (220 - 247))
+    } else if (t < 0.85) {
+      const f = (t - 0.6) / 0.25
+      r = Math.round(79 + f * (28 - 79))
+      g = Math.round(168 + f * (117 - 168))
+      b = Math.round(220 + f * (183 - 220))
     } else {
-      const f = (t - 0.75) / 0.25
-      r = Math.round(2 + f * (3 - 2))
-      g = Math.round(132 + f * (105 - 132))
-      b = Math.round(199 + f * (161 - 199))
+      const f = (t - 0.85) / 0.15
+      r = Math.round(28 + f * (20 - 28))
+      g = Math.round(117 + f * (90 - 117))
+      b = Math.round(183 + f * (145 - 183))
     }
 
-    // Suavização da borda da esfera (anti-aliasing)
+    // Suavização anti-aliasing
     const edge = sR - sdist
     const pxSize = 1 / Math.min(w, h)
     const alpha = Math.min(Math.max(edge / pxSize, 0), 1)
@@ -157,23 +154,19 @@ function renderAdecontSymbol(x, y, w, h, options = {}) {
   }
 
   // 2. Arco ADECONT:
-  // Cúpula externa: de base y = 0.82 (x = 0.12 e 0.88) até topo y = 0.18 (x = 0.5)
-  // Cúpula interna: corte elíptico inferior
+  // Cúpula superior com pontas estendidas
   const dx = Math.abs(nx - 0.5)
 
-  // Curva externa do arco (topo da cúpula):
-  // Em dx = 0 -> y = 0.21. Em dx = 0.40 -> y ~ 0.74
-  const yExt = 0.21 + 2.8 * Math.pow(dx, 1.8)
+  // Curva externa superior
+  const yExt = 0.16 + 2.7 * Math.pow(dx, 1.7)
+  // Curva interna inferior
+  const yInt = 0.23 + 3.8 * Math.pow(dx, 1.55)
 
-  // Curva interna do arco (intradorso):
-  // Em dx = 0 -> y = 0.28. Em dx = 0.38 -> y ~ 0.80
-  const yInt = 0.28 + 3.6 * Math.pow(dx, 1.6)
-
-  const inArch = ny >= yExt && ny <= yInt && dx <= 0.42 && ny <= 0.8
+  const inArch = ny >= yExt && ny <= yInt && dx <= 0.42 && ny <= 0.82
 
   if (inArch) {
-    // Cor azul marinho #0B1033 (RGB: 11, 16, 51)
-    return [11, 16, 51, 255]
+    // Cor azul marinho oficial #251A54 (RGB: 37, 26, 84)
+    return [37, 26, 84, 255]
   }
 
   return [bgR, bgG, bgB, bgA]
@@ -189,12 +182,12 @@ const png16 = createPng(16, 16, (x, y, w, h) =>
   renderAdecontSymbol(x, y, w, h, { bg: [0, 0, 0, 0] }),
 )
 
-// 3. Gerar Apple Touch Icon 180x180 PNG (com fundo elegante suave)
+// 3. Gerar Apple Touch Icon 180x180 PNG com fundo claro
 const png180 = createPng(180, 180, (x, y, w, h) =>
   renderAdecontSymbol(x, y, w, h, { bg: [248, 250, 252, 255], roundedBg: true }),
 )
 
-// 4. Gerar Ícone 192x192 e 512x512
+// 4. Gerar Ícones 192x192 e 512x512
 const png192 = createPng(192, 192, (x, y, w, h) =>
   renderAdecontSymbol(x, y, w, h, { bg: [0, 0, 0, 0] }),
 )
@@ -202,7 +195,7 @@ const png512 = createPng(512, 512, (x, y, w, h) =>
   renderAdecontSymbol(x, y, w, h, { bg: [0, 0, 0, 0] }),
 )
 
-// 5. Montar arquivo .ICO válido contendo 16x16 e 32x32 embutidos como PNGs (formato ICO moderno oficial)
+// 5. Montar arquivo .ICO válido
 function createIco(images) {
   const count = images.length
   const headerLen = 6
@@ -210,9 +203,9 @@ function createIco(images) {
   let offset = headerLen + dirEntryLen * count
 
   const header = Buffer.alloc(headerLen)
-  header.writeUInt16LE(0, 0) // Reserved
-  header.writeUInt16LE(1, 2) // Type 1 = ICO
-  header.writeUInt16LE(count, 4) // Count
+  header.writeUInt16LE(0, 0)
+  header.writeUInt16LE(1, 2)
+  header.writeUInt16LE(count, 4)
 
   const entries = []
   const dataList = []
@@ -221,12 +214,12 @@ function createIco(images) {
     const entry = Buffer.alloc(dirEntryLen)
     entry.writeUInt8(img.width >= 256 ? 0 : img.width, 0)
     entry.writeUInt8(img.height >= 256 ? 0 : img.height, 1)
-    entry.writeUInt8(0, 2) // color palette
-    entry.writeUInt8(0, 3) // reserved
-    entry.writeUInt16LE(1, 4) // color planes
-    entry.writeUInt16LE(32, 6) // bits per pixel
-    entry.writeUInt32LE(img.data.length, 8) // size of image data
-    entry.writeUInt32LE(offset, 12) // offset
+    entry.writeUInt8(0, 2)
+    entry.writeUInt8(0, 3)
+    entry.writeUInt16LE(1, 4)
+    entry.writeUInt16LE(32, 6)
+    entry.writeUInt32LE(img.data.length, 8)
+    entry.writeUInt32LE(offset, 12)
     entries.push(entry)
     dataList.push(img.data)
     offset += img.data.length
@@ -248,7 +241,7 @@ fs.writeFileSync('public/apple-touch-icon.png', png180)
 fs.writeFileSync('public/icon-192.png', png192)
 fs.writeFileSync('public/icon-512.png', png512)
 
-// Salvar também em artifacts/ conforme solicitado pelo usuário
+// Salvar também em artifacts/ para consulta
 if (!fs.existsSync('artifacts')) {
   fs.mkdirSync('artifacts', { recursive: true })
 }
@@ -256,4 +249,6 @@ fs.writeFileSync('artifacts/adecont-favicon.ico', icoBuffer)
 fs.writeFileSync('artifacts/adecont-favicon-32.png', png32)
 fs.writeFileSync('artifacts/adecont-favicon-180.png', png180)
 
-console.log('Todos os favicons e ícones ADECONT foram gerados com sucesso!')
+console.log(
+  'Todos os favicons e ícones ADECONT foram gerados com sucesso a partir do novo traço oficial!',
+)

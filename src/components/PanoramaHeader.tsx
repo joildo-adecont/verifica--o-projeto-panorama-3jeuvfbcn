@@ -171,7 +171,7 @@ export function PanoramaHeader({
                 <AdecontLogo
                   variant="color"
                   showTagline={true}
-                  className="h-10 sm:h-12 md:h-14 w-auto max-w-[170px] sm:max-w-[210px] md:max-w-[230px]"
+                  className="h-11 sm:h-13 md:h-14 w-auto max-w-[190px] sm:max-w-[230px] md:max-w-[250px]"
                 />
               </div>
             </a>

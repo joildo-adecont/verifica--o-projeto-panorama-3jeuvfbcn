@@ -8,7 +8,7 @@ describe('Validação dos fluxos do Panorama da Reforma Tributária', () => {
       phone: '(11) 98765-4321',
       message: 'Consulta sobre incidência do IBS/CBS em regime monofásico',
     }
-    expect(inquiry.name).toBeTruthy()
+    expect(inquiry.name).toBe('Dr. Verificador Teste')
     expect(inquiry.email).toContain('@')
     expect(inquiry.phone).toBeTruthy()
   })

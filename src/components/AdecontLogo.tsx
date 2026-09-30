@@ -1,19 +1,20 @@
 import React from 'react'
 
-interface AdecontLogoProps extends React.SVGProps<SVGSVGElement> {
+export interface AdecontLogoProps extends React.SVGProps<SVGSVGElement> {
   variant?: 'color' | 'white' | 'dark'
   showTagline?: boolean
   className?: string
 }
 
 /**
- * Logo oficial ADECONT Assessoria Contábil e Administrativa
- * Recriado vetorialmente com máxima fidelidade à marca oficial:
- * - Arco/cúpula superior em azul-marinho (#0B1033)
- * - Esfera central em degradê azul-ciano com brilho radial (#29B6F6 -> #0288D1)
- * - Tipografia estilizada "ADECONT" com cantos suavemente facetados e traços característicos
- * - "ASSESSORIA" com espaçamento estendido entre letras
- * - Tagline "ASSESSORIA CONTÁBIL E ADMINISTRATIVA" (ou "CONTÁBIL E ADMINISTRATIVA" conforme solicitação)
+ * Logo Oficial ADECONT — Assessoria Contábil e Administrativa
+ * Traçado vetorial fiel reproduzido a partir do logotipo oficial de alta resolução:
+ * 1. Arco superior azul-marinho (#251A54) em forma de cúpula com pontas afiladas e curvatura precisa.
+ * 2. Esfera central em degradê esférico com ponto de luz (#FFFFFF -> #7BC5EE -> #2C88CA -> #165691).
+ * 3. Logotipia 'ADECONT' com corte moderno e geometria sólida.
+ * 4. 'ASSESSORIA' com espaçamento largo entre caracteres e linha horizontal subjacente.
+ * 5. Tagline oficial 'ASSESSORIA CONTÁBIL E ADMINISTRATIVA' (ou 'ADMINISTRATIVA, CONTÁBIL'),
+ *    sem a palavra JURÍDICA conforme diretriz mandatória permanente do cliente.
  */
 export function AdecontLogo({
   variant = 'color',
@@ -21,18 +22,18 @@ export function AdecontLogo({
   className = 'h-12 w-auto',
   ...props
 }: AdecontLogoProps) {
-  // Configuração de cores por variante
-  const primaryColor = variant === 'white' ? '#FFFFFF' : '#0B1033'
-  const secondaryColor = variant === 'white' ? '#E2E8F0' : '#1E293B'
-  const accentLight = variant === 'white' ? '#93C5FD' : '#38BDF8'
-  const accentMid = variant === 'white' ? '#60A5FA' : '#0284C7'
-  const accentDark = variant === 'white' ? '#3B82F6' : '#0369A1'
+  // Cores de acordo com a variante (color = oficial azul escuro #251A54, white = fundos escuros)
+  const isWhite = variant === 'white'
+  const brandDark = '#251A54'
+  const primaryColor = isWhite ? '#FFFFFF' : brandDark
+  const secondaryColor = isWhite ? '#CBD5E1' : '#2D205E'
+  const ruleColor = isWhite ? '#94A3B8' : brandDark
 
-  const idPrefix = React.useId().replace(/:/g, '')
+  const id = React.useId().replace(/:/g, '')
 
   return (
     <svg
-      viewBox="0 0 620 340"
+      viewBox="0 0 1000 560"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
@@ -41,186 +42,205 @@ export function AdecontLogo({
       {...props}
     >
       <defs>
-        {/* Gradiente da esfera azul-claro com ponto de luz central */}
-        <radialGradient id={`${idPrefix}-sphereGrad`} cx="48%" cy="42%" r="54%" fx="46%" fy="38%">
+        {/* Gradiente radial esférico com ponto de luz suave deslocado ao topo-centro */}
+        <radialGradient id={`${id}-adecontSphere`} cx="48%" cy="42%" r="56%" fx="46%" fy="38%">
           <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.95" />
-          <stop offset="25%" stopColor={accentLight} />
-          <stop offset="65%" stopColor={accentMid} />
-          <stop offset="100%" stopColor={accentDark} />
+          <stop offset="22%" stopColor="#A8DDF7" />
+          <stop offset="55%" stopColor="#4FA8DC" />
+          <stop offset="85%" stopColor="#1C75B7" />
+          <stop offset="100%" stopColor="#145A91" />
         </radialGradient>
 
-        {/* Suave sombra da esfera */}
-        <filter id={`${idPrefix}-sphereShadow`} x="-15%" y="-15%" width="130%" height="130%">
-          <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#0284C7" floodOpacity="0.35" />
-        </filter>
+        {/* Suave sombra projetada pela esfera no fundo claro */}
+        {!isWhite && (
+          <filter id={`${id}-sphereGlow`} x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="4" stdDeviation="6" floodColor="#1C75B7" floodOpacity="0.25" />
+          </filter>
+        )}
       </defs>
 
-      {/* SÍMBOLO: Arco/Olho superior */}
-      <g id="simbolo">
-        {/* Arco superior: forma de cúpula com ponta suave e abertura inferior elíptica */}
+      {/* SÍMBOLO ADECONT: ARCO SUPERIOR + ESFERA */}
+      <g id="adecont-simbolo">
+        {/* Arco superior: forma de cúpula com pontas finas e curvatura característica */}
         <path
-          d="M 80 188 
-             C 150 92, 222 6, 310 2 
-             C 398 6, 470 92, 540 188 
-             C 460 52, 395 24, 310 24 
-             C 225 24, 160 52, 80 188 Z"
+          d="M 120 370
+             C 175 295, 230 200, 315 115
+             C 385 45, 445 10, 500 0
+             C 555 10, 615 45, 685 115
+             C 770 200, 825 295, 880 370
+             C 800 230, 735 150, 650 90
+             C 585 45, 545 28, 500 28
+             C 455 28, 415 45, 350 90
+             C 265 150, 200 230, 120 370 Z"
           fill={primaryColor}
         />
-        {/* Esfera azul-claro central */}
+
+        {/* Esfera central com gradiente tridimensional */}
         <circle
-          cx="310"
-          cy="118"
-          r="40"
-          fill={`url(#${idPrefix}-sphereGrad)`}
-          filter={`url(#${idPrefix}-sphereShadow)`}
-        />{' '}
-      </g>
-
-      {/* LOGOTIPO: "ADECONT" com desenho geométrico característico */}
-      <g id="texto-adecont" fill={primaryColor}>
-        {/* A */}
-        <path
-          d="M 52 258 
-             L 86 194 
-             L 94 194 
-             L 128 258 
-             L 110 258 
-             L 100 238 
-             L 80 238 
-             L 70 258 Z 
-             M 85 224 
-             L 95 224 
-             L 90 211 Z"
-          fillRule="evenodd"
-        />
-
-        {/* D */}
-        <path
-          d="M 138 194 
-             L 174 194 
-             C 192 194, 203 206, 203 226 
-             C 203 246, 192 258, 174 258 
-             L 138 258 Z 
-             M 155 210 
-             L 155 242 
-             L 172 242 
-             C 182 242, 187 236, 187 226 
-             C 187 216, 182 210, 172 210 Z"
-          fillRule="evenodd"
-        />
-
-        {/* E */}
-        <path
-          d="M 214 194 
-             L 268 194 
-             L 268 209 
-             L 231 209 
-             L 231 218 
-             L 262 218 
-             L 262 233 
-             L 231 233 
-             L 231 243 
-             L 268 243 
-             L 268 258 
-             L 214 258 Z"
-        />
-
-        {/* C */}
-        <path
-          d="M 330 209 
-             L 316 209 
-             C 303 209, 296 215, 296 226 
-             C 296 237, 303 243, 316 243 
-             L 330 243 
-             L 330 258 
-             L 316 258 
-             C 292 258, 279 245, 279 226 
-             C 279 207, 292 194, 316 194 
-             L 330 194 Z"
-        />
-
-        {/* O */}
-        <path
-          d="M 358 194 
-             C 382 194, 395 207, 395 226 
-             C 395 245, 382 258, 358 258 
-             C 334 258, 321 245, 321 226 
-             C 321 207, 334 194, 358 194 Z 
-             M 358 210 
-             C 347 210, 338 216, 338 226 
-             C 338 236, 347 242, 358 242 
-             C 369 242, 378 236, 378 226 
-             C 378 216, 369 210, 358 210 Z"
-          fillRule="evenodd"
-        />
-
-        {/* N */}
-        <path
-          d="M 406 194 
-             L 423 194 
-             L 451 238 
-             L 451 194 
-             L 468 194 
-             L 468 258 
-             L 451 258 
-             L 423 214 
-             L 423 258 
-             L 406 258 Z"
-        />
-
-        {/* T */}
-        <path
-          d="M 479 194 
-             L 541 194 
-             L 541 209 
-             L 519 209 
-             L 519 258 
-             L 501 258 
-             L 501 209 
-             L 479 209 Z"
+          cx="500"
+          cy="215"
+          r="58"
+          fill={`url(#${id}-adecontSphere)`}
+          filter={!isWhite ? `url(#${id}-sphereGlow)` : undefined}
         />
       </g>
 
-      {/* SUB-PALAVRA: "ASSESSORIA" com tracking largo */}
-      <g id="texto-assessoria">
+      {/* LOGOTIPO ADECONT VETORIAL DE ALTA DEFINIÇÃO */}
+      <g id="adecont-texto" fill={primaryColor}>
+        {/* LETRA A: estilo estendido com corte angular moderno */}
+        <path
+          d="M 5 430
+             L 55 350
+             L 115 350
+             L 142 430
+             L 110 430
+             L 100 400
+             L 48 400
+             L 36 430
+             Z
+             M 57 375
+             L 92 375
+             L 85 355
+             L 65 355
+             Z"
+          fillRule="evenodd"
+        />
+
+        {/* LETRA D: cantos arredondados à direita e interior nítido */}
+        <path
+          d="M 155 350
+             L 225 350
+             C 255 350, 275 365, 275 390
+             C 275 415, 255 430, 225 430
+             L 155 430
+             Z
+             M 183 373
+             L 183 407
+             L 218 407
+             C 235 407, 246 400, 246 390
+             C 246 380, 235 373, 218 373
+             Z"
+          fillRule="evenodd"
+        />
+
+        {/* LETRA E: barra central e superior com corte limpo */}
+        <path
+          d="M 290 350
+             L 375 350
+             L 375 373
+             L 318 373
+             L 318 381
+             L 368 381
+             L 368 401
+             L 318 401
+             L 318 407
+             L 375 407
+             L 375 430
+             L 290 430
+             Z"
+        />
+
+        {/* LETRA C: abertura ampla e cantos externos ligeiramente facetados */}
+        <path
+          d="M 470 373
+             L 448 373
+             C 432 373, 420 380, 420 390
+             C 420 400, 432 407, 448 407
+             L 470 407
+             L 470 430
+             L 445 430
+             C 410 430, 390 415, 390 390
+             C 390 365, 410 350, 445 350
+             L 470 350
+             Z"
+        />
+
+        {/* LETRA O: proporções condizentes com C e D */}
+        <path
+          d="M 525 350
+             C 560 350, 582 365, 582 390
+             C 582 415, 560 430, 525 430
+             C 490 430, 468 415, 468 390
+             C 468 365, 490 350, 525 350
+             Z
+             M 525 373
+             C 542 373, 553 380, 553 390
+             C 553 400, 542 407, 525 407
+             C 508 407, 497 400, 497 390
+             C 497 380, 508 373, 525 373
+             Z"
+          fillRule="evenodd"
+        />
+
+        {/* LETRA N: traço diagonal com junção sólida */}
+        <path
+          d="M 598 350
+             L 626 350
+             L 674 407
+             L 674 350
+             L 702 350
+             L 702 430
+             L 674 430
+             L 626 373
+             L 626 430
+             L 598 430
+             Z"
+        />
+
+        {/* LETRA T: barra horizontal ampla no topo */}
+        <path
+          d="M 718 350
+             L 815 350
+             L 815 373
+             L 780 373
+             L 780 430
+             L 753 430
+             L 753 373
+             L 718 373
+             Z"
+        />
+      </g>
+
+      {/* SUB-PALAVRA: 'A S S E S S O R I A' COM TRACKING EXCLUSIVO */}
+      <g id="adecont-assessoria">
         <text
-          x="310"
-          y="290"
+          x="500"
+          y="472"
           textAnchor="middle"
           fill={primaryColor}
           fontFamily="system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
-          fontSize="24"
-          fontWeight="800"
-          letterSpacing="18"
+          fontSize="36"
+          fontWeight="900"
+          letterSpacing="28"
           style={{ textTransform: 'uppercase' }}
         >
           A S S E S S O R I A
         </text>
 
-        {/* Linha horizontal decorativa sob assessoria */}
+        {/* Linha horizontal inferior precisa sob ASSESSORIA */}
         <line
-          x1="32"
-          y1="298"
-          x2="588"
-          y2="298"
-          stroke={primaryColor}
-          strokeWidth="1.5"
-          strokeOpacity={variant === 'white' ? '0.7' : '0.85'}
+          x1="5"
+          y1="486"
+          x2="995"
+          y2="486"
+          stroke={ruleColor}
+          strokeWidth="3.2"
+          strokeOpacity={isWhite ? '0.75' : '0.95'}
         />
       </g>
 
-      {/* TAGLINE: "CONTÁBIL E ADMINISTRATIVA" (ou "ADMINISTRATIVA E CONTÁBIL" sem a palavra JURÍDICA) */}
+      {/* TAGLINE: 'ASSESSORIA CONTÁBIL E ADMINISTRATIVA' — SEM A PALAVRA JURÍDICA */}
       {showTagline && (
-        <g id="tagline">
+        <g id="adecont-tagline">
           <text
-            x="310"
-            y="326"
+            x="500"
+            y="534"
             textAnchor="middle"
             fill={secondaryColor}
             fontFamily="system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
-            fontSize="14.5"
-            fontWeight="700"
-            letterSpacing="6.5"
+            fontSize="26"
+            fontWeight="800"
+            letterSpacing="12"
             style={{ textTransform: 'uppercase' }}
           >
             CONTÁBIL E ADMINISTRATIVA
@@ -243,19 +263,19 @@ export function AdecontBadge({
 }) {
   const isWhite = variant === 'white'
   return (
-    <div className={`inline-flex items-center gap-3 ${className}`}>
+    <div className={`inline-flex items-center gap-3.5 ${className}`}>
       <AdecontLogo variant={variant} showTagline={false} className="h-full w-auto shrink-0" />
       <div className="flex flex-col justify-center leading-none">
         <span
-          className={`font-black text-sm md:text-base tracking-wider ${
-            isWhite ? 'text-white' : 'text-[#0B1033]'
+          className={`font-black text-sm md:text-base tracking-widest ${
+            isWhite ? 'text-white' : 'text-[#251A54]'
           }`}
         >
           ADECONT
         </span>
         <span
           className={`text-[9px] md:text-[10px] font-bold tracking-widest uppercase mt-0.5 ${
-            isWhite ? 'text-blue-200' : 'text-blue-800'
+            isWhite ? 'text-blue-200' : 'text-[#3B2D77]'
           }`}
         >
           Assessoria Contábil e Administrativa

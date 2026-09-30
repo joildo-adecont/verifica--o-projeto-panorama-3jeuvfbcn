@@ -13,11 +13,11 @@ export function PanoramaFooter() {
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 pb-8 border-b border-slate-800/80">
           <div className="flex flex-col sm:flex-row sm:items-center gap-4">
             {/* Box do logo ADECONT em fundo claro para máximo contraste e nitidez */}
-            <div className="bg-white rounded-xl p-2.5 shadow-sm inline-flex items-center shrink-0">
+            <div className="bg-white rounded-xl p-3 shadow-sm inline-flex items-center shrink-0">
               <AdecontLogo
                 variant="color"
                 showTagline={true}
-                className="h-12 sm:h-14 w-auto max-w-[210px]"
+                className="h-14 sm:h-16 w-auto max-w-[240px]"
               />
             </div>
             <div>
