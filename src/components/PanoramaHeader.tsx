@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
-import { RotateCw, Clock, ExternalLink, Search, Scale, Menu, X, FileText } from 'lucide-react'
+import { RotateCw, Clock, ExternalLink, Search, Menu, X, FileText } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { AdecontLogo } from '@/components/AdecontLogo'
 import { fetchSourceStatuses, triggerSourceCheck } from '@/services/panorama'
 import { useToast } from '@/hooks/use-toast'
 import type { SourceStatusItem } from '@/types/panorama'
@@ -157,25 +158,39 @@ export function PanoramaHeader({
       </div>
 
       {/* Main Header */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3.5">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3">
         <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-700 to-indigo-900 text-white flex items-center justify-center font-bold shadow-sm">
-              <Scale className="w-5 h-5 text-amber-300" />
-            </div>
+          <div className="flex items-center gap-3 md:gap-4">
+            {/* Logo oficial da ADECONT Assessoria Contábil e Administrativa */}
+            <a
+              href="#"
+              className="group flex items-center shrink-0 transition-opacity hover:opacity-90"
+              title="ADECONT Assessoria Contábil e Administrativa"
+            >
+              <div className="bg-white rounded-lg p-1 border border-slate-200/80 shadow-xs flex items-center">
+                <AdecontLogo
+                  variant="color"
+                  showTagline={true}
+                  className="h-10 sm:h-12 md:h-14 w-auto max-w-[170px] sm:max-w-[210px] md:max-w-[230px]"
+                />
+              </div>
+            </a>
+
+            <div className="hidden sm:block h-10 w-px bg-slate-200" />
+
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-lg md:text-xl font-bold tracking-tight text-slate-900">
+                <h1 className="text-base sm:text-lg md:text-xl font-bold tracking-tight text-slate-900 leading-tight">
                   Panorama da Reforma Tributária
                 </h1>
                 <Badge
                   variant="outline"
-                  className="border-blue-600 text-blue-700 bg-blue-50 text-[10px] uppercase font-bold"
+                  className="border-blue-600 text-blue-700 bg-blue-50 text-[10px] uppercase font-bold shrink-0 hidden md:inline-flex"
                 >
                   IBS / CBS / IS
                 </Badge>
               </div>
-              <p className="text-xs text-slate-500">
+              <p className="text-[11px] sm:text-xs text-slate-500 truncate max-w-md">
                 Guia Estruturado • LC 214/2025, LC 227/2026, Dec. 12.955 & Res. CGIBS 6/2026
               </p>
             </div>

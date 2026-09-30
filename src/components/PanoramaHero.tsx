@@ -1,27 +1,28 @@
-import {
-  Scale,
-  ShieldCheck,
-  Calendar,
-  Layers,
-  ArrowRight,
-  TrendingDown,
-  Info,
-  Building2,
-  FileCheck,
-} from 'lucide-react'
+import { ShieldCheck, Calendar, Layers, ArrowRight, Info, FileCheck } from 'lucide-react'
+import { AdecontLogo } from '@/components/AdecontLogo'
 
 export function PanoramaHero() {
   return (
-    <div className="bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white py-12 md:py-16 px-4 sm:px-6 relative overflow-hidden border-b border-slate-800">
+    <div className="bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white py-10 md:py-14 px-4 sm:px-6 relative overflow-hidden border-b border-slate-800">
       {/* Background patterns */}
       <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none" />
 
       <div className="max-w-7xl mx-auto relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-          <div className="lg:col-span-8 space-y-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-400/30 text-blue-300 text-xs font-semibold tracking-wide">
-              <ShieldCheck className="w-3.5 h-3.5 text-blue-400" />
-              <span>GUIA PRÁTICO OFICIAL & CONSOLIDADO — VERSÃO 2026/2027</span>
+          <div className="lg:col-span-8 space-y-5">
+            {/* Tag institucional com logo ADECONT e selo do guia */}
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="bg-white/95 rounded-lg px-2.5 py-1.5 shadow-sm inline-flex items-center">
+                <AdecontLogo
+                  variant="color"
+                  showTagline={false}
+                  className="h-7 w-auto max-w-[130px]"
+                />
+              </div>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-400/30 text-blue-300 text-xs font-semibold tracking-wide">
+                <ShieldCheck className="w-3.5 h-3.5 text-blue-400" />
+                <span>PUBLICAÇÃO TÉCNICA OFICIAL • VERSÃO 2026/2027</span>
+              </div>
             </div>
 
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white leading-tight">

@@ -1,4 +1,5 @@
-import { Scale, Heart, ShieldCheck, ArrowUp } from 'lucide-react'
+import { ArrowUp, Building2, ShieldCheck } from 'lucide-react'
+import { AdecontLogo } from '@/components/AdecontLogo'
 
 export function PanoramaFooter() {
   const scrollToTop = () => {
@@ -6,73 +7,93 @@ export function PanoramaFooter() {
   }
 
   return (
-    <footer className="bg-slate-950 text-slate-400 text-xs border-t border-slate-800 py-10 px-4 sm:px-6">
-      <div className="max-w-7xl mx-auto space-y-8">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 pb-6 border-b border-slate-800/80">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold">
-              <Scale className="w-4 h-4 text-amber-300" />
+    <footer className="bg-slate-950 text-slate-400 text-xs border-t border-slate-800 py-12 px-4 sm:px-6">
+      <div className="max-w-7xl mx-auto space-y-10">
+        {/* Top bar do Footer com o Logo da ADECONT */}
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 pb-8 border-b border-slate-800/80">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+            {/* Box do logo ADECONT em fundo claro para máximo contraste e nitidez */}
+            <div className="bg-white rounded-xl p-2.5 shadow-sm inline-flex items-center shrink-0">
+              <AdecontLogo
+                variant="color"
+                showTagline={true}
+                className="h-12 sm:h-14 w-auto max-w-[210px]"
+              />
             </div>
             <div>
-              <span className="text-sm font-bold text-white block">
-                Panorama da Reforma Tributária — IBS/CBS
+              <span className="text-base font-bold text-white block tracking-tight">
+                ADECONT — Assessoria Contábil e Administrativa
               </span>
-              <span className="text-[11px] text-slate-400">
-                Iniciativa técnica de acompanhamento da Emenda Constitucional 132 e Leis
-                Complementares.
+              <span className="text-xs text-slate-400 block mt-0.5">
+                Panorama da Reforma Tributária • Publicação técnica especializada IBS / CBS / IS
               </span>
             </div>
           </div>
 
           <button
             onClick={scrollToTop}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition-colors self-end md:self-auto"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition-colors self-end md:self-auto border border-slate-700/80"
           >
             <span>Voltar ao topo</span>
             <ArrowUp className="w-3.5 h-3.5" />
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-[11px] leading-relaxed">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-[11px] leading-relaxed">
           <div>
-            <h5 className="font-bold text-slate-200 mb-2 uppercase tracking-wider text-[10px]">
-              Coordenação & Atualização
+            <h5 className="font-bold text-slate-200 mb-2.5 uppercase tracking-wider text-[10px] flex items-center gap-1.5">
+              <Building2 className="w-3.5 h-3.5 text-blue-400" />
+              Institucional ADECONT
             </h5>
             <p className="text-slate-400">
-              Conteúdo curado e revisado sob demanda por <strong>Antonio Joildo</strong>. Rotina de
-              monitoramento semanal de atos da Receita Federal e CGIBS.
+              Assessoria contábil e administrativa especializada em conformidade fiscal,
+              planejamento societário e transição tributária para empresas de todos os portes.
             </p>
           </div>
 
           <div>
-            <h5 className="font-bold text-slate-200 mb-2 uppercase tracking-wider text-[10px]">
+            <h5 className="font-bold text-slate-200 mb-2.5 uppercase tracking-wider text-[10px] flex items-center gap-1.5">
+              <ShieldCheck className="w-3.5 h-3.5 text-blue-400" />
+              Coordenação Técnica
+            </h5>
+            <p className="text-slate-400">
+              Conteúdo curado pela equipe da <strong>ADECONT Assessoria</strong> com coordenação de{' '}
+              <strong>Antonio Joildo</strong>. Rotina contínua de monitoramento de atos da Receita
+              Federal e resoluções do CGIBS.
+            </p>
+          </div>
+
+          <div>
+            <h5 className="font-bold text-slate-200 mb-2.5 uppercase tracking-wider text-[10px]">
               Estrutura Normativa
             </h5>
             <p className="text-slate-400">
-              EC 132/2023 • LC 214/2025 • LC 227/2026 • Decreto 12.955/2026 • Resolução CGIBS 6/2026
-              (RIBS).
+              EC 132/2023 • LC 214/2025 • LC 227/2026 • Decreto 12.955/2026 • Resoluções CGIBS
+              (RIBS). Monitoramento dos impactos no Simples Nacional e Lucro Presumido/Real.
             </p>
           </div>
 
           <div>
-            <h5 className="font-bold text-slate-200 mb-2 uppercase tracking-wider text-[10px]">
-              Aviso Legal
+            <h5 className="font-bold text-slate-200 mb-2.5 uppercase tracking-wider text-[10px]">
+              Aviso Legal & Direitos
             </h5>
             <p className="text-slate-400">
-              Este panorama reúne disposições legais e regulamentares oficiais com fins informativos
-              e analíticos. As alíquotas de 2033 são estimativas técnicas até promulgação de
-              resolução do Senado.
+              Este panorama reúne disposições legais com fins analíticos e de suporte aos clientes
+              da ADECONT. As alíquotas de 2033 são estimativas técnicas até promulgação de resolução
+              do Senado Federal.
             </p>
           </div>
         </div>
 
-        <div className="pt-4 border-t border-slate-900 flex flex-col sm:flex-row items-center justify-between text-[11px] text-slate-500 gap-2">
+        <div className="pt-6 border-t border-slate-900 flex flex-col sm:flex-row items-center justify-between text-[11px] text-slate-500 gap-3">
           <span>
-            © {new Date().getFullYear()} Panorama da Reforma Tributária. Todos os direitos
-            reservados.
+            © {new Date().getFullYear()} ADECONT Assessoria Contábil e Administrativa. Todos os
+            direitos reservados.
           </span>
-          <span className="flex items-center gap-1">
-            Reconstruído fielmente conforme especificação do Projeto Panorama.
+          <span className="flex items-center gap-2">
+            <span>Panorama da Reforma Tributária</span>
+            <span>•</span>
+            <span className="text-slate-400 font-medium">Publicação Técnica Oficial</span>
           </span>
         </div>
       </div>

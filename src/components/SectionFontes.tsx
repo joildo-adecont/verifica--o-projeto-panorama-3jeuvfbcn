@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { submitInquiry } from '@/services/panorama'
 import { useToast } from '@/hooks/use-toast'
+import { AdecontLogo } from '@/components/AdecontLogo'
 
 export function SectionFontes() {
   const { toast } = useToast()
@@ -225,36 +226,58 @@ export function SectionFontes() {
       {/* Formulário de Dúvidas / Contato Especializado (Integrado com PocketBase inquiries) */}
       <div
         id="contato"
-        className="scroll-mt-24 p-6 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-6"
+        className="scroll-mt-24 p-6 sm:p-8 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-6"
       >
-        <div className="max-w-2xl">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 text-[11px] font-bold mb-2">
-            <UserCheck className="w-3.5 h-3.5" />
-            <span>CONSULTORIA TRIBUTÁRIA & PARECER</span>
+        {/* Cabeçalho do formulário com logo oficial da ADECONT */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-slate-100">
+          <div className="max-w-xl space-y-2">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 text-[11px] font-bold">
+              <UserCheck className="w-3.5 h-3.5" />
+              <span>CONSULTORIA TRIBUTÁRIA & PARECER ESPECIALIZADO</span>
+            </div>
+            <h3 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+              Dúvidas sobre o impacto da Reforma no seu segmento?
+            </h3>
+            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+              Envie sua pergunta ou solicite análise sobre aplicação dos regimes específicos, split
+              payment ou contratos de transição com a equipe da{' '}
+              <strong>ADECONT Assessoria Contábil e Administrativa</strong>.
+            </p>
           </div>
-          <h3 className="text-xl font-bold text-slate-900">
-            Dúvidas sobre o impacto da Reforma no seu segmento?
-          </h3>
-          <p className="text-xs sm:text-sm text-slate-600 mt-1">
-            Envie sua pergunta ou solicite análise sobre aplicação dos regimes específicos, split
-            payment ou contratos de transição.
-          </p>
+
+          <div className="flex flex-col items-start md:items-end shrink-0">
+            <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3 shadow-xs flex flex-col items-center">
+              <AdecontLogo
+                variant="color"
+                showTagline={true}
+                className="h-14 sm:h-16 w-auto max-w-[220px]"
+              />
+              <span className="text-[10px] text-slate-500 font-semibold tracking-wider uppercase mt-1">
+                Atendimento Técnico Especializado
+              </span>
+            </div>
+          </div>
         </div>
 
         {submitted ? (
-          <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 flex items-start gap-3">
-            <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
-            <div className="space-y-1">
-              <h4 className="font-bold text-sm">Mensagem enviada com sucesso!</h4>
-              <p className="text-xs">
-                Seu contato foi registrado no banco de dados e será analisado pela equipe técnica.
+          <div className="p-6 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 flex flex-col sm:flex-row items-start gap-4">
+            <CheckCircle2 className="w-7 h-7 text-emerald-600 shrink-0 mt-0.5" />
+            <div className="space-y-2">
+              <h4 className="font-bold text-base">Mensagem enviada com sucesso à ADECONT!</h4>
+              <p className="text-xs sm:text-sm text-emerald-800 leading-relaxed">
+                Seu contato foi registrado com sucesso em nosso sistema de atendimento e foi
+                encaminhado diretamente aos consultores técnicos da{' '}
+                <strong>ADECONT Assessoria Contábil e Administrativa</strong>. Retornaremos em breve
+                no e-mail ou WhatsApp informado.
               </p>
-              <button
-                onClick={() => setSubmitted(false)}
-                className="text-xs text-blue-700 underline font-semibold mt-2 inline-block"
-              >
-                Enviar nova dúvida
-              </button>
+              <div className="pt-2">
+                <button
+                  onClick={() => setSubmitted(false)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold transition-colors"
+                >
+                  <span>Enviar nova dúvida</span>
+                </button>
+              </div>
             </div>
           </div>
         ) : (
