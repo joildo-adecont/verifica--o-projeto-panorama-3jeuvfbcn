@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { RotateCw, Clock, ExternalLink, Search, Scale, Menu, X, FileText } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { fetchSourceStatuses, triggerSourceCheck } from '@/services/panorama'
+import { useToast } from '@/hooks/use-toast'
 import type { SourceStatusItem } from '@/types/panorama'
 
 interface PanoramaHeaderProps {
@@ -20,6 +21,7 @@ export function PanoramaHeader({
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [sources, setSources] = useState<SourceStatusItem[]>([])
+  const { toast } = useToast()
 
   const loadSourceStatus = useCallback(async () => {
     const data = await fetchSourceStatuses()
@@ -71,9 +73,18 @@ export function PanoramaHeader({
       await triggerSourceCheck()
       // Recarrega o status atualizado do banco
       await loadSourceStatus()
+      toast({
+        title: 'Fontes verificadas com sucesso',
+        description: 'Os servidores do CGIBS, Receita Federal e Planalto foram consultados.',
+      })
       if (onManualRefresh) onManualRefresh()
     } catch (err) {
       console.error('Erro ao verificar fontes:', err)
+      toast({
+        title: 'Erro na verificação de fontes',
+        description: 'Não foi possível completar a consulta imediata aos servidores oficiais.',
+        variant: 'destructive',
+      })
       await loadSourceStatus()
     } finally {
       setIsRefreshing(false)

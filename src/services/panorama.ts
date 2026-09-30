@@ -152,9 +152,12 @@ export async function fetchSourceStatuses(): Promise<SourceStatusItem[]> {
 
 export async function triggerSourceCheck(): Promise<boolean> {
   try {
-    await pb.send('/backend/v1/check-sources', {
+    const res = await pb.send('/backend/v1/check-sources', {
       method: 'POST',
     })
+    if (res && res.success === false) {
+      throw new Error(res.error || 'Falha ao processar verificação das fontes.')
+    }
     return true
   } catch (err) {
     console.error('Falha ao acionar verificação de fontes no backend:', err)

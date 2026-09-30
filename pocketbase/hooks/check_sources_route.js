@@ -1,12 +1,21 @@
 // Rota HTTP para acionamento imediato da verificação das fontes ("Atualizar agora")
-// POST /backend/v1/check-sources
+// POST /backend/v1/check-sources e OPTIONS /backend/v1/check-sources (para preflight CORS de requisições cross-origin do browser)
+
+routerAdd('OPTIONS', '/backend/v1/check-sources', (e) => {
+  e.response.header().set('Access-Control-Allow-Origin', '*')
+  e.response.header().set('Access-Control-Allow-Methods', 'POST, OPTIONS')
+  e.response.header().set('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-token')
+  return e.noContent(204)
+})
 
 routerAdd('POST', '/backend/v1/check-sources', (e) => {
+  e.response.header().set('Access-Control-Allow-Origin', '*')
+
   const sources = [
     {
       key: 'cgibs',
       name: 'CGIBS (Comitê Gestor IBS)',
-      url: 'https://www.cgibs.gov.br',
+      url: 'https://www.cgibs.gov.br/',
       order: 1,
     },
     {
