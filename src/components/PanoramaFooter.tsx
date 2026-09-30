@@ -1,4 +1,4 @@
-import { ArrowUp, Building2, ShieldCheck } from 'lucide-react'
+import { ArrowUp, Building2, ShieldCheck, Tag } from 'lucide-react'
 import { AdecontLogo } from '@/components/AdecontLogo'
 
 export function PanoramaFooter() {
@@ -86,10 +86,17 @@ export function PanoramaFooter() {
         </div>
 
         <div className="pt-6 border-t border-slate-900 flex flex-col sm:flex-row items-center justify-between text-[11px] text-slate-500 gap-3">
-          <span>
-            © {new Date().getFullYear()} ADECONT Assessoria Contábil e Administrativa. Todos os
-            direitos reservados.
-          </span>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+            <span>
+              © {new Date().getFullYear()} ADECONT Assessoria Contábil e Administrativa. Todos os
+              direitos reservados.
+            </span>
+            <span className="hidden sm:inline text-slate-700">•</span>
+            <span className="inline-flex items-center gap-1 text-slate-400">
+              <Tag className="w-3 h-3 text-blue-400" />
+              <span>Conteúdo revisado em 30/09/2026 — Revisão nº 1 (v0.0.16)</span>
+            </span>
+          </div>
           <span className="flex items-center gap-2">
             <span>Panorama da Reforma Tributária</span>
             <span>•</span>

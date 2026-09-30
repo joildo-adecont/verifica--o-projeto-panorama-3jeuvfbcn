@@ -13,8 +13,14 @@ import {
   Sparkles,
   Info,
 } from 'lucide-react'
-import { submitInquiry, fetchLatestContentReview, triggerWeeklyReview } from '@/services/panorama'
+import {
+  submitInquiry,
+  fetchLatestContentReview,
+  fetchContentReviewsHistory,
+  triggerWeeklyReview,
+} from '@/services/panorama'
 import type { ContentReviewItem } from '@/types/panorama'
+import { Tag, History } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { AdecontLogo } from '@/components/AdecontLogo'
 
@@ -29,31 +35,30 @@ export function SectionFontes() {
   const [loading, setLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
 
-  // Estado da rotina semanal de conteúdo
+  // Estado da rotina semanal de conteúdo e histórico de revisões
   const [latestReview, setLatestReview] = useState<ContentReviewItem | null>(null)
+  const [reviewHistory, setReviewHistory] = useState<ContentReviewItem[]>([])
   const [reviewLoading, setReviewLoading] = useState<boolean>(true)
   const [refreshingReview, setRefreshingReview] = useState<boolean>(false)
+  const [showHistory, setShowHistory] = useState<boolean>(false)
+
+  const loadReviewData = async () => {
+    try {
+      const [review, history] = await Promise.all([
+        fetchLatestContentReview(),
+        fetchContentReviewsHistory(5),
+      ])
+      setLatestReview(review)
+      setReviewHistory(history)
+    } catch (err) {
+      console.warn('Erro ao carregar revisão semanal:', err)
+    } finally {
+      setReviewLoading(false)
+    }
+  }
 
   useEffect(() => {
-    let mounted = true
-    async function loadReview() {
-      try {
-        const review = await fetchLatestContentReview()
-        if (mounted) {
-          setLatestReview(review)
-        }
-      } catch (err) {
-        console.warn('Erro ao carregar revisão semanal:', err)
-      } finally {
-        if (mounted) {
-          setReviewLoading(false)
-        }
-      }
-    }
-    loadReview()
-    return () => {
-      mounted = false
-    }
+    loadReviewData()
   }, [])
 
   // Calcula a próxima segunda-feira às 11:00 UTC (08:00 Horário de Brasília)
@@ -111,11 +116,10 @@ export function SectionFontes() {
     try {
       setRefreshingReview(true)
       await triggerWeeklyReview()
-      const updated = await fetchLatestContentReview()
-      setLatestReview(updated)
+      await loadReviewData()
       toast({
         title: 'Revisão executada com sucesso',
-        description: 'As fontes oficiais foram checadas e o registro semanal foi atualizado.',
+        description: 'As fontes oficiais foram checadas e o registro de revisão foi atualizado.',
       })
     } catch (err) {
       console.error(err)
@@ -303,7 +307,16 @@ export function SectionFontes() {
             </p>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-2 shrink-0 flex-wrap">
+            <button
+              onClick={() => setShowHistory(!showHistory)}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition-colors cursor-pointer"
+              title="Ver histórico de revisões publicadas"
+            >
+              <History className="w-3.5 h-3.5 text-blue-400" />
+              <span>{showHistory ? 'Ocultar histórico' : 'Histórico de revisões'}</span>
+            </button>
+
             <button
               onClick={handleManualReview}
               disabled={refreshingReview}
@@ -316,6 +329,30 @@ export function SectionFontes() {
           </div>
         </div>
 
+        {/* Faixa de Versionamento do Conteúdo Publicado */}
+        <div className="p-3.5 rounded-xl bg-blue-950/70 border border-blue-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2.5">
+            <div className="p-1.5 rounded-lg bg-blue-500/20 text-blue-400 border border-blue-400/30">
+              <Tag className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="font-bold text-white flex items-center gap-2">
+                <span>Conteúdo revisado em 30/09/2026</span>
+                <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                  Revisão nº 1 (v0.0.16)
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-300 mt-0.5">
+                5 novas normas consolidadas (Ato Conjunto 1/2025, Portaria MF/CGIBS 7/2026,
+                Resoluções CGIBS 13, 14 e 16/2026) e marcos atualizados.
+              </p>
+            </div>
+          </div>
+          <div className="text-[11px] text-slate-400 shrink-0 font-mono">
+            Governança técnica: ADECONT
+          </div>
+        </div>
+
         {/* Cards de Status da Revisão: Última Revisão vs Próxima Revisão */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Card Última Revisão */}
@@ -323,7 +360,7 @@ export function SectionFontes() {
             <div className="flex items-center justify-between text-xs text-slate-400">
               <span className="font-semibold uppercase tracking-wider text-[11px] text-slate-300 flex items-center gap-1.5">
                 <Clock className="w-3.5 h-3.5 text-blue-400" />
-                Última revisão semanal
+                Última revisão registrada
               </span>
               {reviewLoading ? (
                 <span className="text-slate-400 text-xs">Carregando...</span>
@@ -353,13 +390,20 @@ export function SectionFontes() {
             </div>
 
             <div className="text-xs text-slate-300 leading-relaxed pt-1 border-t border-slate-700/60">
-              <span className="text-slate-400">Notas técnicas: </span>
-              {latestReview?.notes ||
-                'Verificação semanal de novas normas — CGIBS/Receita Federal/Planalto: fontes oficiais ativas, normas vigentes consolidadas.'}
+              <span className="text-slate-400">Resumo: </span>
+              {latestReview?.summary ||
+                'Revisão nº 1 (30/09/2026): inclusão de 5 novas normas oficiais e atualização dos marcos operacionais dos DFe.'}
             </div>
 
+            {latestReview?.notes && (
+              <div className="text-[11px] text-slate-400 leading-relaxed bg-slate-900/60 p-2.5 rounded-lg border border-slate-800">
+                <span className="text-slate-300 font-semibold block mb-0.5">Notas detalhadas:</span>
+                {latestReview.notes}
+              </div>
+            )}
+
             {latestReview?.sources_checked && latestReview.sources_checked.length > 0 && (
-              <div className="pt-2 flex flex-wrap gap-1.5">
+              <div className="pt-1 flex flex-wrap gap-1.5">
                 {latestReview.sources_checked.map((src) => (
                   <span
                     key={src.key}
@@ -404,6 +448,37 @@ export function SectionFontes() {
             </div>
           </div>
         </div>
+
+        {/* Histórico expandido de revisões */}
+        {showHistory && reviewHistory.length > 0 && (
+          <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-3">
+            <div className="flex items-center gap-2 text-xs font-bold text-white uppercase tracking-wider">
+              <History className="w-4 h-4 text-blue-400" />
+              <span>Histórico de revisões na base de dados</span>
+            </div>
+            <div className="divide-y divide-slate-800 text-xs">
+              {reviewHistory.map((rev) => (
+                <div key={rev.id} className="py-2.5 space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-slate-200">
+                      {formatReviewDate(rev.review_date)}
+                    </span>
+                    <span
+                      className={`text-[10px] px-2 py-0.5 rounded font-bold ${
+                        rev.status === 'ok'
+                          ? 'bg-emerald-500/20 text-emerald-300'
+                          : 'bg-amber-500/20 text-amber-300'
+                      }`}
+                    >
+                      {rev.status.toUpperCase()}
+                    </span>
+                  </div>
+                  <p className="text-slate-300 text-[11px]">{rev.summary || rev.notes}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Como funciona a atualização deste panorama */}

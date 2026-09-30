@@ -77,23 +77,43 @@ export function SectionCronograma() {
     {
       data: '03/08/2026',
       marco:
-        'Preenchimento obrigatório IBS/CBS (1% teste) em todos os documentos fiscais do regime regular',
+        'Preenchimento obrigatório dos campos IBS/CBS com alíquota teste de 1% (0,1% IBS + 0,9% CBS) para o regime regular (NF-e, NFC-e e CT-e) — Ato Conjunto RFB/CGIBS 4/2026',
+      destaque: true,
+    },
+    {
+      data: '01/09 a 30/09/2026',
+      marco:
+        'Janela de opção pelo Simples Nacional para o ano-calendário 2027 (recolhimento unificado no DAS com sublimite de R$ 3,6 mi para IBS ou regime regular) — Resoluções CGSN 190–192/2026',
+      destaque: false,
     },
     {
       data: '01/10/2026',
-      marco: 'NFS-e: IBS/CBS em grupos de serviços da LC 116 (itens 1–3)',
+      marco:
+        'NFS-e geral e NFCom: preenchimento dos campos IBS/CBS para prestadores de serviços em geral e serviços de comunicação — Ato Conjunto RFB/CGIBS 4/2026',
+      destaque: false,
     },
     {
       data: '01/11/2026',
-      marco: 'NFS-e nacional obrigatória para ME/EPP do Simples',
+      marco: 'NFS-e padrão nacional obrigatória para ME e EPP optantes pelo Simples Nacional',
+      destaque: false,
+    },
+    {
+      data: '15/11/2026',
+      marco:
+        'Declaração de Regimes Especiais e Informações Econômico-Fiscais (DeRE) — 2ª fase: integração de módulos adicionais de apuração meramente informativa',
+      destaque: false,
     },
     {
       data: '01/12/2026',
-      marco: 'Demais serviços da NFS-e; Simples que aderirem ao destaque em set/2026',
+      marco:
+        'NF-e ABI (Bens Imóveis), NFGas, NFAg, e NFS-e para plataformas digitais e locações de bens e serviços — Ato Conjunto RFB/CGIBS 4/2026',
+      destaque: false,
     },
     {
-      data: '30/09 (anual)',
-      marco: 'Janela de opção do Simples / escolha do regime regular (set–mar)',
+      data: '01/01/2027',
+      marco:
+        'Documentos fiscais eletrônicos do Simples Nacional obrigatórios e DeRE 3ª fase (início da vigência plena da CBS federal e extinção de PIS/Cofins)',
+      destaque: true,
     },
   ]
 
@@ -324,9 +344,19 @@ export function SectionCronograma() {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {marcosOperacionais.map((item, idx) => (
-                <tr key={idx} className="hover:bg-slate-50/70 transition-colors">
+                <tr
+                  key={idx}
+                  className={`hover:bg-slate-50/70 transition-colors ${
+                    item.destaque ? 'bg-blue-50/40 font-medium' : ''
+                  }`}
+                >
                   <td className="py-3 px-4 align-top font-bold text-blue-900 font-mono whitespace-nowrap">
-                    {item.data}
+                    <span className="flex items-center gap-1.5">
+                      {item.destaque && (
+                        <span className="w-1.5 h-1.5 rounded-full bg-blue-600 shrink-0" />
+                      )}
+                      {item.data}
+                    </span>
                   </td>
                   <td className="py-3 px-4 align-top text-slate-700 leading-relaxed">
                     {item.marco}

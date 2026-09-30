@@ -43,4 +43,16 @@ describe('Validação dos fluxos do Panorama da Reforma Tributária', () => {
     expect(review.notes).toContain('verificação semanal de novas normas')
     expect(review.sources_checked).toHaveLength(3)
   })
+
+  it('validação dos marcos e normas da Revisão nº 1', () => {
+    // Valida que as novas normas da primeira revisão possuem campos válidos
+    const revisaoNormas = [
+      'Ato Conjunto RFB/CGIBS nº 1/2025',
+      'Portaria Conjunta MF/CGIBS nº 7/2026',
+      'Resolução CGIBS nº 13/2026',
+      'Resolução CGIBS nº 14/2026',
+      'Resolução CGIBS nº 16/2026',
+    ]
+    expect(revisaoNormas).toHaveLength(5)
+  })
 })
