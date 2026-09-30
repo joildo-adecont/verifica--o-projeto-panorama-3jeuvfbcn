@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-30T18:01:47.545Z",
+  "generatedAt": "2026-09-30T18:03:35.559Z",
   "collections": [
     {
       "name": "users",
@@ -429,6 +429,91 @@
       "indexes": [
         "CREATE INDEX idx_tax_topics_section ON tax_topics (section)",
         "CREATE INDEX idx_tax_topics_order ON tax_topics (order)"
+      ]
+    },
+    {
+      "name": "source_status",
+      "type": "base",
+      "apiRules": {
+        "list": "",
+        "view": "",
+        "create": null,
+        "update": null,
+        "delete": null
+      },
+      "fields": [
+        {
+          "name": "source_key",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "url",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "status",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "http_status",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "response_time_ms",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "last_checked_at",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "message",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "order",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX idx_source_status_source_key ON source_status (source_key)",
+        "CREATE INDEX idx_source_status_order ON source_status (order)"
       ]
     }
   ]
