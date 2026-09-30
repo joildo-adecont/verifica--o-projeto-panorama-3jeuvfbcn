@@ -16,23 +16,28 @@ export function SectionNorms({ norms, loading }: SectionNormsProps) {
     'INCIDE',
     'NÃO INCIDE',
     'PARCIAL/REGIME ESPECÍFICO',
+    'INCIDE',
+    'NÃO INCIDE',
+    'PARCIAL/REGIME ESPECÍFICO',
     'ISENTO/IMUNE',
-    'OPERACIONAL / OUTROS',
   ]
 
   const getBadgeStyle = (status: string) => {
     const s = status.toUpperCase()
-    if (s.includes('CRIA') || s.includes('REGULA A INCIDÊNCIA')) {
+    if (s.includes('CRIA') || s.includes('REGULA A INCIDÊNCIA') || s.includes('INCIDE')) {
       return 'bg-emerald-100 text-emerald-800 border-emerald-300'
     }
-    if (s.includes('NÃO INCIDE') || s.includes('ISENTO') || s.includes('IMUNE')) {
+    if (s.includes('NÃO INCIDE')) {
+      return 'bg-rose-100 text-rose-800 border-rose-300'
+    }
+    if (s.includes('PARCIAL') || s.includes('ESPECÍFICO')) {
+      return 'bg-amber-100 text-amber-800 border-amber-300'
+    }
+    if (s.includes('ISENTO') || s.includes('IMUNE')) {
       return 'bg-blue-100 text-blue-800 border-blue-300'
     }
     if (s.includes('REGULA A CBS') || s.includes('REGULA O IBS') || s.includes('ADMINISTRAÇÃO')) {
       return 'bg-purple-100 text-purple-800 border-purple-300'
-    }
-    if (s.includes('OBRIG') || s.includes('OPERACIONAL') || s.includes('ME/EPP')) {
-      return 'bg-amber-100 text-amber-800 border-amber-300'
     }
     return 'bg-slate-100 text-slate-800 border-slate-300'
   }
@@ -50,47 +55,33 @@ export function SectionNorms({ norms, loading }: SectionNormsProps) {
     if (selectedFilter === 'ISENTO/IMUNE') {
       return s.includes('ISENTO') || s.includes('IMUNE')
     }
-    if (selectedFilter === 'OPERACIONAL / OUTROS') {
-      return (
-        s.includes('OPERACIONAL') ||
-        s.includes('OBRIG') ||
-        s.includes('ME/EPP') ||
-        s.includes('REGULA A CBS') ||
-        s.includes('REGULA O IBS') ||
-        s.includes('ADMINISTRAÇÃO')
-      )
-    }
     return true
   })
 
   return (
     <section id="secao-1" className="scroll-mt-24 space-y-4">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-3">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="flex items-center justify-center w-6 h-6 rounded-md bg-blue-600 text-white font-bold text-xs">
-              1
-            </span>
-            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
-              Arcabouço normativo — todas as normas que compõem a reforma
-            </h2>
-          </div>
-          <p className="text-xs sm:text-sm text-slate-600 mt-1">
-            Cada norma abaixo traz: tipo, data, o que trata e <strong>onde incidem IBS/CBS</strong>.
-          </p>
+      <div className="border-b border-slate-200 pb-3">
+        <div className="flex items-center gap-2">
+          <span className="flex items-center justify-center w-6 h-6 rounded-md bg-blue-600 text-white font-bold text-xs">
+            1
+          </span>
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+            Arcabouço normativo — todas as normas que compõem a reforma
+          </h2>
         </div>
-
-        {/* Quick Filter Badges */}
-        <div className="flex flex-wrap items-center gap-1.5">
-          <Filter className="w-3.5 h-3.5 text-slate-400 mr-1 hidden sm:inline" />
+        <p className="text-xs sm:text-sm text-slate-700 mt-2 leading-relaxed">
+          Cada norma abaixo traz: tipo, data, o que trata e <strong>onde incidem IBS/CBS</strong>.
+          Classificação:
+        </p>
+        <div className="flex flex-wrap items-center gap-1.5 mt-2">
           {filterOptions.map((opt) => (
             <button
               key={opt}
               onClick={() => setSelectedFilter(opt)}
-              className={`text-[11px] px-2.5 py-1 rounded-md font-medium transition-colors border ${
+              className={`text-[11px] px-2.5 py-1 rounded font-bold transition-colors border ${
                 selectedFilter === opt
                   ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
-                  : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
+                  : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'
               }`}
             >
               {opt}
@@ -173,9 +164,8 @@ export function SectionNorms({ norms, loading }: SectionNormsProps) {
       <div className="p-3.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-xs sm:text-sm flex items-start gap-2.5">
         <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
         <div>
-          <strong>Atenção sobre citações:</strong> A LC 214/2025 é citada em fontes antigas como
-          &quot;LC 214/2024&quot; (número do PLP 68/2024). A referência oficial e definitiva é{' '}
-          <strong>LC 214, de 16/01/2025</strong>.
+          ⚠️ A LC 214/2025 é citada em fontes antigas como &quot;LC 214/2024&quot; (número do PLP
+          68/2024). A referência correta é <strong>LC 214, de 16/01/2025</strong>.
         </div>
       </div>
     </section>

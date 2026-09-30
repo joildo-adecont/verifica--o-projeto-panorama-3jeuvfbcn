@@ -139,9 +139,6 @@ export function SectionFontes() {
             Fontes oficiais e atualização
           </h2>
         </div>
-        <p className="text-xs sm:text-sm text-slate-600 mt-1">
-          Bases documentais primárias e mecânica de governança para atualização deste repositório.
-        </p>
       </div>
 
       {/* Tabela de Fontes */}
@@ -213,20 +210,14 @@ export function SectionFontes() {
         </div>
 
         {/* Nota CORS e Atualização */}
-        <div className="p-4 rounded-xl bg-slate-900 text-slate-200 text-xs sm:text-sm space-y-2 border border-slate-800">
-          <div className="flex items-center gap-2 font-bold text-amber-400">
-            <AlertTriangle className="w-4 h-4 text-amber-400" />
-            <span>Sobre atualização automática de conteúdo</span>
-          </div>
-          <p className="leading-relaxed text-slate-300">
-            A leitura direta de normas por robôs a partir dos portais oficiais é restrita por
-            segurança (política CORS) — por isso a rotina automática confirma a{' '}
-            <strong className="text-white">disponibilidade da fonte</strong> e a{' '}
-            <strong className="text-white">data da última verificação</strong>, enquanto a
-            atualização do <strong className="text-white">conteúdo</strong> das normas é conduzida
-            pelo assistente responsável (<strong>Antonio Joildo</strong> — revisão semanal de
-            segundas-feiras + sob demanda), com nova versão publicada no Skip com QA e
-            versionamento.
+        <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-950 text-xs sm:text-sm space-y-2">
+          <p className="leading-relaxed">
+            ⚠️ <strong>Sobre atualização automática de conteúdo:</strong> a leitura de normas por
+            robôs a partir dos sites oficiais é bloqueada por segurança (CORS) — por isso a
+            verificação automática confirma a <strong>disponibilidade da fonte</strong> e a{' '}
+            <strong>data da última verificação</strong>, e a atualização do{' '}
+            <strong>conteúdo</strong> das normas é feita pelo assistente (revisão semanal de
+            segundas-feiras + sob demanda), com nova versão publicada no Skip.
           </p>
         </div>
       </div>

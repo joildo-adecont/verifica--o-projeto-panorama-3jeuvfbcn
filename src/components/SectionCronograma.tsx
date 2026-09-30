@@ -170,10 +170,6 @@ export function SectionCronograma() {
             Cronograma 2026–2033 e pontos de atenção
           </h2>
         </div>
-        <p className="text-xs sm:text-sm text-slate-600 mt-1">
-          Calendário completo da substituição dos 5 tributos vigentes (PIS, COFINS, IPI, ICMS, ISS)
-          pelo IVA Dual.
-        </p>
       </div>
 
       {/* Main Table Cronograma */}
@@ -364,7 +360,19 @@ export function SectionCronograma() {
                   <td className="py-3 px-4 align-top font-bold text-slate-400">{item.num}</td>
                   <td className="py-3 px-4 align-top font-bold text-slate-900">{item.ponto}</td>
                   <td className="py-3 px-4 align-top text-slate-700 leading-relaxed">
-                    {item.porque}
+                    {item.num === 1 ? (
+                      <span>
+                        São <strong>estimativas</strong> (IBSLab ≈17,7% IBS; ≈8,8% CBS) até a
+                        fixação legal pelo Senado/lei ordinária
+                      </span>
+                    ) : item.num === 2 ? (
+                      <span>
+                        Pode reter o tributo no pagamento — impacta fluxo de caixa;{' '}
+                        <strong>obrigatório</strong> em hipóteses específicas
+                      </span>
+                    ) : (
+                      item.porque
+                    )}
                   </td>
                 </tr>
               ))}

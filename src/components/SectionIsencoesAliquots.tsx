@@ -76,7 +76,7 @@ export function SectionIsencoesAlíquotas() {
     },
     {
       hipotese:
-        'Isenções subnacionais existentes (convênios ICMS) mantidas na transição, conforme cronograma (efeitos até 2032, salvo prorrogação)',
+        'Isenções subnacionais existentes (convênios ICMS) mantidas na transição, conforme cronograma (efeitos até 2032, salvo prorrogação) — LC 214, Livro III',
       dispositivo: 'LC 214, Livro III',
     },
   ]
@@ -92,10 +92,6 @@ export function SectionIsencoesAlíquotas() {
             Isenções, diferimentos e reduções de alíquota
           </h2>
         </div>
-        <p className="text-xs sm:text-sm text-slate-600 mt-1">
-          Sistemática de incentivos, hipóteses de diferimento no fluxo de caixa e alíquotas
-          favorecidas.
-        </p>
       </div>
 
       {/* Reduções de alíquota */}
@@ -188,16 +184,32 @@ export function SectionIsencoesAlíquotas() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {isencoes.map((item, idx) => (
-                <tr key={idx} className="hover:bg-slate-50/70 transition-colors">
-                  <td className="py-3 px-4 align-top text-slate-800 font-medium">
-                    {item.hipotese}
-                  </td>
-                  <td className="py-3 px-4 align-top text-slate-600 text-xs font-mono">
-                    {item.dispositivo}
-                  </td>
-                </tr>
-              ))}
+              <tr className="hover:bg-slate-50/70 transition-colors">
+                <td className="py-3 px-4 align-top text-slate-800 font-medium">
+                  Recolhimento do IBS/CBS dispensado em 2026 para quem cumpre obrigações acessórias
+                  (ano-teste)
+                </td>
+                <td className="py-3 px-4 align-top text-slate-600 text-xs font-mono">
+                  Art. 348, §1º, LC 214
+                </td>
+              </tr>
+              <tr className="hover:bg-slate-50/70 transition-colors">
+                <td className="py-3 px-4 align-top text-slate-800 font-medium">
+                  Compensação do IBS/CBS-teste com PIS/Cofins em 2026
+                </td>
+                <td className="py-3 px-4 align-top text-slate-600 text-xs font-mono">
+                  Arts. 343–346, LC 214
+                </td>
+              </tr>
+              <tr className="hover:bg-slate-50/70 transition-colors">
+                <td className="py-3 px-4 align-top text-slate-800 font-medium">
+                  Isenções subnacionais existentes (convênios ICMS)
+                </td>
+                <td className="py-3 px-4 align-top text-slate-600 text-xs font-mono">
+                  Mantidas na transição, conforme cronograma (efeitos até 2032, salvo prorrogação) —
+                  LC 214, Livro III
+                </td>
+              </tr>
             </tbody>
           </table>
         </div>

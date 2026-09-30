@@ -78,10 +78,10 @@ export function SectionFatoGerador() {
             Fato gerador, fornecimento e incidência — LC 214/2025
           </h2>
         </div>
-        <p className="text-xs sm:text-sm text-slate-600 mt-1">
-          Regras fundamentais de incidência sobre bens materiais, imateriais, serviços continuados e
-          o novo mecanismo de split payment.
-        </p>
+      </div>
+
+      <div className="space-y-2">
+        <h3 className="text-base font-bold text-slate-900">Onde está na lei</h3>
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-xs">
@@ -101,20 +101,39 @@ export function SectionFatoGerador() {
                 </td>
                 <td className="py-3 px-4 align-top font-medium text-slate-900">{item.conteudo}</td>
                 <td className="py-3 px-4 align-top text-slate-700 leading-relaxed">
-                  {item.regra.includes('INCIDE') ? (
+                  {item.dispositivo === 'Art. 4º' ? (
                     <span>
-                      <strong className="text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
-                        INCIDE
-                      </strong>{' '}
-                      {item.regra.replace('INCIDE', '').trim()}
+                      <strong>INCIDE</strong> sobre operações <strong>onerosas</strong> com bens e
+                      serviços
                     </span>
-                  ) : item.destaque ? (
+                  ) : item.dispositivo === 'Art. 10, caput' ? (
                     <span>
-                      {item.regra.split(item.destaque)[0]}
-                      <strong className="text-slate-900 underline decoration-blue-500 decoration-2">
-                        {item.destaque}
-                      </strong>
-                      {item.regra.split(item.destaque)[1]}
+                      No <strong>fornecimento</strong>, ainda que execução continuada ou fracionada
+                    </span>
+                  ) : item.dispositivo === 'Art. 10, §2º' ? (
+                    <span>
+                      No <strong>pagamento</strong> (contrato com pagamento periódico) ou
+                      recebimento
+                    </span>
+                  ) : item.dispositivo === 'Art. 10, §4º' ? (
+                    <span>
+                      Tributo devido na{' '}
+                      <strong>data de cada parcela paga antes do fornecimento</strong>
+                    </span>
+                  ) : item.dispositivo === 'Art. 11' ? (
+                    <span>
+                      <strong>Destino</strong> do bem/serviço (tributação no consumo)
+                    </span>
+                  ) : item.dispositivo === 'Arts. 31–35' ? (
+                    <span>
+                      Recolhimento automático vinculado ao documento fiscal;{' '}
+                      <strong>obrigatório</strong> em hipóteses listadas, opcional (ampliado pelo
+                      PLP 108) nas demais
+                    </span>
+                  ) : item.dispositivo === 'Arts. 444–447' ? (
+                    <span>
+                      <strong>INCIDE</strong> na importação de bens e serviços, por quem promove a
+                      entrada
                     </span>
                   ) : (
                     item.regra

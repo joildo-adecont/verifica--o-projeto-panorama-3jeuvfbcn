@@ -116,10 +116,6 @@ export function SectionRegimesEspecificos() {
             Regimes específicos e diferenciados
           </h2>
         </div>
-        <p className="text-xs sm:text-sm text-slate-600 mt-1">
-          Atividades que exigem modelo peculiar de apuração, base de cálculo ou regras setoriais
-          próprias na LC 214/2025.
-        </p>
       </div>
 
       {/* Main Table */}
@@ -158,27 +154,34 @@ export function SectionRegimesEspecificos() {
       {/* Box Especial: Consórcio — os 6 pontos que você precisa saber */}
       <div className="p-5 rounded-xl bg-gradient-to-br from-amber-50/90 to-yellow-50/70 border border-amber-200 shadow-xs space-y-4">
         <div className="flex items-center gap-2 border-b border-amber-200/80 pb-3">
-          <Star className="w-5 h-5 text-amber-600 fill-amber-500" />
-          <h3 className="text-base font-bold text-amber-950">
-            Consórcio — os 6 pontos cruciais que você precisa dominar:
+          <h3 className="text-base font-bold text-slate-900">
+            ⭐ <strong>Consórcio — os 6 pontos que você precisa saber:</strong>
           </h3>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
-          {consorcioPoints.map((pt) => (
-            <div
-              key={pt.num}
-              className="bg-white/90 p-3.5 rounded-lg border border-amber-200/70 shadow-2xs space-y-1"
-            >
-              <div className="flex items-center gap-2">
-                <span className="w-5 h-5 rounded-full bg-amber-500 text-white font-bold text-xs flex items-center justify-center">
-                  {pt.num}
-                </span>
-                <h4 className="text-xs font-bold text-slate-900">{pt.title}</h4>
-              </div>
-              <p className="text-xs text-slate-600 leading-relaxed pl-7">{pt.desc}</p>
-            </div>
-          ))}
+        <div className="space-y-3 text-xs sm:text-sm text-slate-800 leading-relaxed">
+          <p>
+            <strong>1) Taxa de administração</strong> → regime específico, com dedução de
+            intermediação.
+          </p>
+          <p>
+            <strong>2) Contemplação (sorteio/lance)</strong> → <strong>não é fato gerador</strong>;
+            tributo só na aquisição do bem.
+          </p>
+          <p>
+            <strong>3) Uso da carta</strong> → normas gerais; imóvel → regime imobiliário (regime
+            caixa na incorporação).
+          </p>
+          <p>
+            <strong>4) Crédito da taxa</strong> → apropriável por contribuinte do regime regular.
+          </p>
+          <p>
+            <strong>5) Execução de garantia</strong> → sem incidência na consolidação pelo grupo.
+          </p>
+          <p>
+            <strong>6) Administradora</strong> <strong>não responde</strong> pelos tributos da
+            aquisição com a carta.
+          </p>
         </div>
       </div>
     </section>

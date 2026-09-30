@@ -188,10 +188,9 @@ export function SectionCestaBasica() {
         <div className="p-3.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-xs sm:text-sm flex items-start gap-2.5">
           <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
           <div>
-            <strong>Fora da cesta:</strong> bebidas açucaradas (refrigerantes), sorvetes e doces{' '}
-            <strong>NÃO</strong> têm alíquota zero e podem atrair o{' '}
-            <strong>Imposto Seletivo</strong> (bebidas açucaradas: teto de 2% na alíquota do IS —
-            PLP 108).
+            ⚠️ <strong>Fora da cesta:</strong> bebidas açucaradas (refrigerantes), sorvetes e doces
+            NÃO têm alíquota zero e podem atrair o <strong>Imposto Seletivo</strong> (bebidas
+            açucaradas: teto de 2% na alíquota do IS — PLP 108).
           </div>
         </div>
       </div>
@@ -199,8 +198,7 @@ export function SectionCestaBasica() {
       {/* Outros exemplos por tratamento */}
       <div className="space-y-3 pt-2">
         <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-          <HeartPulse className="w-4 h-4 text-blue-600" />
-          Outros exemplos por tratamento diferenciado
+          Outros exemplos por tratamento
         </h3>
 
         <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-xs">

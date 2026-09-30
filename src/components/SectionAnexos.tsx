@@ -71,10 +71,6 @@ export function SectionAnexos() {
             Anexos da reforma tributária
           </h2>
         </div>
-        <p className="text-xs sm:text-sm text-slate-600 mt-1">
-          Tabelas oficiais e anexos regulamentares para parametrização em sistemas ERP, NFS-e e
-          NF-e.
-        </p>
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-xs">
@@ -102,11 +98,10 @@ export function SectionAnexos() {
         </table>
       </div>
 
-      <div className="p-3.5 rounded-lg bg-blue-50/60 border border-blue-200 text-slate-700 text-xs sm:text-sm leading-relaxed">
-        <strong>Importância para sistemas fiscais:</strong> Os anexos dos regulamentos de 2026 foram
-        estruturados para uniformizar CST, classificação fiscal e regras de crédito — essenciais
-        para o preenchimento correto dos campos IBS/CBS nos documentos fiscais eletrônicos
-        (obrigatório desde <strong>03/08/2026</strong>).
+      <div className="p-3.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-700 text-xs sm:text-sm leading-relaxed">
+        Os anexos dos regulamentos de 2026 foram estruturados para uniformizar CST, classificação
+        fiscal e regras de crédito — essenciais para o preenchimento correto dos campos IBS/CBS nos
+        documentos fiscais eletrônicos (obrigatório desde 03/08/2026).
       </div>
     </section>
   )

@@ -70,9 +70,6 @@ export function SectionImunidades() {
             Imunidades, não incidências e não tributações
           </h2>
         </div>
-        <p className="text-xs sm:text-sm text-slate-600 mt-1">
-          Delimitação constitucional e legal dos limites de tributação do IBS e da CBS.
-        </p>
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-xs">
@@ -108,9 +105,9 @@ export function SectionImunidades() {
       <div className="p-3.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-xs sm:text-sm flex items-start gap-2.5">
         <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
         <div>
-          <strong>Inter-estabelecimentos:</strong> a não incidência vale para transferências
+          ⚠️ <strong>Inter-estabelecimentos:</strong> a não incidência vale para transferências
           internas de estoque, ativo fixo etc., <strong>exceto</strong> se a operação constituir
-          fornecimento oneroso (ex.: cobrança entre filiais ou rateio de custos com margem).
+          fornecimento oneroso (ex.: cobrança entre filiais).
         </div>
       </div>
     </section>
