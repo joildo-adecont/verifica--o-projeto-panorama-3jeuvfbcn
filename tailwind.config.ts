@@ -27,10 +27,21 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['Inter var', 'SF Pro Display', 'system-ui', 'sans-serif'],
-        display: ['SF Pro Display', 'Inter var', 'system-ui', 'sans-serif'],
+        sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+        serif: ['"Playfair Display"', 'Georgia', 'serif'],
+        display: ['"Playfair Display"', 'Georgia', 'serif'],
       },
       colors: {
+        panorama: {
+          navy: '#0B1528',
+          'navy-dark': '#060D1A',
+          'navy-light': '#162238',
+          gold: '#C5A059',
+          'gold-light': '#DFBE7C',
+          'gold-dark': '#A07E38',
+          cream: '#F9F8F5',
+          sand: '#ECE8DF',
+        },
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
