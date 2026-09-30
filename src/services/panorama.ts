@@ -5,6 +5,7 @@ import type {
   InquiryInput,
   InquiryItem,
   SourceStatusItem,
+  ContentReviewItem,
   GalleryItem,
   NeighborhoodItem,
   FloorplanItem,
@@ -161,6 +162,48 @@ export async function triggerSourceCheck(): Promise<boolean> {
     return true
   } catch (err) {
     console.error('Falha ao acionar verificação de fontes no backend:', err)
+    throw err
+  }
+}
+
+export async function fetchLatestContentReview(): Promise<ContentReviewItem | null> {
+  try {
+    const records = await pb.collection('content_reviews').getList<ContentReviewItem>(1, 1, {
+      sort: '-review_date',
+    })
+    if (records.items && records.items.length > 0) {
+      return records.items[0]
+    }
+    return null
+  } catch (err) {
+    console.warn('Falha ao buscar content_reviews do PocketBase:', err)
+    return null
+  }
+}
+
+export async function fetchContentReviewsHistory(limit = 10): Promise<ContentReviewItem[]> {
+  try {
+    const records = await pb.collection('content_reviews').getList<ContentReviewItem>(1, limit, {
+      sort: '-review_date',
+    })
+    return records.items || []
+  } catch (err) {
+    console.warn('Falha ao buscar histórico de content_reviews:', err)
+    return []
+  }
+}
+
+export async function triggerWeeklyReview(): Promise<boolean> {
+  try {
+    const res = await pb.send('/backend/v1/trigger-weekly-review', {
+      method: 'POST',
+    })
+    if (res && res.success === false) {
+      throw new Error(res.error || 'Falha ao executar revisão semanal.')
+    }
+    return true
+  } catch (err) {
+    console.error('Falha ao acionar revisão semanal no backend:', err)
     throw err
   }
 }

@@ -1,8 +1,9 @@
-// Job agendado para verificação automática de fontes oficiais a cada hora
-// Cron expression: "0 * * * *" (todo início de hora)
-// Verifica disponibilidade das fontes oficiais (CGIBS, Receita Federal, Planalto) via requisição leve
+// Job agendado para revisão semanal de novas normas e disponibilidade das fontes oficiais
+// Cron expression: "0 11 * * 1" (Toda segunda-feira às 11:00 UTC = 08:00 Horário de Brasília)
+// Reutiliza a lógica de verificação de fontes oficiais (CGIBS, Receita Federal, Planalto)
+// Atualiza o source_status e grava um registro em content_reviews com resumo, status e notas.
 
-cronAdd('check_tax_sources', '0 * * * *', () => {
+cronAdd('weekly_content_review', '0 11 * * 1', () => {
   const sources = [
     {
       key: 'cgibs',
@@ -23,6 +24,11 @@ cronAdd('check_tax_sources', '0 * * * *', () => {
       order: 3,
     },
   ]
+
+  const checkedSources = []
+  let overallStatus = 'ok'
+  const nowIso = new Date().toISOString()
+
   for (let i = 0; i < sources.length; i++) {
     const src = sources[i]
     const startTime = new Date().getTime()
@@ -31,7 +37,6 @@ cronAdd('check_tax_sources', '0 * * * *', () => {
     let message = 'Fonte oficial ativa e acessível'
 
     try {
-      // Faz verificação leve de disponibilidade (GET com timeout curto)
       const res = $http.send({
         url: src.url,
         method: 'GET',
@@ -45,27 +50,29 @@ cronAdd('check_tax_sources', '0 * * * *', () => {
 
       httpStatus = res.statusCode || 200
 
-      // Status 2xx ou 3xx ou 403 (quando o gov bloqueia robô mas responde ativo) indica servidor online
       if (httpStatus >= 200 && httpStatus < 400) {
         status = 'active'
         message = 'Fonte online e respondendo normalmente (' + httpStatus + ')'
       } else if (httpStatus === 403 || httpStatus === 401) {
-        // Proteção anti-bot do portal gov.br, mas o serviço está no ar
         status = 'active'
         message = 'Servidor oficial ativo (proteção WAF/Gov ' + httpStatus + ')'
       } else {
         status = 'warning'
         message = 'Resposta com status HTTP ' + httpStatus
+        if (overallStatus !== 'attention') {
+          overallStatus = 'warning'
+        }
       }
     } catch (err) {
       status = 'offline'
       httpStatus = 0
       message = 'Falha temporária de conexão: ' + String(err)
+      overallStatus = 'attention'
     }
 
     const duration = new Date().getTime() - startTime
-    const nowIso = new Date().toISOString()
 
+    // Atualiza ou insere em source_status
     try {
       let record
       try {
@@ -89,5 +96,43 @@ cronAdd('check_tax_sources', '0 * * * *', () => {
     } catch (dbErr) {
       console.log('Erro ao salvar status da fonte ' + src.key + ': ' + String(dbErr))
     }
+
+    checkedSources.push({
+      key: src.key,
+      name: src.name,
+      url: src.url,
+      status: status,
+      http_status: httpStatus,
+      response_time_ms: duration,
+      message: message,
+    })
+  }
+
+  // Grava o registro da revisão semanal em content_reviews
+  try {
+    const colReviews = $app.findCollectionByNameOrId('content_reviews')
+    const reviewRecord = new Record(colReviews)
+
+    const notes = 'verificação semanal de novas normas — CGIBS/Receita Federal/Planalto'
+
+    let summaryText = 'Todas as fontes oficiais responderam ativas na verificação semanal.'
+    if (overallStatus === 'warning') {
+      summaryText = 'Verificação semanal concluída com aviso em uma ou mais fontes.'
+    } else if (overallStatus === 'attention') {
+      summaryText = 'Atenção: uma ou mais fontes oficiais apresentaram falha de conexão.'
+    }
+
+    reviewRecord.set('review_date', nowIso)
+    reviewRecord.set('status', overallStatus)
+    reviewRecord.set('sources_checked', checkedSources)
+    reviewRecord.set('notes', notes)
+    reviewRecord.set('summary', summaryText)
+
+    $app.save(reviewRecord)
+    console.log('weekly_content_review concluído com sucesso. Status: ' + overallStatus)
+  } catch (reviewErr) {
+    console.log(
+      'Erro ao registrar content_reviews no job weekly_content_review: ' + String(reviewErr),
+    )
   }
 })

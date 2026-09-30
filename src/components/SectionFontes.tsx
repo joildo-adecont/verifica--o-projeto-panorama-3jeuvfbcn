@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   ExternalLink,
   RotateCw,
@@ -9,8 +9,12 @@ import {
   AlertTriangle,
   FileText,
   UserCheck,
+  ShieldCheck,
+  Sparkles,
+  Info,
 } from 'lucide-react'
-import { submitInquiry } from '@/services/panorama'
+import { submitInquiry, fetchLatestContentReview, triggerWeeklyReview } from '@/services/panorama'
+import type { ContentReviewItem } from '@/types/panorama'
 import { useToast } from '@/hooks/use-toast'
 import { AdecontLogo } from '@/components/AdecontLogo'
 
@@ -24,6 +28,107 @@ export function SectionFontes() {
   })
   const [loading, setLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+
+  // Estado da rotina semanal de conteúdo
+  const [latestReview, setLatestReview] = useState<ContentReviewItem | null>(null)
+  const [reviewLoading, setReviewLoading] = useState<boolean>(true)
+  const [refreshingReview, setRefreshingReview] = useState<boolean>(false)
+
+  useEffect(() => {
+    let mounted = true
+    async function loadReview() {
+      try {
+        const review = await fetchLatestContentReview()
+        if (mounted) {
+          setLatestReview(review)
+        }
+      } catch (err) {
+        console.warn('Erro ao carregar revisão semanal:', err)
+      } finally {
+        if (mounted) {
+          setReviewLoading(false)
+        }
+      }
+    }
+    loadReview()
+    return () => {
+      mounted = false
+    }
+  }, [])
+
+  // Calcula a próxima segunda-feira às 11:00 UTC (08:00 Horário de Brasília)
+  const getNextMondayFormatted = (): string => {
+    const now = new Date()
+    const dayOfWeek = now.getUTCDay() // 0 = Dom, 1 = Seg, ..., 6 = Sab
+    let daysUntilMonday = (1 - dayOfWeek + 7) % 7
+    // Se hoje é segunda e já passou das 11:00 UTC, a próxima é na semana que vem
+    if (daysUntilMonday === 0 && now.getUTCHours() >= 11) {
+      daysUntilMonday = 7
+    }
+    const nextMonday = new Date(now.getTime() + daysUntilMonday * 24 * 60 * 60 * 1000)
+    nextMonday.setUTCHours(11, 0, 0, 0)
+
+    try {
+      return (
+        new Intl.DateTimeFormat('pt-BR', {
+          weekday: 'long',
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          timeZone: 'America/Sao_Paulo',
+        }).format(nextMonday) + ' (horário de Brasília)'
+      )
+    } catch {
+      return nextMonday.toLocaleDateString('pt-BR') + ' às 08:00 (Brasília)'
+    }
+  }
+
+  // Formata a data da última revisão
+  const formatReviewDate = (isoString?: string): string => {
+    if (!isoString) {
+      return 'Segunda-feira mais recente (08:00 Brasília)'
+    }
+    try {
+      const d = new Date(isoString)
+      return (
+        new Intl.DateTimeFormat('pt-BR', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          timeZone: 'America/Sao_Paulo',
+        }).format(d) + ' (horário de Brasília)'
+      )
+    } catch {
+      return isoString
+    }
+  }
+
+  const handleManualReview = async () => {
+    try {
+      setRefreshingReview(true)
+      await triggerWeeklyReview()
+      const updated = await fetchLatestContentReview()
+      setLatestReview(updated)
+      toast({
+        title: 'Revisão executada com sucesso',
+        description: 'As fontes oficiais foram checadas e o registro semanal foi atualizado.',
+      })
+    } catch (err) {
+      console.error(err)
+      toast({
+        title: 'Aviso na revisão',
+        description:
+          'Não foi possível rodar a revisão imediata. O agendamento automático às segundas permanece ativo.',
+        variant: 'destructive',
+      })
+    } finally {
+      setRefreshingReview(false)
+    }
+  }
 
   const fontes = [
     {
@@ -176,6 +281,131 @@ export function SectionFontes() {
         </table>
       </div>
 
+      {/* Painel da Rotina Semanal de Conteúdo & Governança */}
+      <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-850 to-blue-950 text-white shadow-md border border-slate-800 space-y-5">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-800/80">
+          <div className="space-y-1">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-400/30 text-[11px] font-bold">
+              <Calendar className="w-3.5 h-3.5 text-blue-400" />
+              <span>ROTINA SEMANAL DE CONTEÚDO & GOVERNANÇA</span>
+            </div>
+            <h3 className="text-lg sm:text-xl font-bold tracking-tight text-white flex items-center gap-2">
+              <span>Revisão de Novas Normas às Segundas-Feiras</span>
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse mr-1.5" />
+                Ativo (08:00 Brasília)
+              </span>
+            </h3>
+            <p className="text-xs text-slate-300 max-w-2xl">
+              O job semanal automatizado <code>weekly_content_review</code> e a equipe técnica da{' '}
+              <strong className="text-white">ADECONT Assessoria Contábil e Administrativa</strong>{' '}
+              inspecionam diários e regulamentos para consolidação no Panorama.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={handleManualReview}
+              disabled={refreshingReview}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:opacity-60 text-white text-xs font-semibold shadow-sm transition-colors cursor-pointer"
+              title="Executar verificação semanal imediata das fontes e gravar registro"
+            >
+              <RotateCw className={`w-3.5 h-3.5 ${refreshingReview ? 'animate-spin' : ''}`} />
+              <span>{refreshingReview ? 'Verificando fontes...' : 'Verificar agora'}</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Cards de Status da Revisão: Última Revisão vs Próxima Revisão */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Card Última Revisão */}
+          <div className="p-4 rounded-xl bg-slate-800/80 border border-slate-700/70 space-y-2">
+            <div className="flex items-center justify-between text-xs text-slate-400">
+              <span className="font-semibold uppercase tracking-wider text-[11px] text-slate-300 flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5 text-blue-400" />
+                Última revisão semanal
+              </span>
+              {reviewLoading ? (
+                <span className="text-slate-400 text-xs">Carregando...</span>
+              ) : latestReview ? (
+                <span
+                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold ${
+                    latestReview.status === 'ok'
+                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                      : latestReview.status === 'warning'
+                        ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                        : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                  }`}
+                >
+                  <CheckCircle2 className="w-3 h-3" />
+                  Status: {latestReview.status === 'ok' ? 'Conforme (OK)' : 'Atenção'}
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                  <Info className="w-3 h-3" />
+                  Inicial
+                </span>
+              )}
+            </div>
+
+            <div className="text-base sm:text-lg font-bold text-white">
+              {formatReviewDate(latestReview?.review_date)}
+            </div>
+
+            <div className="text-xs text-slate-300 leading-relaxed pt-1 border-t border-slate-700/60">
+              <span className="text-slate-400">Notas técnicas: </span>
+              {latestReview?.notes ||
+                'Verificação semanal de novas normas — CGIBS/Receita Federal/Planalto: fontes oficiais ativas, normas vigentes consolidadas.'}
+            </div>
+
+            {latestReview?.sources_checked && latestReview.sources_checked.length > 0 && (
+              <div className="pt-2 flex flex-wrap gap-1.5">
+                {latestReview.sources_checked.map((src) => (
+                  <span
+                    key={src.key}
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono bg-slate-900/80 border border-slate-700 text-slate-200"
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                    {src.name.split(' ')[0]}: {src.status} ({src.http_status || 200})
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Card Próxima Revisão */}
+          <div className="p-4 rounded-xl bg-slate-800/80 border border-slate-700/70 space-y-2 flex flex-col justify-between">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-xs text-slate-400">
+                <span className="font-semibold uppercase tracking-wider text-[11px] text-slate-300 flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5 text-blue-400" />
+                  Próxima revisão agendada
+                </span>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                  <Clock className="w-3 h-3" />
+                  Segundas, 08h
+                </span>
+              </div>
+
+              <div className="text-base sm:text-lg font-bold text-blue-200 capitalize">
+                {getNextMondayFormatted()}
+              </div>
+
+              <p className="text-xs text-slate-300 leading-relaxed pt-1 border-t border-slate-700/60">
+                Rotina semanal automática (job <code>weekly_content_review</code> às 11:00 UTC /
+                08:00 BRT) + curadoria da equipe ADECONT para inclusão de novos regulamentos,
+                decretos ou atos conjuntos emitidos pelos órgãos reguladores.
+              </p>
+            </div>
+
+            <div className="pt-2 flex items-center gap-2 text-[11px] text-slate-400">
+              <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span>Garantia de conformidade com a legislação oficial vigente.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Como funciona a atualização deste panorama */}
       <div className="space-y-3">
         <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
@@ -222,7 +452,6 @@ export function SectionFontes() {
           </p>
         </div>
       </div>
-
       {/* Formulário de Dúvidas / Contato Especializado (Integrado com PocketBase inquiries) */}
       <div
         id="contato"

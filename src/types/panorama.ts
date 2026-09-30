@@ -66,6 +66,27 @@ export interface SourceStatusItem {
   updated?: string
 }
 
+export interface ContentReviewSourceItem {
+  key: string
+  name: string
+  url: string
+  status: 'active' | 'offline' | 'warning'
+  http_status?: number
+  response_time_ms?: number
+  message?: string
+}
+
+export interface ContentReviewItem {
+  id: string
+  review_date: string
+  status: 'ok' | 'warning' | 'attention'
+  sources_checked?: ContentReviewSourceItem[]
+  notes?: string
+  summary?: string
+  created?: string
+  updated?: string
+}
+
 // Para manter retrocompatibilidade com partes antigas se necessário
 export interface GalleryItem {
   id: string

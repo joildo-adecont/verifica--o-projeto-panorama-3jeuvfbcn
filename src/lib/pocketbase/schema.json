@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-30T19:26:12.833Z",
+  "generatedAt": "2026-09-30T19:48:57.687Z",
   "collections": [
     {
       "name": "users",
@@ -515,6 +515,64 @@
         "CREATE UNIQUE INDEX idx_source_status_source_key ON source_status (source_key)",
         "CREATE INDEX idx_source_status_order ON source_status (order)"
       ]
+    },
+    {
+      "name": "content_reviews",
+      "type": "base",
+      "apiRules": {
+        "list": "",
+        "view": "",
+        "create": null,
+        "update": null,
+        "delete": null
+      },
+      "fields": [
+        {
+          "name": "review_date",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "status",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "sources_checked",
+          "type": "json",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "notes",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "summary",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": ["CREATE INDEX idx_content_reviews_date ON content_reviews (review_date DESC)"]
     }
   ]
 }
