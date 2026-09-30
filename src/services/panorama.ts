@@ -4,6 +4,7 @@ import type {
   TaxTopicItem,
   InquiryInput,
   InquiryItem,
+  SourceStatusItem,
   GalleryItem,
   NeighborhoodItem,
   FloorplanItem,
@@ -135,6 +136,30 @@ export async function fetchTaxTopics(section?: string): Promise<TaxTopicItem[]> 
 export async function submitInquiry(data: InquiryInput): Promise<InquiryItem> {
   const record = await pb.collection('inquiries').create<InquiryItem>(data)
   return record
+}
+
+export async function fetchSourceStatuses(): Promise<SourceStatusItem[]> {
+  try {
+    const records = await pb.collection('source_status').getFullList<SourceStatusItem>({
+      sort: 'order',
+    })
+    return records
+  } catch (err) {
+    console.warn('Falha ao buscar source_status do PocketBase:', err)
+    return []
+  }
+}
+
+export async function triggerSourceCheck(): Promise<boolean> {
+  try {
+    await pb.send('/backend/v1/check-sources', {
+      method: 'POST',
+    })
+    return true
+  } catch (err) {
+    console.warn('Falha ao acionar verificação de fontes no backend:', err)
+    return false
+  }
 }
 
 // Retrocompatibilidade se necessário

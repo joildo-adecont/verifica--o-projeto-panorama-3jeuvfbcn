@@ -1,18 +1,8 @@
-import { useState, useEffect } from 'react'
-import {
-  RotateCw,
-  Clock,
-  ExternalLink,
-  ShieldCheck,
-  Search,
-  BookOpen,
-  Scale,
-  Menu,
-  X,
-  FileText,
-} from 'lucide-react'
+import { useState, useEffect, useCallback } from 'react'
+import { RotateCw, Clock, ExternalLink, Search, Scale, Menu, X, FileText } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { fetchSourceStatuses, triggerSourceCheck } from '@/services/panorama'
+import type { SourceStatusItem } from '@/types/panorama'
 
 interface PanoramaHeaderProps {
   searchTerm: string
@@ -29,37 +19,73 @@ export function PanoramaHeader({
   const [lastCheck, setLastCheck] = useState<string>('')
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [sources, setSources] = useState<SourceStatusItem[]>([])
+
+  const loadSourceStatus = useCallback(async () => {
+    const data = await fetchSourceStatuses()
+    if (data && data.length > 0) {
+      setSources(data)
+      // Encontra a data da verificação mais recente entre as fontes
+      const timestamps = data
+        .map((s) => (s.last_checked_at ? new Date(s.last_checked_at).getTime() : 0))
+        .filter((t) => !isNaN(t) && t > 0)
+
+      if (timestamps.length > 0) {
+        const latest = new Date(Math.max(...timestamps))
+        setLastCheck(
+          latest.toLocaleDateString('pt-BR') +
+            ' às ' +
+            latest.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+        )
+      } else {
+        const now = new Date()
+        setLastCheck(
+          now.toLocaleDateString('pt-BR') +
+            ' às ' +
+            now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+        )
+      }
+    } else {
+      const now = new Date()
+      setLastCheck(
+        now.toLocaleDateString('pt-BR') +
+          ' às ' +
+          now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+      )
+    }
+  }, [])
 
   useEffect(() => {
-    const updateTime = () => {
-      const now = new Date()
-      setLastCheck(
-        now.toLocaleDateString('pt-BR') +
-          ' às ' +
-          now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-      )
-    }
-    updateTime()
+    loadSourceStatus()
 
     if (isAutoOn) {
-      const interval = setInterval(updateTime, 60000 * 60) // a cada 1 hora
+      const interval = setInterval(loadSourceStatus, 60000 * 60) // a cada 1 hora
       return () => clearInterval(interval)
     }
-  }, [isAutoOn])
+  }, [isAutoOn, loadSourceStatus])
 
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     setIsRefreshing(true)
-    setTimeout(() => {
+    try {
+      // Dispara a verificação imediata via backend pb_hooks
+      await triggerSourceCheck()
+      // Recarrega o status atualizado do banco
+      await loadSourceStatus()
+      if (onManualRefresh) onManualRefresh()
+    } catch {
       const now = new Date()
       setLastCheck(
         now.toLocaleDateString('pt-BR') +
           ' às ' +
           now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
       )
+    } finally {
       setIsRefreshing(false)
-      if (onManualRefresh) onManualRefresh()
-    }, 600)
+    }
   }
+
+  // Identifica se alguma fonte está offline
+  const allActive = sources.length === 0 || sources.every((s) => s.status === 'active')
 
   const navLinks = [
     { href: '#secao-1', label: '1. Normas' },
@@ -79,12 +105,19 @@ export function PanoramaHeader({
       <div className="bg-slate-900 text-slate-100 text-xs py-1.5 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span
+              className={`flex h-2 w-2 rounded-full ${
+                allActive ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'
+              }`}
+            />
             <span className="font-medium text-slate-200">
               CGIBS & Receita Federal — Fontes Oficiais Ativas
             </span>
             <span className="hidden md:inline text-slate-400">|</span>
-            <span className="hidden md:inline text-slate-300">
+            <span
+              className="hidden md:inline text-slate-300"
+              title={sources.map((s) => `${s.name}: ${s.status} (${s.message || ''})`).join(' | ')}
+            >
               Última verificação: {lastCheck || 'Carregando...'}
             </span>
           </div>

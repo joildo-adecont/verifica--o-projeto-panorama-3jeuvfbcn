@@ -51,6 +51,21 @@ export interface InquiryItem extends InquiryInput {
   created?: string
 }
 
+export interface SourceStatusItem {
+  id: string
+  source_key: string
+  name: string
+  url: string
+  status: 'active' | 'offline' | 'warning'
+  http_status?: number
+  response_time_ms?: number
+  last_checked_at?: string
+  message?: string
+  order?: number
+  created?: string
+  updated?: string
+}
+
 // Para manter retrocompatibilidade com partes antigas se necessário
 export interface GalleryItem {
   id: string
