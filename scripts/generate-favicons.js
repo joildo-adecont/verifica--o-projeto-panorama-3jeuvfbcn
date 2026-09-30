@@ -2,6 +2,19 @@ import fs from 'fs'
 import path from 'path'
 import zlib from 'zlib'
 
+// Dimensões da imagem original: 1920 x 1080
+// Test image reading tools in node
+async function checkImageTools() {
+  const builtins = ['canvas', 'jimp', 'jpeg-js', 'pngjs']
+  for (const b of builtins) {
+    try {
+      const m = await import(b)
+      console.log(`[pkg ${b}]: available`)
+    } catch {}
+  }
+}
+await checkImageTools()
+
 /**
  * Script de geração de ícones e favicons da ADECONT a partir do novo traço oficial:
  * - Arco azul-marinho profundo (#251A54) em formato curvo pontiagudo
