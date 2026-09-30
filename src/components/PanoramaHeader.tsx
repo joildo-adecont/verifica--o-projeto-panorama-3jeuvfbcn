@@ -161,11 +161,11 @@ export function PanoramaHeader({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 md:gap-4">
-            {/* Logo oficial da ADECONT Assessoria Contábil e Administrativa */}
+            {/* Logo oficial da ADECONT Assessoria Administrativa, Contábil */}
             <a
               href="#"
               className="group flex items-center shrink-0 transition-opacity hover:opacity-90"
-              title="ADECONT Assessoria Contábil e Administrativa"
+              title="ADECONT Assessoria Administrativa, Contábil"
             >
               <div className="bg-white rounded-lg p-1 border border-slate-200/80 shadow-xs flex items-center">
                 <AdecontLogo

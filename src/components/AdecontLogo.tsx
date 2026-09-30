@@ -19,7 +19,7 @@ export interface AdecontLogoProps extends React.SVGProps<SVGSVGElement> {
  * 3. 'ADECONT': bold, sans-serif geométrica estendida, proporções largas e sólidas
  * 4. 'ASSESSORIA': caixa alta, tracking bem largo
  * 5. Linha horizontal fina separadora abaixo de ASSESSORIA, largura total
- * 6. Tagline oficial: 'CONTÁBIL E ADMINISTRATIVA' (sem a palavra proibida)
+ * 6. Tagline oficial: 'ADMINISTRATIVA, CONTÁBIL' (sem a palavra proibida)
  */
 export function AdecontLogo({
   variant = 'color',
@@ -259,7 +259,7 @@ export function AdecontLogo({
         />
       </g>
 
-      {/* TAGLINE OFICIAL: 'CONTÁBIL E ADMINISTRATIVA' — TRACKING LARGO E SEM A PALAVRA PROIBIDA */}
+      {/* TAGLINE OFICIAL: 'ADMINISTRATIVA, CONTÁBIL' — TRACKING LARGO E SEM A PALAVRA PROIBIDA */}
       {showTagline && (
         <g id="adecont-tagline">
           <text
@@ -273,7 +273,7 @@ export function AdecontLogo({
             letterSpacing="16"
             style={{ textTransform: 'uppercase' }}
           >
-            CONTÁBIL E ADMINISTRATIVA
+            ADMINISTRATIVA, CONTÁBIL
           </text>
         </g>
       )}
@@ -308,7 +308,7 @@ export function AdecontBadge({
             isWhite ? 'text-blue-200' : 'text-[#3D317D]'
           }`}
         >
-          Assessoria Contábil e Administrativa
+          Assessoria Administrativa, Contábil
         </span>
       </div>
     </div>

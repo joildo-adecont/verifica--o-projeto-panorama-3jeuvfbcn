@@ -22,7 +22,7 @@ export function PanoramaFooter() {
             </div>
             <div>
               <span className="text-base font-bold text-white block tracking-tight">
-                ADECONT — Assessoria Contábil e Administrativa
+                ADECONT — Assessoria Administrativa, Contábil
               </span>
               <span className="text-xs text-slate-400 block mt-0.5">
                 Panorama da Reforma Tributária • Publicação técnica especializada IBS / CBS / IS
@@ -88,7 +88,7 @@ export function PanoramaFooter() {
         <div className="pt-6 border-t border-slate-900 flex flex-col sm:flex-row items-center justify-between text-[11px] text-slate-500 gap-3">
           <div className="flex flex-col sm:flex-row sm:items-center gap-2">
             <span>
-              © {new Date().getFullYear()} ADECONT Assessoria Contábil e Administrativa. Todos os
+              © {new Date().getFullYear()} ADECONT Assessoria Administrativa, Contábil. Todos os
               direitos reservados.
             </span>
             <span className="hidden sm:inline text-slate-700">•</span>
