@@ -8,16 +8,19 @@ import {
   CheckCircle2,
   AlertTriangle,
   FileText,
+  FileDown,
   UserCheck,
   ShieldCheck,
   Sparkles,
   Info,
+  Download,
 } from 'lucide-react'
 import {
   submitInquiry,
   fetchLatestContentReview,
   fetchContentReviewsHistory,
   triggerWeeklyReview,
+  cgibsDirectDocuments,
 } from '@/services/panorama'
 import type { ContentReviewItem } from '@/types/panorama'
 import { Tag, History } from 'lucide-react'
@@ -283,6 +286,70 @@ export function SectionFontes() {
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* BLOCO: Documentos diretos — Resoluções CGIBS (PDF) */}
+      <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-blue-50/80 via-white to-slate-50 border border-blue-200/90 shadow-sm space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-blue-100">
+          <div className="space-y-1">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 text-[11px] font-bold">
+              <FileDown className="w-3.5 h-3.5 text-blue-700" />
+              <span>LINKS DIRETOS OFICIAIS (PDF)</span>
+            </div>
+            <h3 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
+              <span>Documentos diretos — Resoluções CGIBS (PDF)</span>
+            </h3>
+            <p className="text-xs sm:text-sm text-slate-600 max-w-3xl leading-relaxed">
+              Acesso direto aos arquivos PDF armazenados no servidor do CGIBS (
+              <code>www.cgibs.gov.br</code>). Estes links funcionam diretamente para download e
+              leitura mesmo se o portal principal estiver com bloqueios locais de navegador (como o
+              erro <em>ERR_BLOCKED_BY_CLIENT</em> no Microsoft Edge).
+            </p>
+          </div>
+          <div className="shrink-0">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+              <span>8 PDFs verificados</span>
+            </span>
+          </div>
+        </div>
+
+        {/* Grade de cartões de resoluções em PDF */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-1">
+          {cgibsDirectDocuments.map((doc) => (
+            <div
+              key={doc.id}
+              className="p-4 rounded-xl bg-white border border-slate-200 hover:border-blue-300 hover:shadow-xs transition-all flex flex-col justify-between space-y-3"
+            >
+              <div className="space-y-1.5">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="font-bold text-slate-900 text-sm">{doc.code}</div>
+                  {doc.badge && (
+                    <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-100 text-blue-800 border border-blue-200">
+                      {doc.badge}
+                    </span>
+                  )}
+                </div>
+                <div className="text-xs font-semibold text-blue-900">{doc.title}</div>
+                <p className="text-xs text-slate-600 leading-relaxed">{doc.summary}</p>
+              </div>
+
+              <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2 flex-wrap">
+                <span className="text-[11px] text-slate-500 font-mono">Data: {doc.date}</span>
+                <a
+                  href={doc.pdf_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs transition-colors"
+                  title={`Baixar PDF oficial: ${doc.code}`}
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Baixar PDF oficial</span>
+                </a>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Painel da Rotina Semanal de Conteúdo & Governança */}

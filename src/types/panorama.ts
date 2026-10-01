@@ -26,6 +26,17 @@ export interface TaxNormItem {
   updated?: string
 }
 
+export interface DirectCgibsDocumentItem {
+  id: string
+  code: string
+  date: string
+  title: string
+  summary: string
+  pdf_url: string
+  filename?: string
+  badge?: string
+}
+
 export interface TaxTopicItem {
   id: string
   section: string

@@ -1,6 +1,5 @@
 import { useState } from 'react'
-import { ExternalLink, AlertTriangle, Filter, BookOpen } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
+import { ExternalLink, AlertTriangle, FileDown } from 'lucide-react'
 import type { TaxNormItem } from '@/types/panorama'
 
 interface SectionNormsProps {
@@ -118,22 +117,43 @@ export function SectionNorms({ norms, loading }: SectionNormsProps) {
               filteredNorms.map((norm) => (
                 <tr key={norm.id} className="hover:bg-slate-50/70 transition-colors">
                   <td className="py-3 px-4 align-top">
-                    <div className="font-bold text-slate-900 flex items-center gap-1">
-                      {norm.code}
-                      {norm.link_url && (
+                    {norm.link_url ? (
+                      <div className="space-y-1">
                         <a
                           href={norm.link_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-blue-600 hover:text-blue-800"
-                          title="Abrir no Planalto / Diário Oficial"
+                          className="group inline-flex items-center gap-1.5 font-bold text-blue-700 hover:text-blue-900 transition-colors"
+                          title={
+                            norm.link_url.endsWith('.pdf')
+                              ? `Baixar/Visualizar PDF oficial da ${norm.code}`
+                              : `Acessar norma oficial: ${norm.code}`
+                          }
                         >
-                          <ExternalLink className="w-3 h-3" />
+                          <span className="group-hover:underline underline-offset-2">
+                            {norm.code}
+                          </span>
+                          {norm.link_url.endsWith('.pdf') ? (
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200 group-hover:bg-blue-100 transition-colors">
+                              <FileDown className="w-3 h-3 text-blue-600 shrink-0" />
+                              <span>PDF</span>
+                            </span>
+                          ) : (
+                            <ExternalLink className="w-3.5 h-3.5 text-blue-500 shrink-0 opacity-80 group-hover:opacity-100" />
+                          )}
                         </a>
-                      )}
-                    </div>
+                        {norm.link_url.includes('cgibs.gov.br') && (
+                          <div className="flex items-center gap-1 text-[10px] text-emerald-700 font-medium">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                            <span>PDF oficial CGIBS</span>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="font-bold text-slate-900">{norm.code}</div>
+                    )}
                     {norm.dou_date && (
-                      <span className="text-[11px] text-slate-500 block">
+                      <span className="text-[11px] text-slate-500 block mt-0.5">
                         (DOU {norm.dou_date})
                       </span>
                     )}

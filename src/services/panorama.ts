@@ -1,6 +1,7 @@
 import pb from '@/lib/pocketbase/client'
 import type {
   TaxNormItem,
+  DirectCgibsDocumentItem,
   TaxTopicItem,
   InquiryInput,
   InquiryItem,
@@ -10,6 +11,101 @@ import type {
   NeighborhoodItem,
   FloorplanItem,
 } from '@/types/panorama'
+
+export const cgibsDirectDocuments: DirectCgibsDocumentItem[] = [
+  {
+    id: 'doc-cgibs-1',
+    code: 'Resolução CGIBS nº 1/2026',
+    date: '23/02/2026',
+    title: 'Instalação e Governança do CGIBS',
+    summary:
+      'Instalação oficial e disposições preliminares de funcionamento do Comitê Gestor do IBS.',
+    pdf_url:
+      'https://www.cgibs.gov.br/upload/arquivos/202602/27102250-resoluc-a-o-csibs-n-1-de-23-de-fevereiro-de-2026-assinatura.pdf',
+    filename: '27102250-resoluc-a-o-csibs-n-1-de-23-de-fevereiro-de-2026-assinatura.pdf',
+    badge: 'Governança',
+  },
+  {
+    id: 'doc-cgibs-5',
+    code: 'Resolução CGIBS nº 5/2026',
+    date: '30/04/2026',
+    title: 'Regras e Governança Operacional CGIBS',
+    summary:
+      'Aprova diretrizes operacionais de governança e funcionamento dos colegiados do Comitê.',
+    pdf_url:
+      'https://www.cgibs.gov.br/upload/arquivos/202604/30221158-resolucao-cgibs-n-5-de-30-de-abril-de-2026.pdf',
+    filename: '30221158-resolucao-cgibs-n-5-de-30-de-abril-de-2026.pdf',
+    badge: 'Operacional',
+  },
+  {
+    id: 'doc-cgibs-6',
+    code: 'Resolução CGIBS nº 6/2026',
+    date: '30/04/2026',
+    title: 'Regulamento do IBS (RIBS)',
+    summary: 'Regulamento oficial do IBS — 617 artigos, 3 livros e 5 anexos fundamentais.',
+    pdf_url:
+      'https://www.cgibs.gov.br/upload/arquivos/202604/30084927-res-cgibs-n-6-30-abr-2026-regulamenta-o-ibs.pdf',
+    filename: '30084927-res-cgibs-n-6-30-abr-2026-regulamenta-o-ibs.pdf',
+    badge: 'Regulamento Central',
+  },
+  {
+    id: 'doc-cgibs-8',
+    code: 'Resolução CGIBS nº 8/2026',
+    date: '26/05/2026',
+    title: 'Estruturação Administrativa do CGIBS',
+    summary: 'Estruturação dos órgãos executivos, técnicos e administrativos do Comitê Gestor.',
+    pdf_url:
+      'https://www.cgibs.gov.br/upload/arquivos/202605/26184150-resolucao-cgibs-n-8-de-2026-3.pdf',
+    filename: '26184150-resolucao-cgibs-n-8-de-2026-3.pdf',
+    badge: 'Administração',
+  },
+  {
+    id: 'doc-cgibs-10',
+    code: 'Resolução CGIBS nº 10/2026',
+    date: '29/06/2026',
+    title: 'Proposta Orçamentária 2026',
+    summary: 'Aprova a proposta orçamentária do Comitê Gestor do IBS para o exercício 2026.',
+    pdf_url:
+      'https://www.cgibs.gov.br/upload/arquivos/202607/01163740-resolucao-cgibs-n-10-de-29-de-junho-de-2026-proposta-orcamentaria-2026.pdf',
+    filename: '01163740-resolucao-cgibs-n-10-de-29-de-junho-de-2026-proposta-orcamentaria-2026.pdf',
+    badge: 'Orçamento',
+  },
+  {
+    id: 'doc-cgibs-13',
+    code: 'Resolução CGIBS nº 13/2026',
+    date: '22/07/2026',
+    title: 'Alteração do art. 617 do RIBS',
+    summary: 'Altera o art. 617 do Regulamento do IBS (vigências e adequações normativas).',
+    pdf_url:
+      'https://www.cgibs.gov.br/upload/arquivos/202607/22121010-resolucao-cgibs-n-13-de-22-de-julho-de-2026.pdf',
+    filename: '22121010-resolucao-cgibs-n-13-de-22-de-julho-de-2026.pdf',
+    badge: 'Alteração RIBS',
+  },
+  {
+    id: 'doc-cgibs-14',
+    code: 'Resolução CGIBS nº 14/2026',
+    date: '29/07/2026',
+    title: 'Proposta Percentual IBS 2027 (Financiamento)',
+    summary:
+      'Proposta de percentual do IBS para financiamento do CGIBS e estimativa técnica de 27,91%.',
+    pdf_url:
+      'https://www.cgibs.gov.br/upload/arquivos/202607/31144942-resoluc-ao-cgibs-n-14-de-29-de-julho-de-2026-proposta-percentual-ibs-cgibs-2027.pdf',
+    filename:
+      '31144942-resoluc-ao-cgibs-n-14-de-29-de-julho-de-2026-proposta-percentual-ibs-cgibs-2027.pdf',
+    badge: 'Alíquotas 2027',
+  },
+  {
+    id: 'doc-cgibs-16',
+    code: 'Resolução CGIBS nº 16/2026',
+    date: '29/07/2026',
+    title: 'Prorrogação de Campos DFe',
+    summary: 'Prorroga a obrigatoriedade do preenchimento dos campos relativos ao IBS/CBS nos DFe.',
+    pdf_url:
+      'https://www.cgibs.gov.br/upload/arquivos/202607/29175824-doc-20260729-wa0035-260729-175811.pdf',
+    filename: '29175824-doc-20260729-wa0035-260729-175811.pdf',
+    badge: 'DFe / Prazos',
+  },
+]
 
 export const fallbackNorms: TaxNormItem[] = [
   {
@@ -74,6 +170,18 @@ export const fallbackNorms: TaxNormItem[] = [
   },
   {
     id: 'norm-6',
+    code: 'Resolução CGIBS nº 5/2026',
+    dou_date: '30/04/2026',
+    date: '30/04/2026',
+    title: 'Regras e Governança Operacional CGIBS',
+    summary: 'Aprova diretrizes complementares de governança e operacionalização do CGIBS',
+    status_incidence: 'Operacional',
+    order: 6,
+    link_url:
+      'https://www.cgibs.gov.br/upload/arquivos/202604/30221158-resolucao-cgibs-n-5-de-30-de-abril-de-2026.pdf',
+  },
+  {
+    id: 'norm-7',
     code: 'Resolução CGIBS 6/2026 (RIBS)',
     dou_date: '30/04/2026',
     date: '30/04/2026',
@@ -81,12 +189,12 @@ export const fallbackNorms: TaxNormItem[] = [
     summary:
       'Regulamento do IBS — 617 arts., 3 livros e 5 anexos; cadastro, documento fiscal, local da operação, obrigações acessórias',
     status_incidence: 'Regula o IBS',
-    order: 6,
+    order: 7,
     link_url:
       'https://www.cgibs.gov.br/upload/arquivos/202604/30084927-res-cgibs-n-6-30-abr-2026-regulamenta-o-ibs.pdf',
   },
   {
-    id: 'norm-7',
+    id: 'norm-8',
     code: 'Portaria Conjunta MF/CGIBS nº 7/2026',
     dou_date: '30/04/2026',
     date: '30/04/2026',
@@ -94,34 +202,61 @@ export const fallbackNorms: TaxNormItem[] = [
     summary:
       'Reconhece expressamente como disposições comuns o Livro I do Decreto 12.955/2026 (RCBS) e da Resolução CGIBS 6/2026 (RIBS); base da contagem do prazo do art. 3º do Ato Conjunto 1/2025 → marco 01/08/2026',
     status_incidence: 'Operacional',
-    order: 7,
+    order: 8,
     link_url: '',
   },
   {
-    id: 'norm-8',
-    code: 'Resoluções CGIBS 1 e 2/2026',
+    id: 'norm-9',
+    code: 'Resolução CGIBS nº 1/2026 (e nº 2)',
     dou_date: '02/2026',
-    date: '02/2026',
+    date: '23/02/2026',
     title: 'Instalação e Regimento do CGIBS',
     summary:
       'Instalação, regimento interno e estrutura administrativa de governança do CGIBS (normas complementadas pelas Resoluções 13 a 16/2026 individualizadas)',
     status_incidence: 'Operacional',
-    order: 8,
-    link_url: 'https://www.cgibs.gov.br/resolucoes',
+    order: 9,
+    link_url:
+      'https://www.cgibs.gov.br/upload/arquivos/202602/27102250-resoluc-a-o-csibs-n-1-de-23-de-fevereiro-de-2026-assinatura.pdf',
   },
   {
-    id: 'norm-9',
+    id: 'norm-10',
+    code: 'Resolução CGIBS nº 8/2026',
+    dou_date: '26/05/2026',
+    date: '26/05/2026',
+    title: 'Estruturação Administrativa do CGIBS',
+    summary:
+      'Dispõe sobre a estruturação administrativa e funcionamento dos órgãos do Comitê Gestor',
+    status_incidence: 'Operacional',
+    order: 10,
+    link_url:
+      'https://www.cgibs.gov.br/upload/arquivos/202605/26184150-resolucao-cgibs-n-8-de-2026-3.pdf',
+  },
+  {
+    id: 'norm-11',
+    code: 'Resolução CGIBS nº 10/2026',
+    dou_date: '01/07/2026',
+    date: '29/06/2026',
+    title: 'Proposta Orçamentária 2026',
+    summary: 'Aprova a proposta orçamentária do Comitê Gestor do IBS para o exercício de 2026',
+    status_incidence: 'Operacional',
+    order: 11,
+    link_url:
+      'https://www.cgibs.gov.br/upload/arquivos/202607/01163740-resolucao-cgibs-n-10-de-29-de-junho-de-2026-proposta-orcamentaria-2026.pdf',
+  },
+  {
+    id: 'norm-12',
     code: 'Resolução CGIBS nº 13/2026',
     dou_date: '22/07/2026',
     date: '22/07/2026',
     title: 'Alteração do RIBS',
     summary: 'Altera o art. 617 do Regulamento do IBS (Resolução CGIBS 6/2026)',
     status_incidence: 'Operacional',
-    order: 9,
-    link_url: 'https://www.cgibs.gov.br/resolucoes',
+    order: 12,
+    link_url:
+      'https://www.cgibs.gov.br/upload/arquivos/202607/22121010-resolucao-cgibs-n-13-de-22-de-julho-de-2026.pdf',
   },
   {
-    id: 'norm-10',
+    id: 'norm-13',
     code: 'Resolução CGIBS nº 14/2026',
     dou_date: '31/07/2026',
     date: '29/07/2026',
@@ -129,35 +264,36 @@ export const fallbackNorms: TaxNormItem[] = [
     summary:
       'Proposta de destinação de até 50% da arrecadação do IBS ao financiamento do CGIBS em 2027; nota técnica estima alíquota de referência conjunta de 27,91% (IBS ≈ 18,70%; fator 1,0532 sobre a estimativa inicial de 26,50%/17,70%) — referência técnica orçamentária, NÃO alíquota definitiva',
     status_incidence: 'Operacional',
-    order: 10,
+    order: 13,
     link_url:
       'https://www.cgibs.gov.br/upload/arquivos/202607/31144942-resoluc-ao-cgibs-n-14-de-29-de-julho-de-2026-proposta-percentual-ibs-cgibs-2027.pdf',
   },
   {
-    id: 'norm-11',
+    id: 'norm-14',
     code: 'Resolução CGIBS nº 16/2026',
     dou_date: '2026',
-    date: '2026',
+    date: '29/07/2026',
     title: 'Prorrogação de obrigatoriedade',
     summary:
       'Prorroga a obrigatoriedade do preenchimento dos campos relativos ao IBS e à CBS nos documentos fiscais eletrônicos',
     status_incidence: 'Operacional',
-    order: 11,
-    link_url: 'https://www.cgibs.gov.br/resolucoes',
+    order: 14,
+    link_url:
+      'https://www.cgibs.gov.br/upload/arquivos/202607/29175824-doc-20260729-wa0035-260729-175811.pdf',
   },
   {
-    id: 'norm-12',
+    id: 'norm-15',
     code: 'Ato Conjunto RFB/CGIBS 4/2026',
     dou_date: '30/07/2026',
     date: '30/07/2026',
     title: 'Cronograma DFe e Conformidade',
     summary: 'Cronograma dos documentos fiscais eletrônicos; programa de conformidade 2026',
     status_incidence: 'Obrig. acessórias',
-    order: 12,
+    order: 15,
     link_url: '',
   },
   {
-    id: 'norm-13',
+    id: 'norm-16',
     code: 'Resoluções CGSN 190–192/2026',
     dou_date: '2026',
     date: '2026',
@@ -165,7 +301,7 @@ export const fallbackNorms: TaxNormItem[] = [
     summary:
       'Simples Nacional: IBS/CBS no DAS, sublimite R$ 3,6 mi (IBS), NFS-e nacional (01/11/2026)',
     status_incidence: 'ME/EPP',
-    order: 13,
+    order: 16,
     link_url: '',
   },
 ]

@@ -66,4 +66,46 @@ describe('Validação dos fluxos do Panorama da Reforma Tributária', () => {
     expect(fullBrand.toLowerCase()).not.toContain('jurídic')
     expect(fullBrand.toLowerCase()).not.toContain('juridic')
   })
+
+  it('validação dos links diretos de PDFs oficiais do CGIBS para contorno de bloqueios locais', () => {
+    const cgibsPdfs = [
+      {
+        code: 'Resolução CGIBS nº 1/2026',
+        url: 'https://www.cgibs.gov.br/upload/arquivos/202602/27102250-resoluc-a-o-csibs-n-1-de-23-de-fevereiro-de-2026-assinatura.pdf',
+      },
+      {
+        code: 'Resolução CGIBS nº 5/2026',
+        url: 'https://www.cgibs.gov.br/upload/arquivos/202604/30221158-resolucao-cgibs-n-5-de-30-de-abril-de-2026.pdf',
+      },
+      {
+        code: 'Resolução CGIBS nº 6/2026',
+        url: 'https://www.cgibs.gov.br/upload/arquivos/202604/30084927-res-cgibs-n-6-30-abr-2026-regulamenta-o-ibs.pdf',
+      },
+      {
+        code: 'Resolução CGIBS nº 8/2026',
+        url: 'https://www.cgibs.gov.br/upload/arquivos/202605/26184150-resolucao-cgibs-n-8-de-2026-3.pdf',
+      },
+      {
+        code: 'Resolução CGIBS nº 10/2026',
+        url: 'https://www.cgibs.gov.br/upload/arquivos/202607/01163740-resolucao-cgibs-n-10-de-29-de-junho-de-2026-proposta-orcamentaria-2026.pdf',
+      },
+      {
+        code: 'Resolução CGIBS nº 13/2026',
+        url: 'https://www.cgibs.gov.br/upload/arquivos/202607/22121010-resolucao-cgibs-n-13-de-22-de-julho-de-2026.pdf',
+      },
+      {
+        code: 'Resolução CGIBS nº 14/2026',
+        url: 'https://www.cgibs.gov.br/upload/arquivos/202607/31144942-resoluc-ao-cgibs-n-14-de-29-de-julho-de-2026-proposta-percentual-ibs-cgibs-2027.pdf',
+      },
+      {
+        code: 'Resolução CGIBS nº 16/2026',
+        url: 'https://www.cgibs.gov.br/upload/arquivos/202607/29175824-doc-20260729-wa0035-260729-175811.pdf',
+      },
+    ]
+
+    expect(cgibsPdfs).toHaveLength(8)
+    for (const item of cgibsPdfs) {
+      expect(item.url).toMatch(/^https:\/\/www\.cgibs\.gov\.br\/upload\/arquivos\/.*\.pdf$/)
+    }
+  })
 })
