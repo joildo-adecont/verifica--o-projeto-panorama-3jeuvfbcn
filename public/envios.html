@@ -1,0 +1,642 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cadastro de Clientes & Envios — Simulador ADECONT</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+        background: #f0f3f8;
+        color: #1c2b3a;
+        line-height: 1.5;
+      }
+      header {
+        background: linear-gradient(135deg, #12315e, #1a4a8c);
+        color: #fff;
+        padding: 18px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+      }
+      header h1 {
+        font-size: 1.1rem;
+      }
+      header p {
+        font-size: 0.76rem;
+        opacity: 0.85;
+      }
+      .btn {
+        border: none;
+        border-radius: 8px;
+        padding: 9px 14px;
+        font-size: 0.82rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        text-decoration: none;
+      }
+      .btn-voltar {
+        background: #ffd66b;
+        color: #5c4400;
+      }
+      main {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 16px 14px 70px;
+      }
+      .card {
+        background: #fff;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 14px;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+      }
+      .card h2 {
+        color: #12315e;
+        font-size: 1rem;
+        margin-bottom: 10px;
+        border-bottom: 2px solid #1a4a8c;
+        padding-bottom: 6px;
+      }
+      label {
+        font-size: 0.76rem;
+        font-weight: 600;
+        color: #374151;
+        display: block;
+        margin: 7px 0 3px;
+      }
+      input,
+      select,
+      textarea {
+        width: 100%;
+        padding: 8px 10px;
+        border: 1px solid #c9d4e0;
+        border-radius: 8px;
+        font-size: 0.88rem;
+        font-family: inherit;
+      }
+      .row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+        gap: 10px;
+      }
+      .btn-azul {
+        background: #12315e;
+        color: #fff;
+      }
+      .btn-verde {
+        background: #1e7a1e;
+        color: #fff;
+      }
+      .btn-cinza {
+        background: #64748b;
+        color: #fff;
+      }
+      .btn-verm {
+        background: #b91c1c;
+        color: #fff;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.78rem;
+        margin: 8px 0;
+      }
+      th {
+        background: #12315e;
+        color: #fff;
+        padding: 6px 8px;
+        text-align: left;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+      }
+      td {
+        padding: 5px 8px;
+        border-bottom: 1px solid #dbe3ee;
+      }
+      tr:nth-child(even) td {
+        background: #f6f8fc;
+      }
+      .tag {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-size: 0.66rem;
+        font-weight: 700;
+      }
+      .t-enviado {
+        background: #e3f0fd;
+        color: #12508f;
+      }
+      .t-recebido {
+        background: #e6f2e6;
+        color: #1e7a1e;
+      }
+      .t-falha {
+        background: #fdecec;
+        color: #b02525;
+      }
+      .nota {
+        font-size: 0.74rem;
+        color: #5b6b7b;
+        margin-top: 6px;
+      }
+      .msg {
+        padding: 10px 12px;
+        border-radius: 8px;
+        margin: 10px 0;
+        font-size: 0.8rem;
+        display: none;
+      }
+      .msg-ok {
+        background: #e6f2e6;
+        color: #1e7a1e;
+      }
+      .msg-erro {
+        background: #fdecec;
+        color: #b02525;
+      }
+      .tabs {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+      }
+      .tab {
+        padding: 8px 16px;
+        border-radius: 8px 8px 0 0;
+        background: #dbe3ee;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.82rem;
+        border: none;
+      }
+      .tab.on {
+        background: #12315e;
+        color: #fff;
+      }
+      #previewCSV {
+        font-size: 0.72rem;
+        font-family: ui-monospace, monospace;
+        background: #f6f8fc;
+        border: 1px solid #dbe3ee;
+        border-radius: 8px;
+        padding: 10px;
+        max-height: 180px;
+        overflow: auto;
+        white-space: pre;
+        margin-top: 8px;
+      }
+      .count-badge {
+        background: #ffd66b;
+        color: #5c4400;
+        border-radius: 10px;
+        padding: 1px 8px;
+        font-size: 0.7rem;
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>📇 Cadastro de Clientes & Protocolo de Envios — Simulador de Transição</h1>
+      <p>ADECONT • Panorama da Reforma Tributária • controle de entrega com capitulação legal</p>
+      <div style="margin-top: 8px">
+        <a class="btn btn-voltar" href="./simulador.html">← Voltar ao Simulador</a>
+      </div>
+    </header>
+    <main>
+      <div class="tabs">
+        <button class="tab on" data-tab="cad" onclick="aba('cad')">1. Cadastro de Clientes</button>
+        <button class="tab" data-tab="imp" onclick="aba('imp')">2. Importação</button>
+        <button class="tab" data-tab="env" onclick="aba('env')">3. Envio & Protocolo</button>
+      </div>
+
+      <!-- ABA CADASTRO -->
+      <div class="card" id="tab-cad">
+        <h2>Digitação manual — novo cliente</h2>
+        <div class="row">
+          <div><label>Nome *</label><input id="c_nome" placeholder="Nome do cliente" /></div>
+          <div>
+            <label>E-mail *</label
+            ><input id="c_email" type="email" placeholder="cliente@empresa.com.br" />
+          </div>
+          <div><label>WhatsApp</label><input id="c_wa" placeholder="5585999999999" /></div>
+        </div>
+        <div class="row" style="margin-top: 8px">
+          <div><label>Empresa</label><input id="c_empresa" /></div>
+          <div><label>CPF/CNPJ</label><input id="c_doc" /></div>
+          <div>
+            <label>Canal preferido</label
+            ><select id="c_canal">
+              <option value="email">E-mail</option>
+              <option value="whatsapp">WhatsApp</option>
+            </select>
+          </div>
+        </div>
+        <div style="margin-top: 10px">
+          <label>Observações</label
+          ><input id="c_obs" placeholder="Observações internas (opcional)" />
+        </div>
+        <button class="btn btn-azul" style="margin-top: 12px" onclick="salvarCliente()">
+          💾 Salvar cliente
+        </button>
+        <span id="cadMsg" class="msg"></span>
+        <h2 style="margin-top: 18px">
+          Clientes cadastrados <span class="count-badge" id="cntCli">0</span>
+        </h2>
+        <div style="overflow-x: auto">
+          <table id="tblCli">
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>E-mail</th>
+                <th>Empresa</th>
+                <th>WhatsApp</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ABA IMPORTACAO -->
+      <div class="card" id="tab-imp" style="display: none">
+        <h2>Importação de dados (CSV)</h2>
+        <p class="nota">
+          Formato esperado (com cabeçalho):
+          <b>nome,email,whatsapp,empresa,documento,canal_preferido,observacoes</b>. E-mails
+          duplicados atualizam o cadastro existente (política skip/update).
+        </p>
+        <input type="file" id="csvFile" accept=".csv,text/csv" style="margin: 10px 0" />
+        <div id="previewCSV">— pré-visualização aparecerá aqui —</div>
+        <div class="row" style="margin-top: 10px">
+          <button class="btn btn-verde" onclick="importarCSV()">
+            ⬆ Importar <span class="count-badge" id="cntCsv">0</span>
+          </button>
+          <button class="btn btn-cinza" onclick="baixarModelo()">📄 Baixar modelo CSV</button>
+        </div>
+        <span id="impMsg" class="msg"></span>
+      </div>
+
+      <!-- ABA ENVIO -->
+      <div class="card" id="tab-env" style="display: none">
+        <h2>Enviar simulação com protocolo</h2>
+        <div class="row">
+          <div>
+            <label>Destinatário</label>
+            <select id="e_cliente">
+              <option value="">— selecione —</option>
+              <option value="TODOS">📢 TODOS os clientes ativos</option>
+            </select>
+          </div>
+        </div>
+        <label style="margin-top: 10px">Resumo do tema transmitido</label>
+        <textarea
+          id="e_resumo"
+          rows="2"
+          placeholder="Ex.: Comparativo de carga tributária do serviço odontológico na transição 2026-2033"
+        ></textarea>
+        <label>Capitulação legal (pré-preenchida conforme o grupo do item — editável)</label>
+        <textarea id="e_capitulacao" rows="3"></textarea>
+        <div class="row" style="margin-top: 8px">
+          <div>
+            <label>Código do item (NCM/NBS)</label
+            ><input id="e_codigo" placeholder="ex.: 1.2301.23.00" />
+          </div>
+          <div>
+            <label>Nome do item</label
+            ><input id="e_item" placeholder="ex.: Serviços odontológicos" />
+          </div>
+        </div>
+        <button class="btn btn-verde" style="margin-top: 12px" onclick="enviar()">
+          📤 Enviar com protocolo
+        </button>
+        <span id="envMsg" class="msg"></span>
+
+        <h2 style="margin-top: 18px">
+          Histórico de envios <span class="count-badge" id="cntEnv">0</span>
+        </h2>
+        <div style="overflow-x: auto">
+          <table id="tblEnv">
+            <thead>
+              <tr>
+                <th>Protocolo</th>
+                <th>Cliente</th>
+                <th>Tema</th>
+                <th>Status</th>
+                <th>Enviado em</th>
+                <th>Recebido em</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+    <script>
+      // ---------- infra ----------
+      var PB_URL = 'https://verificacao-projeto-panorama-18549.goskip.app'
+      function pb(path, opts) {
+        opts = opts || {}
+        opts.headers = Object.assign({ 'Content-Type': 'application/json' }, opts.headers || {})
+        opts.credentials = 'include'
+        return fetch(PB_URL + path, opts).then(function (r) {
+          if (!r.ok) throw new Error('HTTP ' + r.status)
+          return r.json()
+        })
+      }
+      function msg(id, txt, ok) {
+        var el = document.getElementById(id)
+        el.textContent = txt
+        el.className = 'msg ' + (ok ? 'msg-ok' : 'msg-erro')
+        el.style.display = 'block'
+        setTimeout(function () {
+          el.style.display = 'none'
+        }, 6000)
+      }
+      function aba(t) {
+        ;['cad', 'imp', 'env'].forEach(function (x) {
+          document.getElementById('tab-' + x).style.display = x === t ? 'block' : 'none'
+        })
+        document.querySelectorAll('.tab').forEach(function (b) {
+          b.classList.toggle('on', b.dataset.tab === t)
+        })
+        if (t === 'cad') carregarClientes()
+        if (t === 'env') carregarEnvios()
+      }
+
+      // ---------- cadastro ----------
+      function salvarCliente() {
+        var c = {
+          nome: document.getElementById('c_nome').value.trim(),
+          email: document.getElementById('c_email').value.trim(),
+          whatsapp: document.getElementById('c_wa').value.trim(),
+          empresa: document.getElementById('c_empresa').value.trim(),
+          documento: document.getElementById('c_doc').value.trim(),
+          canal_preferido: document.getElementById('c_canal').value,
+          observacoes: document.getElementById('c_obs').value.trim(),
+        }
+        if (!c.nome || !c.email) {
+          msg('cadMsg', 'Informe nome e e-mail.', false)
+          return
+        }
+        // dedup: se já existe, atualiza via importação (1 item)
+        pb('/backend/v1/simul-importar', {
+          method: 'POST',
+          body: JSON.stringify({ clientes: [c] }),
+        })
+          .then(function (r) {
+            msg('cadMsg', 'Cliente salvo (' + (r.inseridos ? 'novo' : 'atualizado') + ').', true)
+            limparCad()
+            carregarClientes()
+          })
+          .catch(function (e) {
+            msg('cadMsg', 'Erro: faça login no sistema ADECONT antes (sessão necessária).', false)
+          })
+      }
+      function limparCad() {
+        ;['c_nome', 'c_email', 'c_wa', 'c_empresa', 'c_doc', 'c_obs'].forEach(function (i) {
+          document.getElementById(i).value = ''
+        })
+      }
+      function carregarClientes() {
+        pb('/api/collections/simul_clientes/records?perPage=500&sort=nome')
+          .then(function (r) {
+            var tb = document.querySelector('#tblCli tbody')
+            tb.innerHTML = ''
+            ;(r.items || []).forEach(function (c) {
+              var tr = document.createElement('tr')
+              tr.innerHTML =
+                '<td>' +
+                c.nome +
+                '</td><td>' +
+                c.email +
+                '</td><td>' +
+                (c.empresa || '—') +
+                '</td><td>' +
+                (c.whatsapp || '—') +
+                '</td>' +
+                '<td><button class="btn btn-verm" style="padding:3px 8px;font-size:.68rem" onclick="excluirCliente(\'' +
+                c.id +
+                '\')">✕</button></td>'
+              tb.appendChild(tr)
+            })
+            document.getElementById('cntCli').textContent = (r.items || []).length
+            var sel = document.getElementById('e_cliente')
+            sel.innerHTML =
+              '<option value="">— selecione —</option><option value="TODOS">📢 TODOS os clientes ativos</option>'
+            ;(r.items || []).forEach(function (c) {
+              var o = document.createElement('option')
+              o.value = c.id
+              o.textContent = c.nome + ' (' + c.email + ')'
+              sel.appendChild(o)
+            })
+          })
+          .catch(function () {
+            document.getElementById('cntCli').textContent = '?'
+          })
+      }
+      function excluirCliente(id) {
+        if (!confirm('Excluir este cliente?')) return
+        pb('/api/collections/simul_clientes/records/' + id, { method: 'DELETE' })
+          .then(carregarClientes)
+          .catch(function (e) {
+            msg('cadMsg', 'Erro ao excluir (verifique sessão/permissão).', false)
+          })
+      }
+
+      // ---------- importacao CSV ----------
+      var csvData = []
+      function parseCSVLine(line) {
+        var out = [],
+          cur = '',
+          inQ = false
+        for (var i = 0; i < line.length; i++) {
+          var ch = line[i]
+          if (inQ) {
+            if (ch === '"' && line[i + 1] === '"') {
+              cur += '"'
+              i++
+            } else if (ch === '"') inQ = false
+            else cur += ch
+          } else {
+            if (ch === '"') inQ = true
+            else if (ch === ',' || ch === ';') {
+              out.push(cur)
+              cur = ''
+            } else cur += ch
+          }
+        }
+        out.push(cur)
+        return out.map(function (s) {
+          return s.trim()
+        })
+      }
+      document.getElementById('csvFile').addEventListener('change', function (e) {
+        var f = e.target.files[0]
+        if (!f) return
+        var rd = new FileReader()
+        rd.onload = function () {
+          var lines = rd.result.split(/\r?\n/).filter(function (l) {
+            return l.trim()
+          })
+          csvData = []
+          var head = parseCSVLine(lines[0]).map(function (h) {
+            return h.toLowerCase()
+          })
+          var ix = {
+            nome: head.indexOf('nome'),
+            email: head.indexOf('email'),
+            whatsapp: head.indexOf('whatsapp'),
+            empresa: head.indexOf('empresa'),
+            documento: head.indexOf('documento'),
+            canal_preferido: head.indexOf('canal_preferido'),
+            observacoes: head.indexOf('observacoes'),
+          }
+          for (var i = 1; i < lines.length; i++) {
+            var p = parseCSVLine(lines[i])
+            var c = {}
+            ;[
+              'nome',
+              'email',
+              'whatsapp',
+              'empresa',
+              'documento',
+              'canal_preferido',
+              'observacoes',
+            ].forEach(function (k) {
+              c[k] = ix[k] >= 0 ? p[ix[k]] || '' : ''
+            })
+            if (c.nome || c.email) csvData.push(c)
+          }
+          document.getElementById('previewCSV').textContent =
+            lines.slice(0, 8).join('\n') +
+            (lines.length > 8 ? '\n… (' + lines.length + ' linhas)' : '')
+          document.getElementById('cntCsv').textContent = csvData.length
+        }
+        rd.readAsText(f, 'UTF-8')
+      })
+      function importarCSV() {
+        if (!csvData.length) {
+          msg('impMsg', 'Selecione um CSV válido.', false)
+          return
+        }
+        pb('/backend/v1/simul-importar', {
+          method: 'POST',
+          body: JSON.stringify({ clientes: csvData }),
+        })
+          .then(function (r) {
+            msg(
+              'impMsg',
+              'Importado: ' +
+                r.inseridos +
+                ' novos, ' +
+                r.atualizados +
+                ' atualizados' +
+                (r.erros.length ? ', ' + r.erros.length + ' erros' : '') +
+                '.',
+              true,
+            )
+            carregarClientes()
+          })
+          .catch(function (e) {
+            msg('impMsg', 'Erro: ' + e.message, false)
+          })
+      }
+      function baixarModelo() {
+        var csv =
+          'nome,email,whatsapp,empresa,documento,canal_preferido,observacoes\n' +
+          'João da Silva,joao@empresa.com.br,5585999990001,Empresa X Ltda,12.345.678/0001-90,email,Cliente ouro\n' +
+          'Maria Souza,maria@loja.com.br,5585999990002,Loja Y ME,98.765.432/0001-10,whatsapp,'
+        var b = new Blob([csv], { type: 'text/csv' })
+        var a = document.createElement('a')
+        a.href = URL.createObjectURL(b)
+        a.download = 'modelo_clientes_simulador.csv'
+        a.click()
+      }
+
+      // ---------- envio ----------
+      function enviar() {
+        var clienteId = document.getElementById('e_cliente').value
+        if (!clienteId) {
+          msg('envMsg', 'Selecione o destinatário.', false)
+          return
+        }
+        var body = {
+          cliente_id: clienteId,
+          tema_resumo: document.getElementById('e_resumo').value,
+          capitulacao_legal: document.getElementById('e_capitulacao').value,
+          item_codigo: document.getElementById('e_codigo').value,
+          item_nome: document.getElementById('e_item').value,
+          payload: { origem: 'painel-envios' },
+        }
+        pb('/backend/v1/simul-enviar', { method: 'POST', body: JSON.stringify(body) })
+          .then(function (r) {
+            var ok = r.envios.filter(function (x) {
+              return x.status === 'ENVIADO'
+            }).length
+            var prot = r.envios
+              .map(function (x) {
+                return x.protocolo
+              })
+              .join(', ')
+            msg('envMsg', '✔ ' + ok + '/' + r.total + ' enviados. Protocolo(s): ' + prot, true)
+            carregarEnvios()
+          })
+          .catch(function (e) {
+            msg('envMsg', 'Erro no envio: ' + e.message, false)
+          })
+      }
+      function carregarEnvios() {
+        pb('/api/collections/simul_envios/records?perPage=100&sort=-created&expand=cliente')
+          .then(function (r) {
+            var tb = document.querySelector('#tblEnv tbody')
+            tb.innerHTML = ''
+            ;(r.items || []).forEach(function (v) {
+              var cli = v.expand && v.expand.cliente ? v.expand.cliente.nome : '—'
+              var tr = document.createElement('tr')
+              tr.innerHTML =
+                '<td><b>' +
+                v.protocolo +
+                '</b></td><td>' +
+                cli +
+                '</td><td style="max-width:260px">' +
+                (v.tema_resumo || '—') +
+                '</td>' +
+                '<td><span class="tag t-' +
+                v.status.toLowerCase() +
+                '">' +
+                v.status +
+                '</span></td><td>' +
+                fmtData(v.enviado_em) +
+                '</td><td>' +
+                (v.recebido_em || '—') +
+                '</td>'
+              tb.appendChild(tr)
+            })
+            document.getElementById('cntEnv').textContent = (r.items || []).length
+          })
+          .catch(function () {
+            document.getElementById('cntEnv').textContent = '?'
+          })
+      }
+      function fmtData(s) {
+        if (!s) return '—'
+        try {
+          return new Date(s).toLocaleString('pt-BR')
+        } catch (e) {
+          return s
+        }
+      }
+      carregarClientes()
+    </script>
+  </body>
+</html>

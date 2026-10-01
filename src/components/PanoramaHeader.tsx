@@ -219,6 +219,20 @@ export function PanoramaHeader({
           {/* Actions */}
           <div className="hidden sm:flex items-center gap-2">
             <a
+              href="/panorama-reforma/envios.html"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-amber-600 hover:bg-amber-500 px-3 py-1.5 rounded-md shadow-sm transition-colors"
+              title="Cadastro de Clientes & Protocolo de Envios"
+            >
+              <span>📇 Cadastro & Envios</span>
+            </a>
+            <a
+              href="/panorama-reforma/simulador.html"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-500 px-3 py-1.5 rounded-md shadow-sm transition-colors"
+              title="Simulador Didático de Transição — regime atual vs IBS/CBS"
+            >
+              <span>🧮 Simulador</span>
+            </a>
+            <a
               href="https://planalto.gov.br/ccivil_03/leis/lcp/lcp214.htm"
               target="_blank"
               rel="noopener noreferrer"
@@ -287,6 +301,22 @@ export function PanoramaHeader({
               </a>
             ))}
             <div className="pt-2 flex flex-col gap-2">
+              <a
+                href="/panorama-reforma/simulador.html"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center justify-between text-xs font-semibold text-white bg-emerald-600 p-2 rounded"
+              >
+                <span>🧮 Simulador de Transição</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+              <a
+                href="/panorama-reforma/envios.html"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center justify-between text-xs font-semibold text-white bg-amber-600 p-2 rounded"
+              >
+                <span>📇 Cadastro & Envios</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
               <a
                 href="https://planalto.gov.br/ccivil_03/leis/lcp/lcp214.htm"
                 target="_blank"
