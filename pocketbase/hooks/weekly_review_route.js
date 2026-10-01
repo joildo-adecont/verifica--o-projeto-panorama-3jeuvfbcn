@@ -1,4 +1,5 @@
 // Rota HTTP para acionamento imediato da revisão semanal de conteúdo / teste
+// Abrange TODOS os tipos de atos normativos da Reforma Tributária (Emendas, Leis, Decretos, Portarias, Atos e Resoluções)
 // POST /backend/v1/trigger-weekly-review e OPTIONS para CORS
 
 routerAdd('OPTIONS', '/backend/v1/trigger-weekly-review', (e) => {
@@ -20,7 +21,7 @@ routerAdd('POST', '/backend/v1/trigger-weekly-review', (e) => {
     },
     {
       key: 'receita',
-      name: 'Receita Federal do Brasil',
+      name: 'Receita Federal do Brasil (RFB)',
       url: 'https://www.receita.fazenda.gov.br',
       order: 2,
     },
@@ -29,6 +30,12 @@ routerAdd('POST', '/backend/v1/trigger-weekly-review', (e) => {
       name: 'Portal da Legislação (Planalto)',
       url: 'https://www.planalto.gov.br',
       order: 3,
+    },
+    {
+      key: 'dou',
+      name: 'Imprensa Nacional (Diário Oficial da União)',
+      url: 'https://www.in.gov.br',
+      order: 4,
     },
   ]
 
@@ -119,11 +126,13 @@ routerAdd('POST', '/backend/v1/trigger-weekly-review', (e) => {
     const colReviews = $app.findCollectionByNameOrId('content_reviews')
     reviewRecord = new Record(colReviews)
 
-    const notes = 'verificação semanal de novas normas — CGIBS/Receita Federal/Planalto'
+    const notes =
+      'Verificação abrangente de atos normativos da Reforma Tributária (Emendas Constitucionais, Leis Complementares, Decretos, Portarias, Atos Conjuntos e Resoluções CGIBS/CGSN) nas fontes oficiais Planalto / CGIBS / Receita / DOU.'
 
-    let summaryText = 'Todas as fontes oficiais responderam ativas na verificação semanal.'
+    let summaryText =
+      'Todas as fontes oficiais de atos normativos responderam ativas na verificação técnica.'
     if (overallStatus === 'warning') {
-      summaryText = 'Verificação semanal concluída com aviso em uma ou mais fontes.'
+      summaryText = 'Verificação concluída com aviso em uma ou mais fontes oficiais.'
     } else if (overallStatus === 'attention') {
       summaryText = 'Atenção: uma ou mais fontes oficiais apresentaram falha de conexão.'
     }

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-01T01:03:42.892Z",
+  "generatedAt": "2026-10-01T01:12:54.193Z",
   "collections": [
     {
       "name": "users",
@@ -354,6 +354,18 @@
           "required": false,
           "system": false,
           "autodateTriggers": ["onCreate", "onUpdate"]
+        },
+        {
+          "name": "norm_type",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "origin",
+          "type": "text",
+          "required": false,
+          "system": false
         }
       ],
       "indexes": ["CREATE INDEX idx_tax_norms_order ON tax_norms (order)"]

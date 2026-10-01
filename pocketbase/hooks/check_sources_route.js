@@ -20,7 +20,7 @@ routerAdd('POST', '/backend/v1/check-sources', (e) => {
     },
     {
       key: 'receita',
-      name: 'Receita Federal do Brasil',
+      name: 'Receita Federal do Brasil (RFB)',
       url: 'https://www.receita.fazenda.gov.br',
       order: 2,
     },
@@ -29,6 +29,12 @@ routerAdd('POST', '/backend/v1/check-sources', (e) => {
       name: 'Portal da Legislação (Planalto)',
       url: 'https://www.planalto.gov.br',
       order: 3,
+    },
+    {
+      key: 'dou',
+      name: 'Imprensa Nacional (Diário Oficial da União)',
+      url: 'https://www.in.gov.br',
+      order: 4,
     },
   ]
 

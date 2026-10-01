@@ -20,10 +20,10 @@ import {
   fetchLatestContentReview,
   fetchContentReviewsHistory,
   triggerWeeklyReview,
-  cgibsDirectDocuments,
-  getCgibsPdfProxyUrl,
+  officialDocumentsList,
+  getOfficialDocProxyUrl,
 } from '@/services/panorama'
-import type { ContentReviewItem } from '@/types/panorama'
+import type { ContentReviewItem, OfficialDocumentItem } from '@/types/panorama'
 import { Tag, History } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { AdecontLogo } from '@/components/AdecontLogo'
@@ -45,6 +45,7 @@ export function SectionFontes() {
   const [reviewLoading, setReviewLoading] = useState<boolean>(true)
   const [refreshingReview, setRefreshingReview] = useState<boolean>(false)
   const [showHistory, setShowHistory] = useState<boolean>(false)
+  const [selectedDocTypeFilter, setSelectedDocTypeFilter] = useState<string>('TODOS')
 
   const loadReviewData = async () => {
     try {
@@ -289,83 +290,211 @@ export function SectionFontes() {
         </table>
       </div>
 
-      {/* BLOCO: Documentos diretos — Resoluções CGIBS (PDF) */}
-      <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-blue-50/80 via-white to-slate-50 border border-blue-200/90 shadow-sm space-y-4">
+      {/* BLOCO: Documentos oficiais para download — Todos os tipos de atos */}
+      <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-blue-50/80 via-white to-slate-50 border border-blue-200/90 shadow-sm space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-blue-100">
           <div className="space-y-1">
             <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 text-[11px] font-bold">
               <FileDown className="w-3.5 h-3.5 text-blue-700" />
-              <span>LINKS DIRETOS OFICIAIS (PDF)</span>
+              <span>DOWNLOAD INTERMEDIADO SEGURO</span>
             </div>
             <h3 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
-              <span>Documentos diretos — Resoluções CGIBS (PDF)</span>
+              <span>Documentos oficiais para download</span>
             </h3>
             <p className="text-xs sm:text-sm text-slate-600 max-w-3xl leading-relaxed">
-              Acesso direto aos arquivos PDF armazenados no servidor do CGIBS (
-              <code>www.cgibs.gov.br</code>). Estes links funcionam diretamente para download e
-              leitura mesmo se o portal principal estiver com bloqueios locais de navegador (como o
-              erro <em>ERR_BLOCKED_BY_CLIENT</em> no Microsoft Edge).
+              Acesso e download direto a <strong>todos os atos normativos</strong> da Reforma
+              Tributária (Resoluções CGIBS, Decretos Federais, Portarias Conjuntas, Atos Conjuntos
+              da Receita/CGIBS, Leis Complementares e Emenda Constitucional). A entrega é mediada
+              pelo servidor próprio do Panorama da{' '}
+              <strong>ADECONT Assessoria Contábil e Administrativa</strong>, contornando bloqueios
+              locais de navegador como o <em>ERR_BLOCKED_BY_CLIENT</em> no Microsoft Edge.
             </p>
           </div>
-          <div className="shrink-0">
+          <div className="shrink-0 flex items-center gap-2">
             <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-              <span>8 PDFs verificados</span>
+              <span>{officialDocumentsList.length} documentos oficiais</span>
             </span>
           </div>
         </div>
 
-        {/* Grade de cartões de resoluções em PDF */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-1">
-          {cgibsDirectDocuments.map((doc) => {
-            const proxyDownloadUrl =
-              doc.proxy_url || getCgibsPdfProxyUrl(doc.resolution_number || doc.id)
-
-            return (
-              <div
-                key={doc.id}
-                className="p-4 rounded-xl bg-white border border-slate-200 hover:border-blue-300 hover:shadow-xs transition-all flex flex-col justify-between space-y-3"
-              >
-                <div className="space-y-1.5">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="font-bold text-slate-900 text-sm">{doc.code}</div>
-                    {doc.badge && (
-                      <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-100 text-blue-800 border border-blue-200">
-                        {doc.badge}
-                      </span>
-                    )}
-                  </div>
-                  <div className="text-xs font-semibold text-blue-900">{doc.title}</div>
-                  <p className="text-xs text-slate-600 leading-relaxed">{doc.summary}</p>
-                </div>
-
-                <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2 flex-wrap">
-                  <span className="text-[11px] text-slate-500 font-mono">Data: {doc.date}</span>
-                  <a
-                    href={proxyDownloadUrl}
-                    download={doc.filename || 'Resolucao-CGIBS.pdf'}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer"
-                    title={`Baixar PDF oficial: ${doc.code} (download via servidor do Panorama)`}
-                  >
-                    <Download className="w-3.5 h-3.5" />
-                    <span>Baixar PDF oficial</span>
-                  </a>
-                </div>
-              </div>
-            )
-          })}
+        {/* Filtros rápidos por tipo de ato */}
+        <div className="flex flex-wrap items-center gap-1.5 pt-1">
+          <span className="text-xs font-semibold text-slate-600 mr-1 flex items-center gap-1">
+            <Tag className="w-3 h-3 text-slate-500" />
+            <span>Filtrar por tipo:</span>
+          </span>
+          {[
+            'TODOS',
+            'Resoluções CGIBS',
+            'Decretos',
+            'Portarias',
+            'Atos Conjuntos',
+            'Leis e EC',
+          ].map((typeFilter) => (
+            <button
+              key={typeFilter}
+              onClick={() => setSelectedDocTypeFilter(typeFilter)}
+              className={`text-[11px] px-2.5 py-1 rounded font-bold transition-colors border cursor-pointer ${
+                selectedDocTypeFilter === typeFilter
+                  ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
+                  : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'
+              }`}
+            >
+              {typeFilter}
+            </button>
+          ))}
         </div>
 
+        {/* Agrupamento por tipo de ato normativo */}
+        {(() => {
+          const typeGroups = [
+            {
+              groupName: 'Resoluções CGIBS',
+              categoryKey: 'Resoluções CGIBS',
+              description:
+                'Regulamento do IBS, governança administrativa e resoluções operacionais do Comitê Gestor',
+              badgeColor: 'bg-blue-100 text-blue-800 border-blue-200',
+              items: officialDocumentsList.filter(
+                (d) => d.norm_type === 'Resolução' && d.origin === 'CGIBS',
+              ),
+            },
+            {
+              groupName: 'Decretos Federais',
+              categoryKey: 'Decretos',
+              description:
+                'Regulamento da Contribuição Social sobre Bens e Serviços (CBS) e atos da Presidência',
+              badgeColor: 'bg-purple-100 text-purple-800 border-purple-200',
+              items: officialDocumentsList.filter((d) => d.norm_type === 'Decreto'),
+            },
+            {
+              groupName: 'Portarias Conjuntas',
+              categoryKey: 'Portarias',
+              description:
+                'Portarias entre Ministério da Fazenda e CGIBS sobre disposições comuns do IBS/CBS',
+              badgeColor: 'bg-amber-100 text-amber-800 border-amber-200',
+              items: officialDocumentsList.filter((d) => d.norm_type.includes('Portaria')),
+            },
+            {
+              groupName: 'Atos Conjuntos RFB/CGIBS',
+              categoryKey: 'Atos Conjuntos',
+              description:
+                'Documentos fiscais eletrônicos, regras de apuração 2026 e cronogramas de conformidade',
+              badgeColor: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+              items: officialDocumentsList.filter((d) => d.norm_type.includes('Ato Conjunto')),
+            },
+            {
+              groupName: 'Emendas Constitucionais e Leis Complementares',
+              categoryKey: 'Leis e EC',
+              description:
+                'Arcabouço legislativo primário aprovado pelo Congresso Nacional e Presidência',
+              badgeColor: 'bg-indigo-100 text-indigo-800 border-indigo-200',
+              items: officialDocumentsList.filter(
+                (d) =>
+                  d.norm_type.includes('Emenda') ||
+                  d.norm_type.includes('Lei Complementar') ||
+                  d.origin === 'CGSN',
+              ),
+            },
+          ]
+
+          const filteredGroups = typeGroups.filter((g) => {
+            if (selectedDocTypeFilter === 'TODOS') return true
+            return g.categoryKey === selectedDocTypeFilter
+          })
+
+          return (
+            <div className="space-y-6 pt-1">
+              {filteredGroups.map((group) => {
+                if (group.items.length === 0) return null
+                return (
+                  <div key={group.groupName} className="space-y-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 pb-1.5 border-b border-slate-200">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-blue-600" />
+                        <h4 className="text-sm font-bold text-slate-900 tracking-tight">
+                          {group.groupName}
+                        </h4>
+                        <span
+                          className={`px-2 py-0.5 rounded text-[10px] font-semibold border ${group.badgeColor}`}
+                        >
+                          {group.items.length} {group.items.length === 1 ? 'ato' : 'atos'}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-500">{group.description}</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                      {group.items.map((doc) => {
+                        const proxyDownloadUrl = doc.proxy_url || getOfficialDocProxyUrl(doc.id)
+                        const isPdf = doc.format === 'pdf' || (doc.url && doc.url.endsWith('.pdf'))
+
+                        return (
+                          <div
+                            key={doc.id}
+                            className="p-4 rounded-xl bg-white border border-slate-200 hover:border-blue-300 hover:shadow-xs transition-all flex flex-col justify-between space-y-3"
+                          >
+                            <div className="space-y-1.5">
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="font-bold text-slate-900 text-sm flex items-center gap-1.5 flex-wrap">
+                                  <span>{doc.code}</span>
+                                  <span className="text-[10px] px-1.5 py-0.5 rounded font-mono font-medium bg-slate-100 text-slate-600 border border-slate-200">
+                                    {doc.origin}
+                                  </span>
+                                </div>
+                                {doc.badge && (
+                                  <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-100 text-blue-800 border border-blue-200">
+                                    {doc.badge}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-xs font-semibold text-blue-900">{doc.title}</div>
+                              <p className="text-xs text-slate-600 leading-relaxed">
+                                {doc.summary}
+                              </p>
+                            </div>
+
+                            <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2 flex-wrap">
+                              <span className="text-[11px] text-slate-500 font-mono">
+                                Data: {doc.date}
+                              </span>
+                              <a
+                                href={proxyDownloadUrl}
+                                download={
+                                  doc.filename || (isPdf ? `${doc.code}.pdf` : `${doc.code}.html`)
+                                }
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+                                title={`Baixar documento oficial: ${doc.code} (download mediado via domínio próprio Panorama ADECONT)`}
+                              >
+                                <Download className="w-3.5 h-3.5" />
+                                <span>{isPdf ? 'Baixar PDF oficial' : 'Baixar texto oficial'}</span>
+                              </a>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )
+        })()}
+
         {/* Nota explicativa de download servido pelo Panorama */}
-        <div className="mt-2 p-3 rounded-xl bg-blue-50/70 border border-blue-200/80 text-[11px] sm:text-xs text-slate-700 flex items-start gap-2">
+        <div className="mt-2 p-3.5 rounded-xl bg-blue-50/70 border border-blue-200/80 text-[11px] sm:text-xs text-slate-700 flex items-start gap-2.5">
           <Info className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
-          <p className="leading-relaxed">
-            <strong>Download direto e compatível:</strong> os arquivos PDF das resoluções são
-            servidos e repassados diretamente pelo servidor do Panorama da ADECONT, garantindo o
-            download imediato no seu computador sem bloqueios locais de antivírus ou navegadores
-            (como o <code>ERR_BLOCKED_BY_CLIENT</code> no Microsoft Edge). O conteúdo do arquivo é
-            idêntico e autêntico ao publicado pelo Comitê Gestor.
-          </p>
+          <div className="space-y-1">
+            <p className="leading-relaxed">
+              <strong>Download mediado e contorno de bloqueios de rede:</strong> todos os arquivos e
+              textos normativos são servidos diretamente pelo servidor do Panorama da{' '}
+              <strong>ADECONT Assessoria Contábil e Administrativa</strong> pelo endpoint{' '}
+              <code>/backend/v1/download-resolution</code>. O servidor realiza o download da fonte
+              oficial (Planalto, Imprensa Nacional / DOU, CGIBS e RFB) e o entrega com cabeçalho de
+              anexo ao seu computador, prevenindo falsos positivos de antivírus e bloqueios de
+              domínio no Microsoft Edge (ex.: <em>ERR_BLOCKED_BY_CLIENT</em>).
+            </p>
+          </div>
         </div>
       </div>
 

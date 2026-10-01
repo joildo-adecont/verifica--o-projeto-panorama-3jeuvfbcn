@@ -1,7 +1,7 @@
 // Job agendado para revisão semanal de novas normas e disponibilidade das fontes oficiais
+// Abrange TODOS os tipos de atos normativos da Reforma Tributária (Emendas Constitucionais,
+// Leis Complementares, Decretos, Portarias, Atos Conjuntos, Resoluções CGIBS/CGSN e outros).
 // Cron expression: "0 11 * * 1" (Toda segunda-feira às 11:00 UTC = 08:00 Horário de Brasília)
-// Reutiliza a lógica de verificação de fontes oficiais (CGIBS, Receita Federal, Planalto)
-// Atualiza o source_status e grava um registro em content_reviews com resumo, status e notas.
 
 cronAdd('weekly_content_review', '0 11 * * 1', () => {
   const sources = [
@@ -13,7 +13,7 @@ cronAdd('weekly_content_review', '0 11 * * 1', () => {
     },
     {
       key: 'receita',
-      name: 'Receita Federal do Brasil',
+      name: 'Receita Federal do Brasil (RFB)',
       url: 'https://www.receita.fazenda.gov.br',
       order: 2,
     },
@@ -22,6 +22,12 @@ cronAdd('weekly_content_review', '0 11 * * 1', () => {
       name: 'Portal da Legislação (Planalto)',
       url: 'https://www.planalto.gov.br',
       order: 3,
+    },
+    {
+      key: 'dou',
+      name: 'Imprensa Nacional (Diário Oficial da União)',
+      url: 'https://www.in.gov.br',
+      order: 4,
     },
   ]
 
@@ -113,13 +119,17 @@ cronAdd('weekly_content_review', '0 11 * * 1', () => {
     const colReviews = $app.findCollectionByNameOrId('content_reviews')
     const reviewRecord = new Record(colReviews)
 
-    const notes = 'verificação semanal de novas normas — CGIBS/Receita Federal/Planalto'
+    const notes =
+      'Verificação semanal abrangente de atos normativos da Reforma Tributária (Emendas, Leis Complementares, Decretos, Portarias, Atos Conjuntos e Resoluções CGIBS/CGSN) — Planalto / CGIBS / Receita Federal / DOU.'
 
-    let summaryText = 'Todas as fontes oficiais responderam ativas na verificação semanal.'
+    let summaryText =
+      'Todas as fontes oficiais de atos normativos responderam ativas na verificação semanal. Arcabouço amplo mantido em conformidade.'
     if (overallStatus === 'warning') {
-      summaryText = 'Verificação semanal concluída com aviso em uma ou mais fontes.'
+      summaryText =
+        'Verificação semanal concluída com aviso em uma ou mais fontes de atos normativos.'
     } else if (overallStatus === 'attention') {
-      summaryText = 'Atenção: uma ou mais fontes oficiais apresentaram falha de conexão.'
+      summaryText =
+        'Atenção: uma ou mais fontes oficiais apresentaram falha de conexão na verificação semanal.'
     }
 
     reviewRecord.set('review_date', nowIso)

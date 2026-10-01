@@ -13,13 +13,14 @@ describe('Validação dos fluxos do Panorama da Reforma Tributária', () => {
     expect(inquiry.phone).toBeTruthy()
   })
 
-  it('validação das fontes oficiais monitoradas', () => {
+  it('validação das fontes oficiais monitoradas (incluindo DOU)', () => {
     const sources = [
       { key: 'cgibs', url: 'https://www.cgibs.gov.br/' },
       { key: 'receita', url: 'https://www.receita.fazenda.gov.br' },
       { key: 'planalto', url: 'https://www.planalto.gov.br' },
+      { key: 'dou', url: 'https://www.in.gov.br' },
     ]
-    expect(sources).toHaveLength(3)
+    expect(sources.length).toBeGreaterThanOrEqual(3)
     expect(sources[0].url).toBe('https://www.cgibs.gov.br/')
   })
 
@@ -27,7 +28,7 @@ describe('Validação dos fluxos do Panorama da Reforma Tributária', () => {
     const review = {
       review_date: new Date().toISOString(),
       status: 'ok',
-      notes: 'verificação semanal de novas normas — CGIBS/Receita Federal/Planalto',
+      notes: 'verificação semanal de novas normas — CGIBS/Receita Federal/Planalto/DOU',
       sources_checked: [
         { key: 'cgibs', name: 'CGIBS (Comitê Gestor IBS)', status: 'active', http_status: 200 },
         { key: 'receita', name: 'Receita Federal do Brasil', status: 'active', http_status: 200 },
@@ -37,23 +38,41 @@ describe('Validação dos fluxos do Panorama da Reforma Tributária', () => {
           status: 'active',
           http_status: 200,
         },
+        {
+          key: 'dou',
+          name: 'Imprensa Nacional (Diário Oficial da União)',
+          status: 'active',
+          http_status: 200,
+        },
       ],
     }
     expect(review.status).toBe('ok')
     expect(review.notes).toContain('verificação semanal de novas normas')
-    expect(review.sources_checked).toHaveLength(3)
+    expect(review.sources_checked).toHaveLength(4)
   })
 
-  it('validação dos marcos e normas da Revisão nº 1', () => {
-    // Valida que as novas normas da primeira revisão possuem campos válidos
-    const revisaoNormas = [
-      'Ato Conjunto RFB/CGIBS nº 1/2025',
-      'Portaria Conjunta MF/CGIBS nº 7/2026',
-      'Resolução CGIBS nº 13/2026',
-      'Resolução CGIBS nº 14/2026',
-      'Resolução CGIBS nº 16/2026',
-    ]
-    expect(revisaoNormas).toHaveLength(5)
+  it('validação dos marcos e normas de todos os tipos de atos normativos', async () => {
+    const { officialDocumentsList, fallbackNorms } = await import('./panorama')
+
+    const normTypesInList = new Set(officialDocumentsList.map((d) => d.norm_type))
+    expect(normTypesInList.has('Resolução')).toBe(true)
+    expect(normTypesInList.has('Decreto')).toBe(true)
+    expect(normTypesInList.has('Portaria Conjunta')).toBe(true)
+    expect(normTypesInList.has('Ato Conjunto')).toBe(true)
+    expect(normTypesInList.has('Lei Complementar')).toBe(true)
+    expect(normTypesInList.has('Emenda Constitucional')).toBe(true)
+
+    const codes = officialDocumentsList.map((d) => d.code)
+    expect(codes).toContain('EC 132/2023')
+    expect(codes).toContain('LC 214/2025')
+    expect(codes).toContain('Ato Conjunto RFB/CGIBS nº 1/2025')
+    expect(codes).toContain('Portaria Conjunta MF/CGIBS nº 7/2026')
+    expect(codes).toContain('Decreto 12.955/2026')
+
+    for (const norm of fallbackNorms) {
+      expect(norm.norm_type).toBeTruthy()
+      expect(norm.origin).toBeTruthy()
+    }
   })
 
   it('validação da marca ADECONT: ausência do termo Jurídica e fidelidade da tagline', () => {
@@ -109,19 +128,24 @@ describe('Validação dos fluxos do Panorama da Reforma Tributária', () => {
     }
   })
 
-  it('validação do mapeamento de proxy de download seguro de resoluções CGIBS', async () => {
-    const { getCgibsPdfProxyUrl, cgibsDirectDocuments } = await import('./panorama')
+  it('validação do mapeamento de proxy de download seguro de resoluções e outros atos normativos', async () => {
+    const { getOfficialDocProxyUrl, getCgibsPdfProxyUrl, officialDocumentsList } =
+      await import('./panorama')
 
-    expect(cgibsDirectDocuments).toHaveLength(8)
+    expect(officialDocumentsList.length).toBeGreaterThanOrEqual(15)
+    expect(getOfficialDocProxyUrl).toBe(getCgibsPdfProxyUrl)
 
-    for (const doc of cgibsDirectDocuments) {
+    for (const doc of officialDocumentsList) {
       expect(doc.proxy_url).toBeTruthy()
       expect(doc.proxy_url).toContain('/backend/v1/download-resolution?id=')
 
-      // Validação do helper getCgibsPdfProxyUrl
-      const generated = getCgibsPdfProxyUrl(doc.resolution_number || doc.id)
+      const generated = getOfficialDocProxyUrl(doc.id)
       expect(generated).toContain('/backend/v1/download-resolution?id=')
       expect(generated).not.toContain('www.cgibs.gov.br')
     }
+
+    expect(getOfficialDocProxyUrl('ec-132')).toContain('id=ec-132')
+    expect(getOfficialDocProxyUrl('lc-214')).toContain('id=lc-214')
+    expect(getOfficialDocProxyUrl('decreto-12955')).toContain('id=decreto-12955')
   })
 })

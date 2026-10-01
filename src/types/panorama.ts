@@ -12,6 +12,15 @@ export type IncidenceStatus =
   | 'Obrig. acessórias'
   | 'ME/EPP'
 
+export type NormType =
+  | 'Emenda Constitucional'
+  | 'Lei Complementar'
+  | 'Decreto'
+  | 'Resolução'
+  | 'Portaria Conjunta'
+  | 'Ato Conjunto'
+  | 'Outro'
+
 export interface TaxNormItem {
   id: string
   code: string
@@ -20,24 +29,31 @@ export interface TaxNormItem {
   title: string
   summary: string
   status_incidence: string
+  norm_type?: string
+  origin?: string
   order?: number
   link_url?: string
   created?: string
   updated?: string
 }
 
-export interface DirectCgibsDocumentItem {
+export interface OfficialDocumentItem {
   id: string
   code: string
   date: string
   title: string
   summary: string
-  pdf_url: string
+  norm_type: string
+  origin: string
+  url: string
   proxy_url?: string
-  resolution_number?: string
   filename?: string
   badge?: string
+  format?: 'pdf' | 'html'
 }
+
+// Mantido para compatibilidade onde DirectCgibsDocumentItem era importado
+export type DirectCgibsDocumentItem = OfficialDocumentItem
 
 export interface TaxTopicItem {
   id: string
