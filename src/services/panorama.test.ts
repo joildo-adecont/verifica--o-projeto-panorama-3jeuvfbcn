@@ -1,3 +1,4 @@
+// Validação dos fluxos do Panorama da Reforma Tributária — ADECONT Assessoria Contábil e Administrativa
 import { describe, it, expect } from 'vitest'
 
 describe('Validação dos fluxos do Panorama da Reforma Tributária', () => {

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-01T02:22:38.396Z",
+  "generatedAt": "2026-10-01T04:30:00.049Z",
   "collections": [
     {
       "name": "users",
@@ -585,6 +585,170 @@
         }
       ],
       "indexes": ["CREATE INDEX idx_content_reviews_date ON content_reviews (review_date DESC)"]
+    },
+    {
+      "name": "simul_clientes",
+      "type": "base",
+      "apiRules": {
+        "list": "",
+        "view": "",
+        "create": "",
+        "update": "",
+        "delete": ""
+      },
+      "fields": [
+        {
+          "name": "nome",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "email",
+          "type": "email",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "whatsapp",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "empresa",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "documento",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "canal_preferido",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": ["email", "whatsapp"]
+        },
+        {
+          "name": "is_active",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "observacoes",
+          "type": "text",
+          "required": false,
+          "system": false
+        }
+      ],
+      "indexes": []
+    },
+    {
+      "name": "simul_envios",
+      "type": "base",
+      "apiRules": {
+        "list": "",
+        "view": "",
+        "create": "",
+        "update": "",
+        "delete": ""
+      },
+      "fields": [
+        {
+          "name": "cliente",
+          "type": "relation",
+          "required": true,
+          "system": false,
+          "collectionRef": "simul_clientes"
+        },
+        {
+          "name": "protocolo",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "canal",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "status",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": ["ENVIADO", "RECEBIDO", "FALHA"]
+        },
+        {
+          "name": "tema_resumo",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "capitulacao_legal",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "payload_simulacao",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "item_codigo",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "item_nome",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "token_recebimento",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "destinatario_email",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "enviado_em",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "recebido_em",
+          "type": "date",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "email_ok",
+          "type": "bool",
+          "required": false,
+          "system": false
+        }
+      ],
+      "indexes": []
     }
   ]
 }
