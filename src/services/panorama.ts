@@ -12,6 +12,64 @@ import type {
   FloorplanItem,
 } from '@/types/panorama'
 
+/**
+ * Retorna a URL do endpoint de proxy do backend para download seguro do PDF da Resolução CGIBS.
+ * Contorna bloqueios locais de navegadores (ex.: ERR_BLOCKED_BY_CLIENT no Edge em relação ao domínio cgibs.gov.br).
+ */
+export function getCgibsPdfProxyUrl(identifier: string): string {
+  const baseUrl = pb.baseURL || ''
+  const trimmed = baseUrl.replace(/\/+$/, '')
+  return `${trimmed}/backend/v1/download-resolution?id=${encodeURIComponent(identifier)}`
+}
+
+/**
+ * Função utilitária para acionar o download do PDF via JavaScript (blob) com exibição de feedback.
+ * Pode ser usada quando se deseja capturar erros detalhados de rede no cliente antes de salvar.
+ */
+export async function downloadCgibsPdfViaProxy(
+  identifier: string,
+  fallbackFilename?: string,
+): Promise<void> {
+  const proxyUrl = getCgibsPdfProxyUrl(identifier)
+  const response = await fetch(proxyUrl, {
+    method: 'GET',
+    headers: {
+      Accept: 'application/pdf,application/octet-stream,*/*',
+    },
+  })
+
+  if (!response.ok) {
+    let errorMsg = `Erro ${response.status} ao baixar o arquivo`
+    try {
+      const errJson = await response.json()
+      if (errJson && errJson.error) {
+        errorMsg = errJson.error
+      }
+    } catch {
+      /* intentionally ignored */
+    }
+    throw new Error(errorMsg)
+  }
+
+  const blob = await response.blob()
+  const contentDisposition = response.headers.get('content-disposition') || ''
+  let filename = fallbackFilename || 'Resolucao-CGIBS.pdf'
+
+  const match = contentDisposition.match(/filename="?([^";]+)"?/i)
+  if (match && match[1]) {
+    filename = match[1]
+  }
+
+  const blobUrl = window.URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = blobUrl
+  a.download = filename
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  window.URL.revokeObjectURL(blobUrl)
+}
+
 export const cgibsDirectDocuments: DirectCgibsDocumentItem[] = [
   {
     id: 'doc-cgibs-1',
@@ -22,7 +80,9 @@ export const cgibsDirectDocuments: DirectCgibsDocumentItem[] = [
       'Instalação oficial e disposições preliminares de funcionamento do Comitê Gestor do IBS.',
     pdf_url:
       'https://www.cgibs.gov.br/upload/arquivos/202602/27102250-resoluc-a-o-csibs-n-1-de-23-de-fevereiro-de-2026-assinatura.pdf',
-    filename: '27102250-resoluc-a-o-csibs-n-1-de-23-de-fevereiro-de-2026-assinatura.pdf',
+    proxy_url: getCgibsPdfProxyUrl('1'),
+    resolution_number: '1',
+    filename: 'Resolucao-CGIBS-01-2026.pdf',
     badge: 'Governança',
   },
   {
@@ -34,7 +94,9 @@ export const cgibsDirectDocuments: DirectCgibsDocumentItem[] = [
       'Aprova diretrizes operacionais de governança e funcionamento dos colegiados do Comitê.',
     pdf_url:
       'https://www.cgibs.gov.br/upload/arquivos/202604/30221158-resolucao-cgibs-n-5-de-30-de-abril-de-2026.pdf',
-    filename: '30221158-resolucao-cgibs-n-5-de-30-de-abril-de-2026.pdf',
+    proxy_url: getCgibsPdfProxyUrl('5'),
+    resolution_number: '5',
+    filename: 'Resolucao-CGIBS-05-2026.pdf',
     badge: 'Operacional',
   },
   {
@@ -45,7 +107,9 @@ export const cgibsDirectDocuments: DirectCgibsDocumentItem[] = [
     summary: 'Regulamento oficial do IBS — 617 artigos, 3 livros e 5 anexos fundamentais.',
     pdf_url:
       'https://www.cgibs.gov.br/upload/arquivos/202604/30084927-res-cgibs-n-6-30-abr-2026-regulamenta-o-ibs.pdf',
-    filename: '30084927-res-cgibs-n-6-30-abr-2026-regulamenta-o-ibs.pdf',
+    proxy_url: getCgibsPdfProxyUrl('6'),
+    resolution_number: '6',
+    filename: 'Resolucao-CGIBS-06-2026-Regulamento-IBS.pdf',
     badge: 'Regulamento Central',
   },
   {
@@ -56,7 +120,9 @@ export const cgibsDirectDocuments: DirectCgibsDocumentItem[] = [
     summary: 'Estruturação dos órgãos executivos, técnicos e administrativos do Comitê Gestor.',
     pdf_url:
       'https://www.cgibs.gov.br/upload/arquivos/202605/26184150-resolucao-cgibs-n-8-de-2026-3.pdf',
-    filename: '26184150-resolucao-cgibs-n-8-de-2026-3.pdf',
+    proxy_url: getCgibsPdfProxyUrl('8'),
+    resolution_number: '8',
+    filename: 'Resolucao-CGIBS-08-2026.pdf',
     badge: 'Administração',
   },
   {
@@ -67,7 +133,9 @@ export const cgibsDirectDocuments: DirectCgibsDocumentItem[] = [
     summary: 'Aprova a proposta orçamentária do Comitê Gestor do IBS para o exercício 2026.',
     pdf_url:
       'https://www.cgibs.gov.br/upload/arquivos/202607/01163740-resolucao-cgibs-n-10-de-29-de-junho-de-2026-proposta-orcamentaria-2026.pdf',
-    filename: '01163740-resolucao-cgibs-n-10-de-29-de-junho-de-2026-proposta-orcamentaria-2026.pdf',
+    proxy_url: getCgibsPdfProxyUrl('10'),
+    resolution_number: '10',
+    filename: 'Resolucao-CGIBS-10-2026.pdf',
     badge: 'Orçamento',
   },
   {
@@ -78,7 +146,9 @@ export const cgibsDirectDocuments: DirectCgibsDocumentItem[] = [
     summary: 'Altera o art. 617 do Regulamento do IBS (vigências e adequações normativas).',
     pdf_url:
       'https://www.cgibs.gov.br/upload/arquivos/202607/22121010-resolucao-cgibs-n-13-de-22-de-julho-de-2026.pdf',
-    filename: '22121010-resolucao-cgibs-n-13-de-22-de-julho-de-2026.pdf',
+    proxy_url: getCgibsPdfProxyUrl('13'),
+    resolution_number: '13',
+    filename: 'Resolucao-CGIBS-13-2026.pdf',
     badge: 'Alteração RIBS',
   },
   {
@@ -90,8 +160,9 @@ export const cgibsDirectDocuments: DirectCgibsDocumentItem[] = [
       'Proposta de percentual do IBS para financiamento do CGIBS e estimativa técnica de 27,91%.',
     pdf_url:
       'https://www.cgibs.gov.br/upload/arquivos/202607/31144942-resoluc-ao-cgibs-n-14-de-29-de-julho-de-2026-proposta-percentual-ibs-cgibs-2027.pdf',
-    filename:
-      '31144942-resoluc-ao-cgibs-n-14-de-29-de-julho-de-2026-proposta-percentual-ibs-cgibs-2027.pdf',
+    proxy_url: getCgibsPdfProxyUrl('14'),
+    resolution_number: '14',
+    filename: 'Resolucao-CGIBS-14-2026.pdf',
     badge: 'Alíquotas 2027',
   },
   {
@@ -102,7 +173,9 @@ export const cgibsDirectDocuments: DirectCgibsDocumentItem[] = [
     summary: 'Prorroga a obrigatoriedade do preenchimento dos campos relativos ao IBS/CBS nos DFe.',
     pdf_url:
       'https://www.cgibs.gov.br/upload/arquivos/202607/29175824-doc-20260729-wa0035-260729-175811.pdf',
-    filename: '29175824-doc-20260729-wa0035-260729-175811.pdf',
+    proxy_url: getCgibsPdfProxyUrl('16'),
+    resolution_number: '16',
+    filename: 'Resolucao-CGIBS-16-2026.pdf',
     badge: 'DFe / Prazos',
   },
 ]

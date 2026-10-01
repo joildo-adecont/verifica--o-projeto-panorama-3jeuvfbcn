@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { ExternalLink, AlertTriangle, FileDown } from 'lucide-react'
 import type { TaxNormItem } from '@/types/panorama'
+import { getCgibsPdfProxyUrl } from '@/services/panorama'
 
 interface SectionNormsProps {
   norms: TaxNormItem[]
@@ -119,34 +120,67 @@ export function SectionNorms({ norms, loading }: SectionNormsProps) {
                   <td className="py-3 px-4 align-top">
                     {norm.link_url ? (
                       <div className="space-y-1">
-                        <a
-                          href={norm.link_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="group inline-flex items-center gap-1.5 font-bold text-blue-700 hover:text-blue-900 transition-colors"
-                          title={
-                            norm.link_url.endsWith('.pdf')
-                              ? `Baixar/Visualizar PDF oficial da ${norm.code}`
-                              : `Acessar norma oficial: ${norm.code}`
-                          }
-                        >
-                          <span className="group-hover:underline underline-offset-2">
-                            {norm.code}
-                          </span>
-                          {norm.link_url.endsWith('.pdf') ? (
-                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200 group-hover:bg-blue-100 transition-colors">
-                              <FileDown className="w-3 h-3 text-blue-600 shrink-0" />
-                              <span>PDF</span>
-                            </span>
-                          ) : (
-                            <ExternalLink className="w-3.5 h-3.5 text-blue-500 shrink-0 opacity-80 group-hover:opacity-100" />
-                          )}
-                        </a>
-                        {norm.link_url.includes('cgibs.gov.br') && (
-                          <div className="flex items-center gap-1 text-[10px] text-emerald-700 font-medium">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                            <span>PDF oficial CGIBS</span>
-                          </div>
+                        {norm.link_url.includes('cgibs.gov.br') &&
+                        norm.link_url.endsWith('.pdf') ? (
+                          <>
+                            <a
+                              href={getCgibsPdfProxyUrl(norm.code || norm.id)}
+                              download={`Resolucao-${norm.code.replace(/[^a-zA-Z0-9]/g, '-')}.pdf`}
+                              className="group inline-flex items-center gap-1.5 font-bold text-blue-700 hover:text-blue-900 transition-colors cursor-pointer"
+                              title={`Baixar PDF oficial da ${norm.code} (download direto via servidor do Panorama)`}
+                            >
+                              <span className="group-hover:underline underline-offset-2">
+                                {norm.code}
+                              </span>
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200 group-hover:bg-blue-100 transition-colors">
+                                <FileDown className="w-3 h-3 text-blue-600 shrink-0" />
+                                <span>PDF</span>
+                              </span>
+                            </a>
+                            <div className="flex items-center gap-1 text-[10px] text-emerald-700 font-medium">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                              <a
+                                href={getCgibsPdfProxyUrl(norm.code || norm.id)}
+                                download={`Resolucao-${norm.code.replace(/[^a-zA-Z0-9]/g, '-')}.pdf`}
+                                className="hover:underline"
+                                title="Baixar PDF oficial da norma"
+                              >
+                                PDF oficial CGIBS
+                              </a>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <a
+                              href={norm.link_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="group inline-flex items-center gap-1.5 font-bold text-blue-700 hover:text-blue-900 transition-colors"
+                              title={
+                                norm.link_url.endsWith('.pdf')
+                                  ? `Baixar/Visualizar PDF oficial da ${norm.code}`
+                                  : `Acessar norma oficial: ${norm.code}`
+                              }
+                            >
+                              <span className="group-hover:underline underline-offset-2">
+                                {norm.code}
+                              </span>
+                              {norm.link_url.endsWith('.pdf') ? (
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200 group-hover:bg-blue-100 transition-colors">
+                                  <FileDown className="w-3 h-3 text-blue-600 shrink-0" />
+                                  <span>PDF</span>
+                                </span>
+                              ) : (
+                                <ExternalLink className="w-3.5 h-3.5 text-blue-500 shrink-0 opacity-80 group-hover:opacity-100" />
+                              )}
+                            </a>
+                            {norm.link_url.includes('cgibs.gov.br') && (
+                              <div className="flex items-center gap-1 text-[10px] text-emerald-700 font-medium">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                <span>PDF oficial CGIBS</span>
+                              </div>
+                            )}
+                          </>
                         )}
                       </div>
                     ) : (

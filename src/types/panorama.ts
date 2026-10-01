@@ -33,6 +33,8 @@ export interface DirectCgibsDocumentItem {
   title: string
   summary: string
   pdf_url: string
+  proxy_url?: string
+  resolution_number?: string
   filename?: string
   badge?: string
 }

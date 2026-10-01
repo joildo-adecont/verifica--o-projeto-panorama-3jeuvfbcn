@@ -21,6 +21,7 @@ import {
   fetchContentReviewsHistory,
   triggerWeeklyReview,
   cgibsDirectDocuments,
+  getCgibsPdfProxyUrl,
 } from '@/services/panorama'
 import type { ContentReviewItem } from '@/types/panorama'
 import { Tag, History } from 'lucide-react'
@@ -316,39 +317,55 @@ export function SectionFontes() {
 
         {/* Grade de cartões de resoluções em PDF */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-1">
-          {cgibsDirectDocuments.map((doc) => (
-            <div
-              key={doc.id}
-              className="p-4 rounded-xl bg-white border border-slate-200 hover:border-blue-300 hover:shadow-xs transition-all flex flex-col justify-between space-y-3"
-            >
-              <div className="space-y-1.5">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="font-bold text-slate-900 text-sm">{doc.code}</div>
-                  {doc.badge && (
-                    <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-100 text-blue-800 border border-blue-200">
-                      {doc.badge}
-                    </span>
-                  )}
-                </div>
-                <div className="text-xs font-semibold text-blue-900">{doc.title}</div>
-                <p className="text-xs text-slate-600 leading-relaxed">{doc.summary}</p>
-              </div>
+          {cgibsDirectDocuments.map((doc) => {
+            const proxyDownloadUrl =
+              doc.proxy_url || getCgibsPdfProxyUrl(doc.resolution_number || doc.id)
 
-              <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2 flex-wrap">
-                <span className="text-[11px] text-slate-500 font-mono">Data: {doc.date}</span>
-                <a
-                  href={doc.pdf_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs transition-colors"
-                  title={`Baixar PDF oficial: ${doc.code}`}
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  <span>Baixar PDF oficial</span>
-                </a>
+            return (
+              <div
+                key={doc.id}
+                className="p-4 rounded-xl bg-white border border-slate-200 hover:border-blue-300 hover:shadow-xs transition-all flex flex-col justify-between space-y-3"
+              >
+                <div className="space-y-1.5">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="font-bold text-slate-900 text-sm">{doc.code}</div>
+                    {doc.badge && (
+                      <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-100 text-blue-800 border border-blue-200">
+                        {doc.badge}
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-xs font-semibold text-blue-900">{doc.title}</div>
+                  <p className="text-xs text-slate-600 leading-relaxed">{doc.summary}</p>
+                </div>
+
+                <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2 flex-wrap">
+                  <span className="text-[11px] text-slate-500 font-mono">Data: {doc.date}</span>
+                  <a
+                    href={proxyDownloadUrl}
+                    download={doc.filename || 'Resolucao-CGIBS.pdf'}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+                    title={`Baixar PDF oficial: ${doc.code} (download via servidor do Panorama)`}
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Baixar PDF oficial</span>
+                  </a>
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
+        </div>
+
+        {/* Nota explicativa de download servido pelo Panorama */}
+        <div className="mt-2 p-3 rounded-xl bg-blue-50/70 border border-blue-200/80 text-[11px] sm:text-xs text-slate-700 flex items-start gap-2">
+          <Info className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+          <p className="leading-relaxed">
+            <strong>Download direto e compatível:</strong> os arquivos PDF das resoluções são
+            servidos e repassados diretamente pelo servidor do Panorama da ADECONT, garantindo o
+            download imediato no seu computador sem bloqueios locais de antivírus ou navegadores
+            (como o <code>ERR_BLOCKED_BY_CLIENT</code> no Microsoft Edge). O conteúdo do arquivo é
+            idêntico e autêntico ao publicado pelo Comitê Gestor.
+          </p>
         </div>
       </div>
 

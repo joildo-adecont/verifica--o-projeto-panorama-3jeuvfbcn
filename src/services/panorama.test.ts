@@ -108,4 +108,20 @@ describe('Validação dos fluxos do Panorama da Reforma Tributária', () => {
       expect(item.url).toMatch(/^https:\/\/www\.cgibs\.gov\.br\/upload\/arquivos\/.*\.pdf$/)
     }
   })
+
+  it('validação do mapeamento de proxy de download seguro de resoluções CGIBS', async () => {
+    const { getCgibsPdfProxyUrl, cgibsDirectDocuments } = await import('./panorama')
+
+    expect(cgibsDirectDocuments).toHaveLength(8)
+
+    for (const doc of cgibsDirectDocuments) {
+      expect(doc.proxy_url).toBeTruthy()
+      expect(doc.proxy_url).toContain('/backend/v1/download-resolution?id=')
+
+      // Validação do helper getCgibsPdfProxyUrl
+      const generated = getCgibsPdfProxyUrl(doc.resolution_number || doc.id)
+      expect(generated).toContain('/backend/v1/download-resolution?id=')
+      expect(generated).not.toContain('www.cgibs.gov.br')
+    }
+  })
 })
