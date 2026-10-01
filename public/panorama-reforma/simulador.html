@@ -189,6 +189,14 @@
         background: #fdf6e3;
         color: #8a6d00;
       }
+      .g-reducao30 {
+        background: #fdf1e3;
+        color: #9a5b00;
+      }
+      .g-insumos_agro {
+        background: #ecfdf5;
+        color: #065f46;
+      }
       table {
         width: 100%;
         border-collapse: collapse;
@@ -457,7 +465,7 @@
       Assessoria Administrativa, Contábil • Conteúdo informativo, não substitui assessoria
       tributária.
     </footer>
-    <script src="partes/sim-catalogo.js?v=1"></script>
+    <script src="partes/sim-catalogo.js?v=2"></script>
     <script>
       var sel = null
       var GRUPOS = {
@@ -475,6 +483,14 @@
         bens_capital: { n: 'Bens de capital desonerados', d: 'Anexo IV RIBS (Arts. 196–197)' },
         regime_especial: { n: 'Regime específico', d: 'Consórcios, catering, financeiro etc.' },
         agro: { n: 'Agro — crédito presumido', d: 'Arts. 287 ss. LC 214' },
+        reducao30: {
+          n: 'Redução 30% — profissionais intelectuais',
+          d: 'Art. 127 LC 214 (advogados, contadores, engenheiros etc.)',
+        },
+        insumos_agro: {
+          n: 'Insumos agropecuários — redução 60%',
+          d: 'Anexo IX LC 214 (fertilizantes, defensivos, inoculantes)',
+        },
       }
       // fator de redução efetiva por grupo (aplicado sobre a alíquota cheia IBS+CBS)
       var FATOR = {
@@ -489,9 +505,25 @@
         bens_capital: 0.0,
         regime_especial: 0.6,
         agro: 0.4,
+        reducao30: 0.7,
+        insumos_agro: 0.4,
       }
       // alíquota IS média estimada por tipo de bem (didática)
-      var IS_EST = { '2402.20.00': 0.6, '2203.00.00': 0.25, '2208.30.00': 0.25, '8703.21.00': 0.15 }
+      var IS_EST = {
+        '2402.20.00': 0.6,
+        '2402.99.00': 0.6,
+        '2203.00.00': 0.25,
+        '2204.10.00': 0.25,
+        '2208.30.00': 0.25,
+        '2202.10.00': 0.1,
+        '8703.21.00': 0.15,
+        '8703.22.10': 0.2,
+        '8704.21.00': 0.25,
+        '8903.31.00': 0.3,
+        '8802.41.00': 0.15,
+        '2601.11.00': 0.1,
+        '2709.00.10': 0.1,
+      }
 
       function cls(ch) {
         var ACC = { a: 'aáàâãä', e: 'eéêë', i: 'iíï', o: 'oóôõö', u: 'uúûü', c: 'cç', n: 'nñ' }
