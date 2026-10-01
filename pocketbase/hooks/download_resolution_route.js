@@ -13,8 +13,13 @@ routerAdd('GET', '/backend/v1/download-resolution', (e) => {
   e.response.header().set('Access-Control-Allow-Origin', '*')
 
   // 1. Identificar o identificador / número da Resolução
-  const query = e.requestInfo().query || {}
-  const rawId = String(query.id || query.number || query.code || query.res || '').trim()
+  const rawId = String(
+    e.request.url.query().get('id') ||
+      e.request.url.query().get('number') ||
+      e.request.url.query().get('code') ||
+      e.request.url.query().get('res') ||
+      '',
+  ).trim()
 
   if (!rawId) {
     return e.json(400, {
@@ -134,7 +139,7 @@ routerAdd('GET', '/backend/v1/download-resolution', (e) => {
       }
     }
   } catch (err) {
-    console.warn('download-resolution: falha ao buscar no banco tax_norms:', String(err))
+    console.log('download-resolution: falha ao buscar no banco tax_norms: ' + String(err))
   }
 
   // Se não obteve do banco, recorrer ao staticMap
@@ -156,17 +161,6 @@ routerAdd('GET', '/backend/v1/download-resolution', (e) => {
   e.response.header().set('Content-Disposition', 'attachment; filename="' + filename + '"')
   e.response.header().set('Cache-Control', 'public, max-age=86400')
 
-  // Tentativa primária: $filesystem.fileFromURL -> e.stream
-  try {
-    const downloadedFile = $filesystem.fileFromURL(targetUrl, 15)
-    if (downloadedFile && downloadedFile.reader) {
-      return e.stream(200, 'application/pdf', downloadedFile.reader)
-    }
-  } catch (fsErr) {
-    console.warn('fileFromURL não pôde ser transmitido diretamente:', String(fsErr))
-  }
-
-  // Fallback secundário: $http.send -> e.blob ou manual write
   try {
     const res = $http.send({
       url: targetUrl,
@@ -198,7 +192,7 @@ routerAdd('GET', '/backend/v1/download-resolution', (e) => {
       return null
     }
   } catch (err) {
-    console.error('download-resolution: falha ao buscar PDF:', String(err))
+    console.log('download-resolution: falha ao buscar PDF: ' + String(err))
     return e.json(504, {
       success: false,
       error: 'Falha ou tempo esgotado ao buscar o PDF no servidor oficial: ' + String(err),
