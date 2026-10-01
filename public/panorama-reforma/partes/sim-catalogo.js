@@ -640,4 +640,20 @@ const SIM_CATALOGO = [
     0.165,
     'RIBS Anexo IV — suspensão',
   ],
+  [
+    '1201.90.00',
+    'NCM',
+    'Soja em grãos (exceto para semeadura)',
+    'regular',
+    0.165,
+    'Regime regular — grãos de soja não constam na Cesta Básica (Anexo I) nem nos regimes diferenciados',
+  ],
+  [
+    '1512.11.00',
+    'NCM',
+    'Óleo de soja bruto',
+    'regular',
+    0.165,
+    'Regime regular — óleo de soja não consta na Cesta Básica',
+  ],
 ]
