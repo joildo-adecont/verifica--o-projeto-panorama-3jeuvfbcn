@@ -1,12 +1,28 @@
 import { useState, useEffect } from 'react'
-import { X, Search, ChevronRight } from 'lucide-react'
+import {
+  X,
+  Search,
+  ChevronRight,
+  Scale,
+  Factory,
+  ShoppingBasket,
+  ShieldCheck,
+  Percent,
+  Layers,
+  Paperclip,
+  CalendarDays,
+  Database,
+  Globe2,
+  ListChecks,
+} from 'lucide-react'
 
 /**
  * Menu lateral de acesso rápido do Panorama.
  * - Fixo à esquerda em telas grandes (lg+); gaveta em telas menores.
- * - Teclas de atalho: teclas 1..9 e Q/W/E acessam as seções; "/" abre a busca
+ * - Teclas de atalho: teclas 1..9 e Q/W acessam as seções; "/" abre a busca
  *   do header; Esc fecha a gaveta.
  * - Destaca a seção visível conforme a rolagem da página.
+ * - Mesmos ícones coloridos do menu principal (identidade visual por seção).
  */
 
 interface MenuItem {
@@ -14,20 +30,123 @@ interface MenuItem {
   tecla: string
   numero: string
   label: string
+  Icon: React.ComponentType<{ className?: string }>
+  cor: string
+  bg: string
+  borda: string
 }
 
 const ITENS: MenuItem[] = [
-  { id: '#secao-1', tecla: '1', numero: '1', label: 'Normas (arcabouço)' },
-  { id: '#secao-2', tecla: '2', numero: '2', label: 'Fato Gerador' },
-  { id: '#secao-3', tecla: '3', numero: '3', label: 'Cesta Básica' },
-  { id: '#secao-4', tecla: '4', numero: '4', label: 'Imunidades' },
-  { id: '#secao-5', tecla: '5', numero: '5', label: 'Isenções e Alíquotas' },
-  { id: '#secao-6', tecla: '6', numero: '6', label: 'Regimes Específicos' },
-  { id: '#secao-7', tecla: '7', numero: '7', label: 'Anexos' },
-  { id: '#secao-8', tecla: '8', numero: '8', label: 'Cronograma 2026–2033' },
-  { id: '#secao-9', tecla: '9', numero: '9', label: 'Fontes & Atualização' },
-  { id: '#fontes-agregador', tecla: 'q', numero: '11', label: 'Agregadores (Buscador NCM)' },
-  { id: '#fontes-primarias', tecla: 'w', numero: '12', label: 'Fontes primárias (110 bases)' },
+  {
+    id: '#secao-1',
+    tecla: '1',
+    numero: '1',
+    label: 'Normas (arcabouço)',
+    Icon: Scale,
+    cor: 'text-indigo-600',
+    bg: 'bg-indigo-50',
+    borda: 'border-indigo-200',
+  },
+  {
+    id: '#secao-2',
+    tecla: '2',
+    numero: '2',
+    label: 'Fato Gerador',
+    Icon: Factory,
+    cor: 'text-blue-600',
+    bg: 'bg-blue-50',
+    borda: 'border-blue-200',
+  },
+  {
+    id: '#secao-3',
+    tecla: '3',
+    numero: '3',
+    label: 'Cesta Básica',
+    Icon: ShoppingBasket,
+    cor: 'text-emerald-600',
+    bg: 'bg-emerald-50',
+    borda: 'border-emerald-200',
+  },
+  {
+    id: '#secao-4',
+    tecla: '4',
+    numero: '4',
+    label: 'Imunidades',
+    Icon: ShieldCheck,
+    cor: 'text-teal-600',
+    bg: 'bg-teal-50',
+    borda: 'border-teal-200',
+  },
+  {
+    id: '#secao-5',
+    tecla: '5',
+    numero: '5',
+    label: 'Isenções e Alíquotas',
+    Icon: Percent,
+    cor: 'text-amber-600',
+    bg: 'bg-amber-50',
+    borda: 'border-amber-200',
+  },
+  {
+    id: '#secao-6',
+    tecla: '6',
+    numero: '6',
+    label: 'Regimes Específicos',
+    Icon: Layers,
+    cor: 'text-orange-600',
+    bg: 'bg-orange-50',
+    borda: 'border-orange-200',
+  },
+  {
+    id: '#secao-7',
+    tecla: '7',
+    numero: '7',
+    label: 'Anexos',
+    Icon: Paperclip,
+    cor: 'text-rose-600',
+    bg: 'bg-rose-50',
+    borda: 'border-rose-200',
+  },
+  {
+    id: '#secao-8',
+    tecla: '8',
+    numero: '8',
+    label: 'Cronograma 2026–2033',
+    Icon: CalendarDays,
+    cor: 'text-cyan-600',
+    bg: 'bg-cyan-50',
+    borda: 'border-cyan-200',
+  },
+  {
+    id: '#secao-9',
+    tecla: '9',
+    numero: '9',
+    label: 'Fontes & Atualização',
+    Icon: Database,
+    cor: 'text-violet-600',
+    bg: 'bg-violet-50',
+    borda: 'border-violet-200',
+  },
+  {
+    id: '#fontes-agregador',
+    tecla: 'q',
+    numero: '11',
+    label: 'Agregadores (Buscador NCM)',
+    Icon: Globe2,
+    cor: 'text-sky-600',
+    bg: 'bg-sky-50',
+    borda: 'border-sky-200',
+  },
+  {
+    id: '#fontes-primarias',
+    tecla: 'w',
+    numero: '12',
+    label: 'Fontes primárias (110 bases)',
+    Icon: ListChecks,
+    cor: 'text-fuchsia-600',
+    bg: 'bg-fuchsia-50',
+    borda: 'border-fuchsia-200',
+  },
 ]
 
 // Mapeia âncora → id real da seção no DOM (as seções usam ids sem "#")
@@ -97,7 +216,7 @@ export function PanoramaSideMenu() {
     <div className="flex flex-col h-full">
       <div className="px-3 py-3 border-b border-slate-200">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+          <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
             Acesso rápido
           </span>
           <button
@@ -109,16 +228,16 @@ export function PanoramaSideMenu() {
           </button>
         </div>
         <div className="relative">
-          <Search className="w-3.5 h-3.5 absolute left-2.5 top-2 text-slate-400" />
+          <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-slate-400" />
           <input
             type="text"
             value={filtro}
             onChange={(e) => setFiltro(e.target.value)}
             placeholder="Filtrar seções… (tecla / busca o conteúdo)"
-            className="w-full pl-8 pr-2 py-1.5 text-xs rounded-lg border border-slate-300 focus:outline-none focus:border-blue-600 bg-slate-50"
+            className="w-full pl-8 pr-2 py-2 text-[13px] rounded-lg border border-slate-300 focus:outline-none focus:border-blue-600 bg-slate-50"
           />
         </div>
-        <p className="text-[10px] text-slate-400 mt-2 leading-snug">
+        <p className="text-[11px] text-slate-400 mt-2 leading-snug">
           Atalhos: teclas <b>1–9</b>, <b>Q</b> e <b>W</b> saltam para a seção · <b>/</b> foca a
           busca · <b>Esc</b> fecha
         </p>
@@ -126,33 +245,33 @@ export function PanoramaSideMenu() {
 
       <nav className="flex-1 overflow-y-auto py-2">
         {visiveis.map((item) => {
+          const { Icon } = item
           const isAtivo = ativo === item.id.replace('#', '')
           return (
             <button
               key={item.id}
               onClick={() => ir(item.id)}
-              className={`w-full flex items-center gap-2 px-3 py-2 text-left text-xs transition-colors ${
+              className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-left text-[13px] font-semibold transition-colors ${
                 isAtivo
-                  ? 'bg-blue-50 text-blue-700 font-bold border-l-2 border-blue-600'
-                  : 'text-slate-600 hover:bg-slate-100 hover:text-blue-700 border-l-2 border-transparent'
+                  ? 'bg-blue-50 text-blue-700 border-l-2 border-blue-600'
+                  : 'text-slate-700 hover:bg-slate-100 hover:text-blue-700 border-l-2 border-transparent'
               }`}
+              title={`Tecla de atalho: ${item.tecla.toUpperCase()} — ${item.label}`}
             >
               <span
-                className={`inline-flex items-center justify-center w-5 h-5 shrink-0 rounded text-[10px] font-bold ${
-                  isAtivo ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-600'
-                }`}
+                className={`inline-flex items-center justify-center w-7 h-7 shrink-0 rounded-md border ${item.bg} ${item.borda} ${item.cor}`}
               >
-                {item.numero}
+                <Icon className="w-4 h-4" />
               </span>
               <span className="flex-1 leading-tight">{item.label}</span>
               <kbd
-                className={`hidden lg:inline-flex items-center px-1 rounded text-[9px] font-mono ${
+                className={`hidden lg:inline-flex items-center px-1 rounded text-[10px] font-mono ${
                   isAtivo ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-400'
                 }`}
               >
-                {item.tecla}
+                {item.tecla.toUpperCase()}
               </kbd>
-              <ChevronRight className="w-3 h-3 shrink-0 opacity-40" />
+              <ChevronRight className="w-3.5 h-3.5 shrink-0 opacity-40" />
             </button>
           )
         })}
@@ -161,7 +280,7 @@ export function PanoramaSideMenu() {
         )}
       </nav>
 
-      <div className="px-3 py-2.5 border-t border-slate-200 text-[10px] text-slate-400">
+      <div className="px-3 py-2.5 border-t border-slate-200 text-[11px] text-slate-400">
         Panorama Reforma Tributária · ADECONT
       </div>
     </div>
@@ -170,7 +289,7 @@ export function PanoramaSideMenu() {
   return (
     <>
       {/* Menu fixo lateral — somente telas grandes */}
-      <aside className="hidden lg:block fixed left-0 top-[64px] bottom-0 w-60 bg-white border-r border-slate-200 z-40 shadow-sm">
+      <aside className="hidden lg:block fixed left-0 top-[64px] bottom-0 w-64 bg-white border-r border-slate-200 z-40 shadow-sm">
         {conteudo}
       </aside>
 
@@ -187,7 +306,7 @@ export function PanoramaSideMenu() {
       {aberto && (
         <div className="lg:hidden fixed inset-0 z-50">
           <div className="absolute inset-0 bg-slate-900/50" onClick={() => setAberto(false)} />
-          <div className="absolute left-0 top-0 bottom-0 w-72 bg-white shadow-2xl">{conteudo}</div>
+          <div className="absolute left-0 top-0 bottom-0 w-80 bg-white shadow-2xl">{conteudo}</div>
         </div>
       )}
     </>
