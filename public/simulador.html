@@ -4,6 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Simulador Didático de Transição — IBS/CBS</title>
+    <meta
+      name="description"
+      content="Simulador Didático de Transição da Reforma Tributária • ADECONT • comparação estimada por produto/serviço com anexos e regimes especiais"
+    />
     <style>
       * {
         box-sizing: border-box;
@@ -14,19 +18,18 @@
         font-family: -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
         background: #f0f3f8;
         color: #1c2b3a;
-        line-height: 1.55;
+        line-height: 1.5;
       }
       header {
         background: linear-gradient(135deg, #12315e, #1a4a8c);
         color: #fff;
-        padding: 20px 18px 14px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+        padding: 16px 14px;
       }
       header h1 {
-        font-size: 1.15rem;
+        font-size: 1.05rem;
       }
       header p {
-        font-size: 0.78rem;
+        font-size: 0.76rem;
         opacity: 0.85;
         margin-top: 2px;
       }
@@ -43,288 +46,165 @@
         text-decoration: none;
       }
       .btn-voltar {
-        background: #ffd66b;
-        color: #5c4400;
+        background: #f0f3f8;
+        color: #12315e;
       }
       main {
-        max-width: 1000px;
+        max-width: 900px;
         margin: 0 auto;
         padding: 16px 14px 60px;
       }
-      .card {
+      section {
         background: #fff;
         border-radius: 12px;
-        padding: 16px;
-        margin-bottom: 14px;
+        padding: 18px;
+        margin-bottom: 16px;
         box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
       }
-      .card h2 {
+      h2 {
         color: #12315e;
         font-size: 1rem;
         margin-bottom: 10px;
-        border-bottom: 2px solid #1a4a8c;
-        padding-bottom: 6px;
       }
-      label {
-        font-size: 0.78rem;
-        font-weight: 600;
-        color: #374151;
-        display: block;
-        margin: 8px 0 4px;
-      }
-      input[type='number'],
-      input[type='text'],
-      select {
+      input[type='text'] {
         width: 100%;
-        padding: 9px 10px;
-        border: 1px solid #c9d4e0;
+        padding: 10px 12px;
+        border: 1px solid #c6d2e2;
         border-radius: 8px;
-        font-size: 0.9rem;
+        font-size: 0.95rem;
       }
-      input:focus,
-      select:focus {
-        outline: 2px solid #1a4a8c;
-        border-color: #1a4a8c;
-      }
-      .row {
+      .grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
         gap: 10px;
+        margin-top: 10px;
       }
-      .busca-wrap {
-        position: relative;
-      }
-      #busca {
-        padding-left: 34px;
-      }
-      .busca-ico {
-        position: absolute;
-        left: 10px;
-        top: 9px;
-        color: #888;
-      }
-      #sugestoes {
-        position: absolute;
-        top: 100%;
-        left: 0;
-        right: 0;
-        background: #fff;
-        border: 1px solid #c9d4e0;
-        border-radius: 8px;
-        max-height: 260px;
-        overflow-y: auto;
-        z-index: 30;
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-      }
-      .sug {
-        padding: 8px 10px;
+      .comp {
+        border: 1px solid #dbe3ee;
+        border-radius: 10px;
+        padding: 10px;
         cursor: pointer;
-        border-bottom: 1px solid #eef2f7;
-        font-size: 0.82rem;
+        user-select: none;
       }
-      .sug:hover {
-        background: #e8f0fd;
-      }
-      .sug .cod {
-        font-family: ui-monospace, Menlo, monospace;
+      .comp .nome {
         font-weight: 700;
-        color: #0b4a8f;
+        font-size: 0.85rem;
       }
-      .sug .grp {
-        float: right;
-        font-size: 0.68rem;
-        background: #eef2f7;
-        border-radius: 8px;
-        padding: 1px 7px;
+      .comp .ano {
+        font-size: 0.7rem;
         color: #5b6b7b;
       }
-      .grupo-tag {
-        display: inline-block;
-        padding: 2px 9px;
-        border-radius: 10px;
-        font-size: 0.7rem;
-        font-weight: 700;
+      .comp input {
+        width: 90px;
+        margin-top: 6px;
       }
-      .g-regular {
-        background: #eef2f7;
-        color: #475569;
+      label {
+        display: block;
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin: 10px 0 4px;
       }
-      .g-zero {
-        background: #e6f2e6;
-        color: #1e7a1e;
+      select,
+      input[type='number'] {
+        padding: 8px;
+        border: 1px solid #c6d2e2;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        width: 100%;
       }
-      .g-reducao60 {
-        background: #fdf6e3;
-        color: #8a6d00;
+      .btn-simular {
+        background: #1a4a8c;
+        color: #fff;
+        width: 100%;
+        justify-content: center;
+        margin-top: 14px;
       }
-      .g-cesta_zero {
-        background: #e6f2e6;
-        color: #1e7a1e;
-      }
-      .g-imposto_seletivo {
-        background: #fdecec;
-        color: #b02525;
-      }
-      .g-zfm {
-        background: #e3f0fd;
-        color: #12508f;
-      }
-      .g-suspensao {
-        background: #e3f0fd;
-        color: #12508f;
-      }
-      .g-bens_capital {
-        background: #e3f0fd;
-        color: #12508f;
-      }
-      .g-regime_especial {
-        background: #f3e8fd;
-        color: #6b21a8;
-      }
-      .g-agro {
-        background: #ecfdf5;
-        color: #065f46;
-      }
-      .g-dispositivos60 {
-        background: #fdf6e3;
-        color: #8a6d00;
+      #resultado {
+        display: none;
       }
       table {
         width: 100%;
         border-collapse: collapse;
-        font-size: 0.8rem;
-        margin: 8px 0;
+        font-size: 0.82rem;
+        margin-top: 8px;
       }
       th {
         background: #12315e;
         color: #fff;
-        padding: 7px 8px;
+        padding: 7px;
         text-align: left;
         font-size: 0.72rem;
         text-transform: uppercase;
       }
       td {
-        padding: 6px 8px;
+        padding: 7px 8px;
         border-bottom: 1px solid #dbe3ee;
       }
-      tr:nth-child(even) td {
-        background: #f6f8fc;
-      }
-      .td-num {
-        text-align: right;
-        font-family: ui-monospace, Menlo, monospace;
-      }
-      .resultado-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: 10px;
-        margin: 10px 0;
-      }
-      .kpi {
-        background: #f6f8fc;
-        border: 1px solid #dbe3ee;
-        border-radius: 10px;
-        padding: 12px;
-        text-align: center;
-      }
-      .kpi .v {
-        font-size: 1.25rem;
+      .total td {
         font-weight: 800;
-        color: #12315e;
-        font-family: ui-monospace, Menlo, monospace;
+        font-size: 0.95rem;
+        background: #eef4fc;
       }
-      .kpi .l {
-        font-size: 0.7rem;
-        color: #5b6b7b;
-        text-transform: uppercase;
-        letter-spacing: 0.4px;
-        margin-top: 3px;
+      .economia {
+        font-size: 1.2rem;
+        font-weight: 800;
       }
-      .kpi.destaque {
-        background: #e6f2e6;
-        border-color: #b7ddb7;
-      }
-      .kpi.destaque .v {
-        color: #1e7a1e;
-      }
-      .kpi.alerta {
-        background: #fdecec;
-        border-color: #f5c2c2;
-      }
-      .kpi.alerta .v {
+      .pos {
         color: #b02525;
       }
-      .crono {
-        display: flex;
-        gap: 6px;
-        flex-wrap: wrap;
-        margin: 10px 0;
+      .neg {
+        color: #1e7a1e;
       }
-      .ano-btn {
-        border: 1px solid #c9d4e0;
-        background: #fff;
-        border-radius: 8px;
-        padding: 6px 11px;
-        font-size: 0.78rem;
-        cursor: pointer;
-        font-weight: 600;
+      .capitulacao {
+        font-size: 0.75rem;
+        color: #5b6b7b;
+        margin-top: 8px;
       }
-      .ano-btn.on {
-        background: #12315e;
-        color: #fff;
-        border-color: #12315e;
-      }
-      .compart {
+      .share {
         display: flex;
         gap: 8px;
         flex-wrap: wrap;
         margin-top: 12px;
       }
-      .btn-wa {
-        background: #25d366;
-        color: #fff;
-      }
-      .btn-mail {
-        background: #1a4a8c;
-        color: #fff;
-      }
-      .btn-tg {
-        background: #2aabee;
-        color: #fff;
-      }
-      .btn-copy {
-        background: #64748b;
-        color: #fff;
-      }
-      .btn-pdf {
-        background: #b91c1c;
-        color: #fff;
-      }
-      .nota {
+      .share .btn {
         font-size: 0.75rem;
-        color: #5b6b7b;
+        padding: 7px 10px;
+      }
+      .msg {
+        display: none;
+        padding: 8px 12px;
+        border-radius: 8px;
+        margin-top: 8px;
+        font-size: 0.82rem;
+      }
+      .msg-ok {
+        background: #e6f2e6;
+        color: #1e7a1e;
+      }
+      .msg-erro {
+        background: #fdecec;
+        color: #b02525;
+      }
+      .item {
+        border: 1px solid #dbe3ee;
+        border-radius: 8px;
+        padding: 8px 10px;
         margin-top: 6px;
+        cursor: pointer;
+        font-size: 0.85rem;
       }
-      .aviso {
-        background: #fff8e1;
-        border-left: 4px solid #f0a500;
-        padding: 10px 12px;
-        border-radius: 0 8px 8px 0;
-        margin: 10px 0;
-        font-size: 0.8rem;
+      .item:hover {
+        background: #f6f8fc;
       }
-      footer {
-        text-align: center;
-        font-size: 0.72rem;
-        color: #8a97a8;
-        padding: 16px;
+      .item small {
+        color: #5b6b7b;
       }
       @media (max-width: 600px) {
         main {
           padding: 12px 10px 50px;
         }
-        .card {
-          padding: 13px;
+        section {
+          padding: 14px 12px;
         }
       }
     </style>
@@ -337,492 +217,361 @@
         anexos e regimes especiais
       </p>
       <div style="margin-top: 10px">
-        <a class="btn btn-voltar" href="./index.html">← Voltar ao Panorama</a>
+        <a class="btn btn-voltar" href="/">← Voltar ao Panorama</a>
         <a class="btn btn-voltar" href="./envios.html" style="background: #b7ddb7; color: #14532d"
           >📇 Cadastro & Envios</a
         >
       </div>
     </header>
     <main>
-      <div class="card">
+      <section>
         <h2>1. Selecione o produto ou serviço</h2>
-        <div class="busca-wrap">
-          <span class="busca-ico">🔎</span>
-          <input
-            type="text"
-            id="busca"
-            placeholder="Digite o código (NCM/NBS/CNAE) ou o nome — ex.: 1.2301.23.00, odontológico, arroz, cigarro…"
-            autocomplete="off"
-          />
-          <div id="sugestoes" style="display: none"></div>
-        </div>
-        <div id="selecionado" style="margin-top: 10px"></div>
-      </div>
+        <input
+          type="text"
+          id="busca"
+          placeholder="🔎 Digite o código (NCM/NBS/CNAE) ou o nome — ex.: 1.2301.23.00, odontológico, arroz, cigarro…"
+          oninput="filtrar()"
+        />
+        <div id="lista" style="margin-top: 10px; max-height: 260px; overflow-y: auto"></div>
+      </section>
 
-      <div class="card">
-        <h2>2. Parâmetros da operação</h2>
-        <div class="row">
-          <div>
-            <label>Valor da operação (R$)</label>
-            <input type="number" id="valor" value="10000" min="0" step="0.01" />
+      <section>
+        <h2>2. Alíquotas estimadas — componentes individuais</h2>
+        <p style="font-size: 0.78rem; color: #5b6b7b">
+          Clique para ligar/desligar um componente. Valores de referência 2033 (editáveis).
+        </p>
+        <div class="grid">
+          <div class="comp" id="comp-cbs" onclick="toggleComp('cbs')">
+            <div class="nome">✅ CBS — Federal</div>
+            <div class="ano" id="ano-cbs">2026</div>
+            <input
+              type="number"
+              id="al-cbs"
+              value="8.8"
+              step="0.01"
+              onclick="event.stopPropagation()"
+            />
           </div>
-          <div>
-            <label>Ano da simulação</label>
-            <select id="ano">
-              <option value="2026">2026 — ano-teste (IBS 0,1% / CBS 0,9%)</option>
-              <option value="2027">2027 — virada federal (CBS plena)</option>
-              <option value="2028" selected>2028 — IBS em teste (CBS plena)</option>
-              <option value="2029">2029 — transição IBS 10%</option>
-              <option value="2030">2030 — transição IBS 20%</option>
-              <option value="2031">2031 — transição IBS 30%</option>
-              <option value="2032">2032 — transição IBS 40%</option>
-              <option value="2033">2033 — regime pleno</option>
-            </select>
+          <div class="comp" id="comp-ibse" onclick="toggleComp('ibse')">
+            <div class="nome">✅ IBS Estadual</div>
+            <div class="ano" id="ano-ibse">2026</div>
+            <input
+              type="number"
+              id="al-ibse"
+              value="9.55"
+              step="0.01"
+              onclick="event.stopPropagation()"
+            />
           </div>
-          <div>
-            <label>Alíquota de referência IBS+CBS (estimativa)</label>
-            <input type="number" id="aliquota" value="27.91" min="0" max="100" step="0.01" />
+          <div class="comp" id="comp-ibsm" onclick="toggleComp('ibsm')">
+            <div class="nome">✅ IBS Municipal</div>
+            <div class="ano" id="ano-ibsm">2026</div>
+            <input
+              type="number"
+              id="al-ibsm"
+              value="9.56"
+              step="0.01"
+              onclick="event.stopPropagation()"
+            />
+          </div>
+          <div class="comp" id="comp-is" onclick="toggleComp('is')">
+            <div class="nome">✅ Imposto Seletivo</div>
+            <div class="ano">—</div>
+            <input
+              type="number"
+              id="al-is"
+              value="0"
+              step="0.01"
+              onclick="event.stopPropagation()"
+            />
           </div>
         </div>
-        <div class="row" style="margin-top: 8px">
-          <div>
-            <label>Alíquota efetiva atual (PIS+Cofins+ICMS+IPI+ISS, %)</label>
-            <input type="number" id="alqAtual" value="34" min="0" max="100" step="0.01" />
-          </div>
-          <div>
-            <label>Setor do adquirente</label>
-            <select id="setor">
-              <option value="regular">Regime regular (com créditos)</option>
-              <option value="consumidor">Consumidor final (sem créditos)</option>
-              <option value="simples">Simples Nacional</option>
-            </select>
-          </div>
-          <div>
-            <label>Estado de destino (alíquota de referência do IBS)</label>
-            <select id="estado">
-              <option value="1.0">Alíquota-padrão (100% da referência)</option>
-              <option value="0.9">Estado com redutor 10%</option>
-              <option value="0.8">Estado com redutor 20%</option>
-            </select>
-          </div>
-        </div>
-        <button
-          class="btn"
-          style="background: #12315e; color: #fff; margin-top: 12px"
-          onclick="simular()"
-        >
-          ▶ Simular
-        </button>
-      </div>
+      </section>
 
-      <div class="card" id="cardResultado" style="display: none">
-        <h2>3. Resultado da simulação — <span id="resTitulo"></span></h2>
-        <div id="resGrupo"></div>
-        <div class="resultado-grid" id="kpis"></div>
-        <div id="tabelaComparativa"></div>
-        <div id="cronoTabela"></div>
-        <div class="aviso">
-          ⚠️ <b>Simulação didática</b>: usa alíquotas de referência e regras dos anexos oficiais (LC
-          214, RIBS, Decreto CBS) conforme publicação de 30/09/2026. Valores reais dependem da
-          alíquota fixada por lei e do perfil de créditos de cada empresa. Não substitui assessoria
-          tributária.
+      <section>
+        <h2>3. Parâmetros da operação</h2>
+        <label for="valor">Valor da operação (R$)</label>
+        <input type="number" id="valor" value="10000" min="0" step="0.01" />
+        <label for="ano">Ano da simulação</label>
+        <select id="ano" onchange="atualizarAno()">
+          <option value="2026">2026 — ano-teste (CBS 0,9% / IBS 0,1%)</option>
+          <option value="2027">2027 — virada federal (CBS plena)</option>
+          <option value="2028" selected>2028 — IBS em teste (CBS plena)</option>
+          <option value="2029">2029 — transição IBS 10%</option>
+          <option value="2030">2030 — transição IBS 20%</option>
+          <option value="2031">2031 — transição IBS 30%</option>
+          <option value="2032">2032 — transição IBS 40%</option>
+          <option value="2033">2033 — regime pleno</option>
+        </select>
+        <label for="regime">Regime do adquirente</label>
+        <select id="regime">
+          <option value="regular" selected>Regime regular (com créditos)</option>
+          <option value="final">Consumidor final (sem créditos)</option>
+          <option value="simples">Simples Nacional</option>
+        </select>
+        <label for="redutor">Redutor estadual / grupo</label>
+        <select id="redutor">
+          <option value="1" selected>Alíquota-padrão (100%)</option>
+          <option value="0.9">Redutor 10%</option>
+          <option value="0.8">Redutor 20%</option>
+        </select>
+        <button class="btn btn-simular" onclick="simular()">▶ Simular</button>
+        <div id="msg" class="msg"></div>
+      </section>
+
+      <section id="resultado">
+        <h2>4. Resultado da simulação</h2>
+        <div id="res-corpo"></div>
+        <div class="capitulacao" id="res-cap"></div>
+        <div class="share">
+          <button class="btn" style="background: #25d366; color: #fff" onclick="compartilhar('wa')">
+            WhatsApp
+          </button>
+          <button
+            class="btn"
+            style="background: #1a4a8c; color: #fff"
+            onclick="compartilhar('mail')"
+          >
+            E-mail
+          </button>
+          <button class="btn" style="background: #0088cc; color: #fff" onclick="compartilhar('tg')">
+            Telegram
+          </button>
+          <button
+            class="btn"
+            style="background: #f0f3f8; color: #12315e"
+            onclick="compartilhar('copy')"
+          >
+            Copiar texto
+          </button>
+          <button class="btn" style="background: #f0f3f8; color: #12315e" onclick="window.print()">
+            🖨️ PDF/Imprimir
+          </button>
         </div>
-        <h2 style="margin-top: 14px">4. Enviar resultado</h2>
-        <div class="compart">
-          <button class="btn btn-wa" onclick="enviarWhatsApp()">💬 WhatsApp</button>
-          <button class="btn btn-mail" onclick="enviarEmail()">✉️ E-mail</button>
-          <button class="btn btn-tg" onclick="enviarTelegram()">✈️ Telegram</button>
-          <button class="btn btn-copy" onclick="copiarTexto()">📋 Copiar texto</button>
-          <button class="btn btn-pdf" onclick="window.print()">🖨️ Imprimir / PDF</button>
-        </div>
-        <div class="row" style="margin-top: 10px">
-          <div>
-            <label>E-mail do destinatário (para o botão E-mail)</label
-            ><input type="text" id="emailDest" placeholder="destinatario@empresa.com.br" />
-          </div>
-          <div>
-            <label>WhatsApp do destinatário (com DDD)</label
-            ><input type="text" id="waDest" placeholder="5585999999999" />
-          </div>
-        </div>
-        <div class="nota">
-          Os botões abrem o aplicativo correspondente com o resultado preenchido. Para envio
-          automático em massa (listas de destinatários cadastrados), o sistema ADECONT Financeiro
-          pode disparar via serviço de e-mail — solicite ao assistente.
-        </div>
-      </div>
+      </section>
     </main>
-    <footer>
-      Simulador Didático de Transição • Panorama da Reforma Tributária do Consumo • ADECONT
-      Assessoria Administrativa, Contábil • Conteúdo informativo, não substitui assessoria
-      tributária.
-    </footer>
-    <script src="partes/sim-catalogo.js?v=1"></script>
+    <script src="./partes/sim-catalogo.js"></script>
     <script>
       var sel = null
-      var GRUPOS = {
-        regular: { n: 'Regime regular', d: 'Tributação padrão com créditos' },
-        cesta_zero: {
-          n: 'Cesta Básica — alíquota zero',
-          d: 'Art. 149 LC 214 (Anexo III Dec. CBS / RIBS)',
-        },
-        zero: { n: 'Alíquota zero específica', d: 'Ex.: saúde menstrual (Art. 147)' },
-        reducao60: { n: 'Redução 60%', d: 'Art. 128 LC 214 — saúde, educação, medicamentos' },
-        dispositivos60: { n: 'Dispositivos médicos — redução 60%', d: 'Anexo IV LC 214' },
-        imposto_seletivo: { n: 'Imposto Seletivo', d: 'Livro II LC 214 — bens nocivos/luxo' },
-        zfm: { n: 'ZFM — 100% crédito presumido', d: 'Anexo V RIBS (Art. 521 §1º IV)' },
-        suspensao: { n: 'Suspensão — REPORTO', d: 'Anexo III RIBS (Art. 186 §5º)' },
-        bens_capital: { n: 'Bens de capital desonerados', d: 'Anexo IV RIBS (Arts. 196–197)' },
-        regime_especial: { n: 'Regime específico', d: 'Consórcios, catering, financeiro etc.' },
-        agro: { n: 'Agro — crédito presumido', d: 'Arts. 287 ss. LC 214' },
-      }
-      // fator de redução efetiva por grupo (aplicado sobre a alíquota cheia IBS+CBS)
-      var FATOR = {
-        regular: 1.0,
-        cesta_zero: 0.0,
-        zero: 0.0,
-        reducao60: 0.4,
-        dispositivos60: 0.4,
-        imposto_seletivo: 1.0,
-        zfm: 0.0,
-        suspensao: 0.0,
-        bens_capital: 0.0,
-        regime_especial: 0.6,
-        agro: 0.4,
-      }
-      // alíquota IS média estimada por tipo de bem (didática)
-      var IS_EST = { '2402.20.00': 0.6, '2203.00.00': 0.25, '2208.30.00': 0.25, '8703.21.00': 0.15 }
+      var comps = { cbs: true, ibse: true, ibsm: true, is: false }
 
-      function cls(ch) {
-        var ACC = { a: 'aáàâãä', e: 'eéêë', i: 'iíï', o: 'oóôõö', u: 'uúûü', c: 'cç', n: 'nñ' }
-        var l = ch.toLowerCase()
-        for (var k in ACC) {
-          if (ACC[k].indexOf(l) >= 0) return '[' + ACC[k] + ACC[k].toUpperCase() + ']'
-        }
-        return ch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-      }
-      function esc(s) {
-        return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      function msg(id, txt, ok) {
+        var el = document.getElementById(id)
+        el.textContent = txt
+        el.className = 'msg ' + (ok ? 'msg-ok' : 'msg-erro')
+        el.style.display = 'block'
+        setTimeout(function () {
+          el.style.display = 'none'
+        }, 6000)
       }
 
-      var timer = null
-      document.getElementById('busca').addEventListener('input', function () {
-        clearTimeout(timer)
-        var v = this.value
-        timer = setTimeout(function () {
-          sugerir(v)
-        }, 200)
-      })
-      document.addEventListener('click', function (e) {
-        if (!e.target.closest('.busca-wrap'))
-          document.getElementById('sugestoes').style.display = 'none'
-      })
-
-      function sugerir(q) {
-        var box = document.getElementById('sugestoes')
-        q = q.trim()
-        if (q.length < 2) {
-          box.style.display = 'none'
-          return
-        }
-        var toks = q
-          .toLowerCase()
-          .split(/\s+/)
-          .filter(function (w) {
-            return w.length >= 2
+      function filtrar() {
+        var t = document.getElementById('busca').value.toLowerCase()
+        var out = document.getElementById('lista')
+        out.innerHTML = ''
+        if (!t) return
+        var itens = (window.SIM_CATALOGO || [])
+          .filter(function (i) {
+            return (i.codigo + ' ' + i.nome + ' ' + (i.grupo || '')).toLowerCase().indexOf(t) >= 0
           })
-        var hits = []
-        for (var i = 0; i < SIM_CATALOGO.length; i++) {
-          var it = SIM_CATALOGO[i]
-          var alvo = (it[0] + ' ' + it[2]).toLowerCase()
-          var ok = true
-          for (var t = 0; t < toks.length; t++) {
-            var re = new RegExp(toks[t].split('').map(cls).join(''))
-            if (!re.test(alvo)) {
-              ok = false
-              break
-            }
+          .slice(0, 30)
+        itens.forEach(function (i) {
+          var d = document.createElement('div')
+          d.className = 'item'
+          d.innerHTML =
+            '<b>' +
+            i.codigo +
+            '</b> — ' +
+            i.nome +
+            ' <small>[' +
+            (i.grupo || 'regular') +
+            ']</small>'
+          d.onclick = function () {
+            selecionar(i)
           }
-          if (ok) hits.push(it)
-          if (hits.length >= 40) break
-        }
-        if (!hits.length) {
-          box.innerHTML = '<div class="sug">Nenhum item encontrado — tente outro termo.</div>'
-          box.style.display = 'block'
-          return
-        }
-        var html = ''
-        for (var i = 0; i < hits.length; i++) {
-          var it = hits[i]
-          html +=
-            '<div class="sug" onclick="selecionar(\'' +
-            it[0] +
-            '\')"><span class="cod">' +
-            it[0] +
-            '</span> ' +
-            esc(it[2]) +
-            '<span class="grp">' +
-            GRUPOS[it[3]].n +
-            '</span></div>'
-        }
-        box.innerHTML = html
-        box.style.display = 'block'
+          out.appendChild(d)
+        })
+        if (!itens.length)
+          out.innerHTML =
+            '<div class="item">Nenhum item encontrado — o item cai no regime regular.</div>'
       }
 
-      function selecionar(cod) {
-        for (var i = 0; i < SIM_CATALOGO.length; i++) {
-          if (SIM_CATALOGO[i][0] === cod) {
-            sel = SIM_CATALOGO[i]
-            break
-          }
-        }
-        document.getElementById('sugestoes').style.display = 'none'
-        document.getElementById('busca').value = sel[2]
-        var g = GRUPOS[sel[3]]
-        document.getElementById('selecionado').innerHTML =
-          '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">' +
-          '<span class="cod" style="font-family:ui-monospace,Menlo,monospace;font-weight:800;color:#0b4a8f;font-size:1.05rem">' +
-          sel[0] +
-          '</span>' +
-          '<b>' +
-          esc(sel[2]) +
-          '</b>' +
-          '<span class="grupo-tag g-' +
-          sel[3] +
-          '">' +
-          g.n +
-          '</span></div>' +
-          '<div class="nota">' +
-          esc(sel[5]) +
-          ' • ' +
-          g.d +
-          '</div>'
-        simular()
+      function selecionar(i) {
+        sel = i
+        document.getElementById('busca').value = i.codigo + ' — ' + i.nome
+        document.getElementById('lista').innerHTML = ''
+        msg(
+          'msg',
+          'Selecionado: ' + i.codigo + ' — ' + i.nome + ' [' + (i.grupo || 'regular') + ']',
+          true,
+        )
+      }
+
+      function toggleComp(k) {
+        comps[k] = !comps[k]
+        var el = document.getElementById('comp-' + k)
+        var nome = el.querySelector('.nome')
+        nome.textContent =
+          (comps[k] ? '✅ ' : '⛔ ') + nome.textContent.replace('✅ ', '').replace('⛔ ', '')
       }
 
       function fatorAno(ano) {
-        // fração da CBS/IBS plena em vigor no ano (didático)
-        switch (ano) {
-          case '2026':
-            return { cbs: 0.9 / 27.91, ibs: 0.1 / 27.91 } // CBS 0,9% / IBS 0,1% sobre ref 27,91
-          case '2027':
-            return { cbs: 1.0, ibs: 0.1 / 17.7 }
-          case '2028':
-            return { cbs: 1.0, ibs: 0.1 / 17.7 }
-          case '2029':
-            return { cbs: 1.0, ibs: 0.1 }
-          case '2030':
-            return { cbs: 1.0, ibs: 0.2 }
-          case '2031':
-            return { cbs: 1.0, ibs: 0.3 }
-          case '2032':
-            return { cbs: 1.0, ibs: 0.4 }
-          case '2033':
-            return { cbs: 1.0, ibs: 1.0 }
-        }
-        return { cbs: 1.0, ibs: 1.0 }
+        if (ano === '2026') return { cbs: 0.1, ibs: 0.1 / 19.11, is: 0 }
+        if (ano === '2027') return { cbs: 1, ibs: 0.1 / 19.11, is: 1 }
+        if (ano === '2028') return { cbs: 1, ibs: 0.1 / 19.11, is: 1 }
+        if (ano === '2029') return { cbs: 1, ibs: 0.1, is: 1 }
+        if (ano === '2030') return { cbs: 1, ibs: 0.2, is: 1 }
+        if (ano === '2031') return { cbs: 1, ibs: 0.3, is: 1 }
+        if (ano === '2032') return { cbs: 1, ibs: 0.4, is: 1 }
+        return { cbs: 1, ibs: 1, is: 1 }
+      }
+
+      function atualizarAno() {
+        var ano = document.getElementById('ano').value
+        var f = fatorAno(ano)
+        document.getElementById('al-cbs').value = (8.8 * f.cbs).toFixed(2)
+        document.getElementById('al-ibse').value = (9.55 * f.ibs).toFixed(2)
+        document.getElementById('al-ibsm').value = (9.56 * f.ibs).toFixed(2)
+        document.getElementById('ano-cbs').textContent = ano
+        document.getElementById('ano-ibse').textContent = ano
+        document.getElementById('ano-ibsm').textContent = ano
+      }
+
+      function brl(v) {
+        return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
       }
 
       function simular() {
         if (!sel) {
-          alert('Selecione um produto ou serviço primeiro.')
+          msg('msg', 'Selecione um produto ou serviço antes de simular.', false)
           return
         }
         var valor = parseFloat(document.getElementById('valor').value) || 0
-        var ref = parseFloat(document.getElementById('aliquota').value) || 27.91
-        var alqAtual = parseFloat(document.getElementById('alqAtual').value) || 34
-        var ano = document.getElementById('ano').value
-        var setor = document.getElementById('setor').value
-        var redutor = parseFloat(document.getElementById('estado').value) || 1.0
-        var f = FATOR[sel[3]] !== undefined ? FATOR[sel[3]] : 1.0
-        var fa = fatorAno(ano)
-        // alíquota efetiva nova = ref * fator do grupo * fração do ano * redutor estadual
-        var alqNova = ref * f * (fa.cbs + fa.ibs) * redutor
-        // IS adicional
-        var is = IS_EST[sel[0]] || 0
-        var novoValor = valor * (alqNova / 100)
-        var isValor = valor * (is / 100) * (fa.cbs >= 1 ? 1 : 0.3) // IS entra gradualmente (2027+)
-        // regime atual: estimativa didática
-        var atualValor = valor * (alqAtual / 100)
-        // crédito presumido agro: devolve parte
-        if (sel[3] === 'agro') {
-          novoValor *= 0.7
+        var redutor = parseFloat(document.getElementById('redutor').value) || 1
+        var grupo = sel.grupo || 'regular'
+        var fatorGrupo = 1
+        if (grupo === 'cesta_zero') fatorGrupo = 0
+        else if (grupo === 'reducao60' || grupo === 'dispositivos60') fatorGrupo = 0.4
+        else if (grupo === 'reducao30') fatorGrupo = 0.7
+        else if (grupo === 'insumos_agro') fatorGrupo = 0.7
+        var alCbs = parseFloat(document.getElementById('al-cbs').value) || 0
+        var alIbse = parseFloat(document.getElementById('al-ibse').value) || 0
+        var alIbsm = parseFloat(document.getElementById('al-ibsm').value) || 0
+        var alIs = parseFloat(document.getElementById('al-is').value) || 0
+        if (grupo === 'imposto_seletivo' && alIs === 0) alIs = sel.isEstimado || 15
+        var efCbs = alCbs * fatorGrupo * redutor * (comps.cbs ? 1 : 0)
+        var efIbse = alIbse * fatorGrupo * redutor * (comps.ibse ? 1 : 0)
+        var efIbsm = alIbsm * fatorGrupo * redutor * (comps.ibsm ? 1 : 0)
+        var efIs = alIs * (comps.is ? 1 : 0)
+        if (grupo === 'agro') {
+          efCbs *= 0.7
+          efIbse *= 0.7
+          efIbsm *= 0.7
         }
-        var dif = novoValor + isValor - atualValor
-        var pct = valor > 0 ? (dif / valor) * 100 : 0
-
-        document.getElementById('cardResultado').style.display = 'block'
-        document.getElementById('resTitulo').textContent = sel[2] + ' (' + sel[0] + ') — ano ' + ano
-        var g = GRUPOS[sel[3]]
-        document.getElementById('resGrupo').innerHTML =
-          '<span class="grupo-tag g-' +
-          sel[3] +
-          '">' +
-          g.n +
-          '</span> <span class="nota">' +
-          esc(sel[5]) +
-          '</span>'
-
-        var clsDif = dif <= 0 ? 'destaque' : 'alerta'
-        document.getElementById('kpis').innerHTML =
-          kpi('Regime atual (est.)', 'R$ ' + fmt(atualValor), '') +
-          kpi('IBS+CBS novo (est.)', 'R$ ' + fmt(novoValor), '') +
-          kpi(
-            'Imposto Seletivo (est.)',
-            isValor > 0 ? 'R$ ' + fmt(isValor) : '—',
-            isValor > 0 ? 'alerta' : '',
-          ) +
-          kpi('Diferença', 'R$ ' + fmt(Math.abs(dif)) + (dif <= 0 ? ' ▼' : ' ▲'), clsDif) +
-          kpi('Variação', '' + (pct >= 0 ? '+' : '') + pct.toFixed(1) + '%', clsDif) +
-          kpi(
-            'Alíquota efetiva nova',
-            alqNova.toFixed(2) + '%' + (is > 0 ? ' + IS ' + Math.round(is * 100) + '%' : ''),
-            '',
-          )
-
-        // tabela comparativa ano a ano
-        var cr =
-          '<h3 style="color:#12315e;font-size:.9rem;margin:12px 0 4px">Transição ano a ano (estimativa didática)</h3><div class="tblwrap"><table><thead><tr><th>Ano</th><th>Fase</th><th>Alíq. nova</th><th>IBS+CBS (R$)</th><th>IS (R$)</th><th>vs atual (R$)</th></tr></thead><tbody>'
-        var anos = [
-          ['2026', 'Ano-teste'],
-          ['2027', 'Virada federal'],
-          ['2028', 'IBS em teste'],
-          ['2029', 'Transição 10%'],
-          ['2030', 'Transição 20%'],
-          ['2031', 'Transição 30%'],
-          ['2032', 'Transição 40%'],
-          ['2033', 'Regime pleno'],
+        var novo = (valor * (efCbs + efIbse + efIbsm + efIs)) / 100
+        var atual = valor * 0.34
+        var dif = novo - atual
+        var pct = atual > 0 ? (dif / atual) * 100 : 0
+        var linhas = [
+          ['CBS', efCbs, (valor * efCbs) / 100],
+          ['IBS Estadual', efIbse, (valor * efIbse) / 100],
+          ['IBS Municipal', efIbsm, (valor * efIbsm) / 100],
+          ['Imposto Seletivo', efIs, (valor * efIs) / 100],
         ]
-        for (var i = 0; i < anos.length; i++) {
-          var a = anos[i][0]
-          var fx = fatorAno(a)
-          var alq = ref * f * (fx.cbs + fx.ibs) * redutor
-          var v = valor * (alq / 100)
-          var isv = valor * ((IS_EST[sel[0]] || 0) / 100) * (a === '2026' ? 0.3 : 1)
-          var d = v + isv - atualValor
-          cr +=
-            '<tr' +
-            (a === ano ? ' style="background:#e8f0fd;font-weight:700"' : '') +
-            '><td>' +
-            a +
+        var html = '<table><tr><th>Componente</th><th>Alíquota efetiva</th><th>Valor</th></tr>'
+        linhas.forEach(function (l) {
+          html +=
+            '<tr><td>' +
+            l[0] +
             '</td><td>' +
-            anos[i][1] +
-            '</td><td class="td-num">' +
-            alq.toFixed(2) +
-            '%</td><td class="td-num">' +
-            fmt(v) +
-            '</td><td class="td-num">' +
-            (isv > 0 ? fmt(isv) : '—') +
-            '</td><td class="td-num" style="color:' +
-            (d <= 0 ? '#1e7a1e' : '#b02525') +
-            '">' +
-            (d <= 0 ? '▼ ' : '▲ ') +
-            fmt(Math.abs(d)) +
+            l[1].toFixed(2) +
+            '%</td><td>' +
+            brl(l[2]) +
             '</td></tr>'
-        }
-        cr += '</tbody></table></div>'
-        document.getElementById('cronoTabela').innerHTML = cr
-        document.getElementById('tabelaComparativa').innerHTML = ''
-      }
-
-      function kpi(l, v, cls) {
-        return (
-          '<div class="kpi ' +
-          (cls || '') +
-          '"><div class="v">' +
-          v +
-          '</div><div class="l">' +
-          l +
-          '</div></div>'
-        )
-      }
-      function fmt(n) {
-        return n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-      }
-
-      function textoResultado() {
-        if (!sel) return ''
-        var valor = parseFloat(document.getElementById('valor').value) || 0
-        var ano = document.getElementById('ano').value
-        var g = GRUPOS[sel[3]]
-        var kpis = document.querySelectorAll('#kpis .kpi')
-        var linhas = ''
-        for (var i = 0; i < kpis.length; i++) {
-          linhas +=
-            '• ' +
-            kpis[i].querySelector('.l').textContent +
-            ': ' +
-            kpis[i].querySelector('.v').textContent +
-            '\n'
-        }
-        return (
-          '🧮 SIMULAÇÃO DE TRANSIÇÃO TRIBUTÁRIA — ADECONT\n' +
-          'Produto/Serviço: ' +
-          sel[2] +
+        })
+        html +=
+          '<tr class="total"><td>Total IBS/CBS (novo)</td><td>' +
+          (efCbs + efIbse + efIbsm + efIs).toFixed(2) +
+          '%</td><td>' +
+          brl(novo) +
+          '</td></tr>'
+        html +=
+          '<tr><td>Carga tributária atual (estimada 34%)</td><td>34%</td><td>' +
+          brl(atual) +
+          '</td></tr>'
+        html += '</table>'
+        html +=
+          '<p style="margin-top:10px">Diferença: <span class="economia ' +
+          (dif <= 0 ? 'neg' : 'pos') +
+          '">' +
+          brl(Math.abs(dif)) +
           ' (' +
-          sel[0] +
-          ')\n' +
-          'Grupo: ' +
-          g.n +
-          '\n' +
-          'Valor da operação: R$ ' +
-          fmt(valor) +
-          ' • Ano: ' +
-          ano +
-          '\n' +
-          '--------------------------------------\n' +
-          linhas +
-          '--------------------------------------\n' +
-          'Simulação didática — Panorama da Reforma Tributária ADECONT\n' +
-          'https://verificacao-projeto-panorama-18549.goskip.app/panorama-reforma/simulador.html'
-        )
+          (dif <= 0 ? '−' : '+') +
+          Math.abs(pct).toFixed(1) +
+          '%)</span> ' +
+          (dif <= 0 ? 'menos tributo no novo regime' : 'mais tributo no novo regime') +
+          '</p>'
+        document.getElementById('res-corpo').innerHTML = html
+        var capMap = {
+          cesta_zero: 'LC 214/2025, Anexo I (Cesta Básica Nacional) — alíquota zero (art. 147).',
+          reducao60:
+            'LC 214/2025, arts. 148 e 149 — redução de 60% (saúde, educação, transporte público etc.).',
+          reducao30:
+            'LC 214/2025, art. 127 — redução de 30% (profissionais liberais regulamentados).',
+          dispositivos60:
+            'LC 214/2025, art. 148, IV — dispositivos médicos e acessibilidade (60%).',
+          insumos_agro: 'LC 214/2025, arts. 287 e ss. — créditos presumidos agropecuária.',
+          imposto_seletivo:
+            'LC 214/2025, arts. 156–171 — Imposto Seletivo (bens nocivos/supérfluos).',
+          regular: 'LC 214/2025 — regime regular, alíquota de referência.',
+        }
+        document.getElementById('res-cap').textContent =
+          'Capitulação legal: ' +
+          (capMap[grupo] || capMap.regular) +
+          ' Item: ' +
+          sel.codigo +
+          ' — ' +
+          sel.nome +
+          '.'
+        document.getElementById('resultado').style.display = 'block'
+        document.getElementById('resultado').scrollIntoView({ behavior: 'smooth' })
       }
 
-      function enviarWhatsApp() {
-        var t = textoResultado()
-        if (!t) return
-        var dest = document.getElementById('waDest').value.replace(/\D/g, '')
-        var url = 'https://wa.me/' + (dest || '') + '?text=' + encodeURIComponent(t)
-        window.open(url, '_blank')
-      }
-      function enviarEmail() {
-        var t = textoResultado()
-        if (!t) return
-        var dest = document.getElementById('emailDest').value
-        var subject = encodeURIComponent('Simulação de Transição Tributária — ' + sel[2])
-        var body = encodeURIComponent(t)
-        window.open('mailto:' + (dest || '') + '?subject=' + subject + '&body=' + body)
-      }
-      function enviarTelegram() {
-        var t = textoResultado()
-        if (!t) return
-        window.open(
-          'https://t.me/share/url?url=' +
-            encodeURIComponent(
-              'https://verificacao-projeto-panorama-18549.goskip.app/panorama-reforma/simulador.html',
-            ) +
-            '&text=' +
-            encodeURIComponent(t),
-          '_blank',
-        )
-      }
-      function copiarTexto() {
-        var t = textoResultado()
-        if (!t) return
-        if (navigator.clipboard) {
-          navigator.clipboard.writeText(t).then(function () {
-            alert('Resultado copiado!')
-          })
-        } else {
-          var ta = document.createElement('textarea')
-          ta.value = t
-          document.body.appendChild(ta)
-          ta.select()
-          document.execCommand('copy')
-          document.body.removeChild(ta)
-          alert('Resultado copiado!')
+      function compartilhar(modo) {
+        var t = document.getElementById('res-corpo').innerText || ''
+        var cap = document.getElementById('res-cap').textContent || ''
+        var txt =
+          '🧮 Simulação IBS/CBS — ADECONT\n' +
+          (sel ? sel.codigo + ' — ' + sel.nome : '') +
+          '\n\n' +
+          t +
+          '\n\n' +
+          cap +
+          '\n\n' +
+          location.href
+        if (modo === 'copy') {
+          navigator.clipboard.writeText(txt)
+          msg('msg', 'Texto copiado!', true)
+          return
         }
+        if (modo === 'wa') window.open('https://wa.me/?text=' + encodeURIComponent(txt), '_blank')
+        if (modo === 'tg')
+          window.open(
+            'https://t.me/share/url?url=' +
+              encodeURIComponent(location.href) +
+              '&text=' +
+              encodeURIComponent(txt),
+            '_blank',
+          )
+        if (modo === 'mail')
+          window.location.href =
+            'mailto:?subject=' +
+            encodeURIComponent('Simulação IBS/CBS — ADECONT') +
+            '&body=' +
+            encodeURIComponent(txt)
       }
+
+      atualizarAno()
     </script>
   </body>
 </html>
