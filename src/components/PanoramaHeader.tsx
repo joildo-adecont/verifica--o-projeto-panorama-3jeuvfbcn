@@ -1,5 +1,24 @@
 import { useState, useEffect, useCallback } from 'react'
-import { RotateCw, Clock, ExternalLink, Search, Menu, X, FileText } from 'lucide-react'
+import {
+  RotateCw,
+  Clock,
+  ExternalLink,
+  Search,
+  Menu,
+  X,
+  FileText,
+  Scale,
+  Factory,
+  ShoppingBasket,
+  ShieldCheck,
+  Percent,
+  Layers,
+  Paperclip,
+  CalendarDays,
+  Database,
+  Globe2,
+  ListChecks,
+} from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { AdecontLogo } from '@/components/AdecontLogo'
 import { fetchSourceStatuses, triggerSourceCheck } from '@/services/panorama'
@@ -12,19 +31,107 @@ interface PanoramaHeaderProps {
   onManualRefresh?: () => void
 }
 
-// Itens do menu principal com tecla de atalho (mesmo mapa do menu lateral)
+// Itens do menu principal com tecla de atalho e ícone colorido
 const NAV_LINKS = [
-  { href: '#secao-1', label: '1. Normas', tecla: '1' },
-  { href: '#secao-2', label: '2. Fato Gerador', tecla: '2' },
-  { href: '#secao-3', label: '3. Cesta Básica', tecla: '3' },
-  { href: '#secao-4', label: '4. Imunidades', tecla: '4' },
-  { href: '#secao-5', label: '5. Isenções e Alíquotas', tecla: '5' },
-  { href: '#secao-6', label: '6. Regimes Específicos', tecla: '6' },
-  { href: '#secao-7', label: '7. Anexos', tecla: '7' },
-  { href: '#secao-8', label: '8. Cronograma 2026–2033', tecla: '8' },
-  { href: '#secao-9', label: '9. Fontes & Atualização', tecla: '9' },
-  { href: '#fontes-agregador', label: '11. Agregadores (Buscador NCM)', tecla: 'q' },
-  { href: '#fontes-primarias', label: '12. Fontes primárias (110 bases)', tecla: 'w' },
+  {
+    href: '#secao-1',
+    label: 'Normas',
+    tecla: '1',
+    Icon: Scale,
+    cor: 'text-indigo-600',
+    bg: 'bg-indigo-50',
+    borda: 'border-indigo-200',
+  },
+  {
+    href: '#secao-2',
+    label: 'Fato Gerador',
+    tecla: '2',
+    Icon: Factory,
+    cor: 'text-blue-600',
+    bg: 'bg-blue-50',
+    borda: 'border-blue-200',
+  },
+  {
+    href: '#secao-3',
+    label: 'Cesta Básica',
+    tecla: '3',
+    Icon: ShoppingBasket,
+    cor: 'text-emerald-600',
+    bg: 'bg-emerald-50',
+    borda: 'border-emerald-200',
+  },
+  {
+    href: '#secao-4',
+    label: 'Imunidades',
+    tecla: '4',
+    Icon: ShieldCheck,
+    cor: 'text-teal-600',
+    bg: 'bg-teal-50',
+    borda: 'border-teal-200',
+  },
+  {
+    href: '#secao-5',
+    label: 'Isenções e Alíquotas',
+    tecla: '5',
+    Icon: Percent,
+    cor: 'text-amber-600',
+    bg: 'bg-amber-50',
+    borda: 'border-amber-200',
+  },
+  {
+    href: '#secao-6',
+    label: 'Regimes Específicos',
+    tecla: '6',
+    Icon: Layers,
+    cor: 'text-orange-600',
+    bg: 'bg-orange-50',
+    borda: 'border-orange-200',
+  },
+  {
+    href: '#secao-7',
+    label: 'Anexos',
+    tecla: '7',
+    Icon: Paperclip,
+    cor: 'text-rose-600',
+    bg: 'bg-rose-50',
+    borda: 'border-rose-200',
+  },
+  {
+    href: '#secao-8',
+    label: 'Cronograma 2026–2033',
+    tecla: '8',
+    Icon: CalendarDays,
+    cor: 'text-cyan-600',
+    bg: 'bg-cyan-50',
+    borda: 'border-cyan-200',
+  },
+  {
+    href: '#secao-9',
+    label: 'Fontes & Atualização',
+    tecla: '9',
+    Icon: Database,
+    cor: 'text-violet-600',
+    bg: 'bg-violet-50',
+    borda: 'border-violet-200',
+  },
+  {
+    href: '#fontes-agregador',
+    label: 'Agregadores (Buscador NCM)',
+    tecla: 'q',
+    Icon: Globe2,
+    cor: 'text-sky-600',
+    bg: 'bg-sky-50',
+    borda: 'border-sky-200',
+  },
+  {
+    href: '#fontes-primarias',
+    label: 'Fontes primárias (110 bases)',
+    tecla: 'w',
+    Icon: ListChecks,
+    cor: 'text-fuchsia-600',
+    bg: 'bg-fuchsia-50',
+    borda: 'border-fuchsia-200',
+  },
 ]
 
 export function PanoramaHeader({
@@ -311,44 +418,55 @@ export function PanoramaHeader({
           </div>
         </div>
 
-        {/* Navigation Bar Links — com teclas de atalho visíveis */}
-        <nav className="mt-3 pt-2.5 border-t border-slate-100 hidden lg:flex items-center justify-between text-xs font-medium text-slate-600 overflow-x-auto scrollbar-none gap-3">
-          {NAV_LINKS.map((link) => (
-            <a
-              key={link.href}
-              href={link.href}
-              className="group inline-flex items-center gap-1.5 hover:text-blue-600 whitespace-nowrap transition-colors py-1"
-              title={`Tecla de atalho: ${link.tecla.toUpperCase()}`}
-            >
-              <kbd className="inline-flex items-center justify-center min-w-[16px] h-4 px-1 rounded border border-slate-300 bg-slate-100 text-[9px] font-mono text-slate-500 group-hover:border-blue-400 group-hover:text-blue-600 group-hover:bg-blue-50 transition-colors">
-                {link.tecla.toUpperCase()}
-              </kbd>
-              <span>
-                {link.label
-                  .replace(/^\d+\.\s/, '')
-                  .replace('11. ', '')
-                  .replace('12. ', '')}
-              </span>
-            </a>
-          ))}
+        {/* Navigation Bar Links — fonte maior, ícones coloridos e teclas de atalho */}
+        <nav className="mt-3 pt-2.5 border-t border-slate-100 hidden lg:flex items-center justify-between text-[13px] font-semibold text-slate-700 overflow-x-auto scrollbar-none gap-2">
+          {NAV_LINKS.map((link) => {
+            const { Icon } = link
+            return (
+              <a
+                key={link.href}
+                href={link.href}
+                className={`group inline-flex items-center gap-1.5 whitespace-nowrap transition-colors py-1 px-1.5 rounded-md hover:${link.bg} hover:text-${link.cor}`}
+                title={`Tecla de atalho: ${link.tecla.toUpperCase()} — ${link.label}`}
+              >
+                <span
+                  className={`inline-flex items-center justify-center w-6 h-6 shrink-0 rounded-md border ${link.bg} ${link.borda} ${link.cor}`}
+                >
+                  <Icon className="w-3.5 h-3.5" />
+                </span>
+                <span className="leading-tight">{link.label}</span>
+                <kbd className="inline-flex items-center justify-center min-w-[16px] h-4 px-1 rounded border border-slate-300 bg-slate-100 text-[9px] font-mono text-slate-500 group-hover:border-blue-400 group-hover:text-blue-600 group-hover:bg-blue-50 transition-colors">
+                  {link.tecla.toUpperCase()}
+                </kbd>
+              </a>
+            )
+          })}
         </nav>
 
         {/* Mobile Drawer */}
         {mobileMenuOpen && (
           <div className="lg:hidden mt-3 pt-3 border-t border-slate-200 flex flex-col gap-2 pb-2">
-            {NAV_LINKS.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2 text-sm font-medium text-slate-700 hover:text-blue-600 py-1.5 px-2 rounded hover:bg-slate-50"
-              >
-                <kbd className="inline-flex items-center justify-center min-w-[18px] h-5 px-1 rounded border border-slate-300 bg-slate-100 text-[10px] font-mono text-slate-500">
-                  {link.tecla.toUpperCase()}
-                </kbd>
-                {link.label}
-              </a>
-            ))}
+            {NAV_LINKS.map((link) => {
+              const { Icon } = link
+              return (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-2.5 text-sm font-semibold text-slate-700 hover:text-blue-600 py-2 px-2 rounded hover:bg-slate-50"
+                >
+                  <span
+                    className={`inline-flex items-center justify-center w-7 h-7 shrink-0 rounded-md border ${link.bg} ${link.borda} ${link.cor}`}
+                  >
+                    <Icon className="w-4 h-4" />
+                  </span>
+                  <span className="flex-1">{link.label}</span>
+                  <kbd className="inline-flex items-center justify-center min-w-[18px] h-5 px-1 rounded border border-slate-300 bg-slate-100 text-[10px] font-mono text-slate-500">
+                    {link.tecla.toUpperCase()}
+                  </kbd>
+                </a>
+              )
+            })}
             <div className="pt-2 flex flex-col gap-2">
               <a
                 href="/panorama-reforma/simulador.html"
