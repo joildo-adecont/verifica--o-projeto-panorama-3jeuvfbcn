@@ -57,6 +57,11 @@ const App = () => (
           path="/panorama-reforma/recebido"
           element={<StaticRedirect to="/panorama-reforma/recebido.html" />}
         />
+        {/* Voltar do Simulador/Cadastro: /panorama-reforma/index.html e /panorama-reforma
+            nao existem como arquivo estatico neste projeto (o Panorama e a home React "/") —
+            redireciona para a home em vez de cair no 404. */}
+        <Route path="/panorama-reforma/index.html" element={<StaticRedirect to="/" />} />
+        <Route path="/panorama-reforma" element={<StaticRedirect to="/" />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </TooltipProvider>
