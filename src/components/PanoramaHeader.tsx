@@ -105,6 +105,8 @@ export function PanoramaHeader({
     { href: '#secao-7', label: '7. Anexos' },
     { href: '#secao-8', label: '8. Cronograma 2026–2033' },
     { href: '#secao-9', label: '9. Fontes & Atualização' },
+    { href: '#fontes-agregador', label: '11. Agregadores (Buscador NCM)' },
+    { href: '#fontes-primarias', label: '12. Fontes primárias (110 bases)' },
   ]
 
   return (
