@@ -10,6 +10,8 @@ import { SectionRegimesEspecificos } from '@/components/SectionRegimesEspecifico
 import { SectionAnexos } from '@/components/SectionAnexos'
 import { SectionCronograma } from '@/components/SectionCronograma'
 import { SectionFontes } from '@/components/SectionFontes'
+import { SectionFontesAgregador } from '@/components/SectionFontesAgregador'
+import { SectionFontesPrimarias } from '@/components/SectionFontesPrimarias'
 import { PanoramaFooter } from '@/components/PanoramaFooter'
 import { fetchTaxNorms } from '@/services/panorama'
 import type { TaxNormItem } from '@/types/panorama'
@@ -78,7 +80,7 @@ export default function Index() {
         </div>
       )}
 
-      {/* Conteúdo principal com as 9 seções exatamente fiéis à página de referência */}
+      {/* Conteúdo principal com as 12 seções fiéis à página de referência */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 md:py-12 space-y-16 flex-1 w-full">
         {/* Seção 1: Arcabouço normativo */}
         <SectionNorms norms={filteredNorms} loading={loading} />
@@ -106,6 +108,12 @@ export default function Index() {
 
         {/* Seção 9: Fontes oficiais, governança de atualização e formulário de contato */}
         <SectionFontes />
+
+        {/* Seção 11: Fontes de referência — agregadores especializados (Buscador NCM) */}
+        <SectionFontesAgregador />
+
+        {/* Seção 12: Índice das fontes oficiais primárias — 110 bases */}
+        <SectionFontesPrimarias />
       </main>
 
       {/* Footer consolidado */}
