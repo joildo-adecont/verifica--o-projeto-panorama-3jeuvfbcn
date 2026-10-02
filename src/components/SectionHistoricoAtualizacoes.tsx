@@ -5,16 +5,34 @@ import { History, ExternalLink, Database, MapPin, CalendarClock } from 'lucide-r
  * Registro cronológico de todas as atualizações do sistema: data/hora,
  * fonte oficial consultada, caminho (onde foi aplicado) e conteúdo.
  * Alimentada pelo assistente a cada atualização (rotina semanal + sob demanda).
+ *
+ * POLÍTICA DE RETENÇÃO: mantém somente os registros dos últimos 30 dias —
+ * registros mais antigos são filtrados automaticamente na renderização
+ * (ver ehRecente). O array REGISTROS pode acumular; a seção exibe apenas
+ * o que está dentro da janela.
  */
 
 interface Registro {
-  data: string
+  data: string // dd/mm/aaaa
   hora: string
   titulo: string
   conteudo: string
   fontes: { nome: string; url?: string }[]
   caminho: string
   versao?: string
+}
+
+/** Janela de retenção em dias (política do CEO: máximo 30 dias). */
+const RETENCAO_DIAS = 30
+
+/** Verifica se o registro está dentro da janela de retenção (≤ 30 dias). */
+function ehRecente(dataBR: string): boolean {
+  const [d, m, a] = dataBR.split('/').map(Number)
+  const data = new Date(a, m - 1, d)
+  const limite = new Date()
+  limite.setDate(limite.getDate() - RETENCAO_DIAS)
+  limite.setHours(0, 0, 0, 0)
+  return data >= limite
 }
 
 const REGISTROS: Registro[] = [
@@ -169,6 +187,9 @@ const REGISTROS: Registro[] = [
   },
 ]
 
+// Política de retenção: exibe somente registros dos últimos 30 dias.
+const VISIVEIS = REGISTROS.filter((r) => ehRecente(r.data))
+
 export function SectionHistoricoAtualizacoes() {
   return (
     <section id="historico-atualizacoes" className="scroll-mt-24">
@@ -185,6 +206,16 @@ export function SectionHistoricoAtualizacoes() {
             Registro cronológico de todas as atualizações do Panorama: data e hora, fonte oficial
             consultada, caminho aplicado no sistema e conteúdo da mudança. Alimentado pelo
             assistente a cada atualização — na rotina semanal (segundas, 11h) e sob demanda.
+          </p>
+        </div>
+
+        <div className="rounded-lg border-l-4 border-amber-500 bg-amber-50 p-4 text-sm text-amber-900 flex items-start gap-2">
+          <CalendarClock className="w-4 h-4 mt-0.5 shrink-0 text-amber-600" />
+          <p>
+            <strong>Política de retenção:</strong> esta seção mantém somente os registros dos{' '}
+            <strong>últimos 30 dias</strong> — atualizações mais antigas são removidas
+            automaticamente. Exibindo {VISIVEIS.length} registro{VISIVEIS.length === 1 ? '' : 's'}{' '}
+            no momento.
           </p>
         </div>
 
@@ -208,9 +239,9 @@ export function SectionHistoricoAtualizacoes() {
           </p>
         </div>
 
-        {/* Linha do tempo cronológica — mais recente primeiro */}
+        {/* Linha do tempo cronológica — mais recente primeiro, janela de 30 dias */}
         <ol className="relative border-l-2 border-slate-200 ml-3 space-y-6">
-          {REGISTROS.map((r, i) => (
+          {VISIVEIS.map((r, i) => (
             <li key={i} className="ml-6">
               <span className="absolute -left-[11px] flex items-center justify-center w-5 h-5 rounded-full bg-lime-500 border-4 border-white shadow" />
               <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4 space-y-2.5">
@@ -269,6 +300,12 @@ export function SectionHistoricoAtualizacoes() {
             </li>
           ))}
         </ol>
+
+        {!VISIVEIS.length && (
+          <p className="text-sm text-slate-500 py-6 text-center">
+            Nenhuma atualização nos últimos 30 dias.
+          </p>
+        )}
       </div>
     </section>
   )
