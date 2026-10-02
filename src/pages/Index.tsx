@@ -13,6 +13,7 @@ import { SectionCronograma } from '@/components/SectionCronograma'
 import { SectionFontes } from '@/components/SectionFontes'
 import { SectionFontesAgregador } from '@/components/SectionFontesAgregador'
 import { SectionFontesPrimarias } from '@/components/SectionFontesPrimarias'
+import { SectionHistoricoAtualizacoes } from '@/components/SectionHistoricoAtualizacoes'
 import { PanoramaFooter } from '@/components/PanoramaFooter'
 import { fetchTaxNorms } from '@/services/panorama'
 import type { TaxNormItem } from '@/types/panorama'
@@ -51,7 +52,7 @@ export default function Index() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 selection:bg-blue-600 selection:text-white flex flex-col font-sans">
-      {/* Menu lateral fixo de acesso rápido (teclas 1-9, Q, W) */}
+      {/* Menu lateral fixo de acesso rápido (teclas 1-9, Q, W, H) */}
       <PanoramaSideMenu />
 
       <div className="lg:pl-60 flex flex-col min-h-screen">
@@ -85,7 +86,7 @@ export default function Index() {
           </div>
         )}
 
-        {/* Conteúdo principal com as 12 seções fiéis à página de referência */}
+        {/* Conteúdo principal com as 13 seções */}
         <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 md:py-12 space-y-16 flex-1 w-full">
           {/* Seção 1: Arcabouço normativo */}
           <SectionNorms norms={filteredNorms} loading={loading} />
@@ -119,6 +120,9 @@ export default function Index() {
 
           {/* Seção 12: Índice das fontes oficiais primárias — 110 bases */}
           <SectionFontesPrimarias />
+
+          {/* Seção 13: Histórico de Atualizações — registro cronológico */}
+          <SectionHistoricoAtualizacoes />
         </main>
 
         {/* Footer consolidado */}

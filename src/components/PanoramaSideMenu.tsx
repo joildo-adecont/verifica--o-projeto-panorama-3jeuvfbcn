@@ -20,8 +20,8 @@ import {
 /**
  * Menu lateral de acesso rápido do Panorama.
  * - Fixo à esquerda em telas grandes (lg+); gaveta em telas menores.
- * - Teclas de atalho: teclas 1..9 e Q/W acessam as seções; "/" abre a busca
- *   do header; Esc fecha a gaveta.
+ * - Teclas de atalho: teclas 1..9, Q, W e H acessam as seções; "/" abre a
+ *   busca do header; Esc fecha a gaveta.
  * - Destaca a seção visível conforme a rolagem da página.
  * - Mesmos ícones coloridos do menu principal (identidade visual por seção).
  */
@@ -35,7 +35,6 @@ interface MenuItem {
   cor: string
   bg: string
   borda: string
-  externo?: string // URL externa: abre em nova aba em vez de rolar
 }
 
 const ITENS: MenuItem[] = [
@@ -158,7 +157,6 @@ const ITENS: MenuItem[] = [
     cor: 'text-lime-600',
     bg: 'bg-lime-50',
     borda: 'border-lime-200',
-    externo: 'https://buscadorncm.com.br/atualizacoes',
   },
 ]
 
@@ -195,10 +193,6 @@ export function PanoramaSideMenu() {
       if (item) {
         e.preventDefault()
         setAberto(false)
-        if (item.externo) {
-          window.open(item.externo, '_blank', 'noopener')
-          return
-        }
         const el = alvo(item.id)
         if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
       }
@@ -209,7 +203,7 @@ export function PanoramaSideMenu() {
 
   // Destaca a seção visível durante a rolagem
   useEffect(() => {
-    const ids = ITENS.filter((i) => !i.externo).map((i) => i.id.replace('#', ''))
+    const ids = ITENS.map((i) => i.id.replace('#', ''))
     const onScroll = () => {
       let atual = ''
       for (const id of ids) {
@@ -225,10 +219,6 @@ export function PanoramaSideMenu() {
 
   const ir = (item: MenuItem) => {
     setAberto(false)
-    if (item.externo) {
-      window.open(item.externo, '_blank', 'noopener')
-      return
-    }
     const el = alvo(item.id)
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
@@ -267,7 +257,7 @@ export function PanoramaSideMenu() {
       <nav className="flex-1 overflow-y-auto py-2">
         {visiveis.map((item) => {
           const { Icon } = item
-          const isAtivo = !item.externo && ativo === item.id.replace('#', '')
+          const isAtivo = ativo === item.id.replace('#', '')
           return (
             <button
               key={item.id}
@@ -277,7 +267,7 @@ export function PanoramaSideMenu() {
                   ? 'bg-blue-50 text-blue-700 border-l-2 border-blue-600'
                   : 'text-slate-700 hover:bg-slate-100 hover:text-blue-700 border-l-2 border-transparent'
               }`}
-              title={`Tecla de atalho: ${item.tecla.toUpperCase()} — ${item.label}${item.externo ? ' (abre em nova aba)' : ''}`}
+              title={`Tecla de atalho: ${item.tecla.toUpperCase()} — ${item.label}`}
             >
               <span
                 className={`inline-flex items-center justify-center w-7 h-7 shrink-0 rounded-md border ${item.bg} ${item.borda} ${item.cor}`}
@@ -285,11 +275,6 @@ export function PanoramaSideMenu() {
                 <Icon className="w-4 h-4" />
               </span>
               <span className="flex-1 leading-tight">{item.label}</span>
-              {item.externo && (
-                <span className="text-[9px] font-bold text-lime-700 bg-lime-100 border border-lime-300 rounded px-1 py-0.5 shrink-0">
-                  EXTERNO
-                </span>
-              )}
               <kbd
                 className={`hidden lg:inline-flex items-center px-1 rounded text-[10px] font-mono ${
                   isAtivo ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-400'

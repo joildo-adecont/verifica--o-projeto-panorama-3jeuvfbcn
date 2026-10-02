@@ -134,14 +134,13 @@ const NAV_LINKS = [
     borda: 'border-fuchsia-200',
   },
   {
-    href: 'https://buscadorncm.com.br/atualizacoes',
+    href: '#historico-atualizacoes',
     label: 'Histórico de Atualizações',
     tecla: 'h',
     Icon: History,
     cor: 'text-lime-600',
     bg: 'bg-lime-50',
     borda: 'border-lime-200',
-    externo: true,
   },
 ]
 
@@ -228,8 +227,8 @@ export function PanoramaHeader({
   // Identifica se alguma fonte está offline
   const allActive = sources.length === 0 || sources.every((s) => s.status === 'active')
 
-  // Atalhos de teclado do menu principal: 1-9, Q, W, H saltam para a seção
-  // (H abre o histórico externo); "/" foca a busca; "s" abre/fecha o menu mobile.
+  // Atalhos de teclado do menu principal: 1-9, Q, W e H saltam para a seção;
+  // "/" foca a busca; "s" abre/fecha o menu mobile.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement
@@ -254,10 +253,6 @@ export function PanoramaHeader({
       if (item) {
         e.preventDefault()
         setMobileMenuOpen(false)
-        if (item.externo) {
-          window.open(item.href, '_blank', 'noopener')
-          return
-        }
         const el = document.getElementById(item.href.replace('#', ''))
         if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
       }
@@ -441,9 +436,8 @@ export function PanoramaHeader({
               <a
                 key={link.href}
                 href={link.href}
-                {...(link.externo ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
                 className={`group inline-flex items-center gap-1.5 whitespace-nowrap transition-colors py-1 px-1.5 rounded-md hover:${link.bg} hover:text-${link.cor}`}
-                title={`Tecla de atalho: ${link.tecla.toUpperCase()} — ${link.label}${link.externo ? ' (abre em nova aba)' : ''}`}
+                title={`Tecla de atalho: ${link.tecla.toUpperCase()} — ${link.label}`}
               >
                 <span
                   className={`inline-flex items-center justify-center w-6 h-6 shrink-0 rounded-md border ${link.bg} ${link.borda} ${link.cor}`}
@@ -451,7 +445,6 @@ export function PanoramaHeader({
                   <Icon className="w-3.5 h-3.5" />
                 </span>
                 <span className="leading-tight">{link.label}</span>
-                {link.externo && <ExternalLink className="w-3 h-3 text-slate-400" />}
                 <kbd className="inline-flex items-center justify-center min-w-[16px] h-4 px-1 rounded border border-slate-300 bg-slate-100 text-[9px] font-mono text-slate-500 group-hover:border-blue-400 group-hover:text-blue-600 group-hover:bg-blue-50 transition-colors">
                   {link.tecla.toUpperCase()}
                 </kbd>
@@ -469,7 +462,6 @@ export function PanoramaHeader({
                 <a
                   key={link.href}
                   href={link.href}
-                  {...(link.externo ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
                   onClick={() => setMobileMenuOpen(false)}
                   className="flex items-center gap-2.5 text-sm font-semibold text-slate-700 hover:text-blue-600 py-2 px-2 rounded hover:bg-slate-50"
                 >
