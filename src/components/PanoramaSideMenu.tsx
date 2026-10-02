@@ -14,6 +14,7 @@ import {
   Database,
   Globe2,
   ListChecks,
+  History,
 } from 'lucide-react'
 
 /**
@@ -34,6 +35,7 @@ interface MenuItem {
   cor: string
   bg: string
   borda: string
+  externo?: string // URL externa: abre em nova aba em vez de rolar
 }
 
 const ITENS: MenuItem[] = [
@@ -147,6 +149,17 @@ const ITENS: MenuItem[] = [
     bg: 'bg-fuchsia-50',
     borda: 'border-fuchsia-200',
   },
+  {
+    id: '#historico-atualizacoes',
+    tecla: 'h',
+    numero: '13',
+    label: 'Histórico de Atualizações',
+    Icon: History,
+    cor: 'text-lime-600',
+    bg: 'bg-lime-50',
+    borda: 'border-lime-200',
+    externo: 'https://buscadorncm.com.br/atualizacoes',
+  },
 ]
 
 // Mapeia âncora → id real da seção no DOM (as seções usam ids sem "#")
@@ -182,6 +195,10 @@ export function PanoramaSideMenu() {
       if (item) {
         e.preventDefault()
         setAberto(false)
+        if (item.externo) {
+          window.open(item.externo, '_blank', 'noopener')
+          return
+        }
         const el = alvo(item.id)
         if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
       }
@@ -192,7 +209,7 @@ export function PanoramaSideMenu() {
 
   // Destaca a seção visível durante a rolagem
   useEffect(() => {
-    const ids = ITENS.map((i) => i.id.replace('#', ''))
+    const ids = ITENS.filter((i) => !i.externo).map((i) => i.id.replace('#', ''))
     const onScroll = () => {
       let atual = ''
       for (const id of ids) {
@@ -206,9 +223,13 @@ export function PanoramaSideMenu() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  const ir = (id: string) => {
+  const ir = (item: MenuItem) => {
     setAberto(false)
-    const el = alvo(id)
+    if (item.externo) {
+      window.open(item.externo, '_blank', 'noopener')
+      return
+    }
+    const el = alvo(item.id)
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
@@ -238,25 +259,25 @@ export function PanoramaSideMenu() {
           />
         </div>
         <p className="text-[11px] text-slate-400 mt-2 leading-snug">
-          Atalhos: teclas <b>1–9</b>, <b>Q</b> e <b>W</b> saltam para a seção · <b>/</b> foca a
-          busca · <b>Esc</b> fecha
+          Atalhos: teclas <b>1–9</b>, <b>Q</b>, <b>W</b> e <b>H</b> · <b>/</b> foca a busca ·{' '}
+          <b>Esc</b> fecha
         </p>
       </div>
 
       <nav className="flex-1 overflow-y-auto py-2">
         {visiveis.map((item) => {
           const { Icon } = item
-          const isAtivo = ativo === item.id.replace('#', '')
+          const isAtivo = !item.externo && ativo === item.id.replace('#', '')
           return (
             <button
               key={item.id}
-              onClick={() => ir(item.id)}
+              onClick={() => ir(item)}
               className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-left text-[13px] font-semibold transition-colors ${
                 isAtivo
                   ? 'bg-blue-50 text-blue-700 border-l-2 border-blue-600'
                   : 'text-slate-700 hover:bg-slate-100 hover:text-blue-700 border-l-2 border-transparent'
               }`}
-              title={`Tecla de atalho: ${item.tecla.toUpperCase()} — ${item.label}`}
+              title={`Tecla de atalho: ${item.tecla.toUpperCase()} — ${item.label}${item.externo ? ' (abre em nova aba)' : ''}`}
             >
               <span
                 className={`inline-flex items-center justify-center w-7 h-7 shrink-0 rounded-md border ${item.bg} ${item.borda} ${item.cor}`}
@@ -264,6 +285,11 @@ export function PanoramaSideMenu() {
                 <Icon className="w-4 h-4" />
               </span>
               <span className="flex-1 leading-tight">{item.label}</span>
+              {item.externo && (
+                <span className="text-[9px] font-bold text-lime-700 bg-lime-100 border border-lime-300 rounded px-1 py-0.5 shrink-0">
+                  EXTERNO
+                </span>
+              )}
               <kbd
                 className={`hidden lg:inline-flex items-center px-1 rounded text-[10px] font-mono ${
                   isAtivo ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-400'
