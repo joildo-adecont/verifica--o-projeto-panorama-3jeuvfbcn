@@ -7,6 +7,18 @@ const NotFound = () => {
 
   useEffect(() => {
     console.error('404 Error: User attempted to access non-existent route:', location.pathname)
+    // Quaisquer caminhos legados/relacionados ao Panorama voltam para a home —
+    // inclusive quando a navegação acontece no preview do builder (onde as
+    // páginas estáticas não são servidas), evitando o "404 preso".
+    const p = location.pathname.toLowerCase()
+    if (
+      p.includes('panorama') ||
+      p.includes('simulador') ||
+      p.includes('envios') ||
+      p === '/index.html'
+    ) {
+      window.location.replace('/')
+    }
   }, [location.pathname])
 
   return (
