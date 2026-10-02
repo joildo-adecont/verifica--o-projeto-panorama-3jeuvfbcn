@@ -12,6 +12,21 @@ interface PanoramaHeaderProps {
   onManualRefresh?: () => void
 }
 
+// Itens do menu principal com tecla de atalho (mesmo mapa do menu lateral)
+const NAV_LINKS = [
+  { href: '#secao-1', label: '1. Normas', tecla: '1' },
+  { href: '#secao-2', label: '2. Fato Gerador', tecla: '2' },
+  { href: '#secao-3', label: '3. Cesta Básica', tecla: '3' },
+  { href: '#secao-4', label: '4. Imunidades', tecla: '4' },
+  { href: '#secao-5', label: '5. Isenções e Alíquotas', tecla: '5' },
+  { href: '#secao-6', label: '6. Regimes Específicos', tecla: '6' },
+  { href: '#secao-7', label: '7. Anexos', tecla: '7' },
+  { href: '#secao-8', label: '8. Cronograma 2026–2033', tecla: '8' },
+  { href: '#secao-9', label: '9. Fontes & Atualização', tecla: '9' },
+  { href: '#fontes-agregador', label: '11. Agregadores (Buscador NCM)', tecla: 'q' },
+  { href: '#fontes-primarias', label: '12. Fontes primárias (110 bases)', tecla: 'w' },
+]
+
 export function PanoramaHeader({
   searchTerm,
   setSearchTerm,
@@ -95,19 +110,39 @@ export function PanoramaHeader({
   // Identifica se alguma fonte está offline
   const allActive = sources.length === 0 || sources.every((s) => s.status === 'active')
 
-  const navLinks = [
-    { href: '#secao-1', label: '1. Normas' },
-    { href: '#secao-2', label: '2. Fato Gerador' },
-    { href: '#secao-3', label: '3. Cesta Básica' },
-    { href: '#secao-4', label: '4. Imunidades' },
-    { href: '#secao-5', label: '5. Isenções e Alíquotas' },
-    { href: '#secao-6', label: '6. Regimes Específicos' },
-    { href: '#secao-7', label: '7. Anexos' },
-    { href: '#secao-8', label: '8. Cronograma 2026–2033' },
-    { href: '#secao-9', label: '9. Fontes & Atualização' },
-    { href: '#fontes-agregador', label: '11. Agregadores (Buscador NCM)' },
-    { href: '#fontes-primarias', label: '12. Fontes primárias (110 bases)' },
-  ]
+  // Atalhos de teclado do menu principal: 1-9, Q, W saltam para a seção;
+  // "/" foca a busca; "s" abre/fecha o menu mobile. Ignora quando digitando.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement
+      const digitando = t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT'
+      if (e.key === 'Escape') {
+        setMobileMenuOpen(false)
+        return
+      }
+      if (digitando || e.altKey || e.ctrlKey || e.metaKey) return
+      if (e.key === '/') {
+        e.preventDefault()
+        const busca = document.querySelector<HTMLInputElement>('header input[type="text"]')
+        if (busca) busca.focus()
+        return
+      }
+      if (e.key.toLowerCase() === 's') {
+        e.preventDefault()
+        setMobileMenuOpen((v) => !v)
+        return
+      }
+      const item = NAV_LINKS.find((l) => l.tecla === e.key.toLowerCase())
+      if (item) {
+        e.preventDefault()
+        setMobileMenuOpen(false)
+        const el = document.getElementById(item.href.replace('#', ''))
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
 
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm">
@@ -203,7 +238,7 @@ export function PanoramaHeader({
             <Search className="w-4 h-4 absolute left-3 text-slate-400" />
             <input
               type="text"
-              placeholder="Buscar normas, regimes, alimentos..."
+              placeholder="Buscar normas, regimes, alimentos…  (tecla /)"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-9 pr-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 bg-slate-50"
@@ -268,7 +303,7 @@ export function PanoramaHeader({
             <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
             <input
               type="text"
-              placeholder="Buscar em todo o Panorama..."
+              placeholder="Buscar em todo o Panorama…"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-9 pr-3 py-2 text-xs rounded-lg border border-slate-300 focus:outline-none focus:border-blue-600 bg-slate-50"
@@ -276,15 +311,24 @@ export function PanoramaHeader({
           </div>
         </div>
 
-        {/* Navigation Bar Links */}
-        <nav className="mt-3 pt-2.5 border-t border-slate-100 hidden lg:flex items-center justify-between text-xs font-medium text-slate-600 overflow-x-auto scrollbar-none gap-4">
-          {navLinks.map((link) => (
+        {/* Navigation Bar Links — com teclas de atalho visíveis */}
+        <nav className="mt-3 pt-2.5 border-t border-slate-100 hidden lg:flex items-center justify-between text-xs font-medium text-slate-600 overflow-x-auto scrollbar-none gap-3">
+          {NAV_LINKS.map((link) => (
             <a
               key={link.href}
               href={link.href}
-              className="hover:text-blue-600 whitespace-nowrap transition-colors py-1"
+              className="group inline-flex items-center gap-1.5 hover:text-blue-600 whitespace-nowrap transition-colors py-1"
+              title={`Tecla de atalho: ${link.tecla.toUpperCase()}`}
             >
-              {link.label}
+              <kbd className="inline-flex items-center justify-center min-w-[16px] h-4 px-1 rounded border border-slate-300 bg-slate-100 text-[9px] font-mono text-slate-500 group-hover:border-blue-400 group-hover:text-blue-600 group-hover:bg-blue-50 transition-colors">
+                {link.tecla.toUpperCase()}
+              </kbd>
+              <span>
+                {link.label
+                  .replace(/^\d+\.\s/, '')
+                  .replace('11. ', '')
+                  .replace('12. ', '')}
+              </span>
             </a>
           ))}
         </nav>
@@ -292,13 +336,16 @@ export function PanoramaHeader({
         {/* Mobile Drawer */}
         {mobileMenuOpen && (
           <div className="lg:hidden mt-3 pt-3 border-t border-slate-200 flex flex-col gap-2 pb-2">
-            {navLinks.map((link) => (
+            {NAV_LINKS.map((link) => (
               <a
                 key={link.href}
                 href={link.href}
                 onClick={() => setMobileMenuOpen(false)}
-                className="text-sm font-medium text-slate-700 hover:text-blue-600 py-1.5 px-2 rounded hover:bg-slate-50"
+                className="flex items-center gap-2 text-sm font-medium text-slate-700 hover:text-blue-600 py-1.5 px-2 rounded hover:bg-slate-50"
               >
+                <kbd className="inline-flex items-center justify-center min-w-[18px] h-5 px-1 rounded border border-slate-300 bg-slate-100 text-[10px] font-mono text-slate-500">
+                  {link.tecla.toUpperCase()}
+                </kbd>
                 {link.label}
               </a>
             ))}
