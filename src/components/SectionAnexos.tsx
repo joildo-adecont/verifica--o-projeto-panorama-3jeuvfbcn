@@ -40,16 +40,19 @@ const CARREGANDO = new Set<string>()
 function carregarSobDemanda(id: string, aoCarregar: () => void) {
   if (ITENS_SOB_DEMANDA[id] || CARREGANDO.has(id)) return
   CARREGANDO.add(id)
-  import('@/data/ribsA1A2').then((m) => {
-    if (id === 'ribs-a1') {
-      ITENS_SOB_DEMANDA[id] = { dep: m.DEPRECIACAO_ITENS }
-    } else {
-      ITENS_SOB_DEMANDA[id] = {
-        rep: [...m.REPETRO_T1, ...m.REPETRO_T2, ...m.REPETRO_T3, ...m.REPETRO_T4],
-      }
-    }
-    aoCarregar() // força re-render com os dados chegados
-  })
+  const promessa =
+    id === 'ribs-a1'
+      ? import('@/data/ribsA1A2').then((m) => {
+          ITENS_SOB_DEMANDA[id] = { dep: m.DEPRECIACAO_ITENS }
+        })
+      : import('@/data/ribsRepetro').then((m) => {
+          ITENS_SOB_DEMANDA[id] = {
+            rep: [...m.REPETRO_T1, ...m.REPETRO_T2, ...m.REPETRO_T3, ...m.REPETRO_T4],
+          }
+        })
+  promessa
+    .then(() => aoCarregar()) // força re-render com os dados chegados
+    .catch(() => CARREGANDO.delete(id)) // falha → permite novo clique (retry)
 }
 
 const TABELA_LABEL: Record<string, string> = {
