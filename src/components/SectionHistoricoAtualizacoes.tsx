@@ -38,6 +38,22 @@ function ehRecente(dataBR: string): boolean {
 const REGISTROS: Registro[] = [
   {
     data: '03/10/2026',
+    hora: '16:45',
+    titulo:
+      'Seção 7 — Tabelas de itens dos Anexos III, IV e V do RIBS com filtro e teclas de atalho',
+    conteudo:
+      'Tabelas de itens consultáveis nos anexos do RIBS: Anexo III Reporto (14 itens), Anexo IV bens de capital (98 itens nas 3 tabelas oficiais: I bens de capital art. 196, II tratores/máquinas agrícolas art. 197 I, III veículos de carga art. 197 II) e Anexo V ZFM (49 itens com legislação estadual do AM por item — Lei 2.826/03 e Decretos 38.558/17 a 51.978/25). Cada tabela tem filtro próprio (item, descrição, NCM, legislação) e a busca geral da seção agora encontra itens dentro das tabelas. Teclas de atalho: / foca a busca geral, Esc limpa o filtro da tabela. Tabelas sujeitas à rotina semanal de fontes oficiais (seg 11h) com registro no Histórico. Próxima parcela: Anexos I (≈260) e II (≈580) do RIBS com carga sob demanda.',
+    fontes: [
+      {
+        nome: 'RIBS — Resolução CGIBS 6/2026 (PDF oficial)',
+        url: 'https://www.cgibs.gov.br/upload/arquivos/202604/30084927-res-cgibs-n-6-30-abr-2026-regulamenta-o-ibs.pdf',
+      },
+    ],
+    caminho: 'Panorama (62493) — src/data/ribsItens.ts (novo) + SectionAnexos.tsx (TabelaItens)',
+    versao: '62493 v0.0.61',
+  },
+  {
+    data: '03/10/2026',
     hora: '00:45',
     titulo: 'Seção 7 ↔ Simulador — interligação completa nos dois sentidos (Parcela 3)',
     conteudo:
