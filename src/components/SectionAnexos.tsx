@@ -14,7 +14,13 @@ import {
   Search,
   Layers,
 } from 'lucide-react'
-import { ANEXOS, NOTA_VERIFICACAO, type AnexoInfo } from '@/data/anexosCatalogo'
+import {
+  ANEXOS,
+  NOTA_VERIFICACAO,
+  MAPA_SIMULADOR,
+  SIM_TOTAL,
+  type AnexoInfo,
+} from '@/data/anexosCatalogo'
 
 const INSTRUMENTO_META: Record<AnexoInfo['instrumento'], { cor: string; badge: string }> = {
   RIBS: { cor: 'text-emerald-700', badge: 'bg-emerald-50 border-emerald-200 text-emerald-800' },
@@ -62,6 +68,10 @@ export function SectionAnexos() {
 
   const toggle = (id: string) => setAberto((atual) => (atual === id ? null : id))
 
+  // Parcela 3: contagem de itens do Simulador mapeados a cada anexo
+  const mapaPorAnexo = new Map(MAPA_SIMULADOR.map((m) => [m.anexoId, m]))
+  const totalMapeados = MAPA_SIMULADOR.reduce((s, m) => s + m.qtd, 0)
+
   return (
     <section id="secao-7" className="scroll-mt-24 space-y-4">
       <div className="border-b border-slate-200 pb-3">
@@ -77,6 +87,22 @@ export function SectionAnexos() {
           Cada anexo é individualizado com base legal, efeito tributário e conexões com as demais
           seções e com o Simulador de Transição. Conteúdo extraído dos textos oficiais (Resolução
           CGIBS 6/2026, LC 214/2025 e Decreto 12.955/2026).
+        </p>
+      </div>
+
+      {/* Parcela 3: faixa de interligação com o Simulador */}
+      <div className="rounded-lg border-l-4 border-lime-500 bg-lime-50 p-4 text-sm text-lime-900 flex items-start gap-2">
+        <Calculator className="w-4 h-4 mt-0.5 shrink-0 text-lime-600" />
+        <p>
+          <strong>Interligação com o Simulador de Transição:</strong> {totalMapeados} dos{' '}
+          {SIM_TOTAL} itens do catálogo do Simulador estão mapeados aos anexos desta seção — cada
+          item do Simulador cita a origem oficial (anexo + item). Os demais itens (regime regular,
+          regimes especiais, agro e acessibilidade) derivam das Seções 5, 6 e dos arts. 127, 287 ss.
+          da LC 214. Anexos com mapeamento direto exibem o selo{' '}
+          <span className="inline-flex items-center gap-1 text-[10px] font-bold rounded-full bg-lime-100 border border-lime-300 text-lime-800 px-1.5 py-0.5 align-middle">
+            <Calculator className="w-3 h-3" /> N no Simulador
+          </span>
+          .
         </p>
       </div>
 
@@ -132,6 +158,12 @@ export function SectionAnexos() {
                   </span>
                   <span className="block text-xs text-slate-500 mt-0.5">{a.baseLegal}</span>
                 </span>
+                {mapaPorAnexo.get(a.id) && (
+                  <span className="inline-flex items-center gap-1 shrink-0 text-[10px] font-bold rounded-full bg-lime-100 border border-lime-300 text-lime-800 px-2 py-1 mt-1">
+                    <Calculator className="w-3 h-3" />
+                    {mapaPorAnexo.get(a.id)!.qtd} no Simulador
+                  </span>
+                )}
                 <ChevronDown
                   className={`w-4 h-4 text-slate-400 shrink-0 mt-1 transition-transform ${isOpen ? 'rotate-180' : ''}`}
                 />
@@ -205,6 +237,13 @@ export function SectionAnexos() {
                     </p>
                     <p className="text-sm text-slate-700 leading-relaxed">{a.detalhe}</p>
                   </div>
+
+                  {mapaPorAnexo.get(a.id) && (
+                    <p className="text-xs text-lime-900 bg-lime-50 border border-lime-200 rounded-lg px-3 py-2">
+                      <strong>No Simulador ({mapaPorAnexo.get(a.id)!.qtd} itens):</strong>{' '}
+                      {mapaPorAnexo.get(a.id)!.nota}
+                    </p>
+                  )}
 
                   <div className="flex flex-wrap items-center gap-2 pt-1">
                     <span className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wide text-slate-500">

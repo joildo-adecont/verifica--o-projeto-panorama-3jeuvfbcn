@@ -1181,6 +1181,87 @@ export const ANEXOS: AnexoInfo[] = [
   },
 ]
 
+/**
+ * MAPA_SIMULADOR — interligação Anexos ↔ Simulador de Transição (Parcela 3).
+ * Mapeia os 118 itens do catálogo do Simulador (public/partes/sim-catalogo.js)
+ * aos anexos individualizados desta seção, nos dois sentidos:
+ * - cada anexo lista quantos itens do catálogo lhe correspondem (chip com atalho);
+ * - cada item do catálogo já cita a origem oficial ("LC 214 Anexo I, item 1" etc.).
+ * Contagem conferida contra o catálogo publicado (v0.0.36+): 118 itens no total.
+ */
+export interface MapaSimulador {
+  anexoId: string
+  qtd: number
+  grupos: string[]
+  nota: string
+}
+
+export const MAPA_SIMULADOR: MapaSimulador[] = [
+  {
+    anexoId: 'lc214-a1',
+    qtd: 35,
+    grupos: ['cesta_zero'],
+    nota: 'Itens 1–23 do Anexo I (arroz, leite, feijão, café, carnes, óleos, farinhas, açúcar, sal etc.)',
+  },
+  {
+    anexoId: 'lc214-a15',
+    qtd: 14,
+    grupos: ['cesta_zero'],
+    nota: 'Ovos (0407.2), hortícolas (07.01–07.10), frutas (08.03–08.11) e mandioca (07.14)',
+  },
+  {
+    anexoId: 'lc214-a2',
+    qtd: 7,
+    grupos: ['reducao60'],
+    nota: 'Ensino infantil, fundamental, médio, técnico, EJA, superior e Libras (NBS 1.22xx)',
+  },
+  {
+    anexoId: 'lc214-a3',
+    qtd: 12,
+    grupos: ['reducao60'],
+    nota: 'Serviços cirúrgicos, UTI, urgência, clínica médica, odontologia, enfermagem, laboratório etc. (NBS 1.2301)',
+  },
+  {
+    anexoId: 'lc214-a4',
+    qtd: 11,
+    grupos: ['dispositivos60'],
+    nota: 'Bolsa de drenagem, chapas p/ raios-X, cimentos ósseos, hidrocefalia, eletrodos, filtros etc.',
+  },
+  {
+    anexoId: 'lc214-a9',
+    qtd: 4,
+    grupos: ['insumos_agro'],
+    nota: 'Biofertilizantes, fertilizantes (Cap. 31), inoculantes e defensivos (38.08)',
+  },
+  {
+    anexoId: 'lc214-a17',
+    qtd: 13,
+    grupos: ['imposto_seletivo'],
+    nota: 'Cigarros, cervejas, vinhos, cachaça, refrigerantes, automóveis, iates, aeronaves, minério e petróleo',
+  },
+  {
+    anexoId: 'ribs-a3',
+    qtd: 1,
+    grupos: ['suspensao'],
+    nota: 'Trilhos ferroviários (7302.10.10) — suspensão REPORTO',
+  },
+  {
+    anexoId: 'ribs-a4',
+    qtd: 4,
+    grupos: ['bens_capital'],
+    nota: 'Motores de aviação, turbinas a gás, microscópios eletrônicos e semeadoras',
+  },
+  {
+    anexoId: 'ribs-a5',
+    qtd: 1,
+    grupos: ['zfm'],
+    nota: 'Embarcações (8901.10.00) — crédito presumido 100% ZFM',
+  },
+]
+
+/** Total de itens do catálogo cobertos pelo mapa (os demais são regime regular/especial/agro — Seções 5 e 6). */
+export const SIM_TOTAL = 118
+
 /** Nota de verificação de fidelidade — Parcelas 1 e 2. */
 export const NOTA_VERIFICACAO =
   'Parcela 1: os cinco anexos do RIBS conferidos contra o texto oficial do PDF da Resolução CGIBS 6/2026 (cgibs.gov.br). Parcela 2: anexos da LC 214 extraídos item a item da versão compilada do Planalto (lcp214compilado.htm) — Anexo VIII (7 itens), Anexo XII (17 itens), Anexo XIII (6 itens), Anexo XV (6 itens), Anexo VII (17 itens), Anexo II (9 itens), Anexo III (30 itens) e Anexo IX (35 itens); volumes dos demais anexos contados no texto oficial. Os códigos CST do IBS e o CBF NÃO constam dos anexos do RIBS (são atos técnicos conjuntos, IT 2025.002). O Anexo XIV da LC 214 está revogado pela LC 227/2026.'

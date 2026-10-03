@@ -38,6 +38,26 @@ function ehRecente(dataBR: string): boolean {
 const REGISTROS: Registro[] = [
   {
     data: '03/10/2026',
+    hora: '00:45',
+    titulo: 'Seção 7 ↔ Simulador — interligação completa nos dois sentidos (Parcela 3)',
+    conteudo:
+      'Mapeamento dos 118 itens do catálogo do Simulador aos anexos da Seção 7: cada anexo com mapeamento direto exibe selo "N no Simulador" e, aberto, a nota de correspondência (Anexo I 35 itens, XV 14, II 7, III 12, IV 11, IX 4, XVII 13, RIBS III 1, RIBS IV 4, RIBS V 1); faixa resumo no topo da seção. No sentido inverso, o Simulador ganhou o botão "📑 Anexos (Seção 7)" no header (nas duas cópias da página estática), levando à âncora #secao-7. Itens do catálogo já citavam a origem oficial (anexo + item) desde a ampliação do catálogo.',
+    fontes: [
+      {
+        nome: 'LC 214/2025 compilada — Planalto',
+        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+      },
+      {
+        nome: 'RIBS — Resolução CGIBS 6/2026 (PDF oficial)',
+        url: 'https://www.cgibs.gov.br/upload/arquivos/202604/30084927-res-cgibs-n-6-30-abr-2026-regulamenta-o-ibs.pdf',
+      },
+    ],
+    caminho:
+      'Panorama (62493) — anexosCatalogo.ts (MAPA_SIMULADOR), SectionAnexos.tsx, simulador.html (raiz e /panorama-reforma/)',
+    versao: '62493 v0.0.60',
+  },
+  {
+    data: '03/10/2026',
     hora: '00:20',
     titulo: 'Seção 7 — Extração item a item dos anexos da LC 214 e índice completo (Parcela 2)',
     conteudo:
