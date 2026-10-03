@@ -38,6 +38,30 @@ function ehRecente(dataBR: string): boolean {
 const REGISTROS: Registro[] = [
   {
     data: '03/10/2026',
+    hora: '19:10',
+    titulo: 'Seção 7A — Tabela Geral dos Anexos: itens e alíquotas da reforma, anexo por anexo',
+    conteudo:
+      'Nova seção com UMA TABELA INDIVIDUAL POR ANEXO (28 blocos: 5 do RIBS, 18 da LC 214 e 5 do Decreto 12.955/2026) — 1.053 linhas extraídas dos textos oficiais, cada linha com item, código NCM/NBS, descrição, TRATAMENTO na reforma (alíquota zero, redução 60/30%, Imposto Seletivo, suspensão, crédito presumido, depreciação) e ALÍQUOTA na reforma. Carga sob demanda (import dinâmico, ~270 KB só quando um anexo é aberto). Índice navegável com filtros por tratamento e instrumento, busca global (tecla T), botão 🧮 para abrir o grupo correspondente no Simulador de Transição e atalho 7A no menu lateral. Entram na rotina semanal de fontes oficiais.',
+    fontes: [
+      {
+        nome: 'RIBS — Resolução CGIBS 6/2026 (PDF oficial)',
+        url: 'https://www.cgibs.gov.br/upload/arquivos/202604/30084927-res-cgibs-n-6-30-abr-2026-regulamenta-o-ibs.pdf',
+      },
+      {
+        nome: 'LC 214/2025 — Planalto',
+        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214.htm',
+      },
+      {
+        nome: 'Decreto 12.955/2026 — Planalto',
+        url: 'https://www.planalto.gov.br/ccivil_03/_decreto/2026/D12955.htm',
+      },
+    ],
+    caminho:
+      'Panorama (62493) — src/data/tabelaGeralDados.ts (novo) + src/components/SectionTabelaGeral.tsx (novo) + Index.tsx + PanoramaSideMenu.tsx',
+    versao: 'v0.0.65',
+  },
+  {
+    data: '03/10/2026',
     hora: '17:05',
     titulo: 'Seção 7 — Anexos I e II do RIBS completos com carga sob demanda (parcela final)',
     conteudo:

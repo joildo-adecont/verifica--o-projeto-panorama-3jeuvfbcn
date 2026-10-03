@@ -9,6 +9,8 @@ import { SectionImunidades } from '@/components/SectionImunidades'
 import { SectionIsencoesAlíquotas } from '@/components/SectionIsencoesAliquots'
 import { SectionRegimesEspecificos } from '@/components/SectionRegimesEspecificos'
 import { SectionAnexos } from '@/components/SectionAnexos'
+import { SectionTabelaGeral } from '@/components/SectionTabelaGeral'
+import { SectionTabelaGeral } from '@/components/SectionTabelaGeral'
 import { SectionCronograma } from '@/components/SectionCronograma'
 import { SectionFontes } from '@/components/SectionFontes'
 import { SectionFontesAgregador } from '@/components/SectionFontesAgregador'
@@ -108,6 +110,12 @@ export default function Index() {
 
           {/* Seção 7: Anexos da reforma tributária */}
           <SectionAnexos />
+
+          {/* Seção 7A: Tabela Geral dos Anexos — itens e alíquotas por anexo */}
+          <SectionTabelaGeral />
+
+          {/* Seção 7A: Tabela Geral dos Anexos — itens e alíquotas por anexo */}
+          <SectionTabelaGeral />
 
           {/* Seção 8: Cronograma 2026–2033, simulador e pontos de atenção */}
           <SectionCronograma />

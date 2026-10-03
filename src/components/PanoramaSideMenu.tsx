@@ -15,6 +15,7 @@ import {
   Globe2,
   ListChecks,
   History,
+  Table2,
 } from 'lucide-react'
 
 /**
@@ -107,6 +108,16 @@ const ITENS: MenuItem[] = [
     cor: 'text-rose-600',
     bg: 'bg-rose-50',
     borda: 'border-rose-200',
+  },
+  {
+    id: '#tabela-geral',
+    tecla: 'A',
+    numero: '7A',
+    label: 'Tabela Geral dos Anexos',
+    Icon: Table2,
+    cor: 'text-rose-700',
+    bg: 'bg-rose-100',
+    borda: 'border-rose-300',
   },
   {
     id: '#secao-8',
