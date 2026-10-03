@@ -30,6 +30,36 @@ const ITENS_RIBS: Record<string, ItemRibs[]> = {
   'ribs-a5': RIBS_A5_ITENS,
 }
 
+/** Carga sob demanda: Anexos I (depreciação) e II (Repetro) — arquivos grandes,
+ *  importados dinamicamente só quando o anexo é aberto (parcela final). */
+type ItemDep = { item: string; ref: string; desc: string; vida?: string; taxa?: string }
+type ItemRep = { item: string; ncm: string; desc: string; ativ?: string }
+const ITENS_SOB_DEMANDA: Record<string, { dep?: ItemDep[]; rep?: ItemRep[] }> = {}
+const CARREGANDO = new Set<string>()
+
+function carregarSobDemanda(id: string) {
+  if (ITENS_SOB_DEMANDA[id] || CARREGANDO.has(id)) return
+  CARREGANDO.add(id)
+  if (id === 'ribs-a1') {
+    import('@/data/ribsA1A2').then((m) => {
+      ITENS_SOB_DEMANDA[id] = { dep: m.DEPRECIACAO_ITENS as unknown as ItemDep[] }
+      setVersao((v) => v + 1) // força re-render com os dados chegados
+    })
+  } else if (id === 'ribs-a2') {
+    import('@/data/ribsRepetro').then((m) => {
+      ITENS_SOB_DEMANDA[id] = {
+        rep: [
+          ...m.REPETRO_T1,
+          ...m.REPETRO_T2,
+          ...m.REPETRO_T3,
+          ...m.REPETRO_T4,
+        ] as unknown as ItemRep[],
+      }
+      setVersao((v) => v + 1)
+    })
+  }
+}
+
 const TABELA_LABEL: Record<string, string> = {
   'I-': 'Tabela I — Bens de capital (art. 196)',
   'II-': 'Tabela II — Tratores/máquinas agrícolas (art. 197, I)',
@@ -158,9 +188,122 @@ function TabelaItens({ itens, anexoId }: { itens: ItemRibs[]; anexoId: string })
   )
 }
 
+/** Tabela dos Anexos I/II com estado de carregamento (carga sob demanda). */
+function TabelaSobDemanda({
+  anexoId,
+  dados,
+  versao,
+}: {
+  anexoId: string
+  dados?: { dep?: ItemDep[]; rep?: ItemRep[] }
+  versao: number
+}) {
+  if (!dados) {
+    return (
+      <div className="rounded-lg border border-slate-200 bg-white p-6 text-center">
+        <p className="text-sm text-slate-500">
+          <span className="inline-block animate-pulse">⏳</span> Carregando a tabela oficial de
+          itens sob demanda (
+          {anexoId === 'ribs-a1' ? '≈260 itens de depreciação' : '≈580 itens do Repetro'})…
+        </p>
+      </div>
+    )
+  }
+  if (dados.dep) {
+    return (
+      <div>
+        <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500 mb-1">
+          Itens extraídos da fonte oficial ({dados.dep.length} linhas)
+        </p>
+        <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white max-h-96 overflow-y-auto">
+          <table className="w-full text-left border-collapse text-xs" data-anexo={anexoId}>
+            <thead>
+              <tr className="bg-slate-100/80 text-slate-700 border-b border-slate-200 font-semibold sticky top-0">
+                <th className="py-2 px-3 w-16">Item</th>
+                <th className="py-2 px-3 w-24">Ref. NCM</th>
+                <th className="py-2 px-3">Bens</th>
+                <th className="py-2 px-3 w-20">Vida (anos)</th>
+                <th className="py-2 px-3 w-20">Taxa anual</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {dados.dep.map((it) => (
+                <tr
+                  key={it.item}
+                  className={`hover:bg-slate-50/70 ${!it.vida ? 'bg-slate-100/60 font-semibold' : ''}`}
+                >
+                  <td className="py-1.5 px-3 font-bold text-slate-900">{it.item}</td>
+                  <td className="py-1.5 px-3 font-mono text-[11px] text-blue-800">
+                    {it.ref || '—'}
+                  </td>
+                  <td className="py-1.5 px-3 text-slate-700 leading-snug">{it.desc}</td>
+                  <td className="py-1.5 px-3 text-slate-700">{it.vida ?? '—'}</td>
+                  <td className="py-1.5 px-3 text-slate-700">{it.taxa ? `${it.taxa}%` : '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    )
+  }
+  // Repetro: 4 tabelas
+  const grupos = [
+    { pref: 'T1', label: 'Tabela I — Repetro-Temporário (art. 164, I)' },
+    { pref: 'T2', label: 'Tabela II — GNL-Temporário (art. 164, II)' },
+    { pref: 'T3', label: 'Tabela III — Repetro-Permanente (art. 164, III–V)' },
+    { pref: 'T4', label: 'Tabela IV — Repetro-Entreposto (art. 164, VI)' },
+  ]
+  return (
+    <div className="space-y-3">
+      {grupos.map((g) => {
+        const itens = (dados.rep ?? []).filter((it) => it.item.startsWith(g.pref + '-'))
+        if (!itens.length) return null
+        return (
+          <div key={g.pref}>
+            <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500 mb-1">
+              {g.label} ({itens.length} itens)
+            </p>
+            <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white max-h-72 overflow-y-auto">
+              <table
+                className="w-full text-left border-collapse text-xs"
+                data-anexo={`${anexoId}-${g.pref}`}
+              >
+                <thead>
+                  <tr className="bg-slate-100/80 text-slate-700 border-b border-slate-200 font-semibold sticky top-0">
+                    <th className="py-2 px-3 w-16">Item</th>
+                    <th className="py-2 px-3 w-24">NCM/SH</th>
+                    <th className="py-2 px-3">Descrição comercial</th>
+                    {g.pref === 'T2' && <th className="py-2 px-3 w-56">Tipo de atividade</th>}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {itens.map((it) => (
+                    <tr key={it.item} className="hover:bg-slate-50/70 align-top">
+                      <td className="py-1.5 px-3 font-bold text-slate-900">
+                        {it.item.replace(g.pref + '-', '')}
+                      </td>
+                      <td className="py-1.5 px-3 font-mono text-[11px] text-blue-800">{it.ncm}</td>
+                      <td className="py-1.5 px-3 text-slate-700 leading-snug">{it.desc}</td>
+                      {g.pref === 'T2' && (
+                        <td className="py-1.5 px-3 text-[11px] text-slate-500">{it.ativ ?? ''}</td>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 export function SectionAnexos() {
   const [aberto, setAberto] = useState<string | null>(null)
   const [busca, setBusca] = useState('')
+  const [versao, setVersao] = useState(0)
   const buscaRef = useRef<HTMLInputElement>(null)
 
   // Tecla "/" foca a busca geral da seção (fora de campos de texto)
@@ -191,7 +334,13 @@ export function SectionAnexos() {
       )
     : ANEXOS
 
-  const toggle = (id: string) => setAberto((atual) => (atual === id ? null : id))
+  const toggle = (id: string) => {
+    setAberto((atual) => {
+      const novo = atual === id ? null : id
+      if (novo && (id === 'ribs-a1' || id === 'ribs-a2')) carregarSobDemanda(id)
+      return novo
+    })
+  }
 
   // Parcela 3: contagem de itens do Simulador mapeados a cada anexo
   const mapaPorAnexo = new Map(MAPA_SIMULADOR.map((m) => [m.anexoId, m]))
@@ -328,6 +477,15 @@ export function SectionAnexos() {
 
                   {itensRibs && <TabelaItens itens={itensRibs} anexoId={a.id} />}
 
+                  {/* Anexos I e II: carga sob demanda */}
+                  {(a.id === 'ribs-a1' || a.id === 'ribs-a2') && (
+                    <TabelaSobDemanda
+                      anexoId={a.id}
+                      dados={ITENS_SOB_DEMANDA[a.id]}
+                      versao={versao}
+                    />
+                  )}
+
                   {a.itensDetalhados && (
                     <div>
                       <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500 mb-1">
@@ -434,12 +592,14 @@ export function SectionAnexos() {
       </div>
 
       <div className="p-3.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-700 text-xs sm:text-sm leading-relaxed">
-        <strong>Parcelamento em andamento:</strong> Parcelas 1–3 concluídas (anexos
-        individualizados, extração item a item da LC 214 e interligação com o Simulador). Esta
-        parcela acrescentou as tabelas de itens dos Anexos III (14), IV (98, em 3 tabelas) e V (49,
-        com legislação do AM) do RIBS, com filtro próprio e teclas de atalho. Próxima parcela:
-        Anexos I (depreciação, ≈260 itens) e II (Repetro, ≈580 itens) com carga sob demanda —
-        carregados só quando o anexo é aberto, para não pesar o processamento.
+        <strong>Parcelamento concluído:</strong> Parcelas 1–3 (anexos individualizados, extração
+        item a item da LC 214 e interligação com o Simulador) e a parcela das tabelas dos Anexos III
+        (14), IV (98) e V (49) do RIBS. Esta parcela final acrescentou as tabelas dos Anexos I
+        (depreciação, 258 linhas oficiais com vida útil e taxa anual) e II (Repetro, 580 itens nas 4
+        tabelas oficiais, com tipo de atividade na Tabela GNL) — com{' '}
+        <strong>carga sob demanda</strong>: os dados só são baixados pelo navegador quando o anexo é
+        aberto, sem pesar o carregamento inicial da página. Todas as tabelas seguem a rotina semanal
+        de fontes oficiais (segundas, 11h) com registro no Histórico.
       </div>
     </section>
   )

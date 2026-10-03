@@ -38,6 +38,22 @@ function ehRecente(dataBR: string): boolean {
 const REGISTROS: Registro[] = [
   {
     data: '03/10/2026',
+    hora: '17:05',
+    titulo: 'Seção 7 — Anexos I e II do RIBS completos com carga sob demanda (parcela final)',
+    conteudo:
+      'Tabelas de itens dos dois maiores anexos do RIBS: Anexo I depreciação (258 linhas oficiais com referência NCM, prazo de vida útil e taxa anual, incluindo as notas 1-3 do anexo) e Anexo II Repetro (580 itens nas 4 tabelas oficiais: T1 Repetro-Temporário 86, T2 GNL-Temporário 324 com tipo de atividade, T3 Repetro-Permanente 151, T4 Repetro-Entreposto 19). CARGA SOB DEMANDA: os dados (arquivos de 28 KB e 92 KB) só são baixados pelo navegador quando o anexo é aberto (import dinâmico), sem pesar o carregamento inicial da página. Com isto, os 5 anexos do RIBS têm 100% dos seus itens consultáveis no Panorama.',
+    fontes: [
+      {
+        nome: 'RIBS — Resolução CGIBS 6/2026 (PDF oficial)',
+        url: 'https://www.cgibs.gov.br/upload/arquivos/202604/30084927-res-cgibs-n-6-30-abr-2026-regulamenta-o-ibs.pdf',
+      },
+    ],
+    caminho:
+      'Panorama (62493) — src/data/ribsA1A2.ts (novo) + src/data/ribsRepetro.ts (novo) + SectionAnexos.tsx (TabelaSobDemanda)',
+    versao: '62493 v0.0.62',
+  },
+  {
+    data: '03/10/2026',
     hora: '16:45',
     titulo:
       'Seção 7 — Tabelas de itens dos Anexos III, IV e V do RIBS com filtro e teclas de atalho',
