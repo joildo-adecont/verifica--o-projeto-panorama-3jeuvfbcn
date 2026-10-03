@@ -38,6 +38,30 @@ function ehRecente(dataBR: string): boolean {
 const REGISTROS: Registro[] = [
   {
     data: '02/10/2026',
+    hora: '23:59',
+    titulo:
+      'Seção 7 — Anexos individualizados com conteúdo analítico e ícone de abertura (Parcela 1)',
+    conteudo:
+      'Anexos da reforma individualizados: 5 anexos do RIBS (depreciação art. 48; Repetro art. 164 c/ 4 tabelas; Reporto art. 186 §5º; bens de capital arts. 196-197; ZFM art. 521 §1º IV), anexos da LC 214 referenciados pelo Regulamento do IBS (I, II, III, IV, V, VI, VII, VIII, IX, XII, XV) e 5 anexos do Decreto 12.955/2026 (CBS). Cada anexo com ícone de abertura, base legal, efeito tributário, tabelas, volume de itens, conteúdo analítico, conexões com as demais seções e atalhos para os grupos do Simulador; busca interna por anexo/artigo/NCM. Correção de fidelidade: CST do IBS e CBF saíram do quadro — não constam dos anexos do RIBS (são atos técnicos conjuntos, IT 2025.002).',
+    fontes: [
+      {
+        nome: 'RIBS — Resolução CGIBS 6/2026 (PDF oficial)',
+        url: 'https://www.cgibs.gov.br/upload/arquivos/202604/30084927-res-cgibs-n-6-30-abr-2026-regulamenta-o-ibs.pdf',
+      },
+      {
+        nome: 'LC 214/2025 — Planalto',
+        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214.htm',
+      },
+      {
+        nome: 'Decreto 12.955/2026 — Planalto',
+        url: 'https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2026/decreto/D12955.htm',
+      },
+    ],
+    caminho: 'Panorama (62493) — src/data/anexosCatalogo.ts + SectionAnexos.tsx (seção 7)',
+    versao: '62493 v0.0.55',
+  },
+  {
+    data: '02/10/2026',
     hora: '02:28',
     titulo: 'Navegação do Panorama: menu lateral, teclas de atalho e ícones coloridos',
     conteudo:
