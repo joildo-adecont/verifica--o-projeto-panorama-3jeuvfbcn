@@ -37,6 +37,25 @@ function ehRecente(dataBR: string): boolean {
 
 const REGISTROS: Registro[] = [
   {
+    data: '03/10/2026',
+    hora: '00:20',
+    titulo: 'Seção 7 — Extração item a item dos anexos da LC 214 e índice completo (Parcela 2)',
+    conteudo:
+      'Índice ampliado para os 23 anexos da LC 214 (XVIII–XXIII do Simples inclusos; XIV revogado pela LC 227/2026 registrado) e extração item a item da versão compilada do Planalto: Anexo VIII higiene (7 itens), Anexo XII dispositivos zero (17 itens), Anexo XIII acessibilidade zero (6 itens), Anexo XV hortifrúti (6 itens), Anexo VII alimentos 60% (17 itens), Anexo II educação (9 itens), Anexo III saúde (30 itens), Anexo IX insumos agro (35 itens); volumes dos Anexos IV (105), V (30), VI (81), X, XI e XVI (tabela 2029–2040) e XVII (IS, 7 grupos). Tabela de itens consultável dentro de cada anexo, com NCM/SH e NBS.',
+    fontes: [
+      {
+        nome: 'LC 214/2025 compilada — Planalto',
+        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+      },
+      {
+        nome: 'RIBS — Resolução CGIBS 6/2026 (PDF oficial)',
+        url: 'https://www.cgibs.gov.br/upload/arquivos/202604/30084927-res-cgibs-n-6-30-abr-2026-regulamenta-o-ibs.pdf',
+      },
+    ],
+    caminho: 'Panorama (62493) — src/data/anexosCatalogo.ts + SectionAnexos.tsx (seção 7)',
+    versao: '62493 v0.0.59',
+  },
+  {
     data: '02/10/2026',
     hora: '23:59',
     titulo:

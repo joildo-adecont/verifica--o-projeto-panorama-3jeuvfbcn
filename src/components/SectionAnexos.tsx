@@ -165,6 +165,40 @@ export function SectionAnexos() {
                     </p>
                   )}
 
+                  {a.itensDetalhados && (
+                    <div>
+                      <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500 mb-1">
+                        Itens extraídos da fonte oficial
+                      </p>
+                      <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white max-h-80 overflow-y-auto">
+                        <table className="w-full text-left border-collapse text-xs">
+                          <thead>
+                            <tr className="bg-slate-100/80 text-slate-700 border-b border-slate-200 font-semibold sticky top-0">
+                              <th className="py-2 px-3 w-16">Item</th>
+                              <th className="py-2 px-3">Descrição</th>
+                              <th className="py-2 px-3 w-56">NCM/SH · NBS</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100">
+                            {a.itensDetalhados.map((it, i) => (
+                              <tr key={i} className="hover:bg-slate-50/70">
+                                <td className="py-1.5 px-3 font-bold text-slate-900 align-top">
+                                  {it.item}
+                                </td>
+                                <td className="py-1.5 px-3 text-slate-700 align-top leading-snug">
+                                  {it.descricao}
+                                </td>
+                                <td className="py-1.5 px-3 font-mono text-[11px] text-blue-800 align-top">
+                                  {it.codigo ?? '—'}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+
                   <div>
                     <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500 mb-1">
                       Conteúdo analítico
@@ -227,11 +261,13 @@ export function SectionAnexos() {
       </div>
 
       <div className="p-3.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-700 text-xs sm:text-sm leading-relaxed">
-        <strong>Parcelamento em andamento:</strong> esta parcela cobre os 5 anexos do RIBS (extração
-        fiel do PDF oficial), os anexos da LC 214 referenciados pelo Regulamento do IBS (I, II, III,
-        IV, V, VI, VII, VIII, IX, XII e XV) e os 5 anexos do Decreto 12.955/2026 (CBS). As próximas
-        parcelas ampliam a extração item a item (Anexos VIII e XII da LC 214), aprofundam o índice
-        geral de NCM/NBS e reforçam as interligações com o Simulador.
+        <strong>Parcelamento em andamento:</strong> a Parcela 1 cobriu os 5 anexos do RIBS (extração
+        fiel do PDF oficial), os anexos da LC 214 referenciados pelo Regulamento do IBS e os 5
+        anexos do Decreto 12.955/2026 (CBS). A Parcela 2 ampliou o índice para os 23 anexos da LC
+        214 (XVIII–XXIII inclusos) e trouxe a extração item a item dos Anexos VIII, XII, XIII, XV,
+        VII, II, III e IX — com tabelas de itens consultáveis dentro de cada anexo. A Parcela 3
+        reforçará as interligações com o Simulador (mapeamento dos 118 itens do catálogo aos
+        anexos).
       </div>
     </section>
   )
