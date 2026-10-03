@@ -58,7 +58,7 @@ const REGISTROS: Registro[] = [
       },
     ],
     caminho: 'Panorama (62493) — src/data/anexosCatalogo.ts + SectionAnexos.tsx (seção 7)',
-    versao: '62493 v0.0.55',
+    versao: '62493 v0.0.57',
   },
   {
     data: '02/10/2026',
