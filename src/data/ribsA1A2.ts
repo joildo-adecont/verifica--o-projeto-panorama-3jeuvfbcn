@@ -1,10 +1,11 @@
 /**
  * Dados dos Anexos I e II do RIBS (Resolução CGIBS 6/2026) — CARGA SOB DEMANDA.
- * Fonte: PDF oficial da Resolução (cgibs.gov.br) — extração item a item.
+ * Fonte: PDF oficial da Resolução (cgibs.gov.br) — extração item a item,
+ * verificada contra o texto oficial (artifacts/resolucoes_cgibs/texto/res06.txt).
  * Este arquivo é carregado pelo navegador SOMENTE quando o Anexo I ou II é aberto
  * (import() dinâmico), para não pesar o carregamento inicial da página.
- * Anexo I: taxas anuais de depreciação (art. 48, § 1º) — itens com vida útil/taxa
- *          + grupos de capítulo (sem taxa, apenas referência).
+ * Anexo I: taxas anuais de depreciação (art. 48, § 1º) — 258 itens (com vida útil/taxa
+ *          + grupos de capítulo, sem taxa, apenas referência).
  * Anexo II: Repetro (art. 164) — 4 tabelas oficiais:
  *          T1 Repetro-Temporário (86), T2 GNL-Temporário (324, com tipo de atividade),
  *          T3 Repetro-Permanente (151), T4 Repetro-Entreposto (19).
@@ -615,7 +616,14 @@ export const DEPRECIACAO_ITENS: ItemDepreciacao[] = [
   {
     item: '257',
     ref: '9506',
-    desc: 'ARTIGOS E EQUIPAMENTOS PARA CULTURA FÍSICA E GINÁSTICA; PISCINAS 258 9508 CARROSSÉIS, BALANÇOS, INSTALAÇÕES DE TIRO-AO-ALVO E OUTRAS DIVERSÕES DE PARQUES E FEIRAS; CIRCOS, COLEÇÕES DE ANIMAIS E TEATROS AMBULANTES Notas: (1) Os fornos para a indústria de vidro, classificados na posição 8417, serão depreciados em 3 anos à taxa de 33,3%. (2) As máquinas, equipamentos e instalações industriais constantes deste anexo, utilizadas na indústria química, serão depreciadas em 5 anos à taxa de 20%. (3) Os acessórios e as partes dos aparelhos, equipamentos e máquinas constantes deste anexo: a) Não serão objeto de depreciação enquanto não incorporadas a referidos aparelhos, equipamentos e máquinas; b) Integrarão a base de cálculo da quota de depreciação dos aparelhos, equipamentos e máquinas, a partir da data em que a eles forem incorporados.',
+    desc: 'ARTIGOS E EQUIPAMENTOS PARA CULTURA FÍSICA E GINÁSTICA; PISCINAS',
+    vida: '10',
+    taxa: '10',
+  },
+  {
+    item: '258',
+    ref: '9508',
+    desc: 'CARROSSÉIS, BALANÇOS, INSTALAÇÕES DE TIRO-AO-ALVO E OUTRAS DIVERSÕES DE PARQUES E FEIRAS; CIRCOS, COLEÇÕES DE ANIMAIS E TEATROS AMBULANTES',
     vida: '10',
     taxa: '10',
   },

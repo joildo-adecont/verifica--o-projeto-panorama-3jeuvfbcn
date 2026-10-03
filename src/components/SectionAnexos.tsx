@@ -37,27 +37,19 @@ type ItemRep = { item: string; ncm: string; desc: string; ativ?: string }
 const ITENS_SOB_DEMANDA: Record<string, { dep?: ItemDep[]; rep?: ItemRep[] }> = {}
 const CARREGANDO = new Set<string>()
 
-function carregarSobDemanda(id: string) {
+function carregarSobDemanda(id: string, aoCarregar: () => void) {
   if (ITENS_SOB_DEMANDA[id] || CARREGANDO.has(id)) return
   CARREGANDO.add(id)
-  if (id === 'ribs-a1') {
-    import('@/data/ribsA1A2').then((m) => {
-      ITENS_SOB_DEMANDA[id] = { dep: m.DEPRECIACAO_ITENS as unknown as ItemDep[] }
-      setVersao((v) => v + 1) // força re-render com os dados chegados
-    })
-  } else if (id === 'ribs-a2') {
-    import('@/data/ribsRepetro').then((m) => {
+  import('@/data/ribsA1A2').then((m) => {
+    if (id === 'ribs-a1') {
+      ITENS_SOB_DEMANDA[id] = { dep: m.DEPRECIACAO_ITENS }
+    } else {
       ITENS_SOB_DEMANDA[id] = {
-        rep: [
-          ...m.REPETRO_T1,
-          ...m.REPETRO_T2,
-          ...m.REPETRO_T3,
-          ...m.REPETRO_T4,
-        ] as unknown as ItemRep[],
+        rep: [...m.REPETRO_T1, ...m.REPETRO_T2, ...m.REPETRO_T3, ...m.REPETRO_T4],
       }
-      setVersao((v) => v + 1)
-    })
-  }
+    }
+    aoCarregar() // força re-render com os dados chegados
+  })
 }
 
 const TABELA_LABEL: Record<string, string> = {
@@ -192,11 +184,9 @@ function TabelaItens({ itens, anexoId }: { itens: ItemRibs[]; anexoId: string })
 function TabelaSobDemanda({
   anexoId,
   dados,
-  versao,
 }: {
   anexoId: string
   dados?: { dep?: ItemDep[]; rep?: ItemRep[] }
-  versao: number
 }) {
   if (!dados) {
     return (
@@ -337,7 +327,8 @@ export function SectionAnexos() {
   const toggle = (id: string) => {
     setAberto((atual) => {
       const novo = atual === id ? null : id
-      if (novo && (id === 'ribs-a1' || id === 'ribs-a2')) carregarSobDemanda(id)
+      if (novo && (id === 'ribs-a1' || id === 'ribs-a2'))
+        carregarSobDemanda(id, () => setVersao((v) => v + 1))
       return novo
     })
   }
@@ -479,11 +470,7 @@ export function SectionAnexos() {
 
                   {/* Anexos I e II: carga sob demanda */}
                   {(a.id === 'ribs-a1' || a.id === 'ribs-a2') && (
-                    <TabelaSobDemanda
-                      anexoId={a.id}
-                      dados={ITENS_SOB_DEMANDA[a.id]}
-                      versao={versao}
-                    />
+                    <TabelaSobDemanda anexoId={a.id} dados={ITENS_SOB_DEMANDA[a.id]} />
                   )}
 
                   {a.itensDetalhados && (
