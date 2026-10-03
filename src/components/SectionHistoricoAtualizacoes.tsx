@@ -58,7 +58,7 @@ const REGISTROS: Registro[] = [
     ],
     caminho:
       'Panorama (62493) — src/data/tabelaGeralDados.ts (novo) + src/components/SectionTabelaGeral.tsx (novo) + Index.tsx + PanoramaSideMenu.tsx',
-    versao: 'v0.0.65',
+    versao: 'v0.0.66',
   },
   {
     data: '03/10/2026',
