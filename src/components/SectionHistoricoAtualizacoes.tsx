@@ -38,6 +38,22 @@ function ehRecente(dataBR: string): boolean {
 const REGISTROS: Registro[] = [
   {
     data: '04/10/2026',
+    hora: '12:20',
+    titulo: 'Tabelas uniformizadas (layout da 6A) nas seções 6B–6F',
+    conteudo:
+      'A pedido do CEO, todas as seções de regime (6A a 6F) passaram a usar o MESMO layout de tabela da 6A Regime Imobiliário: colunas Operação / Redução / Detalhe / Base legal / Simular, thead navy com filete dourado e badges de tratamento. 6B: 4 tabelas (Reduções, Produtor não contribuinte, Créditos presumidos, Diferimento, Cooperativas). 6C: 3 tabelas (Taxa, Carta, Garantias). 6D: tabela Base e deduções + Arranjos. 6E: tabelas Transição (com badges de ano) e Regras — IBS e CBS no DAS (art. 343). 6F: tabelas Profissionais (−30%) e Plataformas.',
+    fontes: [
+      {
+        nome: 'LC 214/2025 compilada — Planalto',
+        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+      },
+    ],
+    caminho:
+      'Panorama (62493) — SectionAgronegocio.tsx, SectionConsorcios.tsx, SectionFinanceiros.tsx, SectionSimples.tsx, SectionProfissionaisPlataformas.tsx (componente Tabela uniforme)',
+    versao: '62493 v0.0.94',
+  },
+  {
+    data: '04/10/2026',
     hora: '12:00',
     titulo: 'Seções 6C–6F no mesmo layout de abas da 6A/6B',
     conteudo:
