@@ -79,7 +79,7 @@ const REGISTROS: Registro[] = [
       },
       {
         nome: 'Decreto 12.955/2026 — Planalto',
-        url: 'https://www.planalto.gov.br/ccivil_03/_decreto/2026/D12955.htm',
+        url: 'https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2026/decreto/D12955.htm',
       },
     ],
     caminho:
