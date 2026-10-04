@@ -14,6 +14,7 @@ import {
   Search,
   Layers,
   Keyboard,
+  X,
 } from 'lucide-react'
 import {
   ANEXOS,
@@ -299,7 +300,7 @@ export function SectionAnexos() {
   const [versao, setVersao] = useState(0)
   const buscaRef = useRef<HTMLInputElement>(null)
 
-  // Tecla "/" foca a busca geral da seção (fora de campos de texto)
+  // Tecla "/" foca a busca geral da seção (fora de campos de texto); Esc limpa a busca
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement)?.tagName
@@ -307,10 +308,20 @@ export function SectionAnexos() {
         buscaRef.current?.focus()
         e.preventDefault()
       }
+      if (e.key === 'Escape') {
+        const alvo = document.activeElement
+        const dentroDaSecao7 = alvo?.closest?.('section#secao-7')
+        if (dentroDaSecao7 && busca) {
+          setBusca('')
+          buscaRef.current?.focus()
+          e.preventDefault()
+        }
+      }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [busca])
 
   const termo = busca.trim().toLowerCase()
   const itensRibsBusca = (id: string) =>
@@ -385,8 +396,35 @@ export function SectionAnexos() {
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
           placeholder="Buscar anexo, artigo, NCM ou item de tabela… (tecla /)"
-          className="w-full rounded-lg border border-slate-300 bg-white py-2 pl-9 pr-3 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full rounded-lg border border-slate-300 bg-white py-2 pl-9 pr-14 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         />
+        {busca && (
+          <button
+            onClick={() => {
+              setBusca('')
+              buscaRef.current?.focus()
+            }}
+            title="Limpar pesquisa (Esc)"
+            className="absolute right-2 top-1/2 -translate-y-1/2 inline-flex items-center justify-center w-7 h-7 rounded-md bg-slate-100 hover:bg-panorama-navy hover:text-panorama-gold-light text-slate-500 transition-colors cursor-pointer"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        )}
+        <p className="mt-1 text-[11px] text-slate-500">
+          {busca ? (
+            <>
+              {filtrados.length} de {ANEXOS.length} anexos —{' '}
+              <button
+                onClick={() => setBusca('')}
+                className="underline font-semibold text-panorama-navy hover:text-panorama-gold-dark cursor-pointer"
+              >
+                limpar pesquisa (Esc)
+              </button>
+            </>
+          ) : (
+            <>{ANEXOS.length} anexos — digite para filtrar</>
+          )}
+        </p>
       </div>
 
       <div className="space-y-3">

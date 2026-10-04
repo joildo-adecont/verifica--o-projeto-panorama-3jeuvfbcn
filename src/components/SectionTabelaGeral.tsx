@@ -481,7 +481,11 @@ export function SectionTabelaGeral() {
           />
           {busca && (
             <button
-              onClick={() => setBusca('')}
+              onClick={() => {
+                setBusca('')
+                setTratamento(null)
+                setInstrumento(null)
+              }}
               className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
               aria-label="Limpar busca"
             >
@@ -489,6 +493,12 @@ export function SectionTabelaGeral() {
             </button>
           )}
         </div>
+        {busca && (
+          <p className="mt-1 text-[11px] text-slate-500">
+            {blocos.length} de {RESUMO.length} anexos correspondem a “{busca}” — Esc ou ✕ limpa a
+            pesquisa
+          </p>
+        )}
         <div className="flex flex-wrap gap-1.5">
           <span className="text-[11px] font-bold uppercase tracking-wide text-slate-400 self-center mr-1">
             Tratamento:
