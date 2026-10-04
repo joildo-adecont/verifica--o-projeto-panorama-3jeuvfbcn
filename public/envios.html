@@ -352,14 +352,32 @@
     <script>
       // ---------- infra ----------
       var PB_URL = 'https://verificacao-projeto-panorama-18549.goskip.app'
+      var TOKEN = localStorage.getItem('simul_painel_token') || ''
+
       function pb(path, opts) {
         opts = opts || {}
-        opts.headers = Object.assign({ 'Content-Type': 'application/json' }, opts.headers || {})
-        opts.credentials = 'include'
+        opts.headers = Object.assign(
+          { 'Content-Type': 'application/json', 'X-Painel-Token': TOKEN },
+          opts.headers || {},
+        )
+        opts.credentials = 'omit'
         return fetch(PB_URL + path, opts).then(function (r) {
           if (!r.ok) throw new Error('HTTP ' + r.status)
           return r.json()
         })
+      }
+
+      // ---------- token do painel ----------
+      function pedirToken() {
+        var t = prompt(
+          'Token de acesso do painel ADECONT\n\n(fornecido pelo assistente — fica salvo neste navegador)',
+          localStorage.getItem('simul_painel_token') || '',
+        )
+        if (t && t.trim()) {
+          TOKEN = t.trim()
+          localStorage.setItem('simul_painel_token', TOKEN)
+          msg('cadMsg', 'Token salvo. Tente salvar novamente.', true)
+        }
       }
       function msg(id, txt, ok) {
         var el = document.getElementById(id)
