@@ -38,6 +38,22 @@ function ehRecente(dataBR: string): boolean {
 const REGISTROS: Registro[] = [
   {
     data: '04/10/2026',
+    hora: '11:50',
+    titulo: 'Regimes com entrada individual no menu lateral — 6C a 6F',
+    conteudo:
+      'A pedido do CEO, cada regime específico ganhou entrada individual no menu lateral e seção própria, no mesmo layout das seções 6A/6B: 6C Consórcios (tecla C), 6D Serviços financeiros (tecla F), 6E Simples Nacional (tecla P) e 6F Profissionais regulamentados e plataformas digitais (tecla R). A seção agregada 6C anterior foi desmembrada nas quatro seções individuais. O box de destaque da Seção 6 foi atualizado com os 6 cards (6A a 6F).',
+    fontes: [
+      {
+        nome: 'LC 214/2025 compilada — Planalto',
+        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+      },
+    ],
+    caminho:
+      'Panorama (62493) — SectionConsorcios.tsx, SectionFinanceiros.tsx, SectionSimples.tsx, SectionProfissionaisPlataformas.tsx (novos) + Index.tsx + PanoramaSideMenu.tsx + SectionRegimesEspecificos.tsx',
+    versao: '62493 v0.0.90',
+  },
+  {
+    data: '04/10/2026',
     hora: '11:40',
     titulo: 'Seção 6 — destaque das seções dedicadas de regimes (6A, 6B e 6C)',
     conteudo:

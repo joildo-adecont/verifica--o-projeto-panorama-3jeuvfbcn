@@ -147,14 +147,41 @@ export function SectionRegimesEspecificos() {
             </p>
           </a>
           <a
-            href="#outros-regimes"
+            href="#consorcios"
+            className="p-3 rounded-lg bg-white border border-slate-200 hover:border-panorama-gold transition-colors"
+          >
+            <p className="text-xs font-bold text-panorama-navy">🤝 6C — Consórcios</p>
+            <p className="text-[11px] text-slate-600 mt-0.5">
+              Taxa de administração, carta de crédito, garantias
+            </p>
+          </a>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <a
+            href="#financeiros"
+            className="p-3 rounded-lg bg-white border border-slate-200 hover:border-panorama-gold transition-colors"
+          >
+            <p className="text-xs font-bold text-panorama-navy">🏦 6D — Serviços financeiros</p>
+            <p className="text-[11px] text-slate-600 mt-0.5">
+              17 operações, deduções, arranjos de pagamento
+            </p>
+          </a>
+          <a
+            href="#simples"
+            className="p-3 rounded-lg bg-white border border-slate-200 hover:border-panorama-gold transition-colors"
+          >
+            <p className="text-xs font-bold text-panorama-navy">📋 6E — Simples Nacional</p>
+            <p className="text-[11px] text-slate-600 mt-0.5">IBS no DAS, transição 2026-2028</p>
+          </a>
+          <a
+            href="#profissionais-plataformas"
             className="p-3 rounded-lg bg-white border border-slate-200 hover:border-panorama-gold transition-colors"
           >
             <p className="text-xs font-bold text-panorama-navy">
-              🤝 6C — Consórcios, Financeiros, Simples
+              ⚖️ 6F — Profissionais e Plataformas
             </p>
             <p className="text-[11px] text-slate-600 mt-0.5">
-              Taxa de administração, art. 182, DAS, profissionais
+              Redução 30%, 18 profissões, responsabilidade solidária
             </p>
           </a>
         </div>

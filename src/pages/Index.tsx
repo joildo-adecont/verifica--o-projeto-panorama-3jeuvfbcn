@@ -10,7 +10,10 @@ import { SectionIsencoesAlíquotas } from '@/components/SectionIsencoesAliquots'
 import { SectionRegimesEspecificos } from '@/components/SectionRegimesEspecificos'
 import { SectionRegimeImobiliario } from '@/components/SectionRegimeImobiliario'
 import { SectionAgronegocio } from '@/components/SectionAgronegocio'
-import { SectionOutrosRegimes } from '@/components/SectionOutrosRegimes'
+import { SectionConsorcios } from '@/components/SectionConsorcios'
+import { SectionFinanceiros } from '@/components/SectionFinanceiros'
+import { SectionSimples } from '@/components/SectionSimples'
+import { SectionProfissionaisPlataformas } from '@/components/SectionProfissionaisPlataformas'
 import { SectionAnexos } from '@/components/SectionAnexos'
 import { SectionTabelaGeral } from '@/components/SectionTabelaGeral'
 import { SectionCronograma } from '@/components/SectionCronograma'
@@ -116,8 +119,17 @@ export default function Index() {
           {/* Seção 6B: Regime do agronegócio — produtor rural, créditos presumidos e cooperativas */}
           <SectionAgronegocio />
 
-          {/* Seção 6C: Consórcios, serviços financeiros, Simples e profissionais regulamentados */}
-          <SectionOutrosRegimes />
+          {/* Seção 6C: Consórcios */}
+          <SectionConsorcios />
+
+          {/* Seção 6D: Serviços financeiros */}
+          <SectionFinanceiros />
+
+          {/* Seção 6E: Simples Nacional */}
+          <SectionSimples />
+
+          {/* Seção 6F: Profissionais regulamentados e plataformas digitais */}
+          <SectionProfissionaisPlataformas />
 
           {/* Seção 7: Anexos da reforma tributária */}
           <SectionAnexos />
