@@ -218,6 +218,63 @@ function Tabela({
 }
 
 /** Simulador do Regime Híbrido — compara Simples normal (DAS) × Simples híbrido (regime regular). */
+const PARTILHA_ANOS: Record<string, number[]> = {
+  '1ª–2ª faixa': [15.5, 15.5, 18.9, 22.3, 25.7, 29.1, 49.5],
+  '3ª–5ª faixa': [15.5, 15.5, 18.85, 22.2, 25.55, 28.9, 49.0],
+}
+const IBS_ANOS = [0.1, 0.1, 0.3, 0.6, 0.9, 1.2, 19.11]
+const ANOS_LABEL = ['2027', '2028', '2029', '2030', '2031', '2032', '2033']
+const LIMITES_FAIXA = [
+  'até R$ 180 mil',
+  'R$ 180 mil – R$ 360 mil',
+  'R$ 360 mil – R$ 720 mil',
+  'R$ 720 mil – R$ 1,8 mi',
+  'R$ 1,8 mi – R$ 3,6 mi (sublimite)',
+  'R$ 3,6 mi – R$ 4,8 mi (teto)',
+]
+
+function Kpi({
+  titulo,
+  valor,
+  sub,
+  destaque,
+}: {
+  titulo: string
+  valor: string
+  sub: string
+  destaque?: boolean
+}) {
+  return (
+    <div
+      className={`rounded-xl border p-3.5 ${destaque ? 'bg-panorama-navy text-white border-panorama-navy' : 'bg-white border-slate-200'}`}
+    >
+      <div
+        className={`text-[11px] font-semibold uppercase tracking-wide ${destaque ? 'text-panorama-gold-light' : 'text-slate-500'}`}
+      >
+        {titulo}
+      </div>
+      <div
+        className={`mt-1 text-2xl font-bold ${destaque ? 'text-panorama-gold-light' : 'text-slate-900'}`}
+      >
+        {valor}
+      </div>
+      <div className={`mt-0.5 text-[11px] ${destaque ? 'text-white/70' : 'text-slate-500'}`}>
+        {sub}
+      </div>
+    </div>
+  )
+}
+
+function Badge({ ok, texto }: { ok: boolean; texto: string }) {
+  return (
+    <span
+      className={`inline-block px-2 py-0.5 rounded text-[11px] font-bold border ${ok ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-red-100 text-red-800 border-red-300'}`}
+    >
+      {texto}
+    </span>
+  )
+}
+
 function SimuladorHibrido() {
   const [receita, setReceita] = useState(50000)
   const [anexo, setAnexo] = useState('I')
@@ -229,26 +286,28 @@ function SimuladorHibrido() {
   const rbt12 = [180000, 360000, 720000, 1800000, 3600000, 4800000][faixa]
   const efetiva = Math.max(0, (rbt12 * A.nominal[faixa] - A.deduz[faixa]) / rbt12)
   const partilha = A.partilha
-
-  // Cenário A — DAS: crédito ao cliente = efetiva × partilha CBS+IBS (art. 47, §9º, II)
-  const dasTotal = (receita * efetiva) / 100
-  const dasCbsIbs = ((receita * efetiva * partilha) / 100 / 100) * 100 // efetiva × partilha
-  const creditoDAS = ((receita * efetiva * partilha) / 10000) * 100 // = receita × efetiva × partilha /100
-  // Cenário B — Híbrido: CBS ref (estimativa) + IBS 0,1% sobre receita; crédito sobre compras
   const aliHib = cbsRef + 0.1
+
+  const creditoDasPct = (efetiva * partilha) / 100
+  const hibLiquidoPct = aliHib * (1 - custoPct / 100)
+  const difPct = hibLiquidoPct - creditoDasPct
+
+  const dasCbsIbs = (receita * creditoDasPct) / 100
   const hibDebito = (receita * aliHib) / 100
-  const hibCreditoCompras = (((receita * custoPct) / 100) * aliHib) / 100
-  const hibLiquido = hibDebito - hibCreditoCompras
-  const creditoHib = hibDebito
-  const difCusto = hibLiquido - dasCbsIbs
-  const difCredito = creditoHib - creditoDAS
+  const hibCredCompras = (receita * (custoPct / 100) * aliHib) / 100
+  const hibLiquido = hibDebito - hibCredCompras
+  const difMes = hibLiquido - dasCbsIbs
+  const difCredito = hibDebito - dasCbsIbs
+
+  const grupoPartilha = faixa <= 1 ? PARTILHA_ANOS['1ª–2ª faixa'] : PARTILHA_ANOS['3ª–5ª faixa']
+  const nomeGrupo = faixa <= 1 ? '1ª–2ª' : '3ª–5ª'
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <div className="p-3.5 rounded-lg bg-panorama-gold/10 border border-panorama-gold/50 text-sm text-slate-800">
         <strong>O que compara:</strong> recolher IBS/CBS <strong>dentro do DAS</strong> (Simples
         normal) × <strong>pelo regime regular</strong> (Simples híbrido — LC 214, art. 41, §3º).
-        Premissas 2027–2028: partilha CBS+IBS do anexo; alíquota de referência da CBS estimada em{' '}
+        Premissas 2027–2028: partilha CBS+IBS do anexo; CBS de referência estimada em{' '}
         <strong>{cbsRef.toFixed(1)}%</strong> (editável — a oficial depende de resolução do Senado)
         e IBS de <strong>0,1%</strong> (art. 344). Simulação didática — não substitui apuração
         contábil.
@@ -318,88 +377,236 @@ function SimuladorHibrido() {
         </label>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-xs">
-        <table className="w-full text-left border-collapse text-xs sm:text-sm">
-          <thead>
-            <tr className="bg-panorama-navy text-white border-b-2 border-panorama-gold font-semibold">
-              <th className="py-3 px-4">Indicador</th>
-              <th className="py-3 px-4">📋 Simples normal (DAS)</th>
-              <th className="py-3 px-4">🔀 Simples híbrido (regime regular)</th>
-              <th className="py-3 px-3 w-36">Diferença (híbrido − DAS)</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            <tr className="hover:bg-slate-50/70 align-top">
-              <td className="py-3 px-4 font-semibold text-slate-900">Alíquota aplicada</td>
-              <td className="py-3 px-4 text-slate-700">
-                Efetiva do DAS: <strong>{efetiva.toFixed(2)}%</strong> × partilha CBS+IBS{' '}
-                <strong>{partilha.toFixed(2)}%</strong>
-              </td>
-              <td className="py-3 px-4 text-slate-700">
-                CBS {cbsRef.toFixed(1)}% + IBS 0,1% = <strong>{aliHib.toFixed(1)}%</strong> (cheia,
-                com destaque)
-              </td>
-              <td className="py-3 px-3 text-slate-600 font-mono">—</td>
-            </tr>
-            <tr className="hover:bg-slate-50/70 align-top bg-amber-50/40">
-              <td className="py-3 px-4 font-semibold text-slate-900">IBS + CBS a recolher (mês)</td>
-              <td className="py-3 px-4 text-slate-700">{fmt(dasCbsIbs)}</td>
-              <td className="py-3 px-4 text-slate-700">
-                {fmt(hibLiquido)}{' '}
-                <span className="text-[11px] text-slate-500">
-                  (débito {fmt(hibDebito)} − crédito compras {fmt(hibCreditoCompras)})
-                </span>
-              </td>
-              <td className="py-3 px-3">
-                <span
-                  className={`inline-block px-2 py-0.5 rounded text-[11px] font-bold border ${
-                    difCusto <= 0
-                      ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
-                      : 'bg-red-100 text-red-800 border-red-300'
-                  }`}
-                >
-                  {difCusto <= 0 ? '−' : '+'} {fmt(Math.abs(difCusto))}
-                </span>
-              </td>
-            </tr>
-            <tr className="hover:bg-slate-50/70 align-top">
-              <td className="py-3 px-4 font-semibold text-slate-900">
-                Crédito que o cliente (regime regular) apropria
-              </td>
-              <td className="py-3 px-4 text-slate-700">
-                {fmt(creditoDAS)}{' '}
-                <span className="text-[11px] text-slate-500">
-                  (limitado ao devido no DAS — art. 47, §9º, II)
-                </span>
-              </td>
-              <td className="py-3 px-4 text-slate-700">
-                {fmt(creditoHib)}{' '}
-                <span className="text-[11px] text-slate-500">(integral — art. 47, caput)</span>
-              </td>
-              <td className="py-3 px-3">
-                <span
-                  className={`inline-block px-2 py-0.5 rounded text-[11px] font-bold border ${
-                    difCredito >= 0
-                      ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
-                      : 'bg-red-100 text-red-800 border-red-300'
-                  }`}
-                >
-                  {difCredito >= 0 ? '+' : '−'} {fmt(Math.abs(difCredito))}
-                </span>
-              </td>
-            </tr>
-            <tr className="hover:bg-slate-50/70 align-top">
-              <td className="py-3 px-4 font-semibold text-slate-900">
-                DAS total do mês (referência)
-              </td>
-              <td className="py-3 px-4 text-slate-700" colSpan={2}>
-                {fmt(dasTotal)} (todos os tributos, alíquota efetiva {efetiva.toFixed(2)}%) — no
-                híbrido, a parcela de CBS+IBS sai do DAS e vira guia própria
-              </td>
-              <td className="py-3 px-3 text-slate-600 font-mono">—</td>
-            </tr>
-          </tbody>
-        </table>
+      <div>
+        <h4 className="text-sm font-bold text-slate-900 mb-2">1️⃣ Percentuais do cenário</h4>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <Kpi
+            titulo="Alíquota efetiva (DAS)"
+            valor={efetiva.toFixed(2) + '%'}
+            sub={A.nome + ' · ' + FAIXAS[faixa]}
+          />
+          <Kpi
+            titulo="Partilha CBS+IBS (DAS)"
+            valor={partilha.toFixed(2) + '%'}
+            sub="2027–2028 · Anexos XVIII–XXII"
+          />
+          <Kpi
+            titulo="Crédito ao cliente (DAS)"
+            valor={creditoDasPct.toFixed(2) + '%'}
+            sub="efetiva × partilha (art. 47, §9º, II)"
+          />
+          <Kpi
+            titulo="Alíquota híbrida"
+            valor={aliHib.toFixed(1) + '%'}
+            sub={'CBS ' + cbsRef.toFixed(1) + '% + IBS 0,1% · crédito integral'}
+            destaque
+          />
+        </div>
+      </div>
+
+      <div>
+        <h4 className="text-sm font-bold text-slate-900 mb-2">
+          2️⃣ Comparativo do mês (R$) — DAS × híbrido
+        </h4>
+        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-xs">
+          <table className="w-full text-left border-collapse text-xs sm:text-sm">
+            <thead>
+              <tr className="bg-panorama-navy text-white border-b-2 border-panorama-gold font-semibold">
+                <th className="py-3 px-4">Indicador</th>
+                <th className="py-3 px-4">📋 Simples normal (DAS)</th>
+                <th className="py-3 px-4">🔀 Simples híbrido (regime regular)</th>
+                <th className="py-3 px-3 w-44">Diferença (híbrido − DAS)</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              <tr className="hover:bg-slate-50/70 align-top bg-amber-50/40">
+                <td className="py-3 px-4 font-semibold text-slate-900">
+                  IBS + CBS a recolher (líquido)
+                </td>
+                <td className="py-3 px-4 text-slate-700">
+                  {fmt(dasCbsIbs)}
+                  <div className="text-[11px] text-slate-500">
+                    sem crédito nas compras (art. 47, §9º, I)
+                  </div>
+                </td>
+                <td className="py-3 px-4 text-slate-700">
+                  {fmt(hibLiquido)}
+                  <div className="text-[11px] text-slate-500">
+                    débito {fmt(hibDebito)} − crédito compras {fmt(hibCredCompras)}
+                  </div>
+                </td>
+                <td className="py-3 px-3">
+                  <Badge
+                    ok={difMes <= 0}
+                    texto={(difMes <= 0 ? '− ' : '+ ') + fmt(Math.abs(difMes))}
+                  />
+                </td>
+              </tr>
+              <tr className="hover:bg-slate-50/70 align-top">
+                <td className="py-3 px-4 font-semibold text-slate-900">
+                  Crédito que o cliente apropria
+                </td>
+                <td className="py-3 px-4 text-slate-700">
+                  {fmt(dasCbsIbs)}
+                  <div className="text-[11px] text-slate-500">limitado ao devido no DAS</div>
+                </td>
+                <td className="py-3 px-4 text-slate-700">
+                  {fmt(hibDebito)}
+                  <div className="text-[11px] text-slate-500">integral (art. 47, caput)</div>
+                </td>
+                <td className="py-3 px-3">
+                  <Badge
+                    ok={difCredito >= 0}
+                    texto={(difCredito >= 0 ? '+ ' : '− ') + fmt(Math.abs(difCredito))}
+                  />
+                </td>
+              </tr>
+              <tr className="hover:bg-slate-50/70 align-top">
+                <td className="py-3 px-4 font-semibold text-slate-900">
+                  Custo líquido (% da receita)
+                </td>
+                <td className="py-3 px-4 text-slate-700">{creditoDasPct.toFixed(2)}%</td>
+                <td className="py-3 px-4 text-slate-700">{hibLiquidoPct.toFixed(2)}%</td>
+                <td className="py-3 px-3">
+                  <Badge
+                    ok={difPct <= 0}
+                    texto={(difPct <= 0 ? '− ' : '+ ') + Math.abs(difPct).toFixed(2) + ' p.p.'}
+                  />
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div>
+        <h4 className="text-sm font-bold text-slate-900 mb-2">
+          3️⃣ Comparativo por faixa — {A.nome} (% da receita)
+        </h4>
+        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-xs">
+          <table className="w-full text-left border-collapse text-xs sm:text-sm">
+            <thead>
+              <tr className="bg-panorama-navy text-white border-b-2 border-panorama-gold font-semibold">
+                <th className="py-3 px-3">Faixa</th>
+                <th className="py-3 px-3">Limite (RBT12)</th>
+                <th className="py-3 px-3">Efetiva no teto</th>
+                <th className="py-3 px-3">Crédito DAS</th>
+                <th className="py-3 px-3">Híbrido</th>
+                <th className="py-3 px-3">Dif. custo líquido</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {FAIXAS.map((f, i) => {
+                const lim = [180000, 360000, 720000, 1800000, 3600000, 4800000][i]
+                const e_i = Math.max(0, (lim * A.nominal[i] - A.deduz[i]) / lim)
+                const cd_i = (e_i * partilha) / 100
+                const dif_i = hibLiquidoPct - cd_i
+                const atual = i === faixa
+                return (
+                  <tr
+                    key={i}
+                    className={
+                      'align-top ' +
+                      (atual ? 'bg-panorama-gold/10 font-semibold' : 'hover:bg-slate-50/70')
+                    }
+                  >
+                    <td className="py-2.5 px-3 text-slate-900">
+                      {f}
+                      {atual ? ' ←' : ''}
+                    </td>
+                    <td className="py-2.5 px-3 text-slate-600">{LIMITES_FAIXA[i]}</td>
+                    <td className="py-2.5 px-3 text-slate-700">{e_i.toFixed(2)}%</td>
+                    <td className="py-2.5 px-3 text-slate-700">{cd_i.toFixed(2)}%</td>
+                    <td className="py-2.5 px-3 text-slate-700">{aliHib.toFixed(1)}%</td>
+                    <td className="py-2.5 px-3">
+                      <Badge
+                        ok={dif_i <= 0}
+                        texto={(dif_i <= 0 ? '− ' : '+ ') + Math.abs(dif_i).toFixed(2) + ' p.p.'}
+                      />
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+        <p className="text-[11px] text-slate-500 mt-1">
+          Efetiva calculada no teto de cada faixa; 6ª faixa: alíquota nominal −0,1 p.p. em 2027–2028
+          (art. 347). "Dif. custo líquido" = custo do híbrido − crédito DAS, em pontos percentuais
+          da receita.
+        </p>
+      </div>
+
+      <div>
+        <h4 className="text-sm font-bold text-slate-900 mb-2">
+          4️⃣ Transição ano a ano — {nomeGrupo} faixa (% da receita)
+        </h4>
+        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-xs">
+          <table className="w-full text-left border-collapse text-xs sm:text-sm">
+            <thead>
+              <tr className="bg-panorama-navy text-white border-b-2 border-panorama-gold font-semibold">
+                <th className="py-3 px-3">Ano</th>
+                <th className="py-3 px-3">Partilha CBS+IBS no DAS</th>
+                <th className="py-3 px-3">Crédito DAS</th>
+                <th className="py-3 px-3">Híbrido (CBS ref + IBS)</th>
+                <th className="py-3 px-3">Diferença (p.p.)</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {ANOS_LABEL.map((ano, i) => {
+                const p = grupoPartilha[i]
+                const cd = (efetiva * p) / 100
+                const h = cbsRef + IBS_ANOS[i]
+                const d = h - cd
+                return (
+                  <tr key={ano} className="hover:bg-slate-50/70 align-top">
+                    <td className="py-2.5 px-3 font-semibold text-slate-900">{ano}</td>
+                    <td className="py-2.5 px-3 text-slate-700">{p.toFixed(2)}%</td>
+                    <td className="py-2.5 px-3 text-slate-700">{cd.toFixed(2)}%</td>
+                    <td className="py-2.5 px-3 text-slate-700">{h.toFixed(2)}%</td>
+                    <td className="py-2.5 px-3">
+                      <Badge
+                        ok={d >= 0}
+                        texto={(d >= 0 ? '+ ' : '− ') + Math.abs(d).toFixed(2) + ' p.p.'}
+                      />
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+        <p className="text-[11px] text-slate-500 mt-1">
+          Partilha dos Anexos XVIII–XXII da LC 214 (IBS: 0,17% em 2027–28; 3,35%→13,40% em 2029–32;
+          33,50% em 2033, faixas 3ª–5ª; 1ª–2ª ligeiramente maior). IBS do híbrido: art. 344 (0,1% em
+          2027–28; 0,3/0,6/0,9/1,2% em 2029–32) e pleno em 2033 (referência total 27,91% da Res.
+          14/2026 − CBS ref estimada). 6ª faixa: tratamento próprio.
+        </p>
+      </div>
+
+      <div>
+        <h4 className="text-sm font-bold text-slate-900 mb-2">
+          5️⃣ Faixas e limites do Simples Nacional
+        </h4>
+        <div className="p-3.5 rounded-lg bg-white border border-slate-200 flex flex-wrap gap-2">
+          {FAIXAS.map((f, i) => (
+            <span
+              key={i}
+              className={
+                'px-2.5 py-1 rounded-full border text-[11px] font-semibold ' +
+                (i === faixa
+                  ? 'bg-panorama-navy text-panorama-gold-light border-panorama-navy'
+                  : 'bg-slate-50 border-slate-300 text-slate-600')
+              }
+            >
+              {f.split(' ')[0]} · {LIMITES_FAIXA[i]}
+            </span>
+          ))}
+        </div>
+        <p className="text-[11px] text-slate-500 mt-1">
+          Receita bruta em 12 meses (LC 123, art. 3º). Sublimite R$ 3,6 mi; teto R$ 4,8 mi. MEI
+          (SIMEI): valores fixos mensais — não participa do híbrido.
+        </p>
       </div>
 
       <div className="p-3.5 rounded-lg bg-blue-50 border border-blue-200 text-blue-900 text-xs sm:text-sm">
