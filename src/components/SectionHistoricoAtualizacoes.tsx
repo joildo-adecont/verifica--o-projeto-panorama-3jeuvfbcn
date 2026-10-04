@@ -38,6 +38,23 @@ function ehRecente(dataBR: string): boolean {
 const REGISTROS: Registro[] = [
   {
     data: '04/10/2026',
+    hora: '11:30',
+    titulo:
+      'Seção 6C — Consórcios, serviços financeiros, Simples Nacional e profissionais regulamentados',
+    conteudo:
+      'Nova seção com os demais regimes específicos e diferenciados, no mesmo padrão das seções 6A/6B, com 4 abas: Consórcios (arts. 204-206: taxa de administração em regime de caixa, dedução da intermediação, carta de crédito segue normas gerais, contemplação não é fato gerador, execução de garantia sem incidência na consolidação, crédito da taxa, intermediação), Serviços financeiros (art. 182: lista completa das 17 operações; base de cálculo art. 185; deduções art. 192; arranjos de pagamento art. 214; sujeitos supervisionados BC/CVM/Previc/SUSEP art. 183), Simples Nacional (LC 123 art. 13-A: IBS no DAS até R$ 3,6 mi; alíquotas de teste 2026-2028 arts. 343-347; janelas de opção Res. CGSN 190-192/2026; NF com destaque; crédito presumido de importação arts. 444/462) e Profissionais regulamentados + plataformas digitais (art. 127: redução 30%, 18 profissões, requisitos da PJ; art. 22: responsabilidade solidária das plataformas, definição e exceções). Texto extraído da LC 214 compilada do Planalto, conferido em 04/10/2026. Atalho O no menu lateral.',
+    fontes: [
+      {
+        nome: 'LC 214/2025 compilada — Planalto',
+        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+      },
+    ],
+    caminho:
+      'Panorama (62493) — SectionOutrosRegimes.tsx (novo) + Index.tsx + PanoramaSideMenu.tsx',
+    versao: '62493 v0.0.88',
+  },
+  {
+    data: '04/10/2026',
     hora: '11:15',
     titulo: 'Seção 6B — Regime do Agronegócio (produtor rural, créditos presumidos, cooperativas)',
     conteudo:

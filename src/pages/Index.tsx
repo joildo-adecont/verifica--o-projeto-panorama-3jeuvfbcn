@@ -10,6 +10,7 @@ import { SectionIsencoesAlíquotas } from '@/components/SectionIsencoesAliquots'
 import { SectionRegimesEspecificos } from '@/components/SectionRegimesEspecificos'
 import { SectionRegimeImobiliario } from '@/components/SectionRegimeImobiliario'
 import { SectionAgronegocio } from '@/components/SectionAgronegocio'
+import { SectionOutrosRegimes } from '@/components/SectionOutrosRegimes'
 import { SectionAnexos } from '@/components/SectionAnexos'
 import { SectionTabelaGeral } from '@/components/SectionTabelaGeral'
 import { SectionCronograma } from '@/components/SectionCronograma'
@@ -114,6 +115,9 @@ export default function Index() {
 
           {/* Seção 6B: Regime do agronegócio — produtor rural, créditos presumidos e cooperativas */}
           <SectionAgronegocio />
+
+          {/* Seção 6C: Consórcios, serviços financeiros, Simples e profissionais regulamentados */}
+          <SectionOutrosRegimes />
 
           {/* Seção 7: Anexos da reforma tributária */}
           <SectionAnexos />

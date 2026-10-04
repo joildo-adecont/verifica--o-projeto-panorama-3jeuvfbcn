@@ -18,6 +18,7 @@ import {
   Table2,
   Home,
   Tractor,
+  Handshake,
 } from 'lucide-react'
 
 /**
@@ -120,6 +121,16 @@ const ITENS: MenuItem[] = [
     cor: 'text-emerald-700',
     bg: 'bg-emerald-50',
     borda: 'border-emerald-200',
+  },
+  {
+    id: '#outros-regimes',
+    tecla: 'O',
+    numero: '6C',
+    label: 'Outros Regimes',
+    Icon: Handshake,
+    cor: 'text-violet-700',
+    bg: 'bg-violet-50',
+    borda: 'border-violet-200',
   },
   {
     id: '#secao-7',
