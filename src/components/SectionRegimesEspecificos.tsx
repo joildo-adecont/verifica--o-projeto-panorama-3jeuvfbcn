@@ -118,6 +118,48 @@ export function SectionRegimesEspecificos() {
         </div>
       </div>
 
+      {/* Seções dedicadas (6A/6B/6C) — destaque */}
+      <div className="p-4 rounded-xl bg-panorama-gold/10 border border-panorama-gold/50 space-y-2">
+        <h3 className="text-sm font-bold text-slate-900">
+          ⭐ Regimes com seção dedicada — detalhamento completo
+        </h3>
+        <p className="text-xs text-slate-700 leading-relaxed">
+          Os três principais regimes específicos têm seções próprias no Panorama, com todos os
+          detalhes extraídos da LC 214 e links diretos para o Simulador:
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
+          <a
+            href="#regime-imobiliario"
+            className="p-3 rounded-lg bg-white border border-slate-200 hover:border-panorama-gold transition-colors"
+          >
+            <p className="text-xs font-bold text-panorama-navy">🏠 6A — Regime Imobiliário</p>
+            <p className="text-[11px] text-slate-600 mt-0.5">
+              Venda −50%, locação −70%, redutores sociais, RET
+            </p>
+          </a>
+          <a
+            href="#agronegocio"
+            className="p-3 rounded-lg bg-white border border-slate-200 hover:border-panorama-gold transition-colors"
+          >
+            <p className="text-xs font-bold text-panorama-navy">🚜 6B — Agronegócio</p>
+            <p className="text-[11px] text-slate-600 mt-0.5">
+              Produtor rural, créditos presumidos, cooperativas
+            </p>
+          </a>
+          <a
+            href="#outros-regimes"
+            className="p-3 rounded-lg bg-white border border-slate-200 hover:border-panorama-gold transition-colors"
+          >
+            <p className="text-xs font-bold text-panorama-navy">
+              🤝 6C — Consórcios, Financeiros, Simples
+            </p>
+            <p className="text-[11px] text-slate-600 mt-0.5">
+              Taxa de administração, art. 182, DAS, profissionais
+            </p>
+          </a>
+        </div>
+      </div>
+
       {/* Main Table */}
       <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-xs">
         <table className="w-full text-left border-collapse text-xs sm:text-sm">

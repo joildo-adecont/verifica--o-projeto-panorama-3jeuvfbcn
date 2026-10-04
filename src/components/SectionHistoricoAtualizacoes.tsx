@@ -38,6 +38,21 @@ function ehRecente(dataBR: string): boolean {
 const REGISTROS: Registro[] = [
   {
     data: '04/10/2026',
+    hora: '11:40',
+    titulo: 'Seção 6 — destaque das seções dedicadas de regimes (6A, 6B e 6C)',
+    conteudo:
+      'A Seção 6 (Regimes específicos e diferenciados) ganhou box de destaque com links diretos para as seções dedicadas: 6A Regime Imobiliário (venda −50%, locação −70%, redutores sociais, RET), 6B Agronegócio (produtor rural, créditos presumidos, cooperativas) e 6C Consórcios/Financeiros/Simples/Profissionais. O box aparece no topo da Seção 6, antes da tabela de regimes, com a identidade navy+dourado do Panorama.',
+    fontes: [
+      {
+        nome: 'LC 214/2025 compilada — Planalto',
+        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+      },
+    ],
+    caminho: 'Panorama (62493) — SectionRegimesEspecificos.tsx (box de destaque)',
+    versao: '62493 v0.0.89',
+  },
+  {
+    data: '04/10/2026',
     hora: '11:30',
     titulo:
       'Seção 6C — Consórcios, serviços financeiros, Simples Nacional e profissionais regulamentados',
