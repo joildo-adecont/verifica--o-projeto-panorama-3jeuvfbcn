@@ -235,6 +235,12 @@ export function PanoramaHeader({
       const digitando = t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT'
       if (e.key === 'Escape') {
         setMobileMenuOpen(false)
+        // Esc também limpa a busca global (desktop e mobile)
+        if (searchTerm) {
+          setSearchTerm('')
+          const busca = document.querySelector<HTMLInputElement>('header input[type="text"]')
+          if (busca) busca.focus()
+        }
         return
       }
       if (digitando || e.altKey || e.ctrlKey || e.metaKey) return
@@ -358,14 +364,15 @@ export function PanoramaHeader({
               placeholder="Buscar normas, regimes, alimentos…  (tecla /)"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 bg-slate-50"
+              className="w-full pl-9 pr-8 py-1.5 text-xs rounded-lg border border-slate-300 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 bg-slate-50"
             />
             {searchTerm && (
               <button
                 onClick={() => setSearchTerm('')}
-                className="absolute right-2.5 text-xs text-slate-400 hover:text-slate-600"
+                title="Limpar pesquisa (Esc)"
+                className="absolute right-1.5 inline-flex items-center justify-center w-6 h-6 rounded-md bg-slate-200/80 hover:bg-panorama-navy hover:text-panorama-gold-light text-slate-500 transition-colors cursor-pointer"
               >
-                ×
+                <X className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
@@ -423,8 +430,17 @@ export function PanoramaHeader({
               placeholder="Buscar em todo o Panorama…"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 text-xs rounded-lg border border-slate-300 focus:outline-none focus:border-blue-600 bg-slate-50"
+              className="w-full pl-9 pr-9 py-2 text-xs rounded-lg border border-slate-300 focus:outline-none focus:border-blue-600 bg-slate-50"
             />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm('')}
+                title="Limpar pesquisa (Esc)"
+                className="absolute right-2 top-1/2 -translate-y-1/2 inline-flex items-center justify-center w-6 h-6 rounded-md bg-slate-200/80 hover:bg-panorama-navy hover:text-panorama-gold-light text-slate-500 transition-colors cursor-pointer"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
         </div>
 
