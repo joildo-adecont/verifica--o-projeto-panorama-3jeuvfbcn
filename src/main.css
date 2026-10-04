@@ -15,6 +15,33 @@
     color: #0f172a;
   }
 
+  /* Identidade ADECONT — refinamentos globais do Panorama */
+  h1,
+  h2,
+  h3 {
+    letter-spacing: -0.02em;
+  }
+  ::selection {
+    background: #c5a059;
+    color: #0b1528;
+  }
+  /* Scrollbar discreta e moderna */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #eef1f5;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #c3cbd8;
+    border-radius: 8px;
+    border: 2px solid #eef1f5;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #a07e38;
+  }
+
   :root {
     --background: 210 40% 98%;
     --foreground: 222.2 84% 4.9%;

@@ -7,13 +7,13 @@ export function PanoramaFooter() {
   }
 
   return (
-    <footer className="bg-slate-950 text-slate-400 text-xs border-t border-slate-800 py-12 px-4 sm:px-6">
+    <footer className="bg-panorama-navy-dark text-slate-400 text-xs border-t-4 border-panorama-gold py-12 px-4 sm:px-6">
       <div className="max-w-7xl mx-auto space-y-10">
         {/* Top bar do Footer com o Logo da ADECONT */}
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 pb-8 border-b border-slate-800/80">
           <div className="flex flex-col sm:flex-row sm:items-center gap-4">
             {/* Box do logo ADECONT em fundo claro para máximo contraste e nitidez */}
-            <div className="bg-white rounded-xl p-3 shadow-sm inline-flex items-center shrink-0">
+            <div className="bg-white rounded-xl p-3 shadow-sm inline-flex items-center shrink-0 ring-2 ring-panorama-gold/40">
               <AdecontLogo
                 variant="color"
                 showTagline={true}
@@ -32,7 +32,7 @@ export function PanoramaFooter() {
 
           <button
             onClick={scrollToTop}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition-colors self-end md:self-auto border border-slate-700/80"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-slate-200 text-xs font-semibold transition-colors self-end md:self-auto border border-panorama-gold/40"
           >
             <span>Voltar ao topo</span>
             <ArrowUp className="w-3.5 h-3.5" />
@@ -42,7 +42,7 @@ export function PanoramaFooter() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-[11px] leading-relaxed">
           <div>
             <h5 className="font-bold text-slate-200 mb-2.5 uppercase tracking-wider text-[10px] flex items-center gap-1.5">
-              <Building2 className="w-3.5 h-3.5 text-blue-400" />
+              <Building2 className="w-3.5 h-3.5 text-panorama-gold" />
               Institucional ADECONT
             </h5>
             <p className="text-slate-400">
@@ -53,7 +53,7 @@ export function PanoramaFooter() {
 
           <div>
             <h5 className="font-bold text-slate-200 mb-2.5 uppercase tracking-wider text-[10px] flex items-center gap-1.5">
-              <ShieldCheck className="w-3.5 h-3.5 text-blue-400" />
+              <ShieldCheck className="w-3.5 h-3.5 text-panorama-gold" />
               Coordenação Técnica
             </h5>
             <p className="text-slate-400">
@@ -93,7 +93,7 @@ export function PanoramaFooter() {
             </span>
             <span className="hidden sm:inline text-slate-700">•</span>
             <span className="inline-flex items-center gap-1 text-slate-400">
-              <Tag className="w-3 h-3 text-blue-400" />
+              <Tag className="w-3 h-3 text-panorama-gold" />
               <span>Conteúdo revisado em 30/09/2026 — Revisão nº 1 (v0.0.16)</span>
             </span>
           </div>

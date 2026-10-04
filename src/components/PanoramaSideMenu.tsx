@@ -275,8 +275,8 @@ export function PanoramaSideMenu() {
               onClick={() => ir(item)}
               className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-left text-[13px] font-semibold transition-colors ${
                 isAtivo
-                  ? 'bg-blue-50 text-blue-700 border-l-2 border-blue-600'
-                  : 'text-slate-700 hover:bg-slate-100 hover:text-blue-700 border-l-2 border-transparent'
+                  ? 'bg-panorama-gold/10 text-panorama-gold-dark border-l-2 border-panorama-gold'
+                  : 'text-slate-700 hover:bg-slate-100 hover:text-panorama-gold-dark border-l-2 border-transparent'
               }`}
               title={`Tecla de atalho: ${item.tecla.toUpperCase()} — ${item.label}`}
             >
@@ -288,7 +288,9 @@ export function PanoramaSideMenu() {
               <span className="flex-1 leading-tight">{item.label}</span>
               <kbd
                 className={`hidden lg:inline-flex items-center px-1 rounded text-[10px] font-mono ${
-                  isAtivo ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-400'
+                  isAtivo
+                    ? 'bg-panorama-gold/20 text-panorama-gold-dark'
+                    : 'bg-slate-100 text-slate-400'
                 }`}
               >
                 {item.tecla.toUpperCase()}
@@ -311,14 +313,14 @@ export function PanoramaSideMenu() {
   return (
     <>
       {/* Menu fixo lateral — somente telas grandes */}
-      <aside className="hidden lg:block fixed left-0 top-[64px] bottom-0 w-64 bg-white border-r border-slate-200 z-40 shadow-sm">
+      <aside className="hidden lg:block fixed left-0 top-[64px] bottom-0 w-64 bg-white border-r border-slate-200 z-40 shadow-sm border-t-2 border-t-panorama-gold/60">
         {conteudo}
       </aside>
 
       {/* Botão flutuante para abrir a gaveta (telas menores) */}
       <button
         onClick={() => setAberto(true)}
-        className="lg:hidden fixed bottom-4 left-4 z-50 inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-4 py-3 rounded-full shadow-lg"
+        className="lg:hidden fixed bottom-4 left-4 z-50 inline-flex items-center gap-2 bg-panorama-navy hover:bg-panorama-navy-light text-panorama-gold-light text-xs font-bold px-4 py-3 rounded-full shadow-lg border border-panorama-gold/40"
         aria-label="Abrir menu de seções"
       >
         ☰ Seções

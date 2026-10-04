@@ -264,7 +264,7 @@ export function PanoramaHeader({
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm">
       {/* Top Banner / Status Bar */}
-      <div className="bg-slate-900 text-slate-100 text-xs py-1.5 px-4 sm:px-6">
+      <div className="bg-panorama-navy text-slate-100 text-xs py-1.5 px-4 sm:px-6 border-b border-panorama-gold/30">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <span
@@ -290,7 +290,7 @@ export function PanoramaHeader({
               className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[11px] font-medium transition-colors ${
                 isAutoOn
                   ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
-                  : 'bg-slate-800 text-slate-400 border border-slate-700'
+                  : 'bg-white/10 text-slate-400 border border-white/20'
               }`}
               title="Verificação de disponibilidade da fonte oficial a cada 1 hora"
             >
@@ -301,7 +301,7 @@ export function PanoramaHeader({
             <button
               onClick={handleRefresh}
               disabled={isRefreshing}
-              className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[11px] font-medium bg-blue-600 hover:bg-blue-500 text-white transition-colors"
+              className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[11px] font-bold bg-panorama-gold hover:bg-panorama-gold-light text-panorama-navy transition-colors"
               title="Faz a verificação imediata das fontes"
             >
               <RotateCw className={`w-3 h-3 ${isRefreshing ? 'animate-spin' : ''}`} />
@@ -374,14 +374,14 @@ export function PanoramaHeader({
           <div className="hidden sm:flex items-center gap-2">
             <a
               href="/panorama-reforma/envios.html"
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-amber-600 hover:bg-amber-500 px-3 py-1.5 rounded-md shadow-sm transition-colors"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-panorama-navy bg-panorama-gold hover:bg-panorama-gold-light px-3 py-1.5 rounded-md shadow-sm transition-colors"
               title="Cadastro de Clientes & Protocolo de Envios"
             >
               <span>📇 Cadastro & Envios</span>
             </a>
             <a
               href="/panorama-reforma/simulador.html"
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-500 px-3 py-1.5 rounded-md shadow-sm transition-colors"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-[#1E4FD8] hover:bg-[#2A5BE8] px-3 py-1.5 rounded-md shadow-sm transition-colors"
               title="Simulador Didático de Transição — regime atual vs IBS/CBS"
             >
               <span>🧮 Simulador</span>
@@ -398,7 +398,7 @@ export function PanoramaHeader({
             </a>
             <a
               href="#contato"
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 px-3 py-1.5 rounded-md shadow-sm transition-colors"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-panorama-navy hover:bg-panorama-navy-light px-3 py-1.5 rounded-md shadow-sm transition-colors border border-panorama-gold/40"
             >
               <span>Consultar Especialista</span>
             </a>
