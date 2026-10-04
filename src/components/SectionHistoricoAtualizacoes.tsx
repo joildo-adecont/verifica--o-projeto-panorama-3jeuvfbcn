@@ -37,6 +37,17 @@ function ehRecente(dataBR: string): boolean {
 
 const REGISTROS: Registro[] = [
   {
+    data: '04/10/2026',
+    hora: '00:25',
+    titulo: 'Modernização visual do Panorama — identidade ADECONT (navy + dourado)',
+    conteudo:
+      'Redesign visual completo do Panorama em 2 parcelas: (1) Hero com gradiente navy profundo, halos de luz, trama dourada, título em degradê dourado, CTA dourado e card de status em vidro; barra de status do header em navy com botão "Atualizar agora" dourado; menu lateral com item ativo em dourado; footer navy-escuro com borda dourada; scrollbar e seleção de texto na paleta da marca. (2) Todas as seções de conteúdo: numeração das seções em navy com anel dourado e filete dourado no título, cabeçalhos de tabela em navy com borda dourada, filtros ativos em navy, box de consórcios com moldura dourada, seções 11/12/13 com rótulo e ícone em dourado. Paleta: navy #0B1528 / dourado #C5A059 (identidade ADECONT).',
+    fontes: [{ nome: 'Identidade visual ADECONT (logo oficial v3) — aplicação interna' }],
+    caminho:
+      'src/components/PanoramaHero.tsx, PanoramaHeader.tsx, PanoramaSideMenu.tsx, PanoramaFooter.tsx, Section*.tsx, src/main.css',
+    versao: 'v0.0.67 (parcela 1) e v0.0.68 (parcela 2)',
+  },
+  {
     data: '03/10/2026',
     hora: '19:10',
     titulo: 'Seção 7A — Tabela Geral dos Anexos: itens e alíquotas da reforma, anexo por anexo',
@@ -314,9 +325,11 @@ export function SectionHistoricoAtualizacoes() {
     <section id="historico-atualizacoes" className="scroll-mt-24">
       <div className="rounded-2xl border border-slate-200 bg-white p-6 md:p-8 shadow-sm space-y-5">
         <div>
-          <p className="text-xs font-bold uppercase tracking-wider text-lime-700">Seção 13</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-panorama-gold-dark">
+            Seção 13
+          </p>
           <h2 className="text-xl md:text-2xl font-bold text-slate-900 mt-1 flex items-center gap-2">
-            <span className="inline-flex items-center justify-center w-8 h-8 rounded-md border border-lime-200 bg-lime-50 text-lime-600">
+            <span className="inline-flex items-center justify-center w-8 h-8 rounded-md border border-panorama-gold/50 bg-panorama-gold/10 text-panorama-gold-dark">
               <History className="w-4 h-4" />
             </span>
             Histórico de Atualizações

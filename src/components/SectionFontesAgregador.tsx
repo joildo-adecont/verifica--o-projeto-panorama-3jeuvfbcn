@@ -42,7 +42,9 @@ export function SectionFontesAgregador() {
     <section id="fontes-agregador" className="scroll-mt-24">
       <div className="rounded-2xl border border-slate-200 bg-white p-6 md:p-8 shadow-sm space-y-5">
         <div>
-          <p className="text-xs font-bold uppercase tracking-wider text-blue-700">Seção 11</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-panorama-gold-dark">
+            Seção 11
+          </p>
           <h2 className="text-xl md:text-2xl font-bold text-slate-900 mt-1">
             Fontes de referência — agregadores especializados
           </h2>
@@ -88,7 +90,7 @@ export function SectionFontesAgregador() {
           <div className="overflow-x-auto rounded-lg border border-slate-200">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-slate-800 text-white text-left text-xs uppercase tracking-wide">
+                <tr className="bg-panorama-navy text-white text-left text-xs uppercase tracking-wide border-b-2 border-panorama-gold">
                   <th className="px-3 py-2 font-semibold">Base</th>
                   <th className="px-3 py-2 font-semibold">Fonte primária (órgão)</th>
                   <th className="px-3 py-2 font-semibold">Situação em 01/10/2026</th>

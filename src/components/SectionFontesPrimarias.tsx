@@ -704,7 +704,9 @@ export function SectionFontesPrimarias() {
     <section id="fontes-primarias" className="scroll-mt-24">
       <div className="rounded-2xl border border-slate-200 bg-white p-6 md:p-8 shadow-sm space-y-5">
         <div>
-          <p className="text-xs font-bold uppercase tracking-wider text-blue-700">Seção 12</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-panorama-gold-dark">
+            Seção 12
+          </p>
           <h2 className="text-xl md:text-2xl font-bold text-slate-900 mt-1">
             Índice das fontes oficiais primárias — 110 bases indexadas
           </h2>
@@ -749,7 +751,8 @@ export function SectionFontesPrimarias() {
         <div className="overflow-x-auto rounded-lg border border-slate-200">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-slate-800 text-white text-left text-xs uppercase tracking-wide">
+              <tr className="bg-panorama-navy text-white text-left text-xs uppercase tracking-wide border-b-2 border-panorama-gold">
+                {' '}
                 <th className="px-3 py-2 font-semibold">Base de dados</th>
                 <th className="px-3 py-2 font-semibold">Órgão / fonte primária</th>
                 <th className="px-3 py-2 font-semibold">Situação (01/10/2026)</th>

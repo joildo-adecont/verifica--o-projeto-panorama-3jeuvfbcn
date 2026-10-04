@@ -107,9 +107,9 @@ export function SectionRegimesEspecificos() {
 
   return (
     <section id="secao-6" className="scroll-mt-24 space-y-6">
-      <div className="border-b border-slate-200 pb-3">
+      <div className="border-b-2 border-panorama-gold/60 pb-3">
         <div className="flex items-center gap-2">
-          <span className="flex items-center justify-center w-6 h-6 rounded-md bg-blue-600 text-white font-bold text-xs">
+          <span className="flex items-center justify-center w-7 h-7 rounded-md bg-panorama-navy text-panorama-gold-light font-bold text-xs ring-1 ring-panorama-gold/50">
             6
           </span>
           <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
@@ -122,7 +122,7 @@ export function SectionRegimesEspecificos() {
       <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-xs">
         <table className="w-full text-left border-collapse text-xs sm:text-sm">
           <thead>
-            <tr className="bg-slate-100/80 text-slate-700 border-b border-slate-200 font-semibold">
+            <tr className="bg-panorama-navy text-white border-b-2 border-panorama-gold font-semibold">
               <th className="py-3 px-4 w-44">Regime</th>
               <th className="py-3 px-4 w-52">Quem se aplica</th>
               <th className="py-3 px-4">Regra central</th>
@@ -152,7 +152,7 @@ export function SectionRegimesEspecificos() {
       </div>
 
       {/* Box Especial: Consórcio — os 6 pontos que você precisa saber */}
-      <div className="p-5 rounded-xl bg-gradient-to-br from-amber-50/90 to-yellow-50/70 border border-amber-200 shadow-xs space-y-4">
+      <div className="p-5 rounded-xl bg-gradient-to-br from-panorama-gold/10 to-amber-50/70 border border-panorama-gold/50 shadow-xs space-y-4">
         <div className="flex items-center gap-2 border-b border-amber-200/80 pb-3">
           <h3 className="text-base font-bold text-slate-900">
             ⭐ <strong>Consórcio — os 6 pontos que você precisa saber:</strong>

@@ -114,9 +114,9 @@ export function SectionNorms({ norms, loading }: SectionNormsProps) {
 
   return (
     <section id="secao-1" className="scroll-mt-24 space-y-4">
-      <div className="border-b border-slate-200 pb-3">
+      <div className="border-b-2 border-panorama-gold/60 pb-3">
         <div className="flex items-center gap-2">
-          <span className="flex items-center justify-center w-6 h-6 rounded-md bg-blue-600 text-white font-bold text-xs">
+          <span className="flex items-center justify-center w-7 h-7 rounded-md bg-panorama-navy text-panorama-gold-light font-bold text-xs ring-1 ring-panorama-gold/50">
             1
           </span>
           <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
@@ -142,7 +142,7 @@ export function SectionNorms({ norms, loading }: SectionNormsProps) {
                 onClick={() => setSelectedTypeFilter(tOpt)}
                 className={`text-[11px] px-2.5 py-1 rounded font-bold transition-colors border cursor-pointer ${
                   selectedTypeFilter === tOpt
-                    ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
+                    ? 'bg-panorama-navy text-panorama-gold-light border-panorama-navy shadow-xs'
                     : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'
                 }`}
               >
@@ -163,7 +163,7 @@ export function SectionNorms({ norms, loading }: SectionNormsProps) {
                 onClick={() => setSelectedIncidenceFilter(opt)}
                 className={`text-[11px] px-2.5 py-1 rounded font-bold transition-colors border cursor-pointer ${
                   selectedIncidenceFilter === opt
-                    ? 'bg-slate-800 text-white border-slate-800 shadow-xs'
+                    ? 'bg-panorama-navy text-panorama-gold-light border-panorama-navy shadow-xs'
                     : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'
                 }`}
               >
@@ -178,7 +178,7 @@ export function SectionNorms({ norms, loading }: SectionNormsProps) {
       <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-xs">
         <table className="w-full text-left border-collapse text-xs sm:text-sm">
           <thead>
-            <tr className="bg-slate-100/80 text-slate-700 border-b border-slate-200 font-semibold">
+            <tr className="bg-panorama-navy text-white border-b-2 border-panorama-gold font-semibold">
               <th className="py-3 px-3 w-40">Tipo de Ato</th>
               <th className="py-3 px-4 w-52">Norma / Código</th>
               <th className="py-3 px-3 w-28">Data</th>
@@ -234,7 +234,7 @@ export function SectionNorms({ norms, loading }: SectionNormsProps) {
                         <a
                           href={proxyDownloadUrl}
                           download={downloadFilename}
-                          className="group inline-flex items-center gap-1.5 font-bold text-blue-700 hover:text-blue-900 transition-colors cursor-pointer"
+                          className="group inline-flex items-center gap-1.5 font-bold text-panorama-gold-dark hover:text-panorama-navy transition-colors cursor-pointer"
                           title={`Baixar documento oficial: ${norm.code} (download mediado via domínio próprio Panorama ADECONT)`}
                         >
                           <span className="group-hover:underline underline-offset-2">

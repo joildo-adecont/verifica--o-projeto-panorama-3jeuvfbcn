@@ -142,7 +142,7 @@ function TabelaItens({ itens, anexoId }: { itens: ItemRibs[]; anexoId: string })
       <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white max-h-96 overflow-y-auto">
         <table className="w-full text-left border-collapse text-xs" data-anexo={anexoId}>
           <thead>
-            <tr className="bg-slate-100/80 text-slate-700 border-b border-slate-200 font-semibold sticky top-0">
+            <tr className="bg-panorama-navy text-white border-b-2 border-panorama-gold font-semibold sticky top-0">
               <th className="py-2 px-3 w-20">Item</th>
               <th className="py-2 px-3">Descrição</th>
               <th className="py-2 px-3 w-64">NCM/SH</th>
@@ -211,7 +211,7 @@ function TabelaSobDemanda({
         <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white max-h-96 overflow-y-auto">
           <table className="w-full text-left border-collapse text-xs" data-anexo={anexoId}>
             <thead>
-              <tr className="bg-slate-100/80 text-slate-700 border-b border-slate-200 font-semibold sticky top-0">
+              <tr className="bg-panorama-navy text-white border-b-2 border-panorama-gold font-semibold sticky top-0">
                 <th className="py-2 px-3 w-16">Item</th>
                 <th className="py-2 px-3 w-24">Ref. NCM</th>
                 <th className="py-2 px-3">Bens</th>
@@ -263,7 +263,7 @@ function TabelaSobDemanda({
                 data-anexo={`${anexoId}-${g.pref}`}
               >
                 <thead>
-                  <tr className="bg-slate-100/80 text-slate-700 border-b border-slate-200 font-semibold sticky top-0">
+                  <tr className="bg-panorama-navy text-white border-b-2 border-panorama-gold font-semibold sticky top-0">
                     <th className="py-2 px-3 w-16">Item</th>
                     <th className="py-2 px-3 w-24">NCM/SH</th>
                     <th className="py-2 px-3">Descrição comercial</th>
@@ -342,11 +342,11 @@ export function SectionAnexos() {
 
   return (
     <section id="secao-7" className="scroll-mt-24 space-y-4">
-      <div className="border-b border-slate-200 pb-3">
+      <div className="border-b-2 border-panorama-gold/60 pb-3">
         <div className="flex items-center gap-2">
-          <span className="flex items-center justify-center w-6 h-6 rounded-md bg-blue-600 text-white font-bold text-xs">
+          <span className="flex items-center justify-center w-7 h-7 rounded-md bg-panorama-navy text-panorama-gold-light font-bold text-xs ring-1 ring-panorama-gold/50">
             7
-          </span>
+          </span>{' '}
           <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
             Anexos da reforma tributária — conteúdo analítico
           </h2>
@@ -484,7 +484,7 @@ export function SectionAnexos() {
                       <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white max-h-80 overflow-y-auto">
                         <table className="w-full text-left border-collapse text-xs">
                           <thead>
-                            <tr className="bg-slate-100/80 text-slate-700 border-b border-slate-200 font-semibold sticky top-0">
+                            <tr className="bg-panorama-navy text-white border-b-2 border-panorama-gold font-semibold sticky top-0">
                               <th className="py-2 px-3 w-16">Item</th>
                               <th className="py-2 px-3">Descrição</th>
                               <th className="py-2 px-3 w-56">NCM/SH · NBS</th>

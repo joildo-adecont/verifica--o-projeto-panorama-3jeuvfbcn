@@ -129,9 +129,9 @@ export function SectionCestaBasica() {
 
   return (
     <section id="secao-3" className="scroll-mt-24 space-y-6">
-      <div className="border-b border-slate-200 pb-3">
+      <div className="border-b-2 border-panorama-gold/60 pb-3">
         <div className="flex items-center gap-2">
-          <span className="flex items-center justify-center w-6 h-6 rounded-md bg-blue-600 text-white font-bold text-xs">
+          <span className="flex items-center justify-center w-7 h-7 rounded-md bg-panorama-navy text-panorama-gold-light font-bold text-xs ring-1 ring-panorama-gold/50">
             3
           </span>
           <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
@@ -160,7 +160,7 @@ export function SectionCestaBasica() {
         <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-xs">
           <table className="w-full text-left border-collapse text-xs sm:text-sm">
             <thead>
-              <tr className="bg-slate-100/80 text-slate-700 border-b border-slate-200 font-semibold">
+              <tr className="bg-panorama-navy text-white border-b-2 border-panorama-gold font-semibold">
                 <th className="py-3 px-4 w-44">Grupo</th>
                 <th className="py-3 px-4">Exemplos</th>
                 <th className="py-3 px-4 w-36">IBS/CBS</th>
@@ -204,7 +204,7 @@ export function SectionCestaBasica() {
         <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-xs">
           <table className="w-full text-left border-collapse text-xs sm:text-sm">
             <thead>
-              <tr className="bg-slate-100/80 text-slate-700 border-b border-slate-200 font-semibold">
+              <tr className="bg-panorama-navy text-white border-b-2 border-panorama-gold font-semibold">
                 <th className="py-3 px-4">Produto / Serviço</th>
                 <th className="py-3 px-4 w-60">Tratamento</th>
                 <th className="py-3 px-4 w-52">Dispositivo</th>
