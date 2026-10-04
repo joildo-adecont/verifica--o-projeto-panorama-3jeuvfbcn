@@ -556,7 +556,15 @@
           if (gruposPedidos.length && gruposPedidos.indexOf(i.grupo) >= 0) return true
           var alvo = norm(i.codigo + ' ' + i.nome + ' ' + (i.grupo || '') + ' ' + (i.fonte || ''))
           return termosTexto.some(function (tt) {
-            return alvo.indexOf(tt) >= 0
+            // Busca por frase completa OU por todas as palavras do termo (AND)
+            if (alvo.indexOf(tt) >= 0) return true
+            var palavras = tt.split(/\s+/).filter(function (p) {
+              return p.length >= 3
+            })
+            if (!palavras.length) return false
+            return palavras.every(function (p) {
+              return alvo.indexOf(p) >= 0
+            })
           })
         })
         itens.forEach(function (i) {
