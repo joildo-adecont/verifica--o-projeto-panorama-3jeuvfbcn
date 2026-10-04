@@ -38,6 +38,22 @@ function ehRecente(dataBR: string): boolean {
 const REGISTROS: Registro[] = [
   {
     data: '04/10/2026',
+    hora: '11:00',
+    titulo: 'Seção 6A — Regime Imobiliário (venda, locação, redutores e RET)',
+    conteudo:
+      'Nova seção dedicada ao regime específico das operações com bens imóveis (LC 214/2025, arts. 252-261 e 485-488), com 3 abas: Operações e reduções (alienação −50% com redutor social R$ 100 mil para imóvel novo e R$ 30 mil para lote, redutor de ajuste para imóvel usado, locação −70% com redutor social R$ 600/mês, intermediação e construção civil −50%), RET incorporação (2,08% patrimônio de afetação / 0,53% RET especial, opção antes de 01/01/2029) e Permutas e não incidências (art. 252 §2º/§5º/§5-A da LC 227/2026). Cada operação tem link direto para simular no Simulador de Transição (grupo 🏠 Imobiliário, 9 itens). Texto extraído da LC 214 compilada do Planalto, conferido em 04/10/2026. Atalho I no menu lateral.',
+    fontes: [
+      {
+        nome: 'LC 214/2025 compilada — Planalto',
+        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+      },
+    ],
+    caminho:
+      'Panorama (62493) — SectionRegimeImobiliario.tsx (novo) + Index.tsx + PanoramaSideMenu.tsx',
+    versao: '62493 v0.0.86',
+  },
+  {
+    data: '04/10/2026',
     hora: '00:45',
     titulo: 'Unificação de dados — Seção 7A passa a ser a fonte única das tabelas de itens',
     conteudo:

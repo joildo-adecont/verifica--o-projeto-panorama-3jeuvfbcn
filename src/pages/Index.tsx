@@ -8,6 +8,7 @@ import { SectionCestaBasica } from '@/components/SectionCestaBasica'
 import { SectionImunidades } from '@/components/SectionImunidades'
 import { SectionIsencoesAlíquotas } from '@/components/SectionIsencoesAliquots'
 import { SectionRegimesEspecificos } from '@/components/SectionRegimesEspecificos'
+import { SectionRegimeImobiliario } from '@/components/SectionRegimeImobiliario'
 import { SectionAnexos } from '@/components/SectionAnexos'
 import { SectionTabelaGeral } from '@/components/SectionTabelaGeral'
 import { SectionCronograma } from '@/components/SectionCronograma'
@@ -106,6 +107,9 @@ export default function Index() {
 
           {/* Seção 6: Regimes específicos e diferenciados */}
           <SectionRegimesEspecificos />
+
+          {/* Seção 6A: Regime imobiliário — venda, locação, redutores e RET */}
+          <SectionRegimeImobiliario />
 
           {/* Seção 7: Anexos da reforma tributária */}
           <SectionAnexos />

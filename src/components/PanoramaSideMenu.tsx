@@ -16,6 +16,7 @@ import {
   ListChecks,
   History,
   Table2,
+  Home,
 } from 'lucide-react'
 
 /**
@@ -98,6 +99,16 @@ const ITENS: MenuItem[] = [
     cor: 'text-orange-600',
     bg: 'bg-orange-50',
     borda: 'border-orange-200',
+  },
+  {
+    id: '#regime-imobiliario',
+    tecla: 'I',
+    numero: '6A',
+    label: 'Regime Imobiliário',
+    Icon: Home,
+    cor: 'text-amber-700',
+    bg: 'bg-amber-50',
+    borda: 'border-amber-200',
   },
   {
     id: '#secao-7',
