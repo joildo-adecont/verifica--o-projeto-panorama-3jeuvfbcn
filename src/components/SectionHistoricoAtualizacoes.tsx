@@ -39,6 +39,30 @@ const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
     data: '04/10/2026',
+    hora: '20:35',
+    titulo: 'Seção 6A — simulador do regime imobiliário (venda e aluguel)',
+    conteudo:
+      'A pedido do CEO, a Seção 6A (Regime Imobiliário) ganhou a aba 🧮 Simulador — venda e aluguel, no padrão do simulador do Simples (6E), com as particularidades da legislação imobiliária (LC 214, arts. 255–262). Dois modos: Venda (imóvel residencial novo c/ redutor social R$ 100 mil, usado c/ redutor de ajuste — custo de aquisição corrigido pelo IPCA — e lote c/ R$ 30 mil) e Aluguel (nº de imóveis, aluguel mensal, residencial c/ redutor social R$ 600/mês por imóvel × comercial sem redutor). Apresentação em 4 blocos: (1) Percentuais do cenário — referência 27,91%, redução do art. 261 (−50% venda / −70% locação), alíquota efetiva (13,96% / 8,37%) e carga sobre a receita; (2) Base de cálculo passo a passo — valor da operação → redutor de ajuste → redutor social → base efetiva → alíquota → IBS+CBS a recolher, cada linha com a base legal; (3) Comparativo reforma × tributação atual (PIS/Cofins 3,65% presumidos) com diferenças sinalizadas e crédito do adquirente; (4) Referência RET (2,08% / 0,53%, art. 485). Notas: art. 487 (contratos até 16/01/2025 mantêm regra atual até 31/12/2028) e CBS ref estimada (oficial depende de resolução do Senado).',
+    fontes: [
+      {
+        nome: 'LC 214/2025 compilada — Planalto (arts. 252–262, 257–260, 261 e 485)',
+        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+      },
+      {
+        nome: 'Redutor de ajuste — Barbieri Advogados (valor inicial e exemplo de cálculo)',
+        url: 'https://www.barbieriadvogados.com/redutor-de-ajuste-entenda-o-mecanismo',
+      },
+      {
+        nome: 'Resolução CGIBS 14/2026 — alíquota de referência 27,91%',
+        url: 'https://www.in.gov.br/web/dou/-/resolucao-cgibs-n-14-de-2026',
+      },
+    ],
+    caminho:
+      'Panorama (62493) — SectionRegimeImobiliario.tsx (nova aba 🧮 Simulador — venda e aluguel)',
+    versao: '62493 v0.0.105',
+  },
+  {
+    data: '04/10/2026',
     hora: '20:15',
     titulo: 'Seção 6E — novo layout de resultados do regime híbrido',
     conteudo:
