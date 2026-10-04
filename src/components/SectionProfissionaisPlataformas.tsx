@@ -1,8 +1,10 @@
-import { Smartphone, Users } from 'lucide-react'
+import { useState } from 'react'
+import { Calculator, Smartphone, Users } from 'lucide-react'
 
 const SIM_URL = '/simulador.html'
 
-/** Seção 6F — Profissionais regulamentados (art. 127) e Plataformas digitais (art. 22). */
+/** Seção 6F — Profissionais regulamentados (art. 127) e Plataformas digitais (art. 22).
+ *  Texto extraído da LC 214 compilada do Planalto (conferido em 04/10/2026). */
 
 const PROFISSIONAIS = [
   {
@@ -53,7 +55,32 @@ const PLATAFORMAS = [
   },
 ]
 
+function AbaButton({
+  ativo,
+  onClick,
+  children,
+}: {
+  ativo: boolean
+  onClick: () => void
+  children: React.ReactNode
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`text-xs px-3 py-1.5 rounded-lg font-semibold border transition-colors cursor-pointer ${
+        ativo
+          ? 'bg-panorama-navy text-panorama-gold-light border-panorama-navy'
+          : 'bg-white text-slate-600 border-slate-300 hover:bg-slate-100'
+      }`}
+    >
+      {children}
+    </button>
+  )
+}
+
 export function SectionProfissionaisPlataformas() {
+  const [tab, setTab] = useState<'profissionais' | 'plataformas'>('profissionais')
+
   return (
     <section id="profissionais-plataformas" className="scroll-mt-24 space-y-5">
       <div className="border-b-2 border-panorama-gold/60 pb-3">
@@ -80,53 +107,76 @@ export function SectionProfissionaisPlataformas() {
         </p>
       </div>
 
-      <div className="p-3.5 rounded-lg bg-panorama-gold/10 border border-panorama-gold/50 text-sm text-slate-800">
-        <strong>Profissionais regulamentados:</strong> redução de <strong>30%</strong> nas alíquotas
-        — com requisitos objetivos para a pessoa jurídica.
+      {/* Abas */}
+      <div className="flex flex-wrap gap-1.5">
+        <AbaButton ativo={tab === 'profissionais'} onClick={() => setTab('profissionais')}>
+          ⚖️ Profissionais regulamentados
+        </AbaButton>
+        <AbaButton ativo={tab === 'plataformas'} onClick={() => setTab('plataformas')}>
+          📱 Plataformas digitais
+        </AbaButton>
       </div>
 
-      <div className="space-y-3">
-        {PROFISSIONAIS.map((p) => (
-          <div
-            key={p.titulo}
-            className="p-4 rounded-xl border border-slate-200 bg-white shadow-xs space-y-1.5"
-          >
-            <h4 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-              <Users className="w-4 h-4 text-indigo-600" /> {p.titulo}
-            </h4>
-            <p className="text-xs text-slate-700 leading-relaxed">{p.regra}</p>
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-[11px] font-mono text-slate-500">{p.base}</p>
-              {p.sim && (
-                <a
-                  href={`${SIM_URL}?q=${encodeURIComponent(p.sim)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[11px] font-semibold text-panorama-navy hover:text-panorama-gold-dark shrink-0"
-                >
-                  Simular →
-                </a>
-              )}
+      {tab === 'profissionais' && (
+        <div className="space-y-3">
+          <div className="p-3.5 rounded-lg bg-panorama-gold/10 border border-panorama-gold/50 text-sm text-slate-800">
+            <strong>Regra central (art. 127):</strong> redução de <strong>30%</strong> nas alíquotas
+            — com requisitos objetivos para a pessoa jurídica.
+          </div>
+          {PROFISSIONAIS.map((p) => (
+            <div
+              key={p.titulo}
+              className="p-4 rounded-xl border border-slate-200 bg-white shadow-xs space-y-1.5"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <h4 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                  <Users className="w-4 h-4 text-indigo-600" /> {p.titulo}
+                </h4>
+                {p.titulo.includes('Redução') && (
+                  <span className="shrink-0 px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-100 text-indigo-800 border border-indigo-300">
+                    −30%
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-slate-700 leading-relaxed">{p.regra}</p>
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-[11px] font-mono text-slate-500">{p.base}</p>
+                {p.sim && (
+                  <a
+                    href={`${SIM_URL}?q=${encodeURIComponent(p.sim)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-panorama-navy hover:text-panorama-gold-dark shrink-0"
+                  >
+                    <Calculator className="w-3 h-3" /> Simular
+                  </a>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
-      <div className="p-4 rounded-xl border border-slate-200 bg-white shadow-xs space-y-2">
-        <h4 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-          <Smartphone className="w-4 h-4 text-panorama-gold-dark" /> Plataformas digitais (art. 22)
-        </h4>
-        {PLATAFORMAS.map((p) => (
-          <div
-            key={p.titulo}
-            className="space-y-1 pt-1.5 border-t border-slate-50 first:border-0 first:pt-0"
-          >
-            <p className="text-xs font-bold text-slate-800">{p.titulo}</p>
-            <p className="text-xs text-slate-700 leading-relaxed">{p.regra}</p>
-            <p className="text-[11px] font-mono text-slate-500">{p.base}</p>
+      {tab === 'plataformas' && (
+        <div className="space-y-3">
+          {PLATAFORMAS.map((p) => (
+            <div
+              key={p.titulo}
+              className="p-4 rounded-xl border border-slate-200 bg-white shadow-xs space-y-1.5"
+            >
+              <h4 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                <Smartphone className="w-4 h-4 text-panorama-gold-dark" /> {p.titulo}
+              </h4>
+              <p className="text-xs text-slate-700 leading-relaxed">{p.regra}</p>
+              <p className="text-[11px] font-mono text-slate-500">{p.base}</p>
+            </div>
+          ))}
+          <div className="p-3.5 rounded-lg bg-blue-50 border border-blue-200 text-blue-900 text-xs sm:text-sm">
+            ℹ️ Fornecedor estrangeiro: dispensado de inscrição quando a plataforma responde em
+            substituição (art. 22, §3º) — a plataforma é a responsável direta.
           </div>
-        ))}
-      </div>
+        </div>
+      )}
     </section>
   )
 }
