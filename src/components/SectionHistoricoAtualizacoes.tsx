@@ -39,6 +39,34 @@ const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
     data: '04/10/2026',
+    hora: '13:30',
+    titulo: 'Seção 6E — aba de simulação do regime híbrido (Simples normal × híbrido)',
+    conteudo:
+      'A pedido do CEO, a Seção 6E (Simples Nacional) ganhou a aba 🧮 Simulação — regime híbrido, com simulador comparativo: recolher IBS/CBS dentro do DAS × pelo regime regular (LC 214, art. 41, §3º; LC 123, art. 13, §10; Res. CGSN 190/2026, arts. 40-C/40-D). Entradas: receita mensal, anexo (I–V), faixa, % de custo com direito a crédito e CBS de referência (estimativa editável — oficial depende de resolução do Senado). Saídas: alíquota efetiva × partilha CBS+IBS do anexo (crédito limitado ao devido no DAS, art. 47, §9º, II) × alíquota cheia com crédito integral; IBS+CBS a recolher e crédito do cliente, com diferenças sinalizadas. Abaixo, tabela de forma e prazos da opção: janela 1–30/09 (efeitos jan–jun do ano seguinte, cancelamento até 30/11; 2026 prorrogado até 30/10 pela Res. CGSN 194/2026), janela 1–31/03 (efeitos jul–dez, cancelamento até 31/05), irretratabilidade por semestre e como optar no Portal. MEI (SIMEI) não participa.',
+    fontes: [
+      {
+        nome: 'LC 214/2025 compilada — Planalto (art. 41, §3º; art. 47, §9º)',
+        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+      },
+      {
+        nome: 'CGSN — notícia sobre opção pelo regime regular (Simples híbrido)',
+        url: 'https://www8.receita.fazenda.gov.br/simplesnacional/noticias/NoticiaCompleta.aspx?id=e595d010-1e04-4c3b-95d9-185fc58594b5',
+      },
+      {
+        nome: 'Resolução CGSN 190/2026 — DOU (arts. 40-C/40-D)',
+        url: 'https://www.in.gov.br/web/dou/-/resolucao-cgsn-n-190-de-4-de-agosto-de-2026-724454118',
+      },
+      {
+        nome: 'Manual RFB — Opção pelo Regime Regular IBS/CBS no Simples Nacional',
+        url: 'https://www8.receita.fazenda.gov.br/SimplesNacional/Arquivos/manual/Manual%20op%C3%A7%C3%A3o%20regime%20regular%20IBS%20e%20CBS%20no%20Simples%20Nacional.pdf',
+      },
+    ],
+    caminho:
+      'Panorama (62493) — SectionSimples.tsx (nova aba 🧮 Simulação — regime híbrido + tabela de prazos)',
+    versao: '62493 v0.0.99–100',
+  },
+  {
+    data: '04/10/2026',
     hora: '12:20',
     titulo: 'Tabelas uniformizadas (layout da 6A) nas seções 6B–6F',
     conteudo:
