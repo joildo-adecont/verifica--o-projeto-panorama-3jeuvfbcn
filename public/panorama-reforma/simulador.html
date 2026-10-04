@@ -476,6 +476,7 @@
         ['suspensao', '⏸️ Suspensão'],
         ['agro', '🐄 Agro'],
         ['regular', '⚪ Regime regular'],
+        ['imobiliario', '🏠 Imobiliário (venda, locação, RET)'],
         ['depreciacao', '📉 Depreciação (RIBS)'],
         ['repetro', '🚢 Repetro (RIBS)'],
         ['credito_presumido', '💵 Crédito presumido'],
@@ -635,6 +636,7 @@
         else if (grupo === 'reducao60' || grupo === 'dispositivos60') fatorGrupo = 0.4
         else if (grupo === 'reducao30') fatorGrupo = 0.7
         else if (grupo === 'insumos_agro') fatorGrupo = 0.7
+        else if (grupo === 'imobiliario') fatorGrupo = 0.5
         var alCbs = parseFloat(document.getElementById('al-cbs').value) || 0
         var alIbse = parseFloat(document.getElementById('al-ibse').value) || 0
         var alIbsm = parseFloat(document.getElementById('al-ibsm').value) || 0
@@ -705,6 +707,8 @@
           imposto_seletivo:
             'LC 214/2025, arts. 156–171 — Imposto Seletivo (bens nocivos/supérfluos).',
           regular: 'LC 214/2025 — regime regular, alíquota de referência.',
+          imobiliario:
+            'LC 214/2025, arts. 252-261 (alienação −50%, locação −70%, redutores sociais) e arts. 485-488 (RET).',
         }
         document.getElementById('res-cap').textContent =
           'Capitulação legal: ' +
