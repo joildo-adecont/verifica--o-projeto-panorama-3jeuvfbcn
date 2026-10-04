@@ -39,6 +39,26 @@ const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
     data: '04/10/2026',
+    hora: '20:15',
+    titulo: 'Seção 6E — novo layout de resultados do regime híbrido',
+    conteudo:
+      'A pedido do CEO, a aba 🧮 Simulação — regime híbrido da Seção 6E foi reorganizada em 5 blocos numerados: (1) Percentuais do cenário — 4 KPIs (alíquota efetiva do DAS, partilha CBS+IBS do anexo, crédito ao cliente no DAS e alíquota híbrida); (2) Comparativo do mês em R$ — IBS+CBS a recolher (líquido), crédito que o cliente apropria e custo líquido % da receita, DAS × híbrido com diferenças sinalizadas; (3) Comparativo por faixa — as 6 faixas do Simples com limites (RBT12), efetiva no teto, crédito DAS, híbrido e diferença em p.p., faixa selecionada destacada; (4) Transição ano a ano 2027–2033 — partilha CBS+IBS no DAS, crédito DAS, híbrido (CBS ref + IBS 0,1%→pleno) e diferença, com grupos de partilha 1ª–2ª e 3ª–5ª faixa (Anexos XVIII–XXII da LC 214); (5) Faixas e limites do Simples — chips clicáveis (sublimite R$ 3,6 mi, teto R$ 4,8 mi, MEI fora).',
+    fontes: [
+      {
+        nome: 'LC 214/2025 compilada — Planalto (arts. 41, 47 e 344–347)',
+        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+      },
+      {
+        nome: 'CGSN — notícia sobre opção pelo regime regular (Simples híbrido)',
+        url: 'https://www8.receita.fazenda.gov.br/simplesnacional/noticias/NoticiaCompleta.aspx?id=e595d010-1e04-4c3b-95d9-185fc58594b5',
+      },
+    ],
+    caminho:
+      'Panorama (62493) — SectionSimples.tsx (aba 🧮 reorganizada em 5 blocos: KPIs, comparativo mensal, por faixa, transição ano a ano e limites)',
+    versao: '62493 v0.0.102',
+  },
+  {
+    data: '04/10/2026',
     hora: '13:30',
     titulo: 'Seção 6E — aba de simulação do regime híbrido (Simples normal × híbrido)',
     conteudo:
