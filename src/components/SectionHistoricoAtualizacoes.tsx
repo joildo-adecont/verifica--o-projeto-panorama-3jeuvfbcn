@@ -39,6 +39,31 @@ const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
     data: '04/10/2026',
+    hora: '20:50',
+    titulo:
+      'Seção 6A — enquadramento (art. 251), faixa de imóveis e valores apurados no simulador de aluguéis',
+    conteudo:
+      'A pedido do CEO, o simulador de aluguéis da Seção 6A ganhou: (0) Enquadramento — obrigatoriedade de apurar IBS/CBS (art. 251): seletor PJ (sempre contribuinte) × PF; receita de aluguéis no ano anterior; IPCA acumulado desde 01/2025 para atualizar os limites (R$ 240 mil → ano anterior; +20% → R$ 288 mil → próprio ano, art. 251, §5º e §2º, II; cumulatividade com mais de 3 imóveis confirmada pelo Decreto 12.955/2026, art. 382, §1º, III); badge CONTRIBUINTE (apuração obrigatória) × NÃO CONTRIBUINTE (sem IBS/CBS sobre aluguéis) com o motivo legal; notas do art. 253 (temporada ≤90 dias = hotelaria, −40%) e art. 487 (contratos até 16/01/2025 mantêm regra atual até 31/12/2028). (3) Faixa de imóveis — mínimo a máximo: tabela de 1 a 12 imóveis com receita mensal/anual, se obriga ou não a apurar, base, IBS+CBS no mês e no ano; identifica o mínimo de imóveis para obrigatoriedade nesta configuração. (4) Valores apurados: receita anual, base anual, IBS+CBS anual e card Obrigatoriedade (compõe / não compõe a apuração). Blocos renumerados (comparativo virou 5, RET virou 6).',
+    fontes: [
+      {
+        nome: 'LC 214/2025 compilada — Planalto (art. 251, §§1º, 2º e 5º)',
+        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+      },
+      {
+        nome: 'Decreto 12.955/2026 — art. 382, §1º, III (cumulatividade no ano corrente)',
+        url: 'https://www.in.gov.br/en/web/dou/-/decreto-n-12.955-de-29-de-abril-de-2026-702415229',
+      },
+      {
+        nome: 'DPC — Aluguel de imóveis com a Reforma Tributária (limites atualizados pelo IPCA)',
+        url: 'https://www.dpc.com.br/aluguel-de-imoveis-com-a-reforma-tributaria-5-perguntas-e-respostas-para-entender-as-mudancas',
+      },
+    ],
+    caminho:
+      'Panorama (62493) — SectionRegimeImobiliario.tsx (simulador de aluguéis: bloco 0 enquadramento, bloco 3 faixa de imóveis, bloco 4 valores apurados)',
+    versao: '62493 v0.0.107',
+  },
+  {
+    data: '04/10/2026',
     hora: '20:35',
     titulo: 'Seção 6A — simulador do regime imobiliário (venda e aluguel)',
     conteudo:
