@@ -8,14 +8,14 @@ const TRANSICAO = [
   {
     titulo: 'Alíquotas de teste — 2026',
     regra:
-      'Fatos geradores de 2026: IBS estadual 0,1% (arrecadação integral para o CGIBS e o Fundo de Compensação, sem repartição normal) e CBS 0,9%, com compensação com PIS/Cofins (arts. 343 e 346).',
-    base: 'LC 214, arts. 343 e 346',
+      'Fatos geradores de 2026: IBS estadual 0,1% (arrecadação integral para o CGIBS e o Fundo de Compensação, sem repartição normal) e CBS 0,9%, compensável com PIS/Cofins (arts. 344 e 346).',
+    base: 'LC 214, arts. 344 e 346',
     badge: '2026',
   },
   {
     titulo: 'Alíquotas de teste — 2027 a 2028',
     regra:
-      'IBS estadual 0,05% + municipal 0,05% e CBS reduzida em 0,1 p.p. da alíquota fixada (arts. 344 e 347). As alíquotas aplicam-se aos regimes específicos observadas as respectivas bases de cálculo (art. 344, p.ú., II).',
+      'IBS estadual 0,05% + municipal 0,05% (total 0,1%) e CBS com alíquota reduzida em 0,1 p.p. da alíquota fixada (arts. 344 e 347). As alíquotas aplicam-se aos regimes específicos observadas as respectivas bases de cálculo (art. 344, p.ú., II).',
     base: 'LC 214, arts. 344 e 347',
     badge: '2027–2028',
   },
@@ -30,10 +30,10 @@ const TRANSICAO = [
 
 const REGRAS = [
   {
-    titulo: 'IBS dentro do DAS',
+    titulo: 'IBS e CBS dentro do DAS',
     regra:
-      'O IBS é recolhido no Simples Nacional (DAS) para empresas com receita até R$ 3,6 milhões/ano (LC 123, art. 13-A, incluído pela LC 214). A CBS não entra no DAS — segue apuração própria.',
-    base: 'LC 123, art. 13-A; LC 214',
+      'Os valores relativos ao IBS e à CBS devidos pelos optantes pelo Simples Nacional são recolhidos por meio de documento único de arrecadação (DAS), nos termos fixados pelo Comitê Gestor (LC 214, art. 343). Abrange empresas com receita até R$ 3,6 milhões/ano (LC 123, art. 13-A, incluído pela LC 214).',
+    base: 'LC 214, art. 343; LC 123, art. 13-A',
   },
   {
     titulo: 'Opção e janelas',
@@ -89,7 +89,7 @@ export function SectionSimples() {
             6E
           </span>
           <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
-            Simples Nacional — IBS no DAS e transição
+            Simples Nacional — IBS e CBS no DAS e transição
           </h2>
         </div>
         <p className="text-xs sm:text-sm text-slate-600 mt-2 leading-relaxed">
@@ -120,8 +120,10 @@ export function SectionSimples() {
       {tab === 'transicao' && (
         <div className="space-y-3">
           <div className="p-3.5 rounded-lg bg-panorama-gold/10 border border-panorama-gold/50 text-sm text-slate-800">
-            <strong>Regra central:</strong> o IBS entra no DAS com alíquotas de teste na transição —
-            0,1% (2026), 0,1% somado (2027–2028) e alíquotas plenas a partir de 2029.
+            <strong>Regra central (art. 343):</strong> o <strong>IBS e a CBS</strong> devidos pelos
+            optantes do Simples são recolhidos juntos no <strong>DAS</strong> (documento único), com
+            alíquotas de teste na transição — 0,1% + 0,9% (2026), 0,1% + CBS −0,1 p.p. (2027–2028) e
+            alíquotas plenas a partir de 2029.
           </div>
           {TRANSICAO.map((t) => (
             <div
