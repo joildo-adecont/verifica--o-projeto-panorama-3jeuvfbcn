@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { Building2, Calculator, Home, Landmark, KeyRound, TrendingDown } from 'lucide-react'
-import { fmt } from './SectionSimples'
+function fmt(v: number) {
+  return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })
+}
 
 const SIM_URL = '/simulador.html'
 
