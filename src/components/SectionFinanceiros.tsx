@@ -1,10 +1,10 @@
 import { useState } from 'react'
-import { Calculator, Landmark } from 'lucide-react'
+import { Calculator } from 'lucide-react'
 
 const SIM_URL = '/simulador.html'
 
 /** Seção 6D — Serviços Financeiros (LC 214/2025, arts. 182–214).
- *  Texto extraído da LC 214 compilada do Planalto (conferido em 04/10/2026). */
+ *  Layout de tabela uniformizado com a Seção 6A. */
 
 const LISTA = [
   'Operações de crédito (captação, repasse, adiantamento, empréstimo, financiamento, desconto de títulos, garantias)',
@@ -29,27 +29,31 @@ const LISTA = [
 const REGRAS = [
   {
     titulo: 'Base de cálculo: receitas com deduções',
-    regra:
+    badge: 'Receitas',
+    detalhe:
       'A base é composta das receitas das operações, com as deduções previstas no capítulo (art. 185). Aplica-se à totalidade da contraprestação, independentemente do local da operação (art. 182, p.ú.).',
     base: 'LC 214, arts. 182, p.ú. e 185',
   },
   {
     titulo: 'Deduções nas operações de crédito, câmbio e títulos',
-    regra:
+    badge: 'Deduções',
+    detalhe:
       'Deduzem-se: despesas financeiras de captação; despesas de câmbio; perdas com títulos; encargos financeiros de instrumentos de dívida; perdas na recebibilidade de créditos (regras do IR); despesas com assessores/consultores não empregados (art. 192).',
     base: 'LC 214, art. 192',
   },
   {
-    titulo: 'Arranjos de pagamento',
-    regra:
-      'Credenciamento, captura, processamento e liquidação de transações, taxa de desconto, locação de terminais e softwares (art. 214). A relação emissor↔portador segue normas gerais, salvo crédito (art. 214, §2º).',
-    base: 'LC 214, art. 214',
-  },
-  {
     titulo: 'Quem está sujeito',
-    regra:
+    badge: 'Sujeitos',
+    detalhe:
       'Pessoas físicas e jurídicas supervisionadas pelo Banco Central, CVM, Previc ou SUSEP (art. 183) — bancos, seguradoras, administradoras de consórcio, corretoras etc.',
     base: 'LC 214, art. 183',
+  },
+  {
+    titulo: 'Arranjos de pagamento',
+    badge: 'Art. 214',
+    detalhe:
+      'Credenciamento, captura, processamento e liquidação de transações, taxa de desconto, locação de terminais e softwares (art. 214). A relação emissor↔portador segue normas gerais, salvo crédito (art. 214, §2º).',
+    base: 'LC 214, art. 214',
   },
 ]
 
@@ -73,6 +77,56 @@ function AbaButton({
     >
       {children}
     </button>
+  )
+}
+
+function Tabela({
+  linhas,
+}: {
+  linhas: { titulo: string; badge: string; detalhe: string; base: string; sim?: string }[]
+}) {
+  return (
+    <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-xs">
+      <table className="w-full text-left border-collapse text-xs sm:text-sm">
+        <thead>
+          <tr className="bg-panorama-navy text-white border-b-2 border-panorama-gold font-semibold">
+            <th className="py-3 px-4">Operação</th>
+            <th className="py-3 px-3 w-32">Redução</th>
+            <th className="py-3 px-4">Detalhe</th>
+            <th className="py-3 px-3 w-44">Base legal</th>
+            <th className="py-3 px-3 w-24">Simular</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-slate-100">
+          {linhas.map((o) => (
+            <tr key={o.titulo} className="hover:bg-slate-50/70 align-top">
+              <td className="py-3 px-4 font-semibold text-slate-900">{o.titulo}</td>
+              <td className="py-3 px-3">
+                <span className="inline-block px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                  {o.badge}
+                </span>
+              </td>
+              <td className="py-3 px-4 text-slate-700 leading-relaxed">{o.detalhe}</td>
+              <td className="py-3 px-3 text-slate-600 text-xs font-mono">{o.base}</td>
+              <td className="py-3 px-3">
+                {o.sim ? (
+                  <a
+                    href={`${SIM_URL}?q=${encodeURIComponent(o.sim)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-panorama-navy hover:text-panorama-gold-dark"
+                  >
+                    <Calculator className="w-3 h-3" /> Simular
+                  </a>
+                ) : (
+                  <span className="text-[11px] text-slate-300">—</span>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   )
 }
 
@@ -125,9 +179,8 @@ export function SectionFinanceiros() {
             CVM, Previc ou SUSEP (art. 183).
           </div>
           <div className="p-4 rounded-xl border border-slate-200 bg-white shadow-xs space-y-2">
-            <h4 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-              <Landmark className="w-4 h-4 text-panorama-gold-dark" /> O que são serviços
-              financeiros (art. 182)
+            <h4 className="text-sm font-bold text-slate-900">
+              O que são serviços financeiros (art. 182)
             </h4>
             <ul className="text-xs text-slate-700 space-y-1 list-disc list-inside leading-relaxed">
               {LISTA.map((f) => (
@@ -141,34 +194,13 @@ export function SectionFinanceiros() {
 
       {tab === 'base' && (
         <div className="space-y-3">
-          {REGRAS.filter((r) => !r.titulo.includes('Arranjos')).map((r) => (
-            <div
-              key={r.titulo}
-              className="p-4 rounded-xl border border-slate-200 bg-white shadow-xs space-y-1.5"
-            >
-              <h4 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-                <Landmark className="w-4 h-4 text-panorama-gold-dark" /> {r.titulo}
-              </h4>
-              <p className="text-xs text-slate-700 leading-relaxed">{r.regra}</p>
-              <p className="text-[11px] font-mono text-slate-500">{r.base}</p>
-            </div>
-          ))}
+          <Tabela linhas={REGRAS.filter((r) => r.titulo !== 'Arranjos de pagamento')} />
         </div>
       )}
 
       {tab === 'arranjos' && (
         <div className="space-y-3">
-          <div className="p-4 rounded-xl border border-slate-200 bg-white shadow-xs space-y-1.5">
-            <h4 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-              <CreditCard className="w-4 h-4 text-panorama-gold-dark" /> Arranjos de pagamento
-            </h4>
-            <p className="text-xs text-slate-700 leading-relaxed">
-              Credenciamento, captura, processamento e liquidação de transações, taxa de desconto,
-              locação de terminais e softwares (art. 214). A relação emissor↔portador segue normas
-              gerais, salvo crédito (art. 214, §2º).
-            </p>
-            <p className="text-[11px] font-mono text-slate-500">LC 214, art. 214</p>
-          </div>
+          <Tabela linhas={REGRAS.filter((r) => r.titulo === 'Arranjos de pagamento')} />
           <div className="p-3.5 rounded-lg bg-blue-50 border border-blue-200 text-blue-900 text-xs sm:text-sm">
             ℹ️ Quem está sujeito: pessoas físicas e jurídicas supervisionadas pelo Banco Central,
             CVM, Previc ou SUSEP (art. 183) — bancos, seguradoras, administradoras de consórcio,
