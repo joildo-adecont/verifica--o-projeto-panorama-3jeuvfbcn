@@ -154,6 +154,39 @@ export function PanoramaHeader({
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [sources, setSources] = useState<SourceStatusItem[]>([])
+  const [catalogo, setCatalogo] = useState<Array<{ codigo: string; nome: string; grupo: string }>>(
+    [],
+  )
+  const [mostraProdutos, setMostraProdutos] = useState(false)
+
+  // Carrega o catálogo do Simulador (987 itens NCM/NBS/CNAE) para a busca de produtos/serviços
+  useEffect(() => {
+    fetch('/partes/sim-catalogo.js')
+      .then((r) => r.text())
+      .then((t) => {
+        const m = t.match(/const SIM_CATALOGO = ([\s\S]*?)\n\]/)
+        if (!m) return
+        const arr = new Function('return ' + m[1] + '\n]')() as unknown[][]
+        const itens = arr
+          .filter((a) => Array.isArray(a) && a.length >= 5)
+          .map((a) => ({ codigo: String(a[0]), nome: String(a[1]), grupo: String(a[2]) }))
+        setCatalogo(itens)
+      })
+      .catch(() => {})
+  }, [])
+
+  const norm = (s: string) =>
+    (s || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+
+  const produtosAchados =
+    searchTerm.trim().length >= 2
+      ? catalogo
+          .filter((i) => norm(i.codigo + ' ' + i.nome + ' ' + i.grupo).includes(norm(searchTerm)))
+          .slice(0, 8)
+      : []
   const { toast } = useToast()
 
   const loadSourceStatus = useCallback(async () => {
@@ -356,14 +389,19 @@ export function PanoramaHeader({
             </div>
           </div>
 
-          {/* Quick Search */}
-          <div className="hidden lg:flex items-center relative w-72">
+          {/* Quick Search — normas + produtos/serviços */}
+          <div className="hidden lg:flex items-center relative w-80">
             <Search className="w-4 h-4 absolute left-3 text-slate-400" />
             <input
               type="text"
-              placeholder="Buscar normas, regimes, alimentos…  (tecla /)"
+              placeholder="Buscar produtos, serviços, normas…  (tecla /)"
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => {
+                setSearchTerm(e.target.value)
+                setMostraProdutos(true)
+              }}
+              onFocus={() => setMostraProdutos(true)}
+              onBlur={() => setTimeout(() => setMostraProdutos(false), 200)}
               className="w-full pl-9 pr-8 py-1.5 text-xs rounded-lg border border-slate-300 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 bg-slate-50"
             />
             {searchTerm && (
@@ -374,6 +412,32 @@ export function PanoramaHeader({
               >
                 <X className="w-3.5 h-3.5" />
               </button>
+            )}
+            {mostraProdutos && produtosAchados.length > 0 && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg border border-slate-200 shadow-lg z-50 max-h-80 overflow-y-auto">
+                <p className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-slate-400 border-b border-slate-100">
+                  Produtos e serviços — {produtosAchados.length} de {catalogo.length}
+                </p>
+                {produtosAchados.map((p) => (
+                  <a
+                    key={p.codigo + p.nome}
+                    href={`/simulador.html?q=${encodeURIComponent(p.nome)}`}
+                    className="flex items-center gap-2 px-3 py-2 hover:bg-slate-50 border-b border-slate-50 last:border-0"
+                  >
+                    <span className="font-mono text-[10px] font-bold text-panorama-navy bg-panorama-gold/10 rounded px-1.5 py-0.5 shrink-0">
+                      {p.codigo}
+                    </span>
+                    <span className="text-xs text-slate-700 truncate">{p.nome}</span>
+                    <span className="ml-auto text-[10px] text-slate-400 shrink-0">{p.grupo}</span>
+                  </a>
+                ))}
+                <a
+                  href={`/simulador.html?q=${encodeURIComponent(searchTerm)}`}
+                  className="block px-3 py-2 text-xs font-semibold text-panorama-navy hover:bg-panorama-gold/10 border-t border-slate-100"
+                >
+                  🧮 Abrir "{searchTerm}" no Simulador de Transição →
+                </a>
+              </div>
             )}
           </div>
 
@@ -421,15 +485,18 @@ export function PanoramaHeader({
           </button>
         </div>
 
-        {/* Mobile Search */}
+        {/* Mobile Search — normas + produtos/serviços */}
         <div className="mt-2.5 lg:hidden">
           <div className="relative">
             <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
             <input
               type="text"
-              placeholder="Buscar em todo o Panorama…"
+              placeholder="Buscar produtos, serviços, normas…"
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => {
+                setSearchTerm(e.target.value)
+                setMostraProdutos(true)
+              }}
               className="w-full pl-9 pr-9 py-2 text-xs rounded-lg border border-slate-300 focus:outline-none focus:border-blue-600 bg-slate-50"
             />
             {searchTerm && (
@@ -440,6 +507,31 @@ export function PanoramaHeader({
               >
                 <X className="w-3.5 h-3.5" />
               </button>
+            )}
+            {mostraProdutos && produtosAchados.length > 0 && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg border border-slate-200 shadow-lg z-50 max-h-72 overflow-y-auto">
+                <p className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-slate-400 border-b border-slate-100">
+                  Produtos e serviços — {produtosAchados.length} de {catalogo.length}
+                </p>
+                {produtosAchados.map((p) => (
+                  <a
+                    key={p.codigo + p.nome}
+                    href={`/simulador.html?q=${encodeURIComponent(p.nome)}`}
+                    className="flex items-center gap-2 px-3 py-2 hover:bg-slate-50 border-b border-slate-50 last:border-0"
+                  >
+                    <span className="font-mono text-[10px] font-bold text-panorama-navy bg-panorama-gold/10 rounded px-1.5 py-0.5 shrink-0">
+                      {p.codigo}
+                    </span>
+                    <span className="text-xs text-slate-700 truncate">{p.nome}</span>
+                  </a>
+                ))}
+                <a
+                  href={`/simulador.html?q=${encodeURIComponent(searchTerm)}`}
+                  className="block px-3 py-2 text-xs font-semibold text-panorama-navy hover:bg-panorama-gold/10 border-t border-slate-100"
+                >
+                  🧮 Abrir no Simulador →
+                </a>
+              </div>
             )}
           </div>
         </div>

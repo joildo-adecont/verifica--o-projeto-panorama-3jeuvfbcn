@@ -247,43 +247,12 @@
     <main>
       <section>
         <h2>1. Selecione o produto ou serviço</h2>
-        <div style="position: relative">
-          <input
-            type="text"
-            id="busca"
-            placeholder="🔎 Digite o código (NCM/NBS/CNAE) ou o nome — ex.: 1.2301.23.00, odontológico, arroz, cigarro…"
-            oninput="filtrar()"
-            onkeydown="
-              if (event.key === 'Escape') {
-                limparBusca()
-              }
-            "
-            style="width: 100%; padding-right: 36px"
-          />
-          <button
-            id="btn-limpa-busca"
-            title="Limpar pesquisa (Esc)"
-            onclick="limparBusca()"
-            style="
-              display: none;
-              position: absolute;
-              right: 6px;
-              top: 50%;
-              transform: translateY(-50%);
-              border: none;
-              background: #e8edf4;
-              color: #5b6b7b;
-              width: 26px;
-              height: 26px;
-              border-radius: 6px;
-              cursor: pointer;
-              font-size: 14px;
-              line-height: 1;
-            "
-          >
-            ✕
-          </button>
-        </div>
+        <input
+          type="text"
+          id="busca"
+          placeholder="🔎 Digite o código (NCM/NBS/CNAE) ou o nome — ex.: 1.2301.23.00, odontológico, arroz, cigarro…"
+          oninput="filtrar()"
+        />
         <div id="grupos" style="margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px"></div>
         <p style="font-size: 0.72rem; color: #5b6b7b; margin-top: 6px">
           💡 Dica: clique num grupo acima para navegar, ou digite o código ou nome — aceita sem
@@ -548,23 +517,7 @@
         return termos
       }
 
-      function limparBusca() {
-        var inp = document.getElementById('busca')
-        inp.value = ''
-        var b = document.getElementById('btn-limpa-busca')
-        if (b) b.style.display = 'none'
-        filtrar()
-        inp.focus()
-      }
-
-      function toggleX() {
-        var inp = document.getElementById('busca')
-        var b = document.getElementById('btn-limpa-busca')
-        if (b) b.style.display = inp.value ? 'block' : 'none'
-      }
-
       function filtrar() {
-        toggleX()
         var tRaw = document.getElementById('busca').value.toLowerCase()
         var out = document.getElementById('lista')
         out.innerHTML = ''
@@ -800,8 +753,15 @@
       }
 
       atualizarAno()
-      // Inicialização: renderiza os grupos ao carregar
+      // Inicialização: renderiza os grupos ao carregar; ?q=termo pré-preenche a busca
       renderGrupos()
+      try {
+        var qp = new URLSearchParams(window.location.search).get('q')
+        if (qp && qp.trim()) {
+          document.getElementById('busca').value = qp.trim()
+          document.getElementById('btn-limpa-busca').style.display = 'block'
+        }
+      } catch (e) {}
       filtrar()
     </script>
     <script
