@@ -5,6 +5,25 @@
 //  GET  /backend/v1/simul-confirmar?token=... -> confirmacao de recebimento (link no e-mail) [publico]
 //  GET  /backend/v1/simul-protocolo/:id  -> dados do envio p/ comprovante
 
+// Middleware de autenticação do painel: aceita token do painel (X-Painel-Token)
+// ou sessão PocketBase normal (requireAuth). JSVM: helpers inline em cada uso.
+function painelAuth() {
+  return (e, next) => {
+    var esperado = $secrets.get('SIMUL_PAINEL_TOKEN') || ''
+    var recebido = e.request.header.get('X-Painel-Token') || ''
+    if (esperado && recebido && recebido === esperado) {
+      return next()
+    }
+    if (e.auth && e.auth.id) {
+      return next()
+    }
+    return e.json(401, {
+      status: 401,
+      message: 'Token do painel ausente ou inválido (X-Painel-Token).',
+    })
+  }
+}
+
 // ---------- 1. Importacao CSV ----------
 routerAdd(
   'POST',
@@ -144,7 +163,7 @@ routerAdd(
       erros: erros,
     })
   },
-  $apis.requireAuth(),
+  painelAuth(),
 )
 
 // ---------- 2. Envio com protocolo ----------
@@ -378,7 +397,7 @@ routerAdd(
     )
     return e.json(200, { success: true, total: results.length, envios: results })
   },
-  $apis.requireAuth(),
+  painelAuth(),
 )
 
 // ---------- 3. Confirmacao de recebimento (publico) ----------
@@ -563,5 +582,5 @@ routerAdd(
       recebido_em: envio.get('recebido_em'),
     })
   },
-  $apis.requireAuth(),
+  painelAuth(),
 )
