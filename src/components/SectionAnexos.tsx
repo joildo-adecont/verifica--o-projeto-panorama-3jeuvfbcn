@@ -477,39 +477,19 @@ export function SectionAnexos() {
                   )}
 
                   {a.itensDetalhados && (
-                    <div>
-                      <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500 mb-1">
-                        Itens extraídos da fonte oficial
+                    <div className="rounded-lg border border-blue-200 bg-blue-50/60 px-3 py-2.5">
+                      <p className="text-[11px] font-bold uppercase tracking-wide text-blue-800 mb-0.5">
+                        Itens extraídos da fonte oficial ({a.itensDetalhados.length} linhas)
                       </p>
-                      <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white max-h-80 overflow-y-auto">
-                        <table className="w-full text-left border-collapse text-xs">
-                          <thead>
-                            <tr className="bg-panorama-navy text-white border-b-2 border-panorama-gold font-semibold sticky top-0">
-                              <th className="py-2 px-3 w-16">Item</th>
-                              <th className="py-2 px-3">Descrição</th>
-                              <th className="py-2 px-3 w-56">NCM/SH · NBS</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-slate-100">
-                            {a.itensDetalhados.map((it, i) => (
-                              <tr key={i} className="hover:bg-slate-50/70">
-                                <td className="py-1.5 px-3 font-bold text-slate-900 align-top">
-                                  {it.item}
-                                </td>
-                                <td className="py-1.5 px-3 text-slate-700 align-top leading-snug">
-                                  {it.descricao}
-                                </td>
-                                <td className="py-1.5 px-3 font-mono text-[11px] text-blue-800 align-top">
-                                  {it.codigo ?? '—'}
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
+                      <p className="text-xs text-blue-900 leading-relaxed">
+                        Tabela completa com item, descrição e código NCM/NBS disponível na{' '}
+                        <a href="#tabela-geral" className="underline font-semibold">
+                          Seção 7A — Tabela Geral dos Anexos
+                        </a>{' '}
+                        (fonte única de dados do Panorama).
+                      </p>
                     </div>
                   )}
-
                   <div>
                     <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500 mb-1">
                       Conteúdo analítico
@@ -581,15 +561,27 @@ export function SectionAnexos() {
         registro no Histórico de Atualizações (Seção 13).
       </div>
 
+      <div className="p-3.5 rounded-lg bg-blue-50 border border-blue-200 text-blue-900 text-xs sm:text-sm leading-relaxed">
+        <strong>🔗 Fonte única de dados — Seção 7A:</strong> a tabela completa de itens e alíquotas
+        de <strong>todos os anexos</strong> (RIBS, LC 214 e Decreto 12.955) está centralizada na{' '}
+        <a href="#tabela-geral" className="underline font-semibold">
+          Seção 7A — Tabela Geral dos Anexos
+        </a>
+        . Esta seção traz o resumo analítico e a base legal de cada anexo; os itens detalhados dos
+        anexos da LC 214 (educação, saúde, dispositivos, hortifrúti, alimentos, insumos agro e
+        outros) ficam exclusivamente na 7A, para evitar duplicação de dados no sistema.
+      </div>
+
       <div className="p-3.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-700 text-xs sm:text-sm leading-relaxed">
-        <strong>Parcelamento concluído:</strong> Parcelas 1–3 (anexos individualizados, extração
-        item a item da LC 214 e interligação com o Simulador) e a parcela das tabelas dos Anexos III
-        (14), IV (98) e V (49) do RIBS. Esta parcela final acrescentou as tabelas dos Anexos I
-        (depreciação, 258 linhas oficiais com vida útil e taxa anual) e II (Repetro, 580 itens nas 4
-        tabelas oficiais, com tipo de atividade na Tabela GNL) — com{' '}
-        <strong>carga sob demanda</strong>: os dados só são baixados pelo navegador quando o anexo é
-        aberto, sem pesar o carregamento inicial da página. Todas as tabelas seguem a rotina semanal
-        de fontes oficiais (segundas, 11h) com registro no Histórico.
+        <strong>Unificação de dados (04/10/2026):</strong> as tabelas de itens de todos os anexos
+        agora vivem em um único lugar — a{' '}
+        <a href="#tabela-geral" className="underline font-semibold">
+          Seção 7A — Tabela Geral dos Anexos
+        </a>{' '}
+        (1.053 linhas: RIBS, LC 214 e Decreto 12.955, com tratamento e alíquota). Esta Seção 7 ficou
+        com o papel de <strong>catálogo analítico</strong>: base legal, efeito tributário, conexões
+        com o Simulador e fonte oficial de cada anexo — sem repetir tabelas. Os dados seguem a
+        rotina semanal de fontes oficiais (segundas, 11h) com registro no Histórico.
       </div>
     </section>
   )

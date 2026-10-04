@@ -38,6 +38,21 @@ function ehRecente(dataBR: string): boolean {
 const REGISTROS: Registro[] = [
   {
     data: '04/10/2026',
+    hora: '00:45',
+    titulo: 'Unificação de dados — Seção 7A passa a ser a fonte única das tabelas de itens',
+    conteudo:
+      'Auditoria de duplicações (a pedido do CEO): 185 códigos NCM/NBS estavam repetidos entre as seções 2C/2D do Panorama HTML e a 7A; os anexos da LC 214 com tabela de itens na Seção 7 (educação, saúde, dispositivos, higiene, insumos agro, acessibilidade, hortifrúti) duplicavam a 7A; a Cesta Básica aparecia em 2 lugares. Unificação: a Seção 7A é agora a FONTE ÚNICA das tabelas de itens e alíquotas (1.053 linhas); a Seção 7 virou catálogo analítico (base legal + efeito + conexões) com link direto para o bloco correspondente da 7A; a Seção 3 (Cesta) aponta para o Anexo I da LC 214 na 7A. Correção adicional: removida a duplicação de renderização da 7A no Index (v0.0.69).',
+    fontes: [
+      { nome: 'RIBS — Resolução CGIBS 6/2026 (cgibs.gov.br/resolucoes)' },
+      { nome: 'LC 214/2025 compilada (Planalto)' },
+      { nome: 'Decreto 12.955/2026 (Planalto)' },
+    ],
+    caminho:
+      'Panorama (62493) — SectionAnexos.tsx (itensDetalhados → link 7A; box unificação), SectionCestaBasica.tsx (link 7A), Index.tsx (dedup 7A)',
+    versao: '62493 v0.0.70',
+  },
+  {
+    data: '04/10/2026',
     hora: '00:25',
     titulo: 'Modernização visual do Panorama — identidade ADECONT (navy + dourado)',
     conteudo:

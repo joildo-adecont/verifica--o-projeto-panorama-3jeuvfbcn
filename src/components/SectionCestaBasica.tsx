@@ -156,6 +156,13 @@ export function SectionCestaBasica() {
             0% Tributação Federal e Estadual/Municipal
           </span>
         </div>
+        <p className="text-xs text-blue-900 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2">
+          📋 <strong>Lista completa item a item (35 códigos NCM):</strong> consulte na{' '}
+          <a href="#tabela-geral" className="underline font-semibold">
+            Seção 7A — Anexo I da LC 214
+          </a>{' '}
+          (fonte única de dados do Panorama).
+        </p>
 
         <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-xs">
           <table className="w-full text-left border-collapse text-xs sm:text-sm">
