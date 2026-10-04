@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Building2, Calculator, Home, Landmark, KeyRound, TrendingDown } from 'lucide-react'
+import { fmt } from './SectionSimples'
 
 const SIM_URL = '/simulador.html'
 
@@ -98,8 +99,444 @@ const PERMUTAS = [
   },
 ]
 
+/** Simulador do Regime Imobiliário — venda e locação (LC 214, arts. 255–262).
+ *  Base de cálculo demonstrada passo a passo: valor da operação → redutor de ajuste →
+ *  redutor social → base efetiva; alíquota cheia × redução (50% venda / 70% locação);
+ *  comparação com a tributação atual (PIS/Cofins 3,65% + IRPJ/CSLL presumidos). */
+
+const REF_TOTAL = 27.91 // referência total IBS+CBS (Res. CGIBS 14/2026)
+
+function KpiA({
+  titulo,
+  valor,
+  sub,
+  destaque,
+}: {
+  titulo: string
+  valor: string
+  sub: string
+  destaque?: boolean
+}) {
+  return (
+    <div
+      className={`rounded-xl border p-3.5 ${destaque ? 'bg-panorama-navy text-white border-panorama-navy' : 'bg-white border-slate-200'}`}
+    >
+      <div
+        className={`text-[11px] font-semibold uppercase tracking-wide ${destaque ? 'text-panorama-gold-light' : 'text-slate-500'}`}
+      >
+        {titulo}
+      </div>
+      <div
+        className={`mt-1 text-2xl font-bold ${destaque ? 'text-panorama-gold-light' : 'text-slate-900'}`}
+      >
+        {valor}
+      </div>
+      <div className={`mt-0.5 text-[11px] ${destaque ? 'text-white/70' : 'text-slate-500'}`}>
+        {sub}
+      </div>
+    </div>
+  )
+}
+
+function BadgeA({ ok, texto }: { ok: boolean; texto: string }) {
+  return (
+    <span
+      className={`inline-block px-2 py-0.5 rounded text-[11px] font-bold border ${ok ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-red-100 text-red-800 border-red-300'}`}
+    >
+      {texto}
+    </span>
+  )
+}
+
+function SimuladorImobiliario() {
+  const [modo, setModo] = useState<'venda' | 'locacao'>('venda')
+  // Venda
+  const [preco, setPreco] = useState(800000)
+  const [tipoVenda, setTipoVenda] = useState<'novo' | 'usado' | 'lote'>('novo')
+  const [custo, setCusto] = useState(500000)
+  const [ipca, setIpca] = useState(30)
+  // Locação
+  const [aluguel, setAluguel] = useState(2500)
+  const [unidades, setUnidades] = useState(10)
+  const [residencial, setResidencial] = useState(true)
+
+  const cbsRef = 8.8 // estimativa 2027 (art. 347); editável
+  const ibsRef = REF_TOTAL - cbsRef
+  const aliCheia = cbsRef + ibsRef
+
+  // ---------- VENDA ----------
+  const redutorAjuste = tipoVenda === 'usado' ? Math.min(custo * (1 + ipca / 100), preco) : 0
+  const aposAjuste = Math.max(0, preco - redutorAjuste)
+  const redutorSocial =
+    tipoVenda === 'novo'
+      ? Math.min(100000, aposAjuste)
+      : tipoVenda === 'lote'
+        ? Math.min(30000, aposAjuste)
+        : 0
+  const baseVenda = aposAjuste - redutorSocial
+  const aliVenda = aliCheia * 0.5
+  const ibsCbsVenda = (baseVenda * aliVenda) / 100
+  // Tributação atual (referência): PIS/Cofins presumidos 3,65% sobre receita
+  const atualVenda = (preco * 3.65) / 100
+  const difVenda = ibsCbsVenda - atualVenda
+
+  // ---------- LOCAÇÃO ----------
+  const receitaMes = aluguel * unidades
+  const redutorSocialLoc = residencial ? Math.min(600 * unidades, receitaMes) : 0
+  const baseLoc = receitaMes - redutorSocialLoc
+  const aliLoc = aliCheia * 0.3
+  const ibsCbsLoc = (baseLoc * aliLoc) / 100
+  const atualLoc = (receitaMes * 3.65) / 100
+  const difLoc = ibsCbsLoc - atualLoc
+
+  const e = modo === 'venda'
+  const aliEfetiva = e ? aliVenda : aliLoc
+  const base = e ? baseVenda : baseLoc
+  const receita = e ? preco : receitaMes
+  const ibsCbs = e ? ibsCbsVenda : ibsCbsLoc
+  const atual = e ? atualVenda : atualLoc
+  const dif = e ? difVenda : difLoc
+  const redSocial = e ? redutorSocial : redutorSocialLoc
+
+  return (
+    <div className="space-y-5">
+      <div className="p-3.5 rounded-lg bg-panorama-gold/10 border border-panorama-gold/50 text-sm text-slate-800">
+        <strong>Como calcula (LC 214, arts. 255–262):</strong> base de cálculo = valor da operação −
+        redutor de ajuste (só venda de usado; custo de aquisição corrigido pelo IPCA) − redutor
+        social (R$ 100 mil imóvel novo / R$ 30 mil lote / R$ 600/mês por imóvel residencial locado,
+        atualizados pelo IPCA). Alíquota = referência total (27,91%, Res. CGIBS 14/2026) ×{' '}
+        <strong>50%</strong> na venda ou × <strong>30%</strong> na locação (redução de 70% — art.
+        261). Simulação didática — não substitui apuração contábil.
+      </div>
+
+      {/* Modo */}
+      <div className="flex gap-2">
+        <button
+          onClick={() => setModo('venda')}
+          className={`px-4 py-2 rounded-lg text-sm font-semibold border cursor-pointer ${modo === 'venda' ? 'bg-panorama-navy text-panorama-gold-light border-panorama-navy' : 'bg-white border-slate-300 text-slate-600 hover:bg-slate-100'}`}
+        >
+          🏠 Venda de imóvel
+        </button>
+        <button
+          onClick={() => setModo('locacao')}
+          className={`px-4 py-2 rounded-lg text-sm font-semibold border cursor-pointer ${modo === 'locacao' ? 'bg-panorama-navy text-panorama-gold-light border-panorama-navy' : 'bg-white border-slate-300 text-slate-600 hover:bg-slate-100'}`}
+        >
+          🔑 Aluguel (locação)
+        </button>
+      </div>
+
+      {/* Entradas */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        {e ? (
+          <>
+            <label className="block">
+              <span className="text-xs font-semibold text-slate-700">Valor de venda (R$)</span>
+              <input
+                type="number"
+                value={preco}
+                min={0}
+                onChange={(ev) => setPreco(Number(ev.target.value) || 0)}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </label>
+            <label className="block">
+              <span className="text-xs font-semibold text-slate-700">Tipo de imóvel</span>
+              <select
+                value={tipoVenda}
+                onChange={(ev) => setTipoVenda(ev.target.value as 'novo' | 'usado' | 'lote')}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="novo">Residencial novo (redutor social R$ 100 mil)</option>
+                <option value="usado">Usado (redutor de ajuste)</option>
+                <option value="lote">Lote residencial (redutor social R$ 30 mil)</option>
+              </select>
+            </label>
+            {tipoVenda === 'usado' && (
+              <>
+                <label className="block">
+                  <span className="text-xs font-semibold text-slate-700">
+                    Custo de aquisição (R$)
+                  </span>
+                  <input
+                    type="number"
+                    value={custo}
+                    min={0}
+                    onChange={(ev) => setCusto(Number(ev.target.value) || 0)}
+                    className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </label>
+                <label className="block">
+                  <span className="text-xs font-semibold text-slate-700">IPCA acumulado (%)</span>
+                  <input
+                    type="number"
+                    value={ipca}
+                    min={0}
+                    onChange={(ev) => setIpca(Number(ev.target.value) || 0)}
+                    className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </label>
+              </>
+            )}
+          </>
+        ) : (
+          <>
+            <label className="block">
+              <span className="text-xs font-semibold text-slate-700">
+                Aluguel mensal por imóvel (R$)
+              </span>
+              <input
+                type="number"
+                value={aluguel}
+                min={0}
+                onChange={(ev) => setAluguel(Number(ev.target.value) || 0)}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </label>
+            <label className="block">
+              <span className="text-xs font-semibold text-slate-700">Nº de imóveis locados</span>
+              <input
+                type="number"
+                value={unidades}
+                min={1}
+                onChange={(ev) => setUnidades(Number(ev.target.value) || 1)}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </label>
+            <label className="block">
+              <span className="text-xs font-semibold text-slate-700">Finalidade</span>
+              <select
+                value={residencial ? 'r' : 'c'}
+                onChange={(ev) => setResidencial(ev.target.value === 'r')}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="r">Residencial (redutor social R$ 600/mês por imóvel)</option>
+                <option value="c">Comercial/industrial (sem redutor social)</option>
+              </select>
+            </label>
+          </>
+        )}
+      </div>
+
+      {/* 1 — KPIs */}
+      <div>
+        <h4 className="text-sm font-bold text-slate-900 mb-2">1️⃣ Percentuais do cenário</h4>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <KpiA
+            titulo="Alíquota de referência"
+            valor={aliCheia.toFixed(2) + '%'}
+            sub="CBS 8,8% (estimativa) + IBS 19,11%"
+          />
+          <KpiA
+            titulo="Redução do art. 261"
+            valor={e ? '−50%' : '−70%'}
+            sub={e ? 'venda/alienação' : 'locação/arrendamento'}
+          />
+          <KpiA
+            titulo="Alíquota efetiva"
+            valor={aliEfetiva.toFixed(2) + '%'}
+            sub={e ? '27,91% × 50%' : '27,91% × 30%'}
+            destaque
+          />
+          <KpiA
+            titulo="Carga sobre a receita"
+            valor={((ibsCbs / receita) * 100).toFixed(2) + '%'}
+            sub="IBS+CBS ÷ valor da operação"
+          />
+        </div>
+      </div>
+
+      {/* 2 — Base de cálculo demonstrada */}
+      <div>
+        <h4 className="text-sm font-bold text-slate-900 mb-2">
+          2️⃣ Base de cálculo — passo a passo (art. 255 e ss.)
+        </h4>
+        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-xs">
+          <table className="w-full text-left border-collapse text-xs sm:text-sm">
+            <thead>
+              <tr className="bg-panorama-navy text-white border-b-2 border-panorama-gold font-semibold">
+                <th className="py-3 px-4">Passo</th>
+                <th className="py-3 px-4">Item</th>
+                <th className="py-3 px-4">Valor</th>
+                <th className="py-3 px-3 w-52">Base legal</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              <tr className="hover:bg-slate-50/70">
+                <td className="py-2.5 px-4 font-bold text-slate-400">1</td>
+                <td className="py-2.5 px-4 font-semibold text-slate-900">
+                  {e ? 'Valor da operação (venda)' : 'Receita mensal de aluguéis'}
+                </td>
+                <td className="py-2.5 px-4 text-slate-700 font-mono">{fmt(receita)}</td>
+                <td className="py-2.5 px-3 text-[11px] font-mono text-slate-500">
+                  art. 255 (valor da operação)
+                </td>
+              </tr>
+              {e && tipoVenda === 'usado' && (
+                <tr className="hover:bg-slate-50/70">
+                  <td className="py-2.5 px-4 font-bold text-slate-400">2</td>
+                  <td className="py-2.5 px-4 font-semibold text-slate-900">
+                    (−) Redutor de ajuste — custo de aquisição corrigido
+                  </td>
+                  <td className="py-2.5 px-4 text-slate-700 font-mono">− {fmt(redutorAjuste)}</td>
+                  <td className="py-2.5 px-3 text-[11px] font-mono text-slate-500">
+                    arts. 257–258
+                  </td>
+                </tr>
+              )}
+              <tr className="hover:bg-slate-50/70">
+                <td className="py-2.5 px-4 font-bold text-slate-400">
+                  {e && tipoVenda === 'usado' ? '3' : '2'}
+                </td>
+                <td className="py-2.5 px-4 font-semibold text-slate-900">(−) Redutor social</td>
+                <td className="py-2.5 px-4 text-slate-700 font-mono">
+                  − {fmt(redSocial)}
+                  {redSocial > 0 && (
+                    <div className="text-[11px] text-slate-500">
+                      {e
+                        ? tipoVenda === 'novo'
+                          ? 'R$ 100 mil · imóvel residencial novo'
+                          : 'R$ 30 mil · lote residencial'
+                        : 'R$ 600/mês × ' + unidades + ' imóveis residenciais'}
+                    </div>
+                  )}
+                  {redSocial === 0 && (
+                    <div className="text-[11px] text-slate-500">não aplicável</div>
+                  )}
+                </td>
+                <td className="py-2.5 px-3 text-[11px] font-mono text-slate-500">
+                  {e ? 'art. 259' : 'art. 260 (LC 227/2026)'}
+                </td>
+              </tr>
+              <tr className="bg-panorama-gold/10">
+                <td className="py-2.5 px-4 font-bold text-panorama-navy">=</td>
+                <td className="py-2.5 px-4 font-bold text-slate-900">Base de cálculo efetiva</td>
+                <td className="py-2.5 px-4 font-bold text-slate-900 font-mono">{fmt(base)}</td>
+                <td className="py-2.5 px-3 text-[11px] font-mono text-slate-500">
+                  art. 255, §4º–§5º (limites)
+                </td>
+              </tr>
+              <tr className="hover:bg-slate-50/70">
+                <td className="py-2.5 px-4 font-bold text-slate-400">×</td>
+                <td className="py-2.5 px-4 font-semibold text-slate-900">
+                  Alíquota efetiva ({aliCheia.toFixed(2)}% × {e ? '50%' : '30%'})
+                </td>
+                <td className="py-2.5 px-4 text-slate-700 font-mono">{aliEfetiva.toFixed(2)}%</td>
+                <td className="py-2.5 px-3 text-[11px] font-mono text-slate-500">
+                  art. 261 {e ? '' : ', p.ú.'}
+                </td>
+              </tr>
+              <tr className="bg-panorama-navy text-white">
+                <td className="py-2.5 px-4 font-bold text-panorama-gold-light">=</td>
+                <td className="py-2.5 px-4 font-bold">IBS + CBS a recolher</td>
+                <td className="py-2.5 px-4 font-bold font-mono text-panorama-gold-light">
+                  {fmt(ibsCbs)}
+                </td>
+                <td className="py-2.5 px-3 text-[11px] font-mono text-white/70">arts. 252 e 261</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* 3 — Comparativo com hoje */}
+      <div>
+        <h4 className="text-sm font-bold text-slate-900 mb-2">
+          3️⃣ Comparativo — reforma × tributação atual
+        </h4>
+        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-xs">
+          <table className="w-full text-left border-collapse text-xs sm:text-sm">
+            <thead>
+              <tr className="bg-panorama-navy text-white border-b-2 border-panorama-gold font-semibold">
+                <th className="py-3 px-4">Indicador</th>
+                <th className="py-3 px-4">📅 Hoje (PIS/Cofins presumidos)</th>
+                <th className="py-3 px-4">🔮 Reforma (IBS+CBS, regime específico)</th>
+                <th className="py-3 px-3 w-40">Diferença</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              <tr className="hover:bg-slate-50/70 align-top bg-amber-50/40">
+                <td className="py-3 px-4 font-semibold text-slate-900">Tributo sobre a operação</td>
+                <td className="py-3 px-4 text-slate-700">
+                  {fmt(atual)}
+                  <div className="text-[11px] text-slate-500">PIS/Cofins 3,65% sobre a receita</div>
+                </td>
+                <td className="py-3 px-4 text-slate-700">
+                  {fmt(ibsCbs)}
+                  <div className="text-[11px] text-slate-500">
+                    {aliEfetiva.toFixed(2)}% sobre a base de {fmt(base)}
+                  </div>
+                </td>
+                <td className="py-3 px-3">
+                  <BadgeA ok={dif <= 0} texto={(dif <= 0 ? '− ' : '+ ') + fmt(Math.abs(dif))} />
+                </td>
+              </tr>
+              <tr className="hover:bg-slate-50/70 align-top">
+                <td className="py-3 px-4 font-semibold text-slate-900">
+                  Crédito do adquirente/locatário (regime regular)
+                </td>
+                <td className="py-3 px-4 text-slate-700">
+                  —
+                  <div className="text-[11px] text-slate-500">
+                    PIS/Cofins presumido: sem crédito
+                  </div>
+                </td>
+                <td className="py-3 px-4 text-slate-700">
+                  {fmt(ibsCbs)}
+                  <div className="text-[11px] text-slate-500">
+                    integral, se adquirente no regime regular
+                  </div>
+                </td>
+                <td className="py-3 px-3">
+                  <BadgeA ok texto={'+ ' + fmt(ibsCbs)} />
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p className="text-[11px] text-slate-500 mt-1">
+          IRPJ/CSLL presumidos continuam em ambos os cenários (fora do IBS/CBS) — não comparados
+          aqui. Contratos de locação por prazo determinado firmados até 16/01/2025 podem manter a
+          regra atual até 31/12/2028 (art. 487).
+        </p>
+      </div>
+
+      {/* 4 — RET */}
+      <div>
+        <h4 className="text-sm font-bold text-slate-900 mb-2">
+          4️⃣ Referência — RET da incorporação (art. 485)
+        </h4>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <KpiA
+            titulo="RET — patrimônio de afetação"
+            valor="2,08%"
+            sub="da receita mensal recebida (IBS+CBS unificados)"
+          />
+          <KpiA
+            titulo="RET especial — HIS"
+            valor="0,53%"
+            sub="habitação de interesse social (art. 485, II)"
+          />
+        </div>
+        <p className="text-[11px] text-slate-500 mt-1">
+          Opção para incorporação com patrimônio de afetação com pedido efetivado antes de
+          01/01/2029; afasta redutores de ajuste e social na alienação decorrente da incorporação
+          (art. 485, §3º).
+        </p>
+      </div>
+
+      <div className="p-3.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-xs sm:text-sm">
+        ⚠️ A alíquota de referência da CBS 2027 ainda depende de resolução do Senado (LC 214, art.
+        349). A CBS de 8,8% é estimativa de mercado (8,8% − 0,1 p.p. do art. 347) e o IBS de 19,11%
+        deriva da referência total de 27,91% (Res. CGIBS 14/2026). O redutor de ajuste dos imóveis
+        detidos em 31/12/2026 usa custo de aquisição corrigido ou, por opção, o valor de referência
+        (art. 258, I) — aqui simulado pelo custo + IPCA informado.
+      </div>
+    </div>
+  )
+}
+
 export function SectionRegimeImobiliario() {
-  const [tab, setTab] = useState<'operacoes' | 'ret' | 'permutas'>('operacoes')
+  const [tab, setTab] = useState<'operacoes' | 'ret' | 'permutas' | 'simulador'>('operacoes')
 
   return (
     <section id="regime-imobiliario" className="scroll-mt-24 space-y-5">
@@ -143,6 +580,7 @@ export function SectionRegimeImobiliario() {
             ['operacoes', 'Operações e reduções'],
             ['ret', 'RET — incorporação'],
             ['permutas', 'Permutas e não incidências'],
+            ['simulador', '🧮 Simulador — venda e aluguel'],
           ] as const
         ).map(([k, label]) => (
           <button
@@ -236,6 +674,8 @@ export function SectionRegimeImobiliario() {
           </div>
         </div>
       )}
+
+      {tab === 'simulador' && <SimuladorImobiliario />}
 
       {tab === 'permutas' && (
         <div className="space-y-3">
