@@ -161,8 +161,12 @@ function SimuladorImobiliario() {
   const [aluguel, setAluguel] = useState(2500)
   const [unidades, setUnidades] = useState(10)
   const [residencial, setResidencial] = useState(true)
+  // Enquadramento (art. 251)
+  const [tipoLocador, setTipoLocador] = useState<'pj' | 'pf'>('pj')
+  const [receitaAnterior, setReceitaAnterior] = useState(300000)
+  const [ipcaLimite, setIpcaLimite] = useState(10)
 
-  const cbsRef = 8.8 // estimativa 2027 (art. 347); editável
+  const cbsRef = 8.8
   const ibsRef = REF_TOTAL - cbsRef
   const aliCheia = cbsRef + ibsRef
 
@@ -178,16 +182,33 @@ function SimuladorImobiliario() {
   const baseVenda = aposAjuste - redutorSocial
   const aliVenda = aliCheia * 0.5
   const ibsCbsVenda = (baseVenda * aliVenda) / 100
-  // Tributação atual (referência): PIS/Cofins presumidos 3,65% sobre receita
   const atualVenda = (preco * 3.65) / 100
   const difVenda = ibsCbsVenda - atualVenda
 
   // ---------- LOCAÇÃO ----------
   const receitaMes = aluguel * unidades
+  const receitaAno = receitaMes * 12
+  const limite240 = 240000 * (1 + ipcaLimite / 100)
+  const limite288 = limite240 * 1.2
+  const imoveisAnterior = unidades
+  // Enquadramento art. 251
+  const pjSempre = tipoLocador === 'pj'
+  const pfAnoAnterior = !pjSempre && receitaAnterior > limite240 && imoveisAnterior > 3
+  const pfProprioAno = !pjSempre && !pfAnoAnterior && receitaAno > limite288 && imoveisAnterior > 3
+  const contribuinte = pjSempre || pfAnoAnoAnteriorFlag(pfAnoAnterior) || pfProprioAno
+  const motivoEnq = pjSempre
+    ? 'Pessoa jurídica é contribuinte do regime regular em qualquer volume (art. 251, caput).'
+    : pfAnoAnterior
+      ? 'PF: receita do ano anterior acima do limite atualizado E mais de 3 imóveis distintos (art. 251, §1º, I).'
+      : pfProprioAno
+        ? 'PF: receita do próprio ano supera o limite em mais de 20% e mais de 3 imóveis (art. 251, §2º, II; Decreto 12.955/2026, art. 382, §1º, III).'
+        : 'Fora do regime regular: não atinge cumulativamente receita acima do limite e mais de 3 imóveis (art. 251, §1º, I) — sem IBS/CBS sobre aluguéis.'
+
   const redutorSocialLoc = residencial ? Math.min(600 * unidades, receitaMes) : 0
   const baseLoc = receitaMes - redutorSocialLoc
   const aliLoc = aliCheia * 0.3
   const ibsCbsLoc = (baseLoc * aliLoc) / 100
+  const ibsCbsLocAno = ibsCbsLoc * 12
   const atualLoc = (receitaMes * 3.65) / 100
   const difLoc = ibsCbsLoc - atualLoc
 
@@ -200,6 +221,19 @@ function SimuladorImobiliario() {
   const dif = e ? difVenda : difLoc
   const redSocial = e ? redutorSocial : redutorSocialLoc
 
+  // Faixa de imóveis 1..12 (locação)
+  const faixaImoveis = Array.from({ length: 12 }, (_, k) => k + 1).map((n) => {
+    const rm = aluguel * n
+    const ra = rm * 12
+    const enq = pjSempre || (receitaAnterior > limite240 && n > 3) || (ra > limite288 && n > 3)
+    const rs = residencial ? Math.min(600 * n, rm) : 0
+    const b = rm - rs
+    const t = (b * aliLoc) / 100
+    return { n, rm, ra, enq, rs, b, t, tAno: t * 12 }
+  })
+  const minEnq = faixaImoveis.find((f) => f.enq)?.n
+  const maxFora = faixaImoveis.filter((f) => !f.enq).length
+
   return (
     <div className="space-y-5">
       <div className="p-3.5 rounded-lg bg-panorama-gold/10 border border-panorama-gold/50 text-sm text-slate-800">
@@ -211,7 +245,6 @@ function SimuladorImobiliario() {
         261). Simulação didática — não substitui apuração contábil.
       </div>
 
-      {/* Modo */}
       <div className="flex gap-2">
         <button
           onClick={() => setModo('venda')}
@@ -315,9 +348,79 @@ function SimuladorImobiliario() {
                 <option value="c">Comercial/industrial (sem redutor social)</option>
               </select>
             </label>
+            <label className="block">
+              <span className="text-xs font-semibold text-slate-700">Tipo de locador</span>
+              <select
+                value={tipoLocador}
+                onChange={(ev) => setTipoLocador(ev.target.value as 'pj' | 'pf')}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="pj">Pessoa jurídica (sempre contribuinte)</option>
+                <option value="pf">Pessoa física (art. 251)</option>
+              </select>
+            </label>
           </>
         )}
       </div>
+
+      {/* 0 — Enquadramento / obrigatoriedade (só locação) */}
+      {!e && (
+        <div>
+          <h4 className="text-sm font-bold text-slate-900 mb-2">
+            0️⃣ Enquadramento — obrigatoriedade de apurar IBS/CBS (art. 251)
+          </h4>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+            <label className="block">
+              <span className="text-xs font-semibold text-slate-700">
+                Receita de aluguéis no ano anterior (R$)
+              </span>
+              <input
+                type="number"
+                value={receitaAnterior}
+                min={0}
+                onChange={(ev) => setReceitaAnterior(Number(ev.target.value) || 0)}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </label>
+            <label className="block">
+              <span className="text-xs font-semibold text-slate-700">
+                IPCA acumulado desde 01/2025 (%)
+              </span>
+              <input
+                type="number"
+                value={ipcaLimite}
+                min={0}
+                onChange={(ev) => setIpcaLimite(Number(ev.target.value) || 0)}
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </label>
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-2.5 text-[11px] text-slate-600">
+              Limites atualizados (art. 251, §5º): <strong>{fmt(limite240)}</strong> (ano anterior)
+              · <strong>{fmt(limite288)}</strong> (próprio ano, +20%)
+            </div>
+          </div>
+          <div
+            className={`p-3.5 rounded-lg border text-sm ${contribuinte ? 'bg-amber-50 border-amber-300 text-amber-900' : 'bg-emerald-50 border-emerald-300 text-emerald-900'}`}
+          >
+            <div className="flex items-center gap-2 flex-wrap">
+              <span
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold ${contribuinte ? 'bg-amber-600 text-white' : 'bg-emerald-600 text-white'}`}
+              >
+                {contribuinte
+                  ? '⚠️ CONTRIBUINTE — apuração OBRIGATÓRIA'
+                  : '✅ NÃO CONTRIBUINTE — sem IBS/CBS sobre aluguéis'}
+              </span>
+              <span className="text-xs font-mono">art. 251, LC 214/2025</span>
+            </div>
+            <p className="mt-1.5 text-xs leading-relaxed">{motivoEnq}</p>
+            <p className="mt-1 text-[11px] opacity-80">
+              Locação residencial por até 90 dias segue regras de hotelaria (art. 253, redução de
+              40%). Contratos por prazo determinado firmados até 16/01/2025 podem manter a regra
+              atual até 31/12/2028 (art. 487).
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* 1 — KPIs */}
       <div>
@@ -440,10 +543,114 @@ function SimuladorImobiliario() {
         </div>
       </div>
 
-      {/* 3 — Comparativo com hoje */}
+      {/* 3 — Faixa de imóveis (só locação) */}
+      {!e && (
+        <div>
+          <h4 className="text-sm font-bold text-slate-900 mb-2">
+            3️⃣ Faixa de imóveis — mínimo a máximo (1 a 12 imóveis)
+          </h4>
+          <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-xs">
+            <table className="w-full text-left border-collapse text-xs sm:text-sm">
+              <thead>
+                <tr className="bg-panorama-navy text-white border-b-2 border-panorama-gold font-semibold">
+                  <th className="py-3 px-3">Imóveis</th>
+                  <th className="py-3 px-3">Receita mensal</th>
+                  <th className="py-3 px-3">Receita anual</th>
+                  <th className="py-3 px-3">Obrigado a apurar?</th>
+                  <th className="py-3 px-3">Base (mês)</th>
+                  <th className="py-3 px-3">IBS+CBS (mês)</th>
+                  <th className="py-3 px-3">IBS+CBS (ano)</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {faixaImoveis.map((f) => (
+                  <tr
+                    key={f.n}
+                    className={
+                      'align-top ' +
+                      (f.n === unidades
+                        ? 'bg-panorama-gold/10 font-semibold'
+                        : 'hover:bg-slate-50/70')
+                    }
+                  >
+                    <td className="py-2.5 px-3 text-slate-900">
+                      {f.n}
+                      {f.n === unidades ? ' ←' : ''}
+                    </td>
+                    <td className="py-2.5 px-3 text-slate-700 font-mono">{fmt(f.rm)}</td>
+                    <td className="py-2.5 px-3 text-slate-700 font-mono">{fmt(f.ra)}</td>
+                    <td className="py-2.5 px-3">
+                      <BadgeA ok={!f.enq} texto={f.enq ? 'Sim' : 'Não'} />
+                    </td>
+                    <td className="py-2.5 px-3 text-slate-700 font-mono">{fmt(f.b)}</td>
+                    <td className="py-2.5 px-3 text-slate-700 font-mono">{fmt(f.t)}</td>
+                    <td className="py-2.5 px-3 text-slate-700 font-mono">{fmt(f.tAno)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="text-[11px] text-slate-500 mt-1">
+            Mínimo para obrigatoriedade (PF): <strong>{minEnq ?? '—'} imóveis</strong> nesta
+            configuração (receita + mais de 3 imóveis, art. 251, §1º, I). Até{' '}
+            <strong>{maxFora} imóveis</strong> não há obrigatoriedade (para PF). PJ é obrigado em
+            qualquer quantidade.
+          </p>
+        </div>
+      )}
+
+      {/* 4 — Valores apurados (só locação) */}
+      {!e && (
+        <div>
+          <h4 className="text-sm font-bold text-slate-900 mb-2">
+            4️⃣ Valores apurados — compõem a obrigatoriedade?
+          </h4>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <KpiA
+              titulo="Receita anual apurada"
+              valor={fmt(receitaAno)}
+              sub={aluguel.toLocaleString('pt-BR') + ' × ' + unidades + ' imóveis × 12'}
+            />
+            <KpiA
+              titulo="Base de cálculo anual"
+              valor={fmt(baseLoc * 12)}
+              sub={residencial ? 'após redutor social R$ 600/mês por imóvel' : 'sem redutor social'}
+            />
+            <KpiA
+              titulo="IBS+CBS anual"
+              valor={fmt(ibsCbsLocAno)}
+              sub={aliLoc.toFixed(2) + '% sobre a base'}
+              destaque
+            />
+            <div
+              className={`rounded-xl border p-3.5 ${contribuinte ? 'bg-amber-50 border-amber-300' : 'bg-emerald-50 border-emerald-300'}`}
+            >
+              <div
+                className={`text-[11px] font-semibold uppercase tracking-wide ${contribuinte ? 'text-amber-700' : 'text-emerald-700'}`}
+              >
+                Obrigatoriedade
+              </div>
+              <div
+                className={`mt-1 text-lg font-bold ${contribuinte ? 'text-amber-900' : 'text-emerald-900'}`}
+              >
+                {contribuinte ? 'Compõe' : 'Não compõe'}
+              </div>
+              <div
+                className={`mt-0.5 text-[11px] ${contribuinte ? 'text-amber-800' : 'text-emerald-800'}`}
+              >
+                {contribuinte
+                  ? 'valores dentro do regime regular — apuração obrigatória'
+                  : 'valores fora do regime regular — sem apuração de IBS/CBS'}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 5 — Comparativo com hoje */}
       <div>
         <h4 className="text-sm font-bold text-slate-900 mb-2">
-          3️⃣ Comparativo — reforma × tributação atual
+          5️⃣ Comparativo — reforma × tributação atual
         </h4>
         <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-xs">
           <table className="w-full text-left border-collapse text-xs sm:text-sm">
@@ -502,10 +709,10 @@ function SimuladorImobiliario() {
         </p>
       </div>
 
-      {/* 4 — RET */}
+      {/* 6 — RET */}
       <div>
         <h4 className="text-sm font-bold text-slate-900 mb-2">
-          4️⃣ Referência — RET da incorporação (art. 485)
+          6️⃣ Referência — RET da incorporação (art. 485)
         </h4>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <KpiA
@@ -531,10 +738,16 @@ function SimuladorImobiliario() {
         349). A CBS de 8,8% é estimativa de mercado (8,8% − 0,1 p.p. do art. 347) e o IBS de 19,11%
         deriva da referência total de 27,91% (Res. CGIBS 14/2026). O redutor de ajuste dos imóveis
         detidos em 31/12/2026 usa custo de aquisição corrigido ou, por opção, o valor de referência
-        (art. 258, I) — aqui simulado pelo custo + IPCA informado.
+        (art. 258, I) — aqui simulado pelo custo + IPCA informado. O limite de R$ 240 mil (art. 251,
+        §5º) e os redutores sociais são atualizados mensalmente pelo IPCA desde 16/01/2025 — informe
+        o IPCA acumulado para o valor vigente.
       </div>
     </div>
   )
+}
+
+function pfAnoAnoAnteriorFlag(v: boolean) {
+  return v
 }
 
 export function SectionRegimeImobiliario() {
