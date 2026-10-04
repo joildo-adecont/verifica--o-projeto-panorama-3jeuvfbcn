@@ -17,6 +17,7 @@ import {
   History,
   Table2,
   Home,
+  Tractor,
 } from 'lucide-react'
 
 /**
@@ -109,6 +110,16 @@ const ITENS: MenuItem[] = [
     cor: 'text-amber-700',
     bg: 'bg-amber-50',
     borda: 'border-amber-200',
+  },
+  {
+    id: '#agronegocio',
+    tecla: 'G',
+    numero: '6B',
+    label: 'Agronegócio',
+    Icon: Tractor,
+    cor: 'text-emerald-700',
+    bg: 'bg-emerald-50',
+    borda: 'border-emerald-200',
   },
   {
     id: '#secao-7',

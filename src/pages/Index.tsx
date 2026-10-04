@@ -9,6 +9,7 @@ import { SectionImunidades } from '@/components/SectionImunidades'
 import { SectionIsencoesAlíquotas } from '@/components/SectionIsencoesAliquots'
 import { SectionRegimesEspecificos } from '@/components/SectionRegimesEspecificos'
 import { SectionRegimeImobiliario } from '@/components/SectionRegimeImobiliario'
+import { SectionAgronegocio } from '@/components/SectionAgronegocio'
 import { SectionAnexos } from '@/components/SectionAnexos'
 import { SectionTabelaGeral } from '@/components/SectionTabelaGeral'
 import { SectionCronograma } from '@/components/SectionCronograma'
@@ -110,6 +111,9 @@ export default function Index() {
 
           {/* Seção 6A: Regime imobiliário — venda, locação, redutores e RET */}
           <SectionRegimeImobiliario />
+
+          {/* Seção 6B: Regime do agronegócio — produtor rural, créditos presumidos e cooperativas */}
+          <SectionAgronegocio />
 
           {/* Seção 7: Anexos da reforma tributária */}
           <SectionAnexos />

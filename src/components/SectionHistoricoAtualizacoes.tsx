@@ -38,6 +38,21 @@ function ehRecente(dataBR: string): boolean {
 const REGISTROS: Registro[] = [
   {
     data: '04/10/2026',
+    hora: '11:15',
+    titulo: 'Seção 6B — Regime do Agronegócio (produtor rural, créditos presumidos, cooperativas)',
+    conteudo:
+      'Nova seção dedicada ao regime do agropecuário (LC 214/2025, arts. 110, 137-138, 164-171 e 271-272), com 5 abas: Reduções de alíquota (produtos in natura −60% art. 137; insumos do Anexo IX −60% art. 138, lista revisada a cada 120 dias), Produtor não contribuinte (limite R$ 3,6 mi/ano art. 164, produtor integrado, excesso de limite, opção pelo regime regular arts. 165-166), Créditos presumidos (compra do produtor não contribuinte art. 168, frete de autônomo/MEI art. 169, cooperativa art. 168 §9º, tratores/veículos de carga alíquota zero art. 110), Diferimento de insumos (art. 138 §2º-§9º, encerramento, convivência com cooperativas art. 271 §4º) e Cooperativas (alíquota zero associado↔cooperativa art. 271, transferência de créditos art. 272). Links Simular para o grupo 🌾 Insumos agro do Simulador. Texto extraído da LC 214 compilada do Planalto, conferido em 04/10/2026. Atalho G no menu lateral.',
+    fontes: [
+      {
+        nome: 'LC 214/2025 compilada — Planalto',
+        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+      },
+    ],
+    caminho: 'Panorama (62493) — SectionAgronegocio.tsx (novo) + Index.tsx + PanoramaSideMenu.tsx',
+    versao: '62493 v0.0.87',
+  },
+  {
+    data: '04/10/2026',
     hora: '11:00',
     titulo: 'Seção 6A — Regime Imobiliário (venda, locação, redutores e RET)',
     conteudo:
