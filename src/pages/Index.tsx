@@ -113,9 +113,6 @@ export default function Index() {
           {/* Seção 7A: Tabela Geral dos Anexos — itens e alíquotas por anexo */}
           <SectionTabelaGeral />
 
-          {/* Seção 7A: Tabela Geral dos Anexos — itens e alíquotas por anexo */}
-          <SectionTabelaGeral />
-
           {/* Seção 8: Cronograma 2026–2033, simulador e pontos de atenção */}
           <SectionCronograma />
 
