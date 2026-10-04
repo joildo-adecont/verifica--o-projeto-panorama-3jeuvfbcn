@@ -483,7 +483,17 @@ export function SectionSimples() {
         </div>
       )}
 
-      {tab === 'hibrido' && <SimuladorHibrido />}
+      {tab === 'hibrido' && (
+        <div className="space-y-4">
+          <SimuladorHibrido />
+          <div className="border-t-2 border-panorama-gold/60 pt-4">
+            <h4 className="text-sm font-bold text-slate-900 mb-2">
+              📆 Como e quando optar — forma e prazos (opção semestral, irretratável)
+            </h4>
+            <Tabela linhas={HIBRIDO_PRAZOS} />
+          </div>
+        </div>
+      )}
     </section>
   )
 }
