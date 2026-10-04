@@ -1,15 +1,13 @@
-import { History, ExternalLink, Database, MapPin, CalendarClock } from 'lucide-react'
+import { History, ExternalLink, Database, MapPin, CalendarClock, Wrench, Scale } from 'lucide-react'
 
 /**
- * Seção 13 — Histórico de Atualizações do Panorama.
- * Registro cronológico de todas as atualizações do sistema: data/hora,
- * fonte oficial consultada, caminho (onde foi aplicado) e conteúdo.
+ * Seção 13 — Histórico de Atualizações do Panorama, em DOIS BLOCOS:
+ * 1) 🔧 Atualização do Sistema — mudanças no Panorama/Simulador (versões, layout, funcionalidades).
+ * 2) ⚖️ Atualização da Legislação — atos normativos novos dos órgãos oficiais
+ *    (Planalto, CGIBS, RFB etc.) e o que mudou no conteúdo por causa deles.
  * Alimentada pelo assistente a cada atualização (rotina semanal + sob demanda).
  *
- * POLÍTICA DE RETENÇÃO: mantém somente os registros dos últimos 30 dias —
- * registros mais antigos são filtrados automaticamente na renderização
- * (ver ehRecente). O array REGISTROS pode acumular; a seção exibe apenas
- * o que está dentro da janela.
+ * POLÍTICA DE RETENÇÃO: mantém somente os registros dos últimos 30 dias.
  */
 
 interface Registro {
@@ -20,6 +18,8 @@ interface Registro {
   fontes: { nome: string; url?: string }[]
   caminho: string
   versao?: string
+  /** Bloco: 'sistema' = mudança no sistema; 'legislacao' = ato normativo novo de órgão oficial */
+  bloco: 'sistema' | 'legislacao'
 }
 
 /** Janela de retenção em dias (política do CEO: máximo 30 dias). */
@@ -36,6 +36,7 @@ function ehRecente(dataBR: string): boolean {
 }
 
 const REGISTROS: Registro[] = [
+  // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
     data: '04/10/2026',
     hora: '12:20',
@@ -51,6 +52,7 @@ const REGISTROS: Registro[] = [
     caminho:
       'Panorama (62493) — SectionAgronegocio.tsx, SectionConsorcios.tsx, SectionFinanceiros.tsx, SectionSimples.tsx, SectionProfissionaisPlataformas.tsx (componente Tabela uniforme)',
     versao: '62493 v0.0.94',
+    bloco: 'sistema',
   },
   {
     data: '04/10/2026',
@@ -67,6 +69,7 @@ const REGISTROS: Registro[] = [
     caminho:
       'Panorama (62493) — SectionConsorcios.tsx, SectionFinanceiros.tsx, SectionSimples.tsx, SectionProfissionaisPlataformas.tsx (reescritos com abas)',
     versao: '62493 v0.0.91',
+    bloco: 'sistema',
   },
   {
     data: '04/10/2026',
@@ -83,6 +86,7 @@ const REGISTROS: Registro[] = [
     caminho:
       'Panorama (62493) — SectionConsorcios.tsx, SectionFinanceiros.tsx, SectionSimples.tsx, SectionProfissionaisPlataformas.tsx (novos) + Index.tsx + PanoramaSideMenu.tsx + SectionRegimesEspecificos.tsx',
     versao: '62493 v0.0.90',
+    bloco: 'sistema',
   },
   {
     data: '04/10/2026',
@@ -98,6 +102,7 @@ const REGISTROS: Registro[] = [
     ],
     caminho: 'Panorama (62493) — SectionRegimesEspecificos.tsx (box de destaque)',
     versao: '62493 v0.0.89',
+    bloco: 'sistema',
   },
   {
     data: '04/10/2026',
@@ -105,7 +110,7 @@ const REGISTROS: Registro[] = [
     titulo:
       'Seção 6C — Consórcios, serviços financeiros, Simples Nacional e profissionais regulamentados',
     conteudo:
-      'Nova seção com os demais regimes específicos e diferenciados, no mesmo padrão das seções 6A/6B, com 4 abas: Consórcios (arts. 204-206: taxa de administração em regime de caixa, dedução da intermediação, carta de crédito segue normas gerais, contemplação não é fato gerador, execução de garantia sem incidência na consolidação, crédito da taxa, intermediação), Serviços financeiros (art. 182: lista completa das 17 operações; base de cálculo art. 185; deduções art. 192; arranjos de pagamento art. 214; sujeitos supervisionados BC/CVM/Previc/SUSEP art. 183), Simples Nacional (LC 123 art. 13-A: IBS no DAS até R$ 3,6 mi; alíquotas de teste 2026-2028 arts. 343-347; janelas de opção Res. CGSN 190-192/2026; NF com destaque; crédito presumido de importação arts. 444/462) e Profissionais regulamentados + plataformas digitais (art. 127: redução 30%, 18 profissões, requisitos da PJ; art. 22: responsabilidade solidária das plataformas, definição e exceções). Texto extraído da LC 214 compilada do Planalto, conferido em 04/10/2026. Atalho O no menu lateral.',
+      'Nova seção com os demais regimes específicos e diferenciados, no mesmo padrão das seções 6A/6B, com 4 abas: Consórcios (arts. 204-206), Serviços financeiros (art. 182: 17 operações; base art. 185; deduções art. 192; arranjos art. 214; sujeitos BC/CVM/Previc/SUSEP art. 183), Simples Nacional (LC 123 art. 13-A: IBS no DAS até R$ 3,6 mi; alíquotas de teste 2026-2028 arts. 343-347; janelas Res. CGSN 190-192/2026) e Profissionais + plataformas (art. 127: redução 30%, 18 profissões; art. 22: responsabilidade solidária). Atalho O no menu lateral.',
     fontes: [
       {
         nome: 'LC 214/2025 compilada — Planalto',
@@ -115,13 +120,14 @@ const REGISTROS: Registro[] = [
     caminho:
       'Panorama (62493) — SectionOutrosRegimes.tsx (novo) + Index.tsx + PanoramaSideMenu.tsx',
     versao: '62493 v0.0.88',
+    bloco: 'sistema',
   },
   {
     data: '04/10/2026',
     hora: '11:15',
     titulo: 'Seção 6B — Regime do Agronegócio (produtor rural, créditos presumidos, cooperativas)',
     conteudo:
-      'Nova seção dedicada ao regime do agropecuário (LC 214/2025, arts. 110, 137-138, 164-171 e 271-272), com 5 abas: Reduções de alíquota (produtos in natura −60% art. 137; insumos do Anexo IX −60% art. 138, lista revisada a cada 120 dias), Produtor não contribuinte (limite R$ 3,6 mi/ano art. 164, produtor integrado, excesso de limite, opção pelo regime regular arts. 165-166), Créditos presumidos (compra do produtor não contribuinte art. 168, frete de autônomo/MEI art. 169, cooperativa art. 168 §9º, tratores/veículos de carga alíquota zero art. 110), Diferimento de insumos (art. 138 §2º-§9º, encerramento, convivência com cooperativas art. 271 §4º) e Cooperativas (alíquota zero associado↔cooperativa art. 271, transferência de créditos art. 272). Links Simular para o grupo 🌾 Insumos agro do Simulador. Texto extraído da LC 214 compilada do Planalto, conferido em 04/10/2026. Atalho G no menu lateral.',
+      'Nova seção dedicada ao regime do agropecuário (LC 214/2025, arts. 110, 137-138, 164-171 e 271-272), com 5 abas: Reduções de alíquota (produtos in natura −60% art. 137; insumos do Anexo IX −60% art. 138), Produtor não contribuinte (limite R$ 3,6 mi/ano art. 164), Créditos presumidos (arts. 168-169, tratores/veículos de carga alíquota zero art. 110), Diferimento de insumos (art. 138 §2º-§9º) e Cooperativas (alíquota zero art. 271, transferência de créditos art. 272). Links Simular para o grupo 🌾 Insumos agro. Atalho G no menu lateral.',
     fontes: [
       {
         nome: 'LC 214/2025 compilada — Planalto',
@@ -130,13 +136,14 @@ const REGISTROS: Registro[] = [
     ],
     caminho: 'Panorama (62493) — SectionAgronegocio.tsx (novo) + Index.tsx + PanoramaSideMenu.tsx',
     versao: '62493 v0.0.87',
+    bloco: 'sistema',
   },
   {
     data: '04/10/2026',
     hora: '11:00',
     titulo: 'Seção 6A — Regime Imobiliário (venda, locação, redutores e RET)',
     conteudo:
-      'Nova seção dedicada ao regime específico das operações com bens imóveis (LC 214/2025, arts. 252-261 e 485-488), com 3 abas: Operações e reduções (alienação −50% com redutor social R$ 100 mil para imóvel novo e R$ 30 mil para lote, redutor de ajuste para imóvel usado, locação −70% com redutor social R$ 600/mês, intermediação e construção civil −50%), RET incorporação (2,08% patrimônio de afetação / 0,53% RET especial, opção antes de 01/01/2029) e Permutas e não incidências (art. 252 §2º/§5º/§5-A da LC 227/2026). Cada operação tem link direto para simular no Simulador de Transição (grupo 🏠 Imobiliário, 9 itens). Texto extraído da LC 214 compilada do Planalto, conferido em 04/10/2026. Atalho I no menu lateral.',
+      'Nova seção dedicada ao regime específico das operações com bens imóveis (LC 214/2025, arts. 252-261 e 485-488), com 3 abas: Operações e reduções (alienação −50% com redutor social R$ 100 mil para imóvel novo e R$ 30 mil para lote, redutor de ajuste para imóvel usado, locação −70% com redutor social R$ 600/mês, intermediação e construção civil −50%), RET incorporação (2,08% patrimônio de afetação / 0,53% RET especial, opção antes de 01/01/2029) e Permutas e não incidências (art. 252 §2º/§5º/§5-A da LC 227/2026). Cada operação com link direto para simular (grupo 🏠 Imobiliário, 9 itens). Atalho I no menu lateral.',
     fontes: [
       {
         nome: 'LC 214/2025 compilada — Planalto',
@@ -146,13 +153,14 @@ const REGISTROS: Registro[] = [
     caminho:
       'Panorama (62493) — SectionRegimeImobiliario.tsx (novo) + Index.tsx + PanoramaSideMenu.tsx',
     versao: '62493 v0.0.86',
+    bloco: 'sistema',
   },
   {
     data: '04/10/2026',
     hora: '00:45',
     titulo: 'Unificação de dados — Seção 7A passa a ser a fonte única das tabelas de itens',
     conteudo:
-      'Auditoria de duplicações (a pedido do CEO): 185 códigos NCM/NBS estavam repetidos entre as seções 2C/2D do Panorama HTML e a 7A; os anexos da LC 214 com tabela de itens na Seção 7 (educação, saúde, dispositivos, higiene, insumos agro, acessibilidade, hortifrúti) duplicavam a 7A; a Cesta Básica aparecia em 2 lugares. Unificação: a Seção 7A é agora a FONTE ÚNICA das tabelas de itens e alíquotas (1.053 linhas); a Seção 7 virou catálogo analítico (base legal + efeito + conexões) com link direto para o bloco correspondente da 7A; a Seção 3 (Cesta) aponta para o Anexo I da LC 214 na 7A. Correção adicional: removida a duplicação de renderização da 7A no Index (v0.0.69).',
+      'Auditoria de duplicações (a pedido do CEO): 185 códigos NCM/NBS estavam repetidos entre as seções 2C/2D do Panorama HTML e a 7A; os anexos da LC 214 com tabela de itens na Seção 7 duplicavam a 7A; a Cesta Básica aparecia em 2 lugares. Unificação: a Seção 7A é agora a FONTE ÚNICA das tabelas de itens e alíquotas (1.053 linhas); a Seção 7 virou catálogo analítico com link direto para o bloco correspondente da 7A; a Seção 3 (Cesta) aponta para o Anexo I da LC 214 na 7A. Correção adicional: removida a duplicação de renderização da 7A no Index (v0.0.69).',
     fontes: [
       { nome: 'RIBS — Resolução CGIBS 6/2026 (cgibs.gov.br/resolucoes)' },
       { nome: 'LC 214/2025 compilada (Planalto)' },
@@ -161,6 +169,7 @@ const REGISTROS: Registro[] = [
     caminho:
       'Panorama (62493) — SectionAnexos.tsx (itensDetalhados → link 7A; box unificação), SectionCestaBasica.tsx (link 7A), Index.tsx (dedup 7A)',
     versao: '62493 v0.0.70',
+    bloco: 'sistema',
   },
   {
     data: '04/10/2026',
@@ -172,6 +181,7 @@ const REGISTROS: Registro[] = [
     caminho:
       'src/components/PanoramaHero.tsx, PanoramaHeader.tsx, PanoramaSideMenu.tsx, PanoramaFooter.tsx, Section*.tsx, src/main.css',
     versao: 'v0.0.67 (parcela 1) e v0.0.68 (parcela 2)',
+    bloco: 'sistema',
   },
   {
     data: '03/10/2026',
@@ -196,13 +206,14 @@ const REGISTROS: Registro[] = [
     caminho:
       'Panorama (62493) — src/data/tabelaGeralDados.ts (novo) + src/components/SectionTabelaGeral.tsx (novo) + Index.tsx + PanoramaSideMenu.tsx',
     versao: 'v0.0.66',
+    bloco: 'sistema',
   },
   {
     data: '03/10/2026',
     hora: '17:05',
     titulo: 'Seção 7 — Anexos I e II do RIBS completos com carga sob demanda (parcela final)',
     conteudo:
-      'Tabelas de itens dos dois maiores anexos do RIBS: Anexo I depreciação (258 linhas oficiais com referência NCM, prazo de vida útil e taxa anual, incluindo as notas 1-3 do anexo) e Anexo II Repetro (580 itens nas 4 tabelas oficiais: T1 Repetro-Temporário 86, T2 GNL-Temporário 324 com tipo de atividade, T3 Repetro-Permanente 151, T4 Repetro-Entreposto 19). CARGA SOB DEMANDA: os dados (arquivos de 28 KB e 92 KB) só são baixados pelo navegador quando o anexo é aberto (import dinâmico), sem pesar o carregamento inicial da página. Com isto, os 5 anexos do RIBS têm 100% dos seus itens consultáveis no Panorama.',
+      'Tabelas de itens dos dois maiores anexos do RIBS: Anexo I depreciação (258 linhas oficiais com referência NCM, prazo de vida útil e taxa anual, incluindo as notas 1-3 do anexo) e Anexo II Repetro (580 itens nas 4 tabelas oficiais: T1 Repetro-Temporário 86, T2 GNL-Temporário 324 com tipo de atividade, T3 Repetro-Permanente 151, T4 Repetro-Entreposto 19). CARGA SOB DEMANDA: os dados só são baixados pelo navegador quando o anexo é aberto (import dinâmico). Com isto, os 5 anexos do RIBS têm 100% dos seus itens consultáveis no Panorama.',
     fontes: [
       {
         nome: 'RIBS — Resolução CGIBS 6/2026 (PDF oficial)',
@@ -212,6 +223,7 @@ const REGISTROS: Registro[] = [
     caminho:
       'Panorama (62493) — src/data/ribsA1A2.ts (novo) + src/data/ribsRepetro.ts (novo) + SectionAnexos.tsx (TabelaSobDemanda)',
     versao: '62493 v0.0.62',
+    bloco: 'sistema',
   },
   {
     data: '03/10/2026',
@@ -219,7 +231,7 @@ const REGISTROS: Registro[] = [
     titulo:
       'Seção 7 — Tabelas de itens dos Anexos III, IV e V do RIBS com filtro e teclas de atalho',
     conteudo:
-      'Tabelas de itens consultáveis nos anexos do RIBS: Anexo III Reporto (14 itens), Anexo IV bens de capital (98 itens nas 3 tabelas oficiais: I bens de capital art. 196, II tratores/máquinas agrícolas art. 197 I, III veículos de carga art. 197 II) e Anexo V ZFM (49 itens com legislação estadual do AM por item — Lei 2.826/03 e Decretos 38.558/17 a 51.978/25). Cada tabela tem filtro próprio (item, descrição, NCM, legislação) e a busca geral da seção agora encontra itens dentro das tabelas. Teclas de atalho: / foca a busca geral, Esc limpa o filtro da tabela. Tabelas sujeitas à rotina semanal de fontes oficiais (seg 11h) com registro no Histórico. Próxima parcela: Anexos I (≈260) e II (≈580) do RIBS com carga sob demanda.',
+      'Tabelas de itens consultáveis nos anexos do RIBS: Anexo III Reporto (14 itens), Anexo IV bens de capital (98 itens nas 3 tabelas oficiais) e Anexo V ZFM (49 itens com legislação estadual do AM por item — Lei 2.826/03 e Decretos 38.558/17 a 51.978/25). Cada tabela tem filtro próprio (item, descrição, NCM, legislação) e a busca geral da seção agora encontra itens dentro das tabelas. Teclas: / foca a busca geral, Esc limpa o filtro. Próxima parcela: Anexos I (≈260) e II (≈580) do RIBS.',
     fontes: [
       {
         nome: 'RIBS — Resolução CGIBS 6/2026 (PDF oficial)',
@@ -228,13 +240,14 @@ const REGISTROS: Registro[] = [
     ],
     caminho: 'Panorama (62493) — src/data/ribsItens.ts (novo) + SectionAnexos.tsx (TabelaItens)',
     versao: '62493 v0.0.61',
+    bloco: 'sistema',
   },
   {
     data: '03/10/2026',
     hora: '00:45',
     titulo: 'Seção 7 ↔ Simulador — interligação completa nos dois sentidos (Parcela 3)',
     conteudo:
-      'Mapeamento dos 118 itens do catálogo do Simulador aos anexos da Seção 7: cada anexo com mapeamento direto exibe selo "N no Simulador" e, aberto, a nota de correspondência (Anexo I 35 itens, XV 14, II 7, III 12, IV 11, IX 4, XVII 13, RIBS III 1, RIBS IV 4, RIBS V 1); faixa resumo no topo da seção. No sentido inverso, o Simulador ganhou o botão "📑 Anexos (Seção 7)" no header (nas duas cópias da página estática), levando à âncora #secao-7. Itens do catálogo já citavam a origem oficial (anexo + item) desde a ampliação do catálogo.',
+      'Mapeamento dos 118 itens do catálogo do Simulador aos anexos da Seção 7: cada anexo com mapeamento direto exibe selo "N no Simulador" e, aberto, a nota de correspondência (Anexo I 35 itens, XV 14, II 7, III 12, IV 11, IX 4, XVII 13, RIBS III 1, RIBS IV 4, RIBS V 1); faixa resumo no topo da seção. No sentido inverso, o Simulador ganhou o botão "📑 Anexos (Seção 7)" no header (nas duas cópias da página estática), levando à âncora #secao-7.',
     fontes: [
       {
         nome: 'LC 214/2025 compilada — Planalto',
@@ -248,6 +261,7 @@ const REGISTROS: Registro[] = [
     caminho:
       'Panorama (62493) — anexosCatalogo.ts (MAPA_SIMULADOR), SectionAnexos.tsx, simulador.html (raiz e /panorama-reforma/)',
     versao: '62493 v0.0.60',
+    bloco: 'sistema',
   },
   {
     data: '03/10/2026',
@@ -267,6 +281,7 @@ const REGISTROS: Registro[] = [
     ],
     caminho: 'Panorama (62493) — src/data/anexosCatalogo.ts + SectionAnexos.tsx (seção 7)',
     versao: '62493 v0.0.59',
+    bloco: 'sistema',
   },
   {
     data: '02/10/2026',
@@ -291,6 +306,7 @@ const REGISTROS: Registro[] = [
     ],
     caminho: 'Panorama (62493) — src/data/anexosCatalogo.ts + SectionAnexos.tsx (seção 7)',
     versao: '62493 v0.0.57',
+    bloco: 'sistema',
   },
   {
     data: '02/10/2026',
@@ -301,6 +317,7 @@ const REGISTROS: Registro[] = [
     fontes: [{ nome: 'Interno — Sistema ADECONT (projeto Panorama)' }],
     caminho: 'Panorama (62493) — menus principal e lateral; App.tsx; NotFound.tsx',
     versao: 'v0.0.47–52',
+    bloco: 'sistema',
   },
   {
     data: '02/10/2026',
@@ -312,6 +329,7 @@ const REGISTROS: Registro[] = [
     caminho:
       'Panorama (62493) — simulador.html, envios.html, recebido.html (raiz e /panorama-reforma/), App.tsx',
     versao: 'v0.0.41–46',
+    bloco: 'sistema',
   },
   {
     data: '02/10/2026',
@@ -322,6 +340,7 @@ const REGISTROS: Registro[] = [
     fontes: [{ nome: 'Interno — Sistema ADECONT (projetos 56819 e 62493)' }],
     caminho: 'Financeiro (56819) — remoção de 6 arquivos; Panorama (62493) — único dono do módulo',
     versao: '56819 v0.0.89–90',
+    bloco: 'sistema',
   },
   {
     data: '01/10/2026',
@@ -339,6 +358,7 @@ const REGISTROS: Registro[] = [
     caminho:
       'Panorama — seção 12 (56819: parte-conteudo-6.html; 62493: SectionFontesPrimarias.tsx)',
     versao: '56819 v0.0.88 · 62493 v0.0.39–40',
+    bloco: 'sistema',
   },
   {
     data: '01/10/2026',
@@ -359,6 +379,7 @@ const REGISTROS: Registro[] = [
     caminho:
       'Panorama — seção 11 (56819: parte-conteudo-5.html; 62493: SectionFontesAgregador.tsx)',
     versao: '56819 v0.0.87',
+    bloco: 'sistema',
   },
   {
     data: '01/10/2026',
@@ -382,6 +403,7 @@ const REGISTROS: Registro[] = [
     ],
     caminho: 'Panorama (62493) — simulador.html + partes/sim-catalogo.js',
     versao: '62493 v0.0.36–38 · 56819 v0.0.84–85',
+    bloco: 'sistema',
   },
   {
     data: '30/09/2026',
@@ -394,6 +416,7 @@ const REGISTROS: Registro[] = [
     ],
     caminho: 'Panorama — seção 10 + busca-resolucoes.html',
     versao: '56819 v0.0.65–68',
+    bloco: 'sistema',
   },
   {
     data: '30/09/2026',
@@ -417,6 +440,7 @@ const REGISTROS: Registro[] = [
     ],
     caminho: 'Panorama — seções 2/2A/2C/2D (parte-conteudo-1.html)',
     versao: '56819 v0.0.77–80',
+    bloco: 'sistema',
   },
   {
     data: '30/09/2026',
@@ -440,16 +464,201 @@ const REGISTROS: Registro[] = [
     ],
     caminho: 'Panorama — seções 1 a 9',
     versao: '56819 v0.0.64',
+    bloco: 'sistema',
+  },
+
+  // ============ BLOCO: ATUALIZAÇÃO DA LEGISLAÇÃO (órgãos oficiais) ============
+  {
+    data: '01/10/2026',
+    hora: '10:00',
+    titulo: 'LC 214/2025 alterada pela LC 227/2026 — texto compilado atualizado no Planalto',
+    conteudo:
+      'A Lei Complementar 214/2025 (IBS/CBS) recebeu alterações da LC 227/2026, já refletidas no texto compilado do Planalto usado como fonte do Panorama: novo art. 252 §5-A (permutas com não contribuinte — redutores de ajuste), proteção patrimonial mutualista incluída nos serviços financeiros (art. 182) e revogação do Anexo XIV da LC 214. As seções 6A (permutas), 6D (financeiros) e 7 (índice de anexos) foram verificadas contra o texto compilado.',
+    fontes: [
+      {
+        nome: 'Planalto — LC 214/2025 compilada (com alterações da LC 227/2026)',
+        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+      },
+      {
+        nome: 'Planalto — LC 227/2026 (texto original)',
+        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp227.htm',
+      },
+    ],
+    caminho:
+      'Panorama — seções 6A (permutas §5-A), 6D (financeiros), 7 (anexo XIV revogado); fonte de todas as seções de regime',
+    versao: 'verificação 04/10/2026',
+    bloco: 'legislacao',
+  },
+  {
+    data: '30/04/2026',
+    hora: '—',
+    titulo: 'RIBS — Resolução CGIBS 6/2026: Regulamento do IBS (617 artigos, 28 anexos)',
+    conteudo:
+      'O Comitê Gestor do IBS publicou o Regulamento do IBS (RIBS) na Resolução CGIBS 6/2026, com 617 artigos e 28 anexos: depreciação (Anexo I), Repetro (Anexo II, 4 tabelas), Reporto (Anexo III), bens de capital (Anexo IV), ZFM (Anexo V) e demais. O Panorama extraiu os itens dos anexos diretamente do PDF oficial (Seções 7 e 7A) e cita o RIBS como base legal em toda a navegação. A Resolução 13/2026 altera o RIBS — monitorada na rotina semanal.',
+    fontes: [
+      {
+        nome: 'CGIBS — Resolução CGIBS 6/2026 (PDF oficial)',
+        url: 'https://www.cgibs.gov.br/upload/arquivos/202604/30084927-res-cgibs-n-6-30-abr-2026-regulamenta-o-ibs.pdf',
+      },
+      {
+        nome: 'CGIBS — Resoluções (todas as 18 de 2026)',
+        url: 'https://www.cgibs.gov.br/resolucoes',
+      },
+    ],
+    caminho:
+      'Panorama — seções 7 e 7A (anexos do RIBS), base legal citada nas seções 2/6; rotina semanal monitora novas resoluções',
+    versao: 'publicado 30/04/2026',
+    bloco: 'legislacao',
+  },
+  {
+    data: '16/09/2026',
+    hora: '—',
+    titulo: 'Decreto 12.955/2026 — Regulamento da CBS (Planalto)',
+    conteudo:
+      'Decreto regulamentador da CBS publicado no Planalto, com anexos de produtos e serviços (Anexo IV citado no catálogo do Simulador). O Panorama usa o Decreto como fonte das seções de CBS e dos 5 blocos de anexos da CBS na Seção 7/7A.',
+    fontes: [
+      {
+        nome: 'Planalto — Decreto 12.955/2026',
+        url: 'https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2026/decreto/D12955.htm',
+      },
+    ],
+    caminho: 'Panorama — seções 7/7A (anexos CBS), Simulador (fonte do catálogo)',
+    versao: 'publicado 16/09/2026',
+    bloco: 'legislacao',
+  },
+  {
+    data: '12/09/2026',
+    hora: '—',
+    titulo: 'Resoluções CGSN 190–192/2026 — Simples Nacional na reforma (IBS no DAS)',
+    conteudo:
+      'O Comitê Gestor do Simples Nacional publicou as Resoluções 190, 191 e 192/2026 regulamentando o recolhimento do IBS no DAS (LC 123, art. 13-A), as janelas de opção e a emissão de documento fiscal com destaque. Base legal da Seção 6E (Simples Nacional) do Panorama.',
+    fontes: [
+      {
+        nome: 'Receita Federal / CGSN — Resoluções 190–192/2026',
+        url: 'https://www.gov.br/receitafederal/pt-br/assuntos/noticias',
+      },
+    ],
+    caminho: 'Panorama — seção 6E (Simples Nacional); Seção 6 (tabela de regimes)',
+    versao: 'publicado set/2026',
+    bloco: 'legislacao',
+  },
+  {
+    data: '2026',
+    hora: '—',
+    titulo: 'IT 2025.002 / Ato Técnico Conjunto — cClassTrib e cCredPres (em construção oficial)',
+    conteudo:
+      'Os códigos de classificação tributária (cClassTrib) e de crédito presumido (cCredPres) do IBS/CBS ainda NÃO foram publicados em fonte oficial definitiva — constam apenas da IT 2025.002 (v1.70) e do Ato Técnico Conjunto 8, monitorados via Buscador NCM (fonte secundária, seção 11). Quando publicados oficialmente, entram na Seção 7A e no Histórico deste bloco.',
+    fontes: [
+      {
+        nome: 'Buscador NCM — acompanhamento de cClassTrib/cCredPres (fonte secundária)',
+        url: 'https://buscadorncm.com.br/fontes',
+      },
+    ],
+    caminho: 'Panorama — seção 11 (alerta de fonte secundária); pendência na rotina semanal',
+    versao: 'monitoramento contínuo',
+    bloco: 'legislacao',
   },
 ]
 
 // Política de retenção: exibe somente registros dos últimos 30 dias.
 const VISIVEIS = REGISTROS.filter((r) => ehRecente(r.data))
+const SISTEMA = VISIVEIS.filter((r) => r.bloco === 'sistema')
+const LEGISLACAO = VISIVEIS.filter((r) => r.bloco === 'legislacao')
+
+function Bloco({
+  titulo,
+  icone,
+  cor,
+  registros,
+  vazio,
+}: {
+  titulo: string
+  icone: React.ReactNode
+  cor: string
+  registros: Registro[]
+  vazio: string
+}) {
+  return (
+    <div className="space-y-4">
+      <div className={`flex items-center gap-2 border-b-2 pb-2 ${cor}`}>
+        {icone}
+        <h3 className="text-base md:text-lg font-bold text-slate-900">{titulo}</h3>
+        <span className="ml-auto text-xs font-semibold text-slate-500">
+          {registros.length} registro{registros.length === 1 ? '' : 's'}
+        </span>
+      </div>
+      {registros.length ? (
+        <ol className="relative border-l-2 border-slate-200 ml-3 space-y-6">
+          {registros.map((r, i) => (
+            <li key={i} className="ml-6">
+              <span className="absolute -left-[11px] flex items-center justify-center w-5 h-5 rounded-full bg-lime-500 border-4 border-white shadow" />
+              <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4 space-y-2.5">
+                <div className="flex flex-wrap items-center gap-2 text-xs">
+                  <span className="inline-flex items-center gap-1 font-bold text-slate-800 bg-white border border-slate-200 rounded-md px-2 py-0.5">
+                    <CalendarClock className="w-3.5 h-3.5 text-lime-600" />
+                    {r.data} {r.hora !== '—' ? `às ${r.hora}` : ''}
+                  </span>
+                  {r.versao && (
+                    <span className="font-mono text-[11px] text-slate-500 bg-white border border-slate-200 rounded-md px-2 py-0.5">
+                      {r.versao}
+                    </span>
+                  )}
+                </div>
+
+                <h4 className="text-sm md:text-base font-bold text-slate-900 leading-snug">
+                  {r.titulo}
+                </h4>
+
+                <p className="text-sm text-slate-600 leading-relaxed">{r.conteudo}</p>
+
+                <div className="flex items-start gap-1.5 text-xs text-slate-600">
+                  <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-orange-500" />
+                  <span>
+                    <strong>Caminho:</strong> {r.caminho}
+                  </span>
+                </div>
+
+                <div className="flex items-start gap-1.5 text-xs text-slate-600">
+                  <Database className="w-3.5 h-3.5 mt-0.5 shrink-0 text-violet-500" />
+                  <span>
+                    <strong>
+                      Fonte{r.fontes.length > 1 ? 's' : ''} oficial
+                      {r.fontes.length > 1 ? 'is' : ''}:
+                    </strong>{' '}
+                    {r.fontes.map((f, j) => (
+                      <span key={j}>
+                        {j > 0 && ' · '}
+                        {f.url ? (
+                          <a
+                            href={f.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-700 hover:underline font-medium"
+                          >
+                            {f.nome}
+                          </a>
+                        ) : (
+                          f.nome
+                        )}
+                      </span>
+                    ))}
+                  </span>
+                </div>
+              </div>
+            </li>
+          ))}
+        </ol>
+      ) : (
+        <p className="text-sm text-slate-500 py-4 text-center">{vazio}</p>
+      )}
+    </div>
+  )
+}
 
 export function SectionHistoricoAtualizacoes() {
   return (
     <section id="historico-atualizacoes" className="scroll-mt-24">
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 md:p-8 shadow-sm space-y-5">
+      <div className="rounded-2xl border border-slate-200 bg-white p-6 md:p-8 shadow-sm space-y-6">
         <div>
           <p className="text-xs font-bold uppercase tracking-wider text-panorama-gold-dark">
             Seção 13
@@ -461,9 +670,11 @@ export function SectionHistoricoAtualizacoes() {
             Histórico de Atualizações
           </h2>
           <p className="text-sm text-slate-500 mt-1">
-            Registro cronológico de todas as atualizações do Panorama: data e hora, fonte oficial
-            consultada, caminho aplicado no sistema e conteúdo da mudança. Alimentado pelo
-            assistente a cada atualização — na rotina semanal (segundas, 11h) e sob demanda.
+            Registro cronológico em dois blocos: <strong>Atualização do Sistema</strong> (mudanças
+            no Panorama e no Simulador) e <strong>Atualização da Legislação</strong> (atos
+            normativos novos dos órgãos oficiais — Planalto, CGIBS, Receita Federal — e o que mudou
+            no conteúdo por causa deles). Alimentado pelo assistente a cada atualização — na rotina
+            semanal (segundas, 11h) e sob demanda.
           </p>
         </div>
 
@@ -497,73 +708,23 @@ export function SectionHistoricoAtualizacoes() {
           </p>
         </div>
 
-        {/* Linha do tempo cronológica — mais recente primeiro, janela de 30 dias */}
-        <ol className="relative border-l-2 border-slate-200 ml-3 space-y-6">
-          {VISIVEIS.map((r, i) => (
-            <li key={i} className="ml-6">
-              <span className="absolute -left-[11px] flex items-center justify-center w-5 h-5 rounded-full bg-lime-500 border-4 border-white shadow" />
-              <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4 space-y-2.5">
-                <div className="flex flex-wrap items-center gap-2 text-xs">
-                  <span className="inline-flex items-center gap-1 font-bold text-slate-800 bg-white border border-slate-200 rounded-md px-2 py-0.5">
-                    <CalendarClock className="w-3.5 h-3.5 text-lime-600" />
-                    {r.data} às {r.hora}
-                  </span>
-                  {r.versao && (
-                    <span className="font-mono text-[11px] text-slate-500 bg-white border border-slate-200 rounded-md px-2 py-0.5">
-                      {r.versao}
-                    </span>
-                  )}
-                </div>
+        {/* BLOCO 1 — Atualização do Sistema */}
+        <Bloco
+          titulo="🔧 Atualização do Sistema"
+          icone={<Wrench className="w-4 h-4 text-panorama-gold-dark" />}
+          cor="border-panorama-gold/60"
+          registros={SISTEMA}
+          vazio="Nenhuma atualização do sistema nos últimos 30 dias."
+        />
 
-                <h3 className="text-sm md:text-base font-bold text-slate-900 leading-snug">
-                  {r.titulo}
-                </h3>
-
-                <p className="text-sm text-slate-600 leading-relaxed">{r.conteudo}</p>
-
-                <div className="flex items-start gap-1.5 text-xs text-slate-600">
-                  <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-orange-500" />
-                  <span>
-                    <strong>Caminho:</strong> {r.caminho}
-                  </span>
-                </div>
-
-                <div className="flex items-start gap-1.5 text-xs text-slate-600">
-                  <Database className="w-3.5 h-3.5 mt-0.5 shrink-0 text-violet-500" />
-                  <span>
-                    <strong>
-                      Fonte{r.fontes.length > 1 ? 's' : ''} oficial{r.fontes.length > 1 ? 'is' : ''}
-                      :
-                    </strong>{' '}
-                    {r.fontes.map((f, j) => (
-                      <span key={j}>
-                        {j > 0 && ' · '}
-                        {f.url ? (
-                          <a
-                            href={f.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-700 hover:underline font-medium"
-                          >
-                            {f.nome}
-                          </a>
-                        ) : (
-                          f.nome
-                        )}
-                      </span>
-                    ))}
-                  </span>
-                </div>
-              </div>
-            </li>
-          ))}
-        </ol>
-
-        {!VISIVEIS.length && (
-          <p className="text-sm text-slate-500 py-6 text-center">
-            Nenhuma atualização nos últimos 30 dias.
-          </p>
-        )}
+        {/* BLOCO 2 — Atualização da Legislação */}
+        <Bloco
+          titulo="⚖️ Atualização da Legislação — atos normativos dos órgãos oficiais"
+          icone={<Scale className="w-4 h-4 text-panorama-gold-dark" />}
+          cor="border-panorama-navy/60"
+          registros={LEGISLACAO}
+          vazio="Nenhum ato normativo novo dos órgãos oficiais nos últimos 30 dias."
+        />
       </div>
     </section>
   )
