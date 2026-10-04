@@ -452,20 +452,18 @@
       var SRC = typeof SIM_CATALOGO !== 'undefined' ? SIM_CATALOGO : window.SIM_CATALOGO || []
       var CAT = SRC.map(function (a) {
         if (Array.isArray(a)) {
-          return {
-            codigo: a[0],
-            tipo: a[1],
-            nome: a[2],
-            grupo: a[3],
-            fator: a[4],
-            fonte: a[5],
+          // Formato novo (5 campos): [codigo, nome, grupo, fator, fonte]
+          if (a.length === 5) {
+            return { codigo: a[0], nome: a[1], grupo: a[2], fator: a[3], fonte: a[4] }
           }
+          // Formato antigo (6 campos): [codigo, tipo, nome, grupo, fator, fonte]
+          return { codigo: a[0], tipo: a[1], nome: a[2], grupo: a[3], fator: a[4], fonte: a[5] }
         }
         return a
       })
 
       var GRUPOS = [
-        ['todos', 'Todos (118)'],
+        ['todos', 'Todos'],
         ['cesta_zero', '🟢 Cesta Básica — 0%'],
         ['reducao60', '🟡 Saúde/Educação — −60%'],
         ['reducao30', '🟡 Liberais — −30%'],
@@ -478,6 +476,9 @@
         ['suspensao', '⏸️ Suspensão'],
         ['agro', '🐄 Agro'],
         ['regular', '⚪ Regime regular'],
+        ['depreciacao', '📉 Depreciação (RIBS)'],
+        ['repetro', '🚢 Repetro (RIBS)'],
+        ['credito_presumido', '💵 Crédito presumido'],
       ]
 
       var grupoAtivo = 'todos'
@@ -498,7 +499,7 @@
           if (g[0] !== 'todos' && n === 0) return
           var b = document.createElement('button')
           b.className = 'chip' + (grupoAtivo === g[0] ? ' chip-on' : '')
-          b.textContent = g[1].replace(/\(\d+\)/, '(' + n + ')')
+          b.textContent = g[0] === 'todos' ? g[1] + ' (' + n + ')' : g[1] + ' (' + n + ')'
           b.onclick = function () {
             grupoAtivo = g[0]
             renderGrupos()
