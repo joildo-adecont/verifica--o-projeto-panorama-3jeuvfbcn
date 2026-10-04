@@ -38,6 +38,22 @@ function ehRecente(dataBR: string): boolean {
 const REGISTROS: Registro[] = [
   {
     data: '04/10/2026',
+    hora: '12:00',
+    titulo: 'Seções 6C–6F no mesmo layout de abas da 6A/6B',
+    conteudo:
+      'A pedido do CEO, as seções 6C Consórcios, 6D Serviços financeiros, 6E Simples Nacional e 6F Profissionais e Plataformas foram reorganizadas no MESMO layout das seções 6A/6B: cabeçalho com selo navy+dourado, abas internas (AbaButton), cards com base legal, caixas de destaque (dourada/azul/âmbar) e links Simular. Abas: 6C (Taxa de administração / Carta de crédito / Garantias), 6D (Operações art. 182 / Base e deduções / Arranjos de pagamento), 6E (Transição 2026–2029+ / Regras do regime), 6F (Profissionais regulamentados / Plataformas digitais).',
+    fontes: [
+      {
+        nome: 'LC 214/2025 compilada — Planalto',
+        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+      },
+    ],
+    caminho:
+      'Panorama (62493) — SectionConsorcios.tsx, SectionFinanceiros.tsx, SectionSimples.tsx, SectionProfissionaisPlataformas.tsx (reescritos com abas)',
+    versao: '62493 v0.0.91',
+  },
+  {
+    data: '04/10/2026',
     hora: '11:50',
     titulo: 'Regimes com entrada individual no menu lateral — 6C a 6F',
     conteudo:
