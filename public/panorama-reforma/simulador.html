@@ -449,7 +449,8 @@
       }
 
       // Normaliza o catálogo (arrays → objetos) UMA vez
-      var CAT = (window.SIM_CATALOGO || []).map(function (a) {
+      var SRC = typeof SIM_CATALOGO !== 'undefined' ? SIM_CATALOGO : window.SIM_CATALOGO || []
+      var CAT = SRC.map(function (a) {
         if (Array.isArray(a)) {
           return {
             codigo: a[0],
