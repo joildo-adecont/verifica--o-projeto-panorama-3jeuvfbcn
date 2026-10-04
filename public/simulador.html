@@ -207,6 +207,24 @@
           padding: 14px 12px;
         }
       }
+      .chip {
+        border: 1px solid #c9d4e0;
+        background: #fff;
+        color: #12315e;
+        border-radius: 999px;
+        padding: 4px 10px;
+        font-size: 0.72rem;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .chip:hover {
+        background: #eef3fa;
+      }
+      .chip-on {
+        background: #12315e;
+        color: #fff;
+        border-color: #12315e;
+      }
     </style>
   </head>
   <body>
@@ -235,6 +253,12 @@
           placeholder="🔎 Digite o código (NCM/NBS/CNAE) ou o nome — ex.: 1.2301.23.00, odontológico, arroz, cigarro…"
           oninput="filtrar()"
         />
+        <div id="grupos" style="margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px"></div>
+        <p style="font-size: 0.72rem; color: #5b6b7b; margin-top: 6px">
+          💡 Dica: clique num grupo acima para navegar, ou digite o código ou nome — aceita sem
+          acento e com sinônimos (ex.: "carro" acha Automóveis; "remédio" acha Dispositivos
+          médicos).
+        </p>
         <div id="lista" style="margin-top: 10px; max-height: 260px; overflow-y: auto"></div>
       </section>
 
@@ -368,35 +392,187 @@
         }, 6000)
       }
 
+      function norm(s) {
+        return (s || '')
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+      }
+
+      // Sinônigos de busca (o usuário fala "carro", o catálogo diz "automóveis")
+      var SINONIMOS = {
+        carro: 'automoveis',
+        carros: 'automoveis',
+        veiculo: 'automoveis',
+        veiculos: 'automoveis',
+        remédio: 'grupo:dispositivos60',
+        remedio: 'grupo:dispositivos60',
+        remedios: 'grupo:dispositivos60',
+        remédios: 'grupo:dispositivos60',
+        medicamento: 'grupo:dispositivos60',
+        medicamentos: 'grupo:dispositivos60',
+        escola: 'grupo:reducao60',
+        faculdade: 'grupo:reducao60',
+        hospital: 'grupo:reducao60',
+        medico: 'grupo:reducao60',
+        moto: 'motocicletas',
+        motos: 'motocicletas',
+        celular: 'smartphones',
+        celulares: 'smartphones',
+        telefone: 'smartphones',
+        notebook: 'computadores',
+        pc: 'computadores',
+        comida: 'alimentos',
+        comida: 'cesta',
+        bebida: 'bebidas',
+        bebidas: 'bebidas',
+        trator: 'tratores maquinas',
+        caminhao: 'caminhonetas veiculos',
+        barco: 'embarcacoes iates',
+        aviao: 'aeronaves',
+        advogado: 'grupo:reducao30',
+        contador: 'grupo:reducao30',
+        dentista: 'odontologicos',
+        gasolina: 'combustivel gasolina automoveis',
+        fumo: 'tabaco cigarros',
+        cigarro: 'cigarros tabaco',
+        cerveja: 'cervejas',
+        vinho: 'vinhos',
+        whisky: 'bebidas alcoolicas',
+        açúcar: 'acucar',
+        acucar: 'acucar',
+        cafe: 'cafe',
+        óleo: 'oleo',
+        oleo: 'oleo',
+        arame: 'arroz',
+        feijao: 'feijao',
+      }
+
+      // Normaliza o catálogo (arrays → objetos) UMA vez
+      var CAT = (window.SIM_CATALOGO || []).map(function (a) {
+        if (Array.isArray(a)) {
+          return {
+            codigo: a[0],
+            tipo: a[1],
+            nome: a[2],
+            grupo: a[3],
+            fator: a[4],
+            fonte: a[5],
+          }
+        }
+        return a
+      })
+
+      var GRUPOS = [
+        ['todos', 'Todos (118)'],
+        ['cesta_zero', '🟢 Cesta Básica — 0%'],
+        ['reducao60', '🟡 Saúde/Educação — −60%'],
+        ['reducao30', '🟡 Liberais — −30%'],
+        ['dispositivos60', '🟡 Dispositivos médicos — −60%'],
+        ['imposto_seletivo', '🔴 Imposto Seletivo'],
+        ['insumos_agro', '🌾 Insumos agro'],
+        ['bens_capital', '🏭 Bens de capital'],
+        ['regime_especial', '📋 Regime especial'],
+        ['zfm', '🌴 ZFM'],
+        ['suspensao', '⏸️ Suspensão'],
+        ['agro', '🐄 Agro'],
+        ['regular', '⚪ Regime regular'],
+      ]
+
+      var grupoAtivo = 'todos'
+
+      function contarPorGrupo(g) {
+        if (g === 'todos') return CAT.length
+        return CAT.filter(function (i) {
+          return i.grupo === g
+        }).length
+      }
+
+      function renderGrupos() {
+        var el = document.getElementById('grupos')
+        if (!el) return
+        el.innerHTML = ''
+        GRUPOS.forEach(function (g) {
+          var n = contarPorGrupo(g[0])
+          if (g[0] !== 'todos' && n === 0) return
+          var b = document.createElement('button')
+          b.className = 'chip' + (grupoAtivo === g[0] ? ' chip-on' : '')
+          b.textContent = g[1].replace(/\(\d+\)/, '(' + n + ')')
+          b.onclick = function () {
+            grupoAtivo = g[0]
+            renderGrupos()
+            filtrar()
+          }
+          el.appendChild(b)
+        })
+      }
+
+      function buscarSinonimo(t) {
+        var termos = [t]
+        Object.keys(SINONIMOS).forEach(function (k) {
+          if (t.indexOf(k) >= 0) termos.push(SINONIMOS[k])
+        })
+        return termos
+      }
+
       function filtrar() {
-        var t = document.getElementById('busca').value.toLowerCase()
+        var tRaw = document.getElementById('busca').value.toLowerCase()
         var out = document.getElementById('lista')
         out.innerHTML = ''
-        if (!t) return
-        var itens = (window.SIM_CATALOGO || [])
-          .filter(function (i) {
-            return (i.codigo + ' ' + i.nome + ' ' + (i.grupo || '')).toLowerCase().indexOf(t) >= 0
+        var t = norm(tRaw)
+
+        var base =
+          grupoAtivo === 'todos'
+            ? CAT
+            : CAT.filter(function (i) {
+                return i.grupo === grupoAtivo
+              })
+
+        // Sem termo de busca: mostra os itens do grupo ativo (navegação por categoria)
+        if (!t) {
+          var visiveis = base.slice(0, 200)
+          visiveis.forEach(function (i) {
+            addItem(out, i)
           })
-          .slice(0, 30)
+          if (!visiveis.length) out.innerHTML = '<div class="item">Nenhum item neste grupo.</div>'
+          return
+        }
+
+        var termos = buscarSinonimo(t)
+        var gruposPedidos = termos
+          .filter(function (tt) {
+            return tt.indexOf('grupo:') === 0
+          })
+          .map(function (tt) {
+            return tt.slice(6)
+          })
+        var termosTexto = termos.filter(function (tt) {
+          return tt.indexOf('grupo:') !== 0
+        })
+        var itens = base.filter(function (i) {
+          if (gruposPedidos.length && gruposPedidos.indexOf(i.grupo) >= 0) return true
+          var alvo = norm(i.codigo + ' ' + i.nome + ' ' + (i.grupo || '') + ' ' + (i.fonte || ''))
+          return termosTexto.some(function (tt) {
+            return alvo.indexOf(tt) >= 0
+          })
+        })
         itens.forEach(function (i) {
-          var d = document.createElement('div')
-          d.className = 'item'
-          d.innerHTML =
-            '<b>' +
-            i.codigo +
-            '</b> — ' +
-            i.nome +
-            ' <small>[' +
-            (i.grupo || 'regular') +
-            ']</small>'
-          d.onclick = function () {
-            selecionar(i)
-          }
-          out.appendChild(d)
+          addItem(out, i)
         })
         if (!itens.length)
           out.innerHTML =
             '<div class="item">Nenhum item encontrado — o item cai no regime regular.</div>'
+      }
+
+      function addItem(out, i) {
+        var d = document.createElement('div')
+        d.className = 'item'
+        d.innerHTML =
+          '<b>' + i.codigo + '</b> — ' + i.nome + ' <small>[' + (i.grupo || 'regular') + ']</small>'
+        d.onclick = function () {
+          selecionar(i)
+        }
+        out.appendChild(d)
       }
 
       function selecionar(i) {
@@ -575,6 +751,9 @@
       }
 
       atualizarAno()
+      // Inicialização: renderiza os grupos ao carregar
+      renderGrupos()
+      filtrar()
     </script>
   </body>
 </html>
