@@ -21,6 +21,7 @@ import {
   Handshake,
   Landmark,
   Smartphone,
+  Printer,
 } from 'lucide-react'
 
 /**
@@ -223,6 +224,16 @@ const ITENS: MenuItem[] = [
     cor: 'text-fuchsia-600',
     bg: 'bg-fuchsia-50',
     borda: 'border-fuchsia-200',
+  },
+  {
+    id: '#central-entrega',
+    tecla: 'e',
+    numero: '14',
+    label: 'Central de Entrega (imprimir/enviar)',
+    Icon: Printer,
+    cor: 'text-rose-600',
+    bg: 'bg-rose-50',
+    borda: 'border-rose-200',
   },
   {
     id: '#historico-atualizacoes',
