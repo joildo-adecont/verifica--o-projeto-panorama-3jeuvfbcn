@@ -39,6 +39,22 @@ const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
     data: '04/10/2026',
+    hora: '21:35',
+    titulo:
+      'Seção 6B — simulador do agronegócio (4 modos: produtor, insumos/diferimento, créditos presumidos, cooperativa)',
+    conteudo:
+      'A pedido do CEO, no mesmo layout dos simuladores da 6A e 6E (KPIs, base de cálculo passo a passo com base legal por linha, faixa, avisos): (1) 🚜 Produtor — enquadramento art. 164: receita própria + soma societária (§6º), limite R$ 3,6 mi atualizado pelo IPCA (art. 167), checkbox de produtor integrado (nunca contribuinte), excesso ≤20% → ano seguinte / >20% → 2º mês subsequente (§§2º-3º), faixa de receita R$ 1-12 mi com contribuinte? e quando entra, opção pelo regime regular (art. 165) e renúncia (art. 166); (2) 🌾 Insumos & diferimento — art. 138: −60% (efetiva 11,16% sobre ref. 27,91%), cadeia Regular→Regular / Regular→Produtor NC / Produtor NC→Regular com efeito por etapa, diferimento condicionado ao uso na produção vendida a adquirente com crédito presumido (§2º, I, b), encerramento (§§5º-9º), revisão do Anexo IX a cada 120 dias (§10); (3) 💵 Créditos presumidos — arts. 168-169: percentual editável, crédito = % × operação, valor líquido fiscal, discriminação obrigatória no documento (§1º), tabela de conexões fornecedor → cliente (quem credita quem: produtor NC, integrado, frete autônomo/MEI, cooperativa recebendo de associado §9º, cooperativa → associado regular), limites (uso pessoal §7º, dedução/ressarcimento §8º) e alíquota zero de tratores/máquinas/veículos de carga (art. 110); (4) 🤝 Cooperativa — art. 271: alíquota zero nas operações associado↔cooperativa e entre cooperativas, condicionante de créditos anulados para associado não regular (§1º, II), ressalva dos insumos diferidos (§4º), opção (§3º) e transferência de créditos do associado (art. 272).',
+    fontes: [
+      {
+        nome: 'LC 214/2025 compilada — Planalto (arts. 110, 137-138, 164-169, 271-272)',
+        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+      },
+    ],
+    caminho: 'Panorama (62493) — SectionAgronegocio.tsx (aba 🧮 Simulador do agro, 4 modos)',
+    versao: '62493 v0.0.109',
+  },
+  {
+    data: '04/10/2026',
     hora: '20:50',
     titulo:
       'Seção 6A — enquadramento (art. 251), faixa de imóveis e valores apurados no simulador de aluguéis',
