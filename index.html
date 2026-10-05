@@ -31,7 +31,36 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet" crossorigin="anonymous">
+    <script>
+      // Proteção de runtime para evitar SecurityError ao ler cssRules ou rules de stylesheets cross-origin
+      // (por exemplo, quando html-to-image ou ferramentas de captura do preview inspecionam document.styleSheets)
+      (function() {
+        function patchProp(proto, prop) {
+          try {
+            var desc = Object.getOwnPropertyDescriptor(proto, prop);
+            if (desc && desc.get) {
+              var originalGet = desc.get;
+              Object.defineProperty(proto, prop, {
+                configurable: true,
+                enumerable: desc.enumerable,
+                get: function() {
+                  try {
+                    return originalGet.call(this);
+                  } catch (e) {
+                    return [];
+                  }
+                }
+              });
+            }
+          } catch (_) {}
+        }
+        if (typeof CSSStyleSheet !== 'undefined' && CSSStyleSheet.prototype) {
+          patchProp(CSSStyleSheet.prototype, 'cssRules');
+          patchProp(CSSStyleSheet.prototype, 'rules');
+        }
+      })();
+    </script>
   </head>
 
   <body>
