@@ -63,13 +63,14 @@ const AGENTES: Agente[] = [
   {
     id: 'automacoes',
     nome: 'Auditor de Automações',
-    papel: 'Revisa as automações e rotinas agendadas',
+    papel: 'Revisa as automações e rotinas agendadas — auditoria automática diária',
     funcoes: [
       'Rotina semanal de fontes oficiais (seg 11h + 11h05) — verifica execução e resultado',
       'Crons de regeneração do catálogo e atualização do Panorama',
+      'Auditoria automática diária 07h35 (catálogo, Histórico ≤ 8 dias, páginas de entrega)',
       'Falha detectada → alerta imediato ao diretor',
     ],
-    status: 'MONITORANDO',
+    status: 'ATIVO',
   },
   {
     id: 'memoria',
@@ -85,11 +86,13 @@ const AGENTES: Agente[] = [
   {
     id: 'seguranca',
     nome: 'Sentinela de Segurança',
-    papel: 'Protege o sistema contra ataques e vazamento de informações',
+    papel:
+      'Protege o sistema contra ataques e vazamento de informações — varredura automática diária',
     funcoes: [
       'Monitora endpoints públicos (relatórios por token, painel por X-Painel-Token)',
       'Bloqueia envio de dados para sistemas externos não autorizados',
       'Verifica integridade de arquivos (hash) e URLs de produção após cada publish',
+      'Varredura automática diária 07h30 (URLs, rejeição sem token, integridade do bundle)',
       'Qualquer anomalia → alerta imediato ao diretor',
     ],
     status: 'ATIVO',
@@ -135,6 +138,22 @@ const ALERTAS: Alerta[] = [
     detalhe:
       'Segundas 11h (fontes) + 11h05 (regeneração do catálogo) — últimas execuções registradas na Seção 13.',
     quando: 'semanal',
+    estado: 'RESOLVIDO',
+  },
+  {
+    sev: 'INFO',
+    titulo: 'Sentinela de Segurança — varredura automática ativa',
+    detalhe:
+      'Verificação diária 07h30: URLs de produção, rejeição de acessos sem token (relatório e consolidado), integridade do bundle. Última: 12 verificações, 0 falhas.',
+    quando: 'diário 07h30',
+    estado: 'RESOLVIDO',
+  },
+  {
+    sev: 'INFO',
+    titulo: 'Auditor de Automações — auditoria automática ativa',
+    detalhe:
+      'Verificação diária 07h35: catálogo regenerado (≥1.000 itens), Histórico da Seção 13 ≤ 8 dias, páginas de entrega. Última: 7 verificações, 0 falhas.',
+    quando: 'diário 07h35',
     estado: 'RESOLVIDO',
   },
   {
