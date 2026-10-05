@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Relatório de Simulação — ADECONT</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+        background: #eef1f6;
+        color: #1c2b3a;
+        line-height: 1.55;
+      }
+      .folha {
+        max-width: 820px;
+        margin: 24px auto;
+        background: #fff;
+        box-shadow: 0 2px 14px rgba(0, 0, 0, 0.12);
+      }
+      .cap {
+        background: linear-gradient(135deg, #0b1528, #162238);
+        color: #fff;
+        padding: 26px 32px;
+      }
+      .cap-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .cap h1 {
+        font-size: 1.25rem;
+        letter-spacing: -0.02em;
+      }
+      .cap .sub {
+        font-size: 0.8rem;
+        opacity: 0.85;
+        margin-top: 3px;
+      }
+      .proto {
+        background: #c5a059;
+        color: #0b1528;
+        font-weight: 800;
+        font-size: 0.78rem;
+        padding: 6px 14px;
+        border-radius: 8px;
+        white-space: nowrap;
+      }
+      .corpo {
+        padding: 26px 32px;
+      }
+      .meta {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 10px;
+        margin-bottom: 18px;
+      }
+      .meta div {
+        background: #f6f8fc;
+        border: 1px solid #dbe3ee;
+        border-radius: 10px;
+        padding: 10px 12px;
+      }
+      .meta .k {
+        font-size: 0.64rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #5b6b7b;
+      }
+      .meta .v {
+        font-size: 0.88rem;
+        font-weight: 700;
+        margin-top: 2px;
+      }
+      h2 {
+        color: #0b1528;
+        font-size: 0.95rem;
+        margin: 20px 0 8px;
+        padding-bottom: 6px;
+        border-bottom: 2px solid #c5a059;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.82rem;
+        margin-top: 6px;
+      }
+      th {
+        background: #0b1528;
+        color: #fff;
+        padding: 8px 10px;
+        text-align: left;
+        font-size: 0.68rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+      th:last-child,
+      td:last-child {
+        text-align: right;
+      }
+      td {
+        padding: 7px 10px;
+        border-bottom: 1px solid #e6ebf2;
+      }
+      tr:nth-child(even) td {
+        background: #f8fafc;
+      }
+      tr.total td {
+        font-weight: 800;
+        background: #f3ecdd;
+        border-top: 2px solid #c5a059;
+        font-size: 0.9rem;
+      }
+      .destaque {
+        margin: 14px 0;
+        padding: 14px 16px;
+        border-radius: 10px;
+        font-size: 0.95rem;
+        font-weight: 700;
+      }
+      .ok {
+        background: #e6f2e6;
+        color: #1e7a1e;
+        border: 1px solid #b7ddb7;
+      }
+      .ruim {
+        background: #fdecec;
+        color: #b02525;
+        border: 1px solid #f3c1c1;
+      }
+      .capitulacao {
+        margin-top: 16px;
+        padding: 12px 14px;
+        background: #f6f8fc;
+        border-left: 4px solid #c5a059;
+        font-size: 0.78rem;
+        color: #374151;
+        border-radius: 0 8px 8px 0;
+      }
+      .capitulacao b {
+        color: #0b1528;
+      }
+      .payload {
+        margin-top: 12px;
+        background: #f0f3f8;
+        border: 1px solid #dbe3ee;
+        border-radius: 8px;
+        padding: 12px;
+        font-family: ui-monospace, monospace;
+        font-size: 0.7rem;
+        white-space: pre-wrap;
+        word-break: break-word;
+        max-height: 300px;
+        overflow-y: auto;
+      }
+      .rodape {
+        padding: 16px 32px 26px;
+        background: #f6f8fc;
+        border-top: 1px solid #dbe3ee;
+        font-size: 0.68rem;
+        color: #8a97a8;
+        text-align: center;
+      }
+      .acoes {
+        text-align: center;
+        padding: 14px;
+      }
+      .btn {
+        border: none;
+        border-radius: 8px;
+        padding: 11px 22px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+        margin: 0 4px;
+      }
+      .btn-azul {
+        background: #12315e;
+        color: #fff;
+      }
+      .btn-verde {
+        background: #1e7a1e;
+        color: #fff;
+      }
+      .erro {
+        max-width: 620px;
+        margin: 60px auto;
+        background: #fff;
+        border-radius: 12px;
+        padding: 30px;
+        text-align: center;
+        box-shadow: 0 2px 14px rgba(0, 0, 0, 0.12);
+      }
+      @media print {
+        body {
+          background: #fff;
+        }
+        .folha {
+          box-shadow: none;
+          margin: 0;
+          max-width: none;
+        }
+        .acoes {
+          display: none;
+        }
+        .payload {
+          max-height: none;
+          overflow: visible;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="carregando" class="erro">⏳ Carregando relatório…</div>
+    <div id="relatorio" class="folha" style="display: none">
+      <div class="cap">
+        <div class="cap-top">
+          <div>
+            <h1>Relatório de Simulação Tributária — IBS/CBS</h1>
+            <div class="sub">
+              Reforma Tributária (EC 132/2023 · LC 214/2025) • ADECONT Assessoria
+            </div>
+          </div>
+          <div class="proto" id="r-proto">SIM-…</div>
+        </div>
+      </div>
+      <div class="corpo">
+        <div class="meta">
+          <div>
+            <div class="k">Cliente</div>
+            <div class="v" id="r-cliente">—</div>
+          </div>
+          <div>
+            <div class="k">Empresa</div>
+            <div class="v" id="r-empresa">—</div>
+          </div>
+          <div>
+            <div class="k">Enviado em</div>
+            <div class="v" id="r-enviado">—</div>
+          </div>
+          <div>
+            <div class="k">Recebimento</div>
+            <div class="v" id="r-recebido">—</div>
+          </div>
+        </div>
+        <h2>Simulação realizada</h2>
+        <div id="r-tema" style="font-size: 0.92rem; font-weight: 700; margin-bottom: 8px">—</div>
+        <div id="r-item" style="font-size: 0.8rem; color: #5b6b7b; margin-bottom: 10px"></div>
+        <div id="r-tabela"></div>
+        <div id="r-destaque"></div>
+        <div class="capitulacao"><b>Capitulação legal:</b> <span id="r-cap">—</span></div>
+        <h2>Detalhes técnicos da apuração</h2>
+        <div class="payload" id="r-payload">—</div>
+      </div>
+      <div class="rodape">
+        ADECONT Assessoria Administrativa, Contábil • Simulação didática, sem valor fiscal — não
+        substitui assessoria tributária específica • Fontes: LC 214/2025, LC 227/2026, Decreto
+        12.955/2026, Resoluções CGIBS/CGSN (monitoradas semanalmente)
+      </div>
+    </div>
+    <div class="acoes" id="acoes" style="display: none">
+      <button class="btn btn-azul" onclick="window.print()">🖨️ Salvar em PDF / Imprimir</button>
+      <a class="btn btn-verde" id="btn-confirmar" href="#">✔ Confirmar recebimento</a>
+    </div>
+    <script>
+      var PB = 'https://verificacao-projeto-panorama-18549.shrd00.internal.goskip.dev'
+      var token = new URLSearchParams(location.search).get('token') || ''
+      function brl(v) {
+        return Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+      }
+      function fmtData(s) {
+        if (!s) return '—'
+        try {
+          return new Date(s).toLocaleString('pt-BR')
+        } catch (e) {
+          return s
+        }
+      }
+      function parsePayload(p) {
+        try {
+          return JSON.parse(p || '{}')
+        } catch (e) {
+          return {}
+        }
+      }
+      // Extrai a tabela de resultado do payload (linhas "CBS\t3.52%\tR$ 352,00")
+      function montarResultado(pl) {
+        var txt = (pl && pl.resultado) || ''
+        var linhas = txt.split('\n').filter(function (l) {
+          return l.trim()
+        })
+        if (!linhas.length) return null
+        var out = { linhas: [], total: null, dif: null }
+        linhas.forEach(function (l, i) {
+          if (i === 0) return // cabeçalho
+          var parts = l.split('\t')
+          if (parts.length >= 3) {
+            var row = { nome: parts[0], ali: parts[1], val: parts[2] }
+            if (/total/i.test(parts[0])) out.total = row
+            else if (/diferen/i.test(l)) out.dif = l
+            else out.linhas.push(row)
+          }
+        })
+        return out
+      }
+      fetch(PB + '/backend/v1/simul-relatorio?token=' + encodeURIComponent(token))
+        .then(function (r) {
+          if (!r.ok) throw new Error('HTTP ' + r.status)
+          return r.json()
+        })
+        .then(function (d) {
+          document.getElementById('carregando').style.display = 'none'
+          document.getElementById('relatorio').style.display = 'block'
+          document.getElementById('acoes').style.display = 'block'
+          document.getElementById('r-proto').textContent = d.protocolo || '—'
+          document.getElementById('r-cliente').textContent = d.cliente || '—'
+          document.getElementById('r-empresa').textContent = d.empresa || '—'
+          document.getElementById('r-enviado').textContent = fmtData(d.enviado_em)
+          document.getElementById('r-recebido').textContent = d.recebido_em
+            ? '✔ ' + fmtData(d.recebido_em)
+            : 'pendente'
+          document.getElementById('r-tema').textContent = d.tema || '—'
+          document.getElementById('r-item').textContent =
+            (d.item_codigo ? 'Item: ' + d.item_codigo : '') +
+            (d.item_nome ? ' — ' + d.item_nome : '')
+          document.getElementById('r-cap').textContent = d.capitulacao || '—'
+          document.getElementById('btn-confirmar').href =
+            '/panorama-reforma/recebido.html?token=' + encodeURIComponent(token)
+          var pl = parsePayload(d.payload)
+          var res = montarResultado(pl)
+          var tb = document.getElementById('r-tabela')
+          if (res && res.linhas.length) {
+            var html = '<table><tr><th>Componente</th><th>Alíquota efetiva</th><th>Valor</th></tr>'
+            res.linhas.forEach(function (l) {
+              html += '<tr><td>' + l.nome + '</td><td>' + l.ali + '</td><td>' + l.val + '</td></tr>'
+            })
+            if (res.total)
+              html +=
+                '<tr class="total"><td>' +
+                res.total.nome +
+                '</td><td>' +
+                res.total.ali +
+                '</td><td>' +
+                res.total.val +
+                '</td></tr>'
+            html += '</table>'
+            tb.innerHTML = html
+            var dest = document.getElementById('r-destaque')
+            if (res.dif) {
+              var neg = res.dif.indexOf('−') >= 0 || res.dif.indexOf('-') >= 0
+              dest.innerHTML =
+                '<div class="' +
+                (neg ? 'ok' : 'ruim') +
+                '">' +
+                res.dif.replace(/\t/g, ' ') +
+                '</div>'
+            }
+          } else {
+            tb.innerHTML =
+              '<div class="payload">' +
+              ((pl && pl.resultado) ||
+                'Sem tabela de resultado registrada — ver detalhes abaixo.') +
+              '</div>'
+          }
+          document.getElementById('r-payload').textContent = JSON.stringify(pl, null, 2)
+        })
+        .catch(function (e) {
+          document.getElementById('carregando').innerHTML =
+            '⚠️ Não foi possível carregar o relatório (' +
+            e.message +
+            ').<br>Verifique o link recebido por e-mail.'
+        })
+    </script>
+  </body>
+</html>

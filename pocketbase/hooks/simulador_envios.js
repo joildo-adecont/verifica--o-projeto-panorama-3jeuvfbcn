@@ -335,6 +335,11 @@ routerAdd('POST', '/backend/v1/simul-enviar', (e) => {
       '<p style="font-size:12px;color:#5b6b7b">Simulação didática, sem valor fiscal. Não substitui assessoria tributária específica.</p>' +
       '</div>' +
       '<div style="padding:14px 22px 26px;background:#f6f8fc;border:1px solid #dbe3ee;border-top:none;text-align:center">' +
+      '<p style="margin:0 0 10px;font-size:13px"><a href="' +
+      baseUrl +
+      '/panorama-reforma/relatorio.html?token=' +
+      token +
+      '" style="background:#12315e;color:#fff;padding:10px 22px;border-radius:8px;text-decoration:none;font-weight:bold;display:inline-block;margin-bottom:10px">📄 Abrir relatório completo (salvar em PDF)</a></p>' +
       '<p style="margin:0 0 10px;font-size:13px">Confirme o recebimento para registro no protocolo:</p>' +
       '<a href="' +
       baseUrl +
@@ -395,6 +400,42 @@ routerAdd('POST', '/backend/v1/simul-enviar', (e) => {
     e.auth ? e.auth.id : '',
   )
   return e.json(200, { success: true, total: results.length, envios: results })
+})
+
+// ---------- 2b. Relatorio publico por token ----------
+routerAdd('GET', '/backend/v1/simul-relatorio', (e) => {
+  var token = e.requestInfo().query.token || ''
+  if (!token) return e.json(400, { success: false, error: 'token ausente' })
+  var envio
+  try {
+    envio = $app.findFirstRecordByFilter('simul_envios', 'token_recebimento = {:t}', { t: token })
+  } catch (_) {
+    return e.json(404, { success: false, error: 'não encontrado' })
+  }
+  var cli
+  var nome = ''
+  var empresa = ''
+  var email = ''
+  try {
+    cli = $app.findRecordById('simul_clientes', envio.getString('cliente'))
+    nome = cli.getString('nome')
+    empresa = cli.getString('empresa')
+    email = cli.getString('email')
+  } catch (_) {}
+  return e.json(200, {
+    protocolo: envio.getString('protocolo'),
+    status: envio.getString('status'),
+    tema: envio.getString('tema_resumo'),
+    capitulacao: envio.getString('capitulacao_legal'),
+    payload: envio.getString('payload_simulacao'),
+    item_codigo: envio.getString('item_codigo'),
+    item_nome: envio.getString('item_nome'),
+    enviado_em: envio.get('enviado_em'),
+    recebido_em: envio.get('recebido_em'),
+    cliente: nome,
+    empresa: empresa,
+    email: email,
+  })
 })
 
 // ---------- 3. Confirmacao de recebimento (publico) ----------
