@@ -39,6 +39,22 @@ const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
     data: '05/10/2026',
+    hora: '02:38',
+    titulo: 'Relatório de simulação em PDF para os clientes (link no e-mail de envio)',
+    conteudo:
+      'A pedido do CEO, cada envio de simulação agora leva um botão "📄 Abrir relatório completo (salvar em PDF)" no e-mail oficial. O relatório (relatorio.html, 2 cópias) é uma página pública acessada por token único do envio (endpoint /backend/v1/simul-relatorio no hook simulador_envios.js) com layout ADECONT navy+dourado: cabeçalho com protocolo, metadados (cliente, empresa, enviado/recebido), tema e item simulado, TABELA de resultado por componente (CBS/IBS Estadual/IBS Municipal/IS com alíquota efetiva e valores, linha TOTAL destacada), destaque da diferença vs carga atual 34% (verde = menos tributo), capitulação legal em caixa com filete dourado, detalhes técnicos da apuração (payload) e rodapé com fontes. Botão "🖨️ Salvar em PDF / Imprimir" (window.print, CSS @media print) + "✔ Confirmar recebimento". Teste E2E: envio 3926.90.30 → relatório SIM-20261005-UE59LK renderizado com tabela completa e capitulação.',
+    fontes: [
+      {
+        nome: 'LC 214/2025 compilada — Planalto (base legal das capitulações)',
+        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+      },
+    ],
+    caminho:
+      'Panorama (62493) — public/relatorio.html + public/panorama-reforma/relatorio.html + hook simulador_envios.js (endpoint simul-relatorio + link no e-mail)',
+    versao: '62493 v0.0.130',
+  },
+  {
+    data: '05/10/2026',
     hora: '02:17',
     titulo: 'Itens financeiros no catálogo do Simulador + botão da 6D com termo',
     conteudo:
