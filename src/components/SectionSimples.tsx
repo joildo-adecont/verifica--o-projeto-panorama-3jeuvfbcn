@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Calculator } from 'lucide-react'
 
 const SIM_URL = '/simulador.html'

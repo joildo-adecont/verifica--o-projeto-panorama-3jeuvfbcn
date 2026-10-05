@@ -39,6 +39,23 @@ const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
     data: '05/10/2026',
+    hora: '03:16',
+    titulo:
+      'Seção 15 — Central de Assistentes & Segurança (tecla X) — agentes, dispositivos e alertas',
+    conteudo:
+      'A pedido do CEO, nova Seção 15 "Central de Assistentes & Segurança" no Panorama (acesso rápido: tecla X no menu lateral, nº 15). Estrutura: (1) ASSISTENTES ESPECIALIZADOS — Assistente Líder (Maestro de Fontes Oficiais: regra absoluta de buscar SOMENTE em fontes oficiais primárias — Planalto, CGIBS, RFB, Bacen — nunca secundárias; valida cada atualização antes de entrar no sistema; autoriza os demais), Guardião de Artefatos (inventário + hash SHA-256 + versionamento), Conector de Integrações (MCP Skip/Gmail/Drive/Calendar/WhatsApp — ações reversíveis sem aprovação, sensíveis exigem confirmação), Auditor de Automações (rotinas semanais seg 11h/11h05, falha → alerta), Curador de Memória (contexto persistente e preparação de atualizações) e Sentinela de Segurança (endpoints públicos, bloqueio de dados p/ externos não autorizados, integridade de arquivos, anomalia → alerta imediato). (2) DISPOSITIVOS DE SEGURANÇA — token X-Painel-Token, páginas públicas só por token único, hash SHA-256, regra de fonte única oficial, audit_log, comunicação imediata ao diretor. (3) RELATÓRIO DE ALERTAS — severidade ALTA/MÉDIA/BAIXA/INFO com estado ABERTO/OBSERVANDO/RESOLVIDO (rate-limit Bacen, CBS 2027 Senado, créditos presumidos agro, rotina semanal, zero incidentes de segurança). (4) POLÍTICA DE LIBERAÇÃO — ações reversíveis executadas com registro; ações sensíveis exigem liberação do diretor; alertas ALTA e liberações comunicados de imediato a Antonio Joildo da Silva (joildo@adecont.com.br) via botão "Solicitar liberação ao diretor". Busca única com Esc. Bug corrigido durante o deploy: ícone Mail faltante no import derrubava a montagem do React (root vazio) — corrigido em v0.0.141.',
+    fontes: [
+      {
+        nome: 'LC 214/2025 compilada — Planalto (fonte oficial primária de referência)',
+        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+      },
+    ],
+    caminho:
+      'Panorama (62493) — src/components/SectionAssistentesSeguranca.tsx (novo) + Index.tsx + PanoramaSideMenu.tsx (tecla X)',
+    versao: '62493 v0.0.139-141',
+  },
+  {
+    data: '05/10/2026',
     hora: '02:57',
     titulo:
       'Seção 14 — Central de Entrega: impressão e envio de todo o material ao cliente (tecla E)',
