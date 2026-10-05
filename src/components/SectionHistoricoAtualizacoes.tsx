@@ -39,6 +39,23 @@ const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
     data: '05/10/2026',
+    hora: '02:57',
+    titulo:
+      'Seção 14 — Central de Entrega: impressão e envio de todo o material ao cliente (tecla E)',
+    conteudo:
+      'A pedido do CEO, nova Seção 14 "Central de Entrega" no Panorama (tecla de atalho E no menu lateral; / foca a busca; Esc limpa). Reúne 20 cards com TODO o material imprimível e transmissível do sistema: 7 simuladores (Geral + 6A–6F, cada um com sua tecla e link que já abre o painel de envio), 2 relatórios (consolidado em PDF e painel Cadastro & Envios), 5 itens de legislação (Panorama completo, Resoluções CGIBS, busca no texto integral, Tabela Geral 7A, cronograma) e 6 tópicos (fato gerador, cesta, imunidades, regimes, anexos, fontes). Cada card tem ações: 🖨️ Imprimir/PDF (abre o material pronto para Ctrl+P), 📤 Enviar ao cliente (canal único com protocolo SIM-), 💬 WhatsApp e ✉️ E-mail (compartilham o link). Busca com filtros por categoria (Simuladores/Relatórios/Legislação/Tópicos) e contagem. Validado em produção: 20 cards, 15 teclas, 20 botões Imprimir/PDF, 7 Enviar ao cliente, 18 WhatsApp, 19 E-mail; busca "consorcio" filtra corretamente.',
+    fontes: [
+      {
+        nome: 'LC 214/2025 compilada — Planalto (base legal do material transmitido)',
+        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+      },
+    ],
+    caminho:
+      'Panorama (62493) — src/components/SectionCentralEntrega.tsx (novo) + Index.tsx + PanoramaSideMenu.tsx (tecla E)',
+    versao: '62493 v0.0.137',
+  },
+  {
+    data: '05/10/2026',
     hora: '02:45',
     titulo: 'Relatório consolidado de simulações (PDF) — agrupado por cliente, no painel',
     conteudo:
