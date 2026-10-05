@@ -1185,7 +1185,7 @@ function SimuladorFinanceiro() {
             de Atualizações.
           </div>
 
-          <BotaoEnviarSimulacao />
+          <BotaoEnviarSimulacao termo="empréstimos" />
 
           <RodapeCapitulacao
             itens={[
