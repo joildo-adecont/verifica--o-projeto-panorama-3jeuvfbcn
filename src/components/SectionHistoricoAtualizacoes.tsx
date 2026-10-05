@@ -39,6 +39,22 @@ const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
     data: '05/10/2026',
+    hora: '02:13',
+    titulo: 'Botão "📤 Enviar" nas seções 6A–6F — envio pelo Simulador Geral (canal único)',
+    conteudo:
+      'A pedido do CEO, todas as seções de regimes (6A imobiliário, 6B agro, 6C consórcios, 6D financeiros, 6F profissões/plataformas) ganharam o botão "📤 Enviar esta simulação por e-mail (protocolo) — via Simulador Geral": faixa dourada no fim de cada simulador dedicado que abre o Simulador Geral com ?q=termo (item representativo da seção pré-buscado: venda de imóvel novo, produtos agropecuários, taxa de administração, serviços jurídicos) e &enviar=1 (painel de envio abre automaticamente). O Simulador Geral passou a aceitar o parâmetro enviar=1. Canal de envio ÚNICO: cadastro de clientes + protocolo SIM-AAAAMMDD-XXXXXX. Teste E2E: clique na 6F → Simulador Geral abre com 1.1701 Serviços jurídicos selecionado, simulação feita e painel de envio aberto com capitulação e resultado pré-preenchidos.',
+    fontes: [
+      {
+        nome: 'LC 214/2025 compilada — Planalto (base legal das capitulações)',
+        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+      },
+    ],
+    caminho:
+      'Panorama (62493) — BotaoEnviarSimulacao nas 5 seções + parâmetro enviar=1 no simulador.html (2 cópias)',
+    versao: '62493 v0.0.125',
+  },
+  {
+    data: '05/10/2026',
     hora: '02:05',
     titulo: 'Simulador Geral: painel de envio integrado ao Cadastro de Clientes (protocolo)',
     conteudo:
