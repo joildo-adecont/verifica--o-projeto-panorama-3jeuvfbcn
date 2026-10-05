@@ -39,6 +39,22 @@ const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
     data: '04/10/2026',
+    hora: '22:45',
+    titulo: 'Modernização visual de TODOS os simuladores (6A–6F) — design system v2',
+    conteudo:
+      'A pedido do CEO, todos os 7 simuladores do Panorama (6A imobiliário, 6B agro, 6C consórcios, 6D financeiros, 6E regime híbrido, 6F profissões e plataformas) receberam o mesmo design moderno: (1) HERO com gradiente navy→navy-light, selo SIMULADOR dourado, subtítulo com a regra central e CAPITULAÇÃO LEGAL em chips (Lei Complementar / Decreto / Resolução / Ato Conjunto — indicador de origem de cada cálculo); (2) CHIPS DE MODO em cards clicáveis com badge de tecla de atalho ⌥1–⌥4 (Alt+1 a Alt+4 — hook useModoTeclado, sem conflito com os atalhos globais do menu lateral); (3) KPIs com gradiente navy, números tabulares e hover-shadow; (4) badges ✓/⚠ arredondados; (5) BLOCOS numerados com medalha dourada e chip de capitulação legal do bloco (art. da LC/Decreto/Res.); (6) RODAPÉ DE CAPITULAÇÃO LEGAL em cada simulador — origem de cada cálculo (LC 214/2025, LC 227/2026, Decreto 12.955/2026, Res. CGIBS 14/2026, RIBS Res. 6/2026, Res. CGSN 190/2026, atos conjuntos) com nota de atualização automática pela rotina semanal (seg 11h) e registro na Seção 13. Tabelas mantêm identidade navy+dourado com zebra/hover. Validado em produção nos 6 simuladores (hero + capitulação + chips presentes).',
+    fontes: [
+      {
+        nome: 'LC 214/2025 compilada — Planalto (fonte legal de todos os simuladores)',
+        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+      },
+    ],
+    caminho:
+      'Panorama (62493) — design system v2 inline nos 7 arquivos (SectionRegimeImobiliario/Agronegocio/Consorcios/Financeiros/Simples/ProfissionaisPlataformas)',
+    versao: '62493 v0.0.120',
+  },
+  {
+    data: '04/10/2026',
     hora: '22:15',
     titulo: 'Seção 6F — simulador de profissões regulamentadas e simulador de plataformas digitais',
     conteudo:
