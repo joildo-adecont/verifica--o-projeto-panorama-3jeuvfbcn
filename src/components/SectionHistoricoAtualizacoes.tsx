@@ -39,6 +39,22 @@ const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
     data: '04/10/2026',
+    hora: '22:15',
+    titulo: 'Seção 6F — simulador de profissões regulamentadas e simulador de plataformas digitais',
+    conteudo:
+      'A pedido do CEO, no mesmo layout dos simuladores da 6A/6B/6C/6D/6E: (1) 🧮 Simulador de profissões — art. 127: seleção das 18 profissões regulamentadas (com conselho: CRA, OAB, CAU, CRESS, CFB, CRBio, CRC, CORECON, CAE, CREF, CREA, CONRE, CRMV, COBRAMUSEO, CRQ, CONRERP), prestador PF (§1º, I: serviços vinculados à habilitação) × PJ (§1º, II: 5 requisitos cumulativos + checklist completo com §§1º-2º), apuração do tributo (referência 27,91% × 0,70 = efetiva 19,54%; IBS+CBS mês e ano), base de cálculo passo a passo, tabela de simulação por profissão (as 18 com alíquota efetiva, IBS+CBS mês/ano e botão Simular por profissão) e IMPLANTAÇÃO NA LINHA DO TEMPO 2026-2033 (CBS teste 0,9%/8,8% e IBS 0,1%→0,05%→10%→40%→70%→90%→100% dos arts. 343-347 e 295-296, com efetiva c/ −30% por ano e seletor de ano); exceção do §3º (educação física). (2) 🧮 Simulador de plataformas — art. 22: perfil do fornecedor (estrangeiro = substituição inciso I; nacional contribuinte = solidária inciso II conforme emite documento/informa; nacional não contribuinte), produto/serviço comercializado (regular 27,91%, cesta básica 0%, educação/saúde/medicamento −60%, serviço regular), checkboxes de documento fiscal, informações §5º e split payment §6º; mapa completo da responsabilidade (caput, I e II, §7º, §10-11); obrigações plataforma × fornecedor (§3º dispensa estrangeiro, §4º CGIBS/RFB, §5º informações, §6º split, §§12-13 opção de emitir documentos/substituta tributária — LC 227/2026); tabela de tributação dos produtos/serviços com alíquotas e base legal. Ambos com bloco de pontos pendentes de legislação e nota de atualização automática (rotina semanal + Seção 13).',
+    fontes: [
+      {
+        nome: 'LC 214/2025 compilada — Planalto (arts. 22 e 127)',
+        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+      },
+    ],
+    caminho:
+      'Panorama (62493) — SectionProfissionaisPlataformas.tsx (abas 🧮 Simulador de profissões e 🧮 Simulador de plataformas)',
+    versao: '62493 v0.0.116',
+  },
+  {
+    data: '04/10/2026',
     hora: '22:00',
     titulo:
       'Seção 6D — simulador de serviços financeiros (4 modos: empréstimo, tarifas bancárias, sujeitos, obrigações banco × correntista)',
