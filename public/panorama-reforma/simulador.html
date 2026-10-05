@@ -451,19 +451,23 @@
             />
           </div>
         </div>
-        <button
-          class="btn"
-          style="
-            background: #1e7a1e;
-            color: #fff;
-            width: 100%;
-            justify-content: center;
-            margin-top: 12px;
-          "
-          onclick="enviarSimulacao()"
-        >
-          📤 Enviar com protocolo (e-mail)
-        </button>
+        <div style="display: flex; gap: 8px; margin-top: 12px">
+          <button
+            class="btn"
+            style="background: #1e7a1e; color: #fff; flex: 1; justify-content: center"
+            onclick="enviarSimulacao()"
+          >
+            📤 Enviar com protocolo (e-mail)
+          </button>
+          <button
+            class="btn"
+            style="background: #fdf6e3; color: #8a6d00"
+            onclick="pedirTokenPe()"
+            title="Token de acesso do painel (fornecido pelo assistente)"
+          >
+            🔑 Token
+          </button>
+        </div>
         <div id="pe-msg"></div>
         <p style="font-size: 0.72rem; color: #5b6b7b; margin-top: 8px">
           O cliente recebe o e-mail oficial ADECONT com a simulação, a capitulação legal e o link de
@@ -965,6 +969,19 @@
         }
       }
 
+      function pedirTokenPe() {
+        var t = prompt(
+          'Token de acesso do painel ADECONT\n\n(fornecido pelo assistente — fica salvo neste navegador)',
+          localStorage.getItem('simul_painel_token') || '',
+        )
+        if (t && t.trim()) {
+          PE_TOKEN = t.trim()
+          localStorage.setItem('simul_painel_token', PE_TOKEN)
+          document.getElementById('pe-msg').innerHTML =
+            '<div class="pe-ok">🔑 Token salvo — clique novamente em 📤 Enviar.</div>'
+        }
+      }
+
       function enviarSimulacao() {
         var clienteId = document.getElementById('pe-cliente').value
         if (!clienteId) {
@@ -1039,10 +1056,25 @@
               '</b> — o cliente recebe o e-mail e confirma o recebimento pelo link.</div>'
           })
           .catch(function (e) {
+            if (e.message.indexOf('401') >= 0) {
+              var t = prompt(
+                'Envio precisa do token de acesso do painel ADECONT.\n\nCole o token (fornecido pelo assistente):',
+                localStorage.getItem('simul_painel_token') || '',
+              )
+              if (t && t.trim()) {
+                PE_TOKEN = t.trim()
+                localStorage.setItem('simul_painel_token', PE_TOKEN)
+                document.getElementById('pe-msg').innerHTML =
+                  '<div class="pe-ok">🔑 Token salvo — reenviando…</div>'
+                enviarSimulacao()
+                return
+              }
+              document.getElementById('pe-msg').innerHTML =
+                '<div class="pe-erro">Envio cancelado — o token é obrigatório (botão 🔑 Token).</div>'
+              return
+            }
             document.getElementById('pe-msg').innerHTML =
-              '<div class="pe-erro">Erro no envio: ' +
-              e.message +
-              ' — se for 401, configure o 🔑 Token no 📇 Cadastro & Envios.</div>'
+              '<div class="pe-erro">Erro no envio: ' + e.message + '</div>'
           })
           .finally(function () {
             if (btn) {
