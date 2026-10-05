@@ -3,14 +3,19 @@ import { Calculator } from 'lucide-react'
 
 const SIM_URL = '/simulador.html'
 
-
 // ============ DESIGN SYSTEM v2 — Simuladores Modernos (04/10/2026) ============
 // Capitulação legal como indicador de origem em cada bloco.
 
 const ORIGENS: Record<string, { rotulo: string; cor: string }> = {
   lei: { rotulo: 'LEI COMPLEMENTAR', cor: 'bg-blue-100 text-blue-800 border-blue-300' },
-  decreto: { rotulo: 'DECRETO / REGULAMENTO', cor: 'bg-purple-100 text-purple-800 border-purple-300' },
-  resolucao: { rotulo: 'RESOLUÇÃO CGIBS/CGSN', cor: 'bg-emerald-100 text-emerald-800 border-emerald-300' },
+  decreto: {
+    rotulo: 'DECRETO / REGULAMENTO',
+    cor: 'bg-purple-100 text-purple-800 border-purple-300',
+  },
+  resolucao: {
+    rotulo: 'RESOLUÇÃO CGIBS/CGSN',
+    cor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+  },
   ato: { rotulo: 'ATO CONJUNTO', cor: 'bg-orange-100 text-orange-800 border-orange-300' },
   ref: { rotulo: 'REFERÊNCIA', cor: 'bg-slate-100 text-slate-700 border-slate-300' },
 }
@@ -18,39 +23,60 @@ const ORIGENS: Record<string, { rotulo: string; cor: string }> = {
 function Origem({ tipo, texto }: { tipo: keyof typeof ORIGENS; texto: string }) {
   const o = ORIGENS[tipo]
   return (
-    <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold border ${o.cor}`}>
+    <span
+      className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold border ${o.cor}`}
+    >
       📎 {o.rotulo}: {texto}
     </span>
   )
 }
 
-function HeroSim({ titulo, sub, teclas, capitulacao }: { titulo: string; sub: string; teclas: string; capitulacao: string }) {
+function HeroSim({
+  titulo,
+  sub,
+  teclas,
+  capitulacao,
+}: {
+  titulo: string
+  sub: string
+  teclas: string
+  capitulacao: string
+}) {
   return (
     <div className="rounded-2xl overflow-hidden bg-gradient-to-br from-panorama-navy via-panorama-navy to-panorama-navy-light text-white shadow-lg">
       <div className="p-5 sm:p-6">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="px-2.5 py-1 rounded-lg bg-panorama-gold text-panorama-navy text-[11px] font-black tracking-wider">SIMULADOR</span>
+          <span className="px-2.5 py-1 rounded-lg bg-panorama-gold text-panorama-navy text-[11px] font-black tracking-wider">
+            SIMULADOR
+          </span>
           <span className="text-[11px] font-semibold text-white/70">{teclas}</span>
         </div>
         <h3 className="mt-2 text-xl sm:text-2xl font-bold tracking-tight">{titulo}</h3>
         <p className="mt-1.5 text-xs sm:text-sm text-white/80 leading-relaxed">{sub}</p>
         <div className="mt-3 flex flex-wrap gap-1.5">
           {capitulacao.split(' · ').map((c) => (
-            <span key={c} className="px-2 py-0.5 rounded-md bg-white/10 border border-white/20 text-[10px] font-mono font-semibold">{c}</span>
+            <span
+              key={c}
+              className="px-2 py-0.5 rounded-md bg-white/10 border border-white/20 text-[10px] font-mono font-semibold"
+            >
+              {c}
+            </span>
           ))}
         </div>
-      <RodapeCapitulacao
-        itens={[
-          'lei|LC 214/2025 — art. 127 (profissões regulamentadas)',
-          'resolucao|Res. CGIBS 14/2026 — referência 27,91%',
-          'ref|Transição — arts. 343–347 e 295–296 (LC 214/2025)',
-        ]}
-      />
+      </div>
     </div>
   )
 }
 
-function ModoChips<T extends string>({ modos, modo, setModo }: { modos: { id: T; label: string; icone: string }[]; modo: T; setModo: (m: T) => void }) {
+function ModoChips<T extends string>({
+  modos,
+  modo,
+  setModo,
+}: {
+  modos: { id: T; label: string; icone: string }[]
+  modo: T
+  setModo: (m: T) => void
+}) {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
       {modos.map((m, i) => (
@@ -64,8 +90,14 @@ function ModoChips<T extends string>({ modos, modo, setModo }: { modos: { id: T;
           }`}
         >
           <div className="text-base leading-none">{m.icone}</div>
-          <div className={`mt-1 text-xs font-bold leading-tight ${modo === m.id ? 'text-white' : 'text-slate-800'}`}>{m.label}</div>
-          <div className={`absolute top-1.5 right-1.5 px-1.5 rounded text-[9px] font-black ${modo === m.id ? 'bg-panorama-gold text-panorama-navy' : 'bg-slate-100 text-slate-400 group-hover:text-panorama-gold-dark'}`}>
+          <div
+            className={`mt-1 text-xs font-bold leading-tight ${modo === m.id ? 'text-white' : 'text-slate-800'}`}
+          >
+            {m.label}
+          </div>
+          <div
+            className={`absolute top-1.5 right-1.5 px-1.5 rounded text-[9px] font-black ${modo === m.id ? 'bg-panorama-gold text-panorama-navy' : 'bg-slate-100 text-slate-400 group-hover:text-panorama-gold-dark'}`}
+          >
             ⌥{i + 1}
           </div>
         </button>
@@ -92,7 +124,9 @@ function useModoTeclado<T extends string>(setModo: (m: T) => void, ids: T[]) {
 function BlocoH({ n, titulo, capitulacao }: { n: string; titulo: string; capitulacao?: string }) {
   return (
     <div className="flex items-center gap-2 flex-wrap mb-2">
-      <span className="flex items-center justify-center w-6 h-6 rounded-lg bg-gradient-to-br from-panorama-gold to-panorama-gold-dark text-panorama-navy font-black text-[11px] shadow-sm">{n}</span>
+      <span className="flex items-center justify-center w-6 h-6 rounded-lg bg-gradient-to-br from-panorama-gold to-panorama-gold-dark text-panorama-navy font-black text-[11px] shadow-sm">
+        {n}
+      </span>
       <h4 className="text-sm font-bold text-slate-900">{titulo}</h4>
       {capitulacao && <Origem tipo="lei" texto={capitulacao} />}
     </div>
@@ -103,19 +137,219 @@ function RodapeCapitulacao({ itens }: { itens: string[] }) {
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-4">
       <div className="flex items-center gap-2 mb-2">
-        <span className="text-xs font-bold text-slate-900">📚 Capitulação legal — origem de cada cálculo</span>
+        <span className="text-xs font-bold text-slate-900">
+          📚 Capitulação legal — origem de cada cálculo
+        </span>
       </div>
       <div className="flex flex-wrap gap-1.5">
         {itens.map((it) => {
           const [tipo, texto] = it.split('|')
-          return <Origem key={it} tipo={(tipo as keyof typeof ORIGENS)} texto={texto} />
+          return <Origem key={it} tipo={tipo as keyof typeof ORIGENS} texto={texto} />
         })}
       </div>
-      <p className="mt-2 text-[10px] text-slate-500">Fontes monitoradas na rotina semanal (seg 11h) — atualizações registradas na Seção 13 — Histórico.</p>
+      <p className="mt-2 text-[10px] text-slate-500">
+        Fontes monitoradas na rotina semanal (seg 11h) — atualizações registradas na Seção 13 —
+        Histórico.
+      </p>
     </div>
   )
 }
 
+// ============ DESIGN SYSTEM v2 — Simuladores Modernos (04/10/2026) ============
+// Capitulação legal como indicador de origem em cada bloco.
+
+const ORIGENS: Record<string, { rotulo: string; cor: string }> = {
+  lei: { rotulo: 'LEI COMPLEMENTAR', cor: 'bg-blue-100 text-blue-800 border-blue-300' },
+  decreto: {
+    rotulo: 'DECRETO / REGULAMENTO',
+    cor: 'bg-purple-100 text-purple-800 border-purple-300',
+  },
+  resolucao: {
+    rotulo: 'RESOLUÇÃO CGIBS/CGSN',
+    cor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+  },
+  ato: { rotulo: 'ATO CONJUNTO', cor: 'bg-orange-100 text-orange-800 border-orange-300' },
+  ref: { rotulo: 'REFERÊNCIA', cor: 'bg-slate-100 text-slate-700 border-slate-300' },
+}
+
+function Origem({ tipo, texto }: { tipo: keyof typeof ORIGENS; texto: string }) {
+  const o = ORIGENS[tipo]
+  return (
+    <span
+      className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold border ${o.cor}`}
+    >
+      📎 {o.rotulo}: {texto}
+    </span>
+  )
+}
+
+function HeroSim({
+  titulo,
+  sub,
+  teclas,
+  capitulacao,
+}: {
+  titulo: string
+  sub: string
+  teclas: string
+  capitulacao: string
+}) {
+  return (
+    <div className="rounded-2xl overflow-hidden bg-gradient-to-br from-panorama-navy via-panorama-navy to-panorama-navy-light text-white shadow-lg">
+      <div className="p-5 sm:p-6">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="px-2.5 py-1 rounded-lg bg-panorama-gold text-panorama-navy text-[11px] font-black tracking-wider">
+            SIMULADOR
+          </span>
+          <span className="text-[11px] font-semibold text-white/70">{teclas}</span>
+        </div>
+        <h3 className="mt-2 text-xl sm:text-2xl font-bold tracking-tight">{titulo}</h3>
+        <p className="mt-1.5 text-xs sm:text-sm text-white/80 leading-relaxed">{sub}</p>
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {capitulacao.split(' · ').map((c) => (
+            <span
+              key={c}
+              className="px-2 py-0.5 rounded-md bg-white/10 border border-white/20 text-[10px] font-mono font-semibold"
+            >
+              {c}
+            </span>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ModoChips<T extends string>({
+  modos,
+  modo,
+  setModo,
+}: {
+  modos: { id: T; label: string; icone: string }[]
+  modo: T
+  setModo: (m: T) => void
+}) {
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+      {modos.map((m, i) => (
+        <button
+          key={m.id}
+          onClick={() => setModo(m.id)}
+          className={`group relative px-3 py-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+            modo === m.id
+              ? 'bg-gradient-to-br from-panorama-navy to-panorama-navy-light text-white border-panorama-navy shadow-md'
+              : 'bg-white border-slate-200 text-slate-700 hover:border-panorama-gold hover:bg-panorama-cream'
+          }`}
+        >
+          <div className="text-base leading-none">{m.icone}</div>
+          <div
+            className={`mt-1 text-xs font-bold leading-tight ${modo === m.id ? 'text-white' : 'text-slate-800'}`}
+          >
+            {m.label}
+          </div>
+          <div
+            className={`absolute top-1.5 right-1.5 px-1.5 rounded text-[9px] font-black ${modo === m.id ? 'bg-panorama-gold text-panorama-navy' : 'bg-slate-100 text-slate-400 group-hover:text-panorama-gold-dark'}`}
+          >
+            ⌥{i + 1}
+          </div>
+        </button>
+      ))}
+    </div>
+  )
+}
+
+function useModoTeclado<T extends string>(setModo: (m: T) => void, ids: T[]) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!e.altKey || e.ctrlKey || e.metaKey) return
+      const n = Number(e.key)
+      if (n >= 1 && n <= ids.length) {
+        e.preventDefault()
+        setModo(ids[n - 1])
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [setModo, ids])
+}
+
+function BlocoH({ n, titulo, capitulacao }: { n: string; titulo: string; capitulacao?: string }) {
+  return (
+    <div className="flex items-center gap-2 flex-wrap mb-2">
+      <span className="flex items-center justify-center w-6 h-6 rounded-lg bg-gradient-to-br from-panorama-gold to-panorama-gold-dark text-panorama-navy font-black text-[11px] shadow-sm">
+        {n}
+      </span>
+      <h4 className="text-sm font-bold text-slate-900">{titulo}</h4>
+      {capitulacao && <Origem tipo="lei" texto={capitulacao} />}
+    </div>
+  )
+}
+
+function KpiM({
+  titulo,
+  valor,
+  sub,
+  destaque,
+}: {
+  titulo: string
+  valor: string
+  sub?: string
+  destaque?: boolean
+}) {
+  return (
+    <div
+      className={`rounded-xl border p-3.5 transition-shadow hover:shadow-md ${destaque ? 'bg-gradient-to-br from-panorama-navy to-panorama-navy-light text-white border-panorama-navy shadow-md' : 'bg-white border-slate-200'}`}
+    >
+      <div
+        className={`text-[10px] font-bold uppercase tracking-wider ${destaque ? 'text-panorama-gold-light' : 'text-slate-500'}`}
+      >
+        {titulo}
+      </div>
+      <div
+        className={`mt-1 text-xl font-black tabular-nums ${destaque ? 'text-panorama-gold-light' : 'text-slate-900'}`}
+      >
+        {valor}
+      </div>
+      {sub && (
+        <div className={`mt-0.5 text-[11px] ${destaque ? 'text-white/70' : 'text-slate-500'}`}>
+          {sub}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function BadgeM({ ok, texto }: { ok: boolean; texto: string }) {
+  return (
+    <span
+      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold border ${ok ? 'bg-emerald-50 text-emerald-700 border-emerald-300' : 'bg-amber-50 text-amber-700 border-amber-300'}`}
+    >
+      {ok ? '✓' : '⚠'} {texto}
+    </span>
+  )
+}
+
+function RodapeCapitulacao({ itens }: { itens: string[] }) {
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white p-4">
+      <div className="flex items-center gap-2 mb-2">
+        <span className="text-xs font-bold text-slate-900">
+          📚 Capitulação legal — origem de cada cálculo
+        </span>
+      </div>
+      <div className="flex flex-wrap gap-1.5">
+        {itens.map((it) => {
+          const [tipo, texto] = it.split('|')
+          return <Origem key={it} tipo={tipo as keyof typeof ORIGENS} texto={texto} />
+        })}
+      </div>
+      <p className="mt-2 text-[10px] text-slate-500">
+        Fontes monitoradas na rotina semanal (seg 11h) — atualizações registradas na Seção 13 —
+        Histórico.
+      </p>
+    </div>
+  )
+}
 
 /** Seção 6F — Profissionais regulamentados (art. 127) e Plataformas digitais (art. 22).
  *  Layout de tabela uniformizado com a Seção 6A. */
@@ -498,7 +732,7 @@ function SimuladorProfissionais() {
       </div>
 
       <div>
-        <BlocoH n="1" titulo="⃣ Apuração do tributo — {profissao}" />
+        <BlocoH n="1" titulo={'Apuração do tributo — ' + profissao} />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           <KpiP
             titulo="Alíquota de referência"
@@ -579,7 +813,12 @@ function SimuladorProfissionais() {
       </div>
 
       <div>
-        <BlocoH n="3" titulo="⃣ Requisitos por profissão — checklist {tipoPrestador === 'pf' ? '(PF)' : '(PJ)'}" capitulacao="art. 127, §1º–§2º" />
+        <BlocoH
+          n="3"
+          titulo={
+            'Requisitos por profissão — checklist ' + (tipoPrestador === 'pf' ? '(PF)' : '(PJ)')
+          }
+        />
         <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-xs">
           <table className="w-full text-left border-collapse text-xs sm:text-sm">
             <thead>
@@ -605,7 +844,11 @@ function SimuladorProfissionais() {
       </div>
 
       <div>
-        <BlocoH n="4" titulo="⃣ Simulação por profissão — as 18 do art. 127 (mesma receita)" capitulacao="art. 127, caput (18 profissões)" />
+        <BlocoH
+          n="4"
+          titulo="⃣ Simulação por profissão — as 18 do art. 127 (mesma receita)"
+          capitulacao="art. 127, caput (18 profissões)"
+        />
         <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-xs">
           <table className="w-full text-left border-collapse text-xs sm:text-sm">
             <thead>
@@ -657,7 +900,11 @@ function SimuladorProfissionais() {
       </div>
 
       <div>
-        <BlocoH n="5" titulo="⃣ Implantação na linha do tempo (2026–2033)" capitulacao="arts. 343–347 e 295–296 (LC 214/2025)" />
+        <BlocoH
+          n="5"
+          titulo="⃣ Implantação na linha do tempo (2026–2033)"
+          capitulacao="arts. 343–347 e 295–296 (LC 214/2025)"
+        />
         <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-xs">
           <table className="w-full text-left border-collapse text-xs sm:text-sm">
             <thead>
@@ -713,11 +960,13 @@ function SimuladorProfissionais() {
         requisitos. <strong>Atualização automática:</strong> os valores e a base legal deste
         simulador seguem a rotina semanal de fontes oficiais (segundas-feiras, 11h) — mudanças em
         legislação ou regulamento entram na Seção 13 — Histórico de Atualizações.
+      </div>
+
       <RodapeCapitulacao
         itens={[
-          'lei|LC 214/2025 — art. 22 (plataformas digitais)',
-          'lei|LC 227/2026 — §§7º, 10–13 (responsabilidade)',
-          'resolucao|RIBS Res. CGIBS 6/2026 — regulamentação',
+          'lei|LC 214/2025 — art. 127 (profissões regulamentadas)',
+          'resolucao|Res. CGIBS 14/2026 — referência 27,91%',
+          'ref|Transição — arts. 343–347 e 295–296 (LC 214/2025)',
         ]}
       />
     </div>
@@ -980,7 +1229,11 @@ function SimuladorPlataformas() {
       </div>
 
       <div>
-        <BlocoH n="2" titulo="⃣ Responsabilidade da plataforma — mapa do art. 22" capitulacao="art. 22, caput e §§7º, 10–11" />
+        <BlocoH
+          n="2"
+          titulo="⃣ Responsabilidade da plataforma — mapa do art. 22"
+          capitulacao="art. 22, caput e §§7º, 10–11"
+        />
         <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-xs">
           <table className="w-full text-left border-collapse text-xs sm:text-sm">
             <thead>
@@ -1008,7 +1261,11 @@ function SimuladorPlataformas() {
       </div>
 
       <div>
-        <BlocoH n="3" titulo="⃣ Obrigações — plataforma × fornecedor" capitulacao="art. 22, §§3º–6º, 12º–13º (LC 214/227)" />
+        <BlocoH
+          n="3"
+          titulo="⃣ Obrigações — plataforma × fornecedor"
+          capitulacao="art. 22, §§3º–6º, 12º–13º (LC 214/227)"
+        />
         <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-xs">
           <table className="w-full text-left border-collapse text-xs sm:text-sm">
             <thead>
@@ -1034,7 +1291,11 @@ function SimuladorPlataformas() {
       </div>
 
       <div>
-        <BlocoH n="4" titulo="⃣ Tributação dos produtos/serviços comercializados — alíquotas e base legal" capitulacao="art. 22, §10, II + Anexos" />
+        <BlocoH
+          n="4"
+          titulo="⃣ Tributação dos produtos/serviços comercializados — alíquotas e base legal"
+          capitulacao="art. 22, §10, II + Anexos"
+        />
         <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-xs">
           <table className="w-full text-left border-collapse text-xs sm:text-sm">
             <thead>
@@ -1083,6 +1344,14 @@ function SimuladorPlataformas() {
         <strong>Atualização automática:</strong> mudanças entram na Seção 13 — Histórico de
         Atualizações.
       </div>
+
+      <RodapeCapitulacao
+        itens={[
+          'lei|LC 214/2025 — art. 22 (plataformas digitais)',
+          'lei|LC 227/2026 — §§7º, 10–13 (responsabilidade)',
+          'resolucao|RIBS Res. CGIBS 6/2026 — regulamentação',
+        ]}
+      />
     </div>
   )
 }

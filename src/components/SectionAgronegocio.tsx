@@ -106,7 +106,7 @@ function ModoChips<T extends string>({
   )
 }
 
-function useModoTeclado<T extends string>(setModo: (m: T) => void, ids: T[]) {
+function useModoTeclado<T extends string>(setModo: (m: T) => void, ids: readonly T[]) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (!e.altKey || e.ctrlKey || e.metaKey) return
