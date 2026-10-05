@@ -41,24 +41,26 @@ const AGENTES: Agente[] = [
   {
     id: 'artefatos',
     nome: 'Guardião de Artefatos',
-    papel: 'Controla os artefatos criados (documentos, desenhos, planilhas, PDFs)',
+    papel: 'Controla os artefatos criados — inventário automático diário',
     funcoes: [
       'Inventário dos artefatos entregues (projetos, relatórios, catálogos)',
       'Verificação de integridade (hash SHA-256) nos uploads ao sistema',
       'Versionamento — nada é sobrescrito sem registro',
+      'Inventário automático diário 07h40 (contagem, corrompidos, hash dos entregáveis-chave)',
     ],
     status: 'ATIVO',
   },
   {
     id: 'conectores',
     nome: 'Conector de Integrações',
-    papel: 'Interage com os conectores (MCP) do sistema',
+    papel: 'Interage com os conectores (MCP) do sistema — verificação automática diária',
     funcoes: [
       'Skip (arquivos, QA, publish), Gmail, Drive, Calendar, WhatsApp',
       'Só executa ações reversíveis sem aprovação; envio/cancelamento exige confirmação do diretor',
       'Credenciais nunca expostas em páginas públicas',
+      'Verificação automática diária 07h45 (MCP Skip, backend, SMTP, segredos)',
     ],
-    status: 'MONITORANDO',
+    status: 'ATIVO',
   },
   {
     id: 'automacoes',
@@ -154,6 +156,22 @@ const ALERTAS: Alerta[] = [
     detalhe:
       'Verificação diária 07h35: catálogo regenerado (≥1.000 itens), Histórico da Seção 13 ≤ 8 dias, páginas de entrega. Última: 7 verificações, 0 falhas.',
     quando: 'diário 07h35',
+    estado: 'RESOLVIDO',
+  },
+  {
+    sev: 'INFO',
+    titulo: 'Guardião de Artefatos — inventário automático ativo',
+    detalhe:
+      'Verificação diária 07h40: inventário de artifacts/ (360 arquivos), hash SHA-256 dos entregáveis-chave, detecção de alterações. Última: 15 verificações, 0 falhas.',
+    quando: 'diário 07h40',
+    estado: 'RESOLVIDO',
+  },
+  {
+    sev: 'INFO',
+    titulo: 'Conector de Integrações — verificação automática ativa',
+    detalhe:
+      'Verificação diária 07h45: MCP Skip autenticado, backend PocketBase saudável, SMTP do e-mail oficial, segredo SIMUL_PAINEL_TOKEN. Última: 4 verificações, 0 falhas.',
+    quando: 'diário 07h45',
     estado: 'RESOLVIDO',
   },
   {
