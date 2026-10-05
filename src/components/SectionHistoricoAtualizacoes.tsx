@@ -19,7 +19,7 @@ interface Registro {
   caminho: string
   versao?: string
   /** Bloco: 'sistema' = mudança no sistema; 'legislacao' = ato normativo novo de órgão oficial */
-  bloco: 'sistema' | 'legislacao'
+  bloco?: 'sistema' | 'legislacao'
 }
 
 /** Janela de retenção em dias (política do CEO: máximo 30 dias). */

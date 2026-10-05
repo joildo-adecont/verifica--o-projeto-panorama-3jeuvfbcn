@@ -76,9 +76,9 @@ function ModoChips<T extends string>({
   modo,
   setModo,
 }: {
-  modos: { id: T; label: string; icone: string }[]
+  modos: readonly { id: T; label: string; icone: string }[]
   modo: T
-  setModo: (m: T) => void
+  setModo: React.Dispatch<React.SetStateAction<T>> | ((m: T) => void)
 }) {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -109,7 +109,10 @@ function ModoChips<T extends string>({
   )
 }
 
-function useModoTeclado<T extends string>(setModo: (m: T) => void, ids: readonly T[]) {
+function useModoTeclado<T extends string>(
+  setModo: React.Dispatch<React.SetStateAction<T>> | ((m: T) => void),
+  ids: readonly T[],
+) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (!e.altKey || e.ctrlKey || e.metaKey) return
