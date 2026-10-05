@@ -19,7 +19,7 @@ interface Registro {
   caminho: string
   versao?: string
   /** Bloco: 'sistema' = mudança no sistema; 'legislacao' = ato normativo novo de órgão oficial */
-  bloco?: 'sistema' | 'legislacao'
+  bloco: 'sistema' | 'legislacao'
 }
 
 /** Janela de retenção em dias (política do CEO: máximo 30 dias). */
@@ -37,6 +37,23 @@ function ehRecente(dataBR: string): boolean {
 
 const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
+  {
+    data: '05/10/2026',
+    hora: '03:21',
+    titulo:
+      'Agentes autônomos ativos: Sentinela de Segurança (07h30) e Auditor de Automações (07h35)',
+    conteudo:
+      'A pedido do CEO, dois agentes da Seção 15 passaram a operar de forma AUTÔNOMA com varredura diária agendada: SENTINELA DE SEGURANÇA (diário 07h30) — verifica as 6 URLs de produção (HTTP 200), a rejeição de acessos sem token nos endpoints protegidos (relatório por token e consolidado por X-Painel-Token — qualquer aceite seria vazamento ALTA) e a integridade do bundle (seções críticas presentes, hash registrado); AUDITOR DE AUTOMAÇÕES (diário 07h35) — verifica o catálogo do Simulador regenerado (≥1.000 itens, 124 curados), o Histórico da Seção 13 atualizado (último registro ≤ 8 dias — prova que a rotina semanal rodou) e as páginas de entrega. Scripts: scripts/agentes/sentinela.py e auditor.py (relatórios JSON em tmp/). Qualquer falha ALTA → comunicação IMEDIATA ao diretor Antonio Joildo da Silva (joildo@adecont.com.br). Primeiras execuções: Sentinela 12 verificações/0 falhas; Auditor 7 verificações/0 falhas. Cards da Seção 15 atualizados com os horários e status ATIVO; 2 novos alertas INFO na tabela.',
+    fontes: [
+      {
+        nome: 'LC 214/2025 compilada — Planalto (fonte oficial primária de referência)',
+        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+      },
+    ],
+    caminho:
+      'Panorama (62493) — SectionAssistentesSeguranca.tsx (agentes ATIVO + alertas) + scripts/agentes/sentinela.py e auditor.py + crons diários 07h30/07h35',
+    versao: '62493 v0.0.144',
+  },
   {
     data: '05/10/2026',
     hora: '03:16',
