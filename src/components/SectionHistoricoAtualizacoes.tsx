@@ -39,6 +39,23 @@ const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
     data: '05/10/2026',
+    hora: '03:26',
+    titulo:
+      'Guardião de Artefatos (07h40) e Conector de Integrações (07h45) autônomos — 4 agentes ativos',
+    conteudo:
+      'A pedido do CEO, os dois agentes restantes da Seção 15 passaram a operar de forma AUTÔNOMA: GUARDIÃO DE ARTEFATOS (diário 07h40) — inventário completo de artifacts/ (360 arquivos: png, txt, js, pdf, csv, md), detecção de arquivos corrompidos (0 bytes), hash SHA-256 dos 8 entregáveis-chave (projeto executivo da piscina, desenhos, legislação, logo, prints do sistema) com comparação contra a varredura anterior (alteração não registrada → alerta), integridade dos scripts dos agentes; CONECTOR DE INTEGRAÇÕES (diário 07h45) — MCP Skip autenticado com acesso ao projeto 62493, backend PocketBase saudável (/api/health 200), SMTP do e-mail oficial configurado e segredo SIMUL_PAINEL_TOKEN presente. Scripts: scripts/agentes/guardiao.py e conector.py (relatórios JSON em tmp/). Falha → comunicação IMEDIATA ao diretor Antonio Joildo da Silva (joildo@adecont.com.br). Primeiras execuções: Guardião 15 verificações/0 falhas; Conector 4 verificações/0 falhas. Com isso, os 4 agentes operacionais (Sentinela 07h30, Auditor 07h35, Guardião 07h40, Conector 07h45) cobrem segurança, automações, artefatos e integrações — o Assistente Líder coordena e o Curador de Memória mantém o contexto.',
+    fontes: [
+      {
+        nome: 'LC 214/2025 compilada — Planalto (fonte oficial primária de referência)',
+        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+      },
+    ],
+    caminho:
+      'Panorama (62493) — SectionAssistentesSeguranca.tsx (agentes ATIVO + alertas) + scripts/agentes/guardiao.py e conector.py + crons diários 07h40/07h45',
+    versao: '62493 v0.0.146',
+  },
+  {
+    data: '05/10/2026',
     hora: '03:21',
     titulo:
       'Agentes autônomos ativos: Sentinela de Segurança (07h30) e Auditor de Automações (07h35)',
