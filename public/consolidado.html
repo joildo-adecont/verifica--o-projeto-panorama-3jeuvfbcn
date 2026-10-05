@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Relatório Consolidado de Simulações — ADECONT</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+        background: #eef1f6;
+        color: #1c2b3a;
+        line-height: 1.5;
+      }
+      .folha {
+        max-width: 900px;
+        margin: 24px auto;
+        background: #fff;
+        box-shadow: 0 2px 14px rgba(0, 0, 0, 0.12);
+      }
+      .cap {
+        background: linear-gradient(135deg, #0b1528, #162238);
+        color: #fff;
+        padding: 26px 32px;
+      }
+      .cap h1 {
+        font-size: 1.25rem;
+        letter-spacing: -0.02em;
+      }
+      .cap .sub {
+        font-size: 0.8rem;
+        opacity: 0.85;
+        margin-top: 3px;
+      }
+      .kpis {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 12px;
+        padding: 20px 32px;
+      }
+      .kpi {
+        background: #f6f8fc;
+        border: 1px solid #dbe3ee;
+        border-radius: 10px;
+        padding: 12px 14px;
+      }
+      .kpi .n {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: #0b1528;
+      }
+      .kpi .k {
+        font-size: 0.64rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #5b6b7b;
+        margin-top: 2px;
+      }
+      .kpi.gold {
+        background: #f3ecdd;
+        border-color: #c5a059;
+      }
+      .kpi.gold .n {
+        color: #8a6d00;
+      }
+      .corpo {
+        padding: 0 32px 26px;
+      }
+      .cliente {
+        margin-bottom: 26px;
+      }
+      .cli-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        flex-wrap: wrap;
+        gap: 6px;
+        background: #0b1528;
+        color: #fff;
+        padding: 10px 14px;
+        border-radius: 10px 10px 0 0;
+      }
+      .cli-head .nome {
+        font-weight: 800;
+        font-size: 0.95rem;
+      }
+      .cli-head .emp {
+        font-size: 0.74rem;
+        opacity: 0.8;
+      }
+      .cli-head .n {
+        background: #c5a059;
+        color: #0b1528;
+        font-weight: 800;
+        font-size: 0.72rem;
+        padding: 2px 10px;
+        border-radius: 8px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.78rem;
+      }
+      th {
+        background: #162238;
+        color: #fff;
+        padding: 7px 10px;
+        text-align: left;
+        font-size: 0.64rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+      td {
+        padding: 6px 10px;
+        border-bottom: 1px solid #e6ebf2;
+        vertical-align: top;
+      }
+      tr:nth-child(even) td {
+        background: #f8fafc;
+      }
+      .tag {
+        display: inline-block;
+        padding: 1px 8px;
+        border-radius: 10px;
+        font-size: 0.62rem;
+        font-weight: 700;
+      }
+      .t-enviado {
+        background: #e3f0fd;
+        color: #12508f;
+      }
+      .t-recebido {
+        background: #e6f2e6;
+        color: #1e7a1e;
+      }
+      .t-falha {
+        background: #fdecec;
+        color: #b02525;
+      }
+      .cap-mini {
+        font-size: 0.66rem;
+        color: #5b6b7b;
+        margin-top: 3px;
+      }
+      .rodape {
+        padding: 16px 32px 26px;
+        background: #f6f8fc;
+        border-top: 1px solid #dbe3ee;
+        font-size: 0.68rem;
+        color: #8a97a8;
+        text-align: center;
+      }
+      .acoes {
+        text-align: center;
+        padding: 14px;
+      }
+      .btn {
+        border: none;
+        border-radius: 8px;
+        padding: 11px 22px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+        margin: 0 4px;
+      }
+      .btn-azul {
+        background: #12315e;
+        color: #fff;
+      }
+      .erro {
+        max-width: 620px;
+        margin: 60px auto;
+        background: #fff;
+        border-radius: 12px;
+        padding: 30px;
+        text-align: center;
+        box-shadow: 0 2px 14px rgba(0, 0, 0, 0.12);
+      }
+      @media print {
+        body {
+          background: #fff;
+        }
+        .folha {
+          box-shadow: none;
+          margin: 0;
+          max-width: none;
+        }
+        .acoes {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="carregando" class="erro">⏳ Carregando relatório consolidado…</div>
+    <div id="relatorio" class="folha" style="display: none">
+      <div class="cap">
+        <h1>Relatório Consolidado — Simulações Enviadas</h1>
+        <div class="sub">
+          Reforma Tributária (IBS/CBS) • ADECONT Assessoria • agrupado por cliente
+        </div>
+      </div>
+      <div class="kpis">
+        <div class="kpi gold">
+          <div class="n" id="k-total">0</div>
+          <div class="k">Envios totais</div>
+        </div>
+        <div class="kpi">
+          <div class="n" id="k-enviados">0</div>
+          <div class="k">E-mails enviados</div>
+        </div>
+        <div class="kpi">
+          <div class="n" id="k-recebidos">0</div>
+          <div class="k">Recebimentos confirmados</div>
+        </div>
+        <div class="kpi">
+          <div class="n" id="k-clientes">0</div>
+          <div class="k">Clientes atendidos</div>
+        </div>
+      </div>
+      <div class="corpo" id="lista-clientes"></div>
+      <div class="rodape">
+        ADECONT Assessoria Administrativa, Contábil • Relatório gerado em
+        <span id="r-gerado">—</span> • Simulações didáticas, sem valor fiscal • Fontes: LC 214/2025,
+        LC 227/2026, Decreto 12.955/2026, Resoluções CGIBS/CGSN
+      </div>
+    </div>
+    <div class="acoes" id="acoes" style="display: none">
+      <button class="btn btn-azul" onclick="window.print()">🖨️ Salvar em PDF / Imprimir</button>
+      <a class="btn btn-azul" style="background: #64748b" href="./envios.html"
+        >← Voltar ao painel</a
+      >
+    </div>
+    <script>
+      var PB = 'https://verificacao-projeto-panorama-18549.shrd00.internal.goskip.dev'
+      var TOKEN = localStorage.getItem('simul_painel_token') || ''
+      function fmtData(s) {
+        if (!s) return '—'
+        try {
+          return new Date(s).toLocaleString('pt-BR')
+        } catch (e) {
+          return s
+        }
+      }
+      fetch(PB + '/backend/v1/simul-consolidado', {
+        headers: { 'X-Painel-Token': TOKEN },
+        credentials: 'omit',
+      })
+        .then(function (r) {
+          if (!r.ok) throw new Error('HTTP ' + r.status)
+          return r.json()
+        })
+        .then(function (d) {
+          document.getElementById('carregando').style.display = 'none'
+          document.getElementById('relatorio').style.display = 'block'
+          document.getElementById('acoes').style.display = 'block'
+          document.getElementById('k-total').textContent = d.total_envios
+          document.getElementById('k-enviados').textContent = d.enviados
+          document.getElementById('k-recebidos').textContent = d.recebidos
+          document.getElementById('k-clientes').textContent = d.clientes.length
+          document.getElementById('r-gerado').textContent = fmtData(d.gerado_em)
+          var html = ''
+          d.clientes.forEach(function (cl) {
+            html += '<div class="cliente">'
+            html +=
+              '<div class="cli-head"><span class="nome">' +
+              cl.nome +
+              '</span><span class="emp">' +
+              (cl.empresa || '—') +
+              ' · ' +
+              cl.email +
+              '</span><span class="n">' +
+              cl.total +
+              ' envio(s)</span></div>'
+            html +=
+              '<table><tr><th>Protocolo</th><th>Simulação</th><th>Status</th><th>Enviado em</th><th>Recebido em</th></tr>'
+            cl.envios.forEach(function (v) {
+              var st = v.recebido_em
+                ? '<span class="tag t-recebido">RECEBIDO</span>'
+                : '<span class="tag t-' + v.status.toLowerCase() + '">' + v.status + '</span>'
+              html +=
+                '<tr><td><b>' +
+                v.protocolo +
+                '</b></td><td>' +
+                (v.tema || '—') +
+                '<div class="cap-mini">' +
+                (v.capitulacao || '').slice(0, 110) +
+                '</div></td><td>' +
+                st +
+                '</td><td>' +
+                fmtData(v.enviado_em) +
+                '</td><td>' +
+                (v.recebido_em ? fmtData(v.recebido_em) : '—') +
+                '</td></tr>'
+            })
+            html += '</table></div>'
+          })
+          if (!d.clientes.length)
+            html =
+              '<p style="text-align:center;color:#5b6b7b;padding:30px">Nenhuma simulação enviada ainda.</p>'
+          document.getElementById('lista-clientes').innerHTML = html
+        })
+        .catch(function (e) {
+          document.getElementById('carregando').innerHTML =
+            '⚠️ Não foi possível carregar (' +
+            e.message +
+            ').<br>Configure o 🔑 Token no painel Cadastro & Envios e tente novamente.'
+        })
+    </script>
+  </body>
+</html>

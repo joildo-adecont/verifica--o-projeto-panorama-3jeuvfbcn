@@ -402,6 +402,81 @@ routerAdd('POST', '/backend/v1/simul-enviar', (e) => {
   return e.json(200, { success: true, total: results.length, envios: results })
 })
 
+// ---------- 2c. Relatorio consolidado (painel, agrupado por cliente) ----------
+routerAdd('GET', '/backend/v1/simul-consolidado', (e) => {
+  var painelTokenOk = (function () {
+    var esperado = $secrets.get('SIMUL_PAINEL_TOKEN') || ''
+    var recebido = e.request.header.get('X-Painel-Token') || ''
+    return esperado && recebido && recebido === esperado
+  })()
+  if (!painelTokenOk && !(e.auth && e.auth.id)) {
+    return e.json(401, {
+      status: 401,
+      message: 'Token do painel ausente ou inválido (X-Painel-Token).',
+    })
+  }
+  var envios = $app.findRecordsByFilter('simul_envios', 'id != ""', '-created', 2000, 0)
+  var porCliente = {}
+  var ordem = []
+  var total = 0
+  var enviados = 0
+  var recebidos = 0
+  for (var i = 0; i < envios.length; i++) {
+    var v = envios[i]
+    var cliId = v.getString('cliente')
+    var nome = ''
+    var empresa = ''
+    var email = ''
+    try {
+      var cli = $app.findRecordById('simul_clientes', cliId)
+      nome = cli.getString('nome')
+      empresa = cli.getString('empresa')
+      email = cli.getString('email')
+    } catch (_) {
+      nome = '(cliente removido)'
+    }
+    if (!porCliente[cliId]) {
+      porCliente[cliId] = { nome: nome, empresa: empresa, email: email, envios: [] }
+      ordem.push(cliId)
+    }
+    var st = v.getString('status')
+    var rec = v.getString('recebido_em') || ''
+    if (st === 'ENVIADO') enviados++
+    if (rec) recebidos++
+    porCliente[cliId].envios.push({
+      protocolo: v.getString('protocolo'),
+      tema: v.getString('tema_resumo'),
+      item_codigo: v.getString('item_codigo'),
+      item_nome: v.getString('item_nome'),
+      status: st,
+      enviado_em: v.get('enviado_em'),
+      recebido_em: rec,
+      capitulacao: v.getString('capitulacao_legal'),
+    })
+    total++
+  }
+  var clientes = ordem.map(function (id) {
+    var g = porCliente[id]
+    return {
+      nome: g.nome,
+      empresa: g.empresa,
+      email: g.email,
+      envios: g.envios,
+      total: g.envios.length,
+    }
+  })
+  clientes.sort(function (a, b) {
+    return a.nome.localeCompare(b.nome)
+  })
+  return e.json(200, {
+    total_envios: total,
+    enviados: enviados,
+    recebidos: recebidos,
+    clientes: clientes,
+    gerado_em: new Date().toISOString(),
+  })
+})
+
 // ---------- 2b. Relatorio publico por token ----------
 routerAdd('GET', '/backend/v1/simul-relatorio', (e) => {
   var token = e.requestInfo().query.token || ''
