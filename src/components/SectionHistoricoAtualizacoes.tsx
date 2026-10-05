@@ -38,6 +38,22 @@ function ehRecente(dataBR: string): boolean {
 const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
+    data: '05/10/2026',
+    hora: '02:05',
+    titulo: 'Simulador Geral: painel de envio integrado ao Cadastro de Clientes (protocolo)',
+    conteudo:
+      'A pedido do CEO, o Simulador Geral (simulador.html, nas 2 cópias) ganhou o painel "📤 Enviar simulação": botão no header + seção no fim da página que pré-preenche automaticamente o item simulado, a capitulação legal e o resultado da simulação; lista os clientes do cadastro (simul_clientes) e envia pelo MESMO canal do painel Cadastro & Envios — endpoint /backend/v1/simul-enviar, e-mail oficial ADECONT (nao-responda@adecont.com.br) com protocolo SIM-AAAAMMDD-XXXXXX e link de confirmação de recebimento. Teste E2E APROVADO em produção: item 3926.90.30 (Bolsa para drenagem, dispositivos60) simulado e enviado para joildo@adecont.com.br — protocolo SIM-20261005-2ZE5QB, registrado em simul_envios. Capitulação legal do envio vem do mapa por grupo (LC 214, RIBS, Decreto 12.955).',
+    fontes: [
+      {
+        nome: 'LC 214/2025 compilada — Planalto (base legal das capitulações)',
+        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+      },
+    ],
+    caminho:
+      'Panorama (62493) — public/simulador.html e public/panorama-reforma/simulador.html (painel de envio integrado)',
+    versao: '62493 v0.0.122',
+  },
+  {
     data: '04/10/2026',
     hora: '22:45',
     titulo: 'Modernização visual de TODOS os simuladores (6A–6F) — design system v2',
