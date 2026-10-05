@@ -1,19 +1,15 @@
 import { useState, useMemo } from 'react'
 import {
-  Bot,
-  Shield,
   ShieldCheck,
   Database,
-  Plug,
-  Workflow,
-  Archive,
-  Crown,
-  AlertTriangle,
-  Eye,
-  Lock,
-  BellRing,
+  Globe2,
+  History,
+  Paperclip,
+  Percent,
   Search,
-  UserCheck,
+  ListChecks,
+  Home,
+  Layers,
 } from 'lucide-react'
 
 type Agente = {
@@ -152,7 +148,7 @@ const ALERTAS: Alerta[] = [
 
 const DISPOSITIVOS = [
   {
-    icon: Lock,
+    icon: Database,
     titulo: 'Autenticação por token (X-Painel-Token)',
     desc: 'Painel de envios e endpoints administrativos exigem token secreto — validado inline em cada handler (JSVM).',
   },
@@ -167,17 +163,17 @@ const DISPOSITIVOS = [
     desc: 'Todo upload ao sistema é validado por hash — arquivos corrompidos/truncados são detectados antes de publicar.',
   },
   {
-    icon: Shield,
+    icon: ShieldCheck,
     titulo: 'Regra de fonte única oficial',
     desc: 'Assistentes só consultam fontes oficiais primárias (Planalto, CGIBS, RFB, Bacen). Fontes secundárias são rotuladas e nunca usadas como base legal.',
   },
   {
-    icon: Eye,
+    icon: Search,
     titulo: 'Auditoria de ações (audit_log)',
     desc: 'Envios, sincronizações e operações sensíveis registradas com entidade, operação e payload.',
   },
   {
-    icon: BellRing,
+    icon: ListChecks,
     titulo: 'Comunicação imediata ao diretor',
     desc: 'Alertas ALTA e liberações pendentes são comunicadas de imediato a Antonio Joildo da Silva (diretor) — joildo@adecont.com.br.',
   },
@@ -288,7 +284,7 @@ export function SectionAssistentesSeguranca() {
       {/* Assistentes */}
       <div>
         <h3 className="text-sm font-bold text-slate-900 mb-2 flex items-center gap-2">
-          <Bot className="w-4 h-4 text-panorama-gold-dark" /> Assistentes especializados (
+          <Layers className="w-4 h-4 text-panorama-gold-dark" /> Assistentes especializados (
           {agentesFiltrados.length})
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -306,9 +302,9 @@ export function SectionAssistentesSeguranca() {
                   className={`text-sm font-bold flex items-center gap-1.5 ${a.lider ? 'text-panorama-gold-light' : 'text-slate-900'}`}
                 >
                   {a.lider ? (
-                    <Crown className="w-4 h-4 text-panorama-gold" />
+                    <ShieldCheck className="w-4 h-4 text-panorama-gold" />
                   ) : (
-                    <Bot className="w-4 h-4 text-panorama-gold-dark" />
+                    <Layers className="w-4 h-4 text-panorama-gold-dark" />
                   )}
                   {a.nome}
                 </h4>
@@ -339,7 +335,7 @@ export function SectionAssistentesSeguranca() {
       {/* Dispositivos de segurança */}
       <div>
         <h3 className="text-sm font-bold text-slate-900 mb-2 flex items-center gap-2">
-          <Shield className="w-4 h-4 text-panorama-gold-dark" /> Dispositivos de segurança (
+          <ShieldCheck className="w-4 h-4 text-panorama-gold-dark" /> Dispositivos de segurança (
           {DISPOSITIVOS.length})
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -361,8 +357,8 @@ export function SectionAssistentesSeguranca() {
       {/* Relatório de alertas + pontos de atenção/observação */}
       <div>
         <h3 className="text-sm font-bold text-slate-900 mb-2 flex items-center gap-2">
-          <AlertTriangle className="w-4 h-4 text-panorama-gold-dark" /> Relatório de alertas, pontos
-          de atenção e observação ({alertasFiltrados.length})
+          <Percent className="w-4 h-4 text-panorama-gold-dark" /> Relatório de alertas, pontos de
+          atenção e observação ({alertasFiltrados.length})
         </h3>
         <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-xs">
           <table className="w-full text-left border-collapse text-xs sm:text-sm">
@@ -408,7 +404,7 @@ export function SectionAssistentesSeguranca() {
       {/* Política de liberação */}
       <div className="p-4 rounded-xl border-2 border-panorama-gold/60 bg-gradient-to-br from-panorama-cream to-white">
         <h3 className="text-sm font-bold text-slate-900 mb-2 flex items-center gap-2">
-          <UserCheck className="w-4 h-4 text-panorama-gold-dark" /> Política de liberação —
+          <Home className="w-4 h-4 text-panorama-gold-dark" /> Política de liberação —
           acompanhamento da empresa
         </h3>
         <ul className="text-xs text-slate-700 space-y-1.5">
@@ -448,7 +444,7 @@ export function SectionAssistentesSeguranca() {
             href="/#historico-atualizacoes"
             className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white border border-slate-300 text-slate-700 text-xs font-bold hover:bg-slate-50"
           >
-            <Workflow className="w-3.5 h-3.5" /> Ver Histórico de Atualizações
+            <History className="w-3.5 h-3.5" /> Ver Histórico de Atualizações
           </a>
         </div>
       </div>
