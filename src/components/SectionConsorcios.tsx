@@ -155,6 +155,20 @@ function RodapeCapitulacao({ itens }: { itens: string[] }) {
   )
 }
 
+function BotaoEnviarSimulacao({ termo, label }: { termo?: string; label?: string }) {
+  const href = termo ? `${SIM_URL}?q=${encodeURIComponent(termo)}&enviar=1` : `${SIM_URL}?enviar=1`
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl bg-gradient-to-r from-panorama-gold to-panorama-gold-dark text-panorama-navy font-bold text-sm shadow-md hover:shadow-lg transition-shadow"
+    >
+      📤 {label || 'Enviar esta simulação por e-mail (protocolo)'} — via Simulador Geral
+    </a>
+  )
+}
+
 /** Seção 6C — Consórcios (LC 214/2025, arts. 204–206).
  *  Layout de tabela uniformizado com a Seção 6A. */
 
@@ -1200,6 +1214,8 @@ function SimuladorConsorcio() {
             CGIBS e da RFB podem alterar leiautes de documento fiscal e a forma de apuração.
             Qualquer mudança entra na Seção 13 — Histórico de Atualizações.
           </div>
+
+          <BotaoEnviarSimulacao termo="taxa de administração" />
 
           <RodapeCapitulacao
             itens={[

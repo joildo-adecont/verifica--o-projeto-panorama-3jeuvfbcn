@@ -1050,10 +1050,14 @@
       // Inicialização: renderiza os grupos ao carregar; ?q=termo pré-preenche a busca
       renderGrupos()
       try {
-        var qp = new URLSearchParams(window.location.search).get('q')
-        if (qp && qp.trim()) {
-          document.getElementById('busca').value = qp.trim()
+        var qp = new URLSearchParams(window.location.search)
+        var q = qp.get('q')
+        if (q && q.trim()) {
+          document.getElementById('busca').value = q.trim()
           document.getElementById('btn-limpa-busca').style.display = 'block'
+        }
+        if (qp.get('enviar') === '1') {
+          abrirPainelEnvio()
         }
       } catch (e) {}
       filtrar()

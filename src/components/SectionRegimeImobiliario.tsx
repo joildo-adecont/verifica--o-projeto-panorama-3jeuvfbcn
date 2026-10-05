@@ -158,6 +158,20 @@ function RodapeCapitulacao({ itens }: { itens: string[] }) {
   )
 }
 
+function BotaoEnviarSimulacao({ termo, label }: { termo?: string; label?: string }) {
+  const href = termo ? `${SIM_URL}?q=${encodeURIComponent(termo)}&enviar=1` : `${SIM_URL}?enviar=1`
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl bg-gradient-to-r from-panorama-gold to-panorama-gold-dark text-panorama-navy font-bold text-sm shadow-md hover:shadow-lg transition-shadow"
+    >
+      📤 {label || 'Enviar esta simulação por e-mail (protocolo)'} — via Simulador Geral
+    </a>
+  )
+}
+
 /** Seção 6A — Regime Imobiliário (LC 214/2025, arts. 252–261 e 485–488).
  *  Fontes extraídas do texto compilado do Planalto (conferido em 04/10/2026). */
 
@@ -889,6 +903,8 @@ function SimuladorImobiliario() {
         §5º) e os redutores sociais são atualizados mensalmente pelo IPCA desde 16/01/2025 — informe
         o IPCA acumulado para o valor vigente.
       </div>
+
+      <BotaoEnviarSimulacao termo="venda de imóvel residencial novo" />
 
       <RodapeCapitulacao
         itens={[

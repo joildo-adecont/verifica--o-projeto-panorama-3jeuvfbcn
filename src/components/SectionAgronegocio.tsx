@@ -155,6 +155,20 @@ function RodapeCapitulacao({ itens }: { itens: string[] }) {
   )
 }
 
+function BotaoEnviarSimulacao({ termo, label }: { termo?: string; label?: string }) {
+  const href = termo ? `${SIM_URL}?q=${encodeURIComponent(termo)}&enviar=1` : `${SIM_URL}?enviar=1`
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl bg-gradient-to-r from-panorama-gold to-panorama-gold-dark text-panorama-navy font-bold text-sm shadow-md hover:shadow-lg transition-shadow"
+    >
+      📤 {label || 'Enviar esta simulação por e-mail (protocolo)'} — via Simulador Geral
+    </a>
+  )
+}
+
 /** Seção 6B — Regime do Agronegócio (LC 214/2025, arts. 110, 137-138, 164-171 e 271-272).
  *  Layout de tabela uniformizado com a Seção 6A. */
 
@@ -1317,6 +1331,8 @@ function SimuladorAgro() {
         divulgados anualmente (arts. 168–169) — o valor de {percentual.toFixed(0)}% aqui é editável
         e didático.
       </div>
+
+      <BotaoEnviarSimulacao termo="produtos agropecuários" />
 
       <RodapeCapitulacao
         itens={[
