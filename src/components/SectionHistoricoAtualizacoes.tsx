@@ -39,6 +39,22 @@ const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
     data: '05/10/2026',
+    hora: '02:45',
+    titulo: 'Relatório consolidado de simulações (PDF) — agrupado por cliente, no painel',
+    conteudo:
+      'A pedido do CEO, o painel 📇 Cadastro & Envios ganhou o botão "📊 Relatório consolidado (PDF)" (aba Envio & Protocolo). A página consolidado.html (2 cópias) chama o novo endpoint /backend/v1/simul-consolidado (hook simulador_envios.js, autenticado pelo token do painel) e agrupa TODAS as simulações enviadas por cliente: KPIs no topo (envios totais, e-mails enviados, recebimentos confirmados, clientes atendidos), um bloco por cliente (nome, empresa, e-mail, nº de envios) com tabela de cada envio — protocolo, tema, capitulação legal resumida, status (ENVIADO/RECEBIDO/FALHA), enviado em e recebido em. Botão "🖨️ Salvar em PDF / Imprimir" (window.print, CSS @media print). Quirk corrigido: findRecordsByFilter no JSVM não aceita sort -created — usar -enviado_em (AutodateField). Validado em produção: 5 envios, 1 cliente, tabela completa.',
+    fontes: [
+      {
+        nome: 'LC 214/2025 compilada — Planalto (base legal das capitulações)',
+        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+      },
+    ],
+    caminho:
+      'Panorama (62493) — public/consolidado.html (2 cópias) + hook simulador_envios.js (endpoint simul-consolidado) + botão em envios.html (2 cópias)',
+    versao: '62493 v0.0.132-135',
+  },
+  {
+    data: '05/10/2026',
     hora: '02:38',
     titulo: 'Relatório de simulação em PDF para os clientes (link no e-mail de envio)',
     conteudo:
