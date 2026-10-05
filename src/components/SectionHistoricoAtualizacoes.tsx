@@ -39,6 +39,22 @@ const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
     data: '04/10/2026',
+    hora: '22:00',
+    titulo:
+      'Seção 6D — simulador de serviços financeiros (4 modos: empréstimo, tarifas bancárias, sujeitos, obrigações banco × correntista)',
+    conteudo:
+      'A pedido do CEO, no mesmo layout dos simuladores da 6A/6B/6C/6E: (1) 🏦 Empréstimo (crédito) — base passo a passo dos arts. 192 e 194: total pago − principal (não é receita, art. 192 §1º I) = base do banco; alíquota uniforme (art. 189); crédito do tomador PJ regular = alíquota × despesa financeira deduzido o juro equivalente à Selic over (art. 194, II), calculado parcela a parcela pelo regime de caixa, com tabela de custos por parcela (parcela, juros, parcela Selic, despesa creditável, crédito, custo líquido); deduções do banco listadas (captação sem principal §2º, câmbio, perdas com títulos, encargos de dívida, perdas de crédito nas regras do IR — red. LC 227/2026, assessores/correspondentes); reversão de provisões entra na base (art. 186); vedada despesa administrativa (art. 187); (2) 💳 Tarifas bancárias — simulador de receita de tarifas (abertura, manutenção, saques, transferências × nº de contas) com regime por tipo de instituição (banco/instituição de pagamento = normas gerais do art. 184; outra = regime específico) + mapa das tarifas (quem pode cobrar e como tributa, incl. conta de pagamento art. 184 §2º e arranjos art. 214) + crédito do correntista PJ (art. 198); (3) 👥 Sujeitos ativos e passivos — tabela do art. 183: 29 tipos supervisionados pelo SFN + fornecedores não supervisionados (securitizadoras, factoring, empresas simples de crédito, participantes de arranjos — LC 227/2026), com regime aplicável e tratamento das tarifas de cada um; (4) 📋 Obrigações: banco × correntista — tabela com tipo FISCAL/FINANCEIRA/VEDAÇÃO: banco (apurar com deduções, prestar informações ao CGIBS/RFB arts. 190-191, deduções restritas art. 187) × correntista PJ (créditos arts. 194, 195 debêntures, 196 desgio/DI, 198 tarifas, 203 leasing; vedações art. 197 moeda estrangeira/cooperativas) × PF consumidora final (sem crédito) + vedação geral do art. 199; bloco de pontos pendentes de legislação (CBS 2027 Senado, IBS Res. 14/2026, alíquotas do art. 233, regulamento das informações RIBS, atos CMN/Bacen/CVM).',
+    fontes: [
+      {
+        nome: 'LC 214/2025 compilada — Planalto (arts. 182-214)',
+        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+      },
+    ],
+    caminho: 'Panorama (62493) — SectionFinanceiros.tsx (aba 🧮 Simulador financeiro, 4 modos)',
+    versao: '62493 v0.0.114',
+  },
+  {
+    data: '04/10/2026',
     hora: '21:50',
     titulo:
       'Seção 6C — simulador de consórcios (4 modos: taxa & lances, carta de crédito, garantia fiduciária, apuração & créditos/débitos)',
