@@ -39,6 +39,22 @@ const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
     data: '05/10/2026',
+    hora: '02:17',
+    titulo: 'Itens financeiros no catálogo do Simulador + botão da 6D com termo',
+    conteudo:
+      'A pedido do CEO, o catálogo do Simulador Geral ganhou 6 itens financeiros curados (grupo regime_especial, sobrevivem à regeneração semanal — N_CURADOS do regenerador atualizado para 124): 1.0301 Operações de crédito (arts. 182-214), 1.0302 Tarifas bancárias (art. 184), 1.0303 Crédito do tomador PJ acima da Selic (art. 194), 1.0304 Arranjos de pagamento/split payment (art. 214), 1.0305 Securitizadoras/factoring/empresas simples de crédito (art. 183 §2º) e 1.0306 Leasing (art. 203). O botão "📤 Enviar" da 6D agora aponta ?q=empréstimos (pré-seleciona 1.0301). Sinônimos novos na busca: empréstimo/financiamento, tarifa bancária, leasing, factoring. Catálogo: 1.002 itens (124 curados + 878 da 7A). Teste E2E: busca "empréstimos" → 1.0301 selecionado, simulação R$ 100 mil e painel de envio aberto; sinônimos tarifa/leasing/factoring → 1 resultado cada.',
+    fontes: [
+      {
+        nome: 'LC 214/2025 compilada — Planalto (arts. 182-214, serviços financeiros)',
+        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+      },
+    ],
+    caminho:
+      'Panorama (62493) — public/partes/sim-catalogo.js (2 cópias, 1.002 itens) + SectionFinanceiros.tsx + simulador.html (sinônimos)',
+    versao: '62493 v0.0.127',
+  },
+  {
+    data: '05/10/2026',
     hora: '02:13',
     titulo: 'Botão "📤 Enviar" nas seções 6A–6F — envio pelo Simulador Geral (canal único)',
     conteudo:
