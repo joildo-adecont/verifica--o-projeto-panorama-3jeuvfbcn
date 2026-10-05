@@ -225,6 +225,47 @@
         color: #fff;
         border-color: #12315e;
       }
+
+      .painel-envio {
+        display: none;
+        border: 2px solid #1a4a8c;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 16px;
+        background: #f8fbff;
+      }
+      .painel-envio h2 {
+        color: #12315e;
+        font-size: 1rem;
+        margin-bottom: 8px;
+      }
+      .pe-linha {
+        font-size: 0.8rem;
+        background: #fff;
+        border: 1px solid #dbe3ee;
+        border-radius: 8px;
+        padding: 8px 10px;
+        margin-bottom: 8px;
+      }
+      .pe-linha b {
+        color: #12315e;
+      }
+      .pe-ok {
+        background: #e6f2e6;
+        color: #1e7a1e;
+        border-radius: 8px;
+        padding: 8px 12px;
+        font-size: 0.82rem;
+        margin-top: 8px;
+      }
+      .pe-erro {
+        background: #fdecec;
+        color: #b02525;
+        border-radius: 8px;
+        padding: 8px 12px;
+        font-size: 0.82rem;
+        margin-top: 8px;
+      }
     </style>
   </head>
   <body>
@@ -242,6 +283,13 @@
         <a class="btn btn-voltar" href="./envios.html" style="background: #b7ddb7; color: #14532d"
           >📇 Cadastro & Envios</a
         >
+        <button
+          class="btn"
+          style="background: #ffd66b; color: #5c4400"
+          onclick="abrirPainelEnvio()"
+        >
+          📤 Enviar simulação
+        </button>
       </div>
     </header>
     <main>
@@ -375,6 +423,54 @@
             🖨️ PDF/Imprimir
           </button>
         </div>
+      </section>
+
+      <section id="painel-envio" class="painel-envio">
+        <h2>📤 Enviar esta simulação para um cliente (com protocolo)</h2>
+        <div class="pe-linha" id="pe-resumo">
+          <b>Simulação:</b>
+          <span id="pe-item">— selecione um produto/serviço e clique em ▶ Simular —</span>
+        </div>
+        <div class="pe-linha" id="pe-cap-linha" style="display: none">
+          <b>Capitulação legal:</b> <span id="pe-cap"></span>
+        </div>
+        <div class="pe-linha" id="pe-res-linha" style="display: none">
+          <b>Resultado:</b> <span id="pe-res"></span>
+        </div>
+        <label for="pe-cliente">Destinatário (cadastro de clientes)</label>
+        <select id="pe-cliente">
+          <option value="">— carregando clientes… —</option>
+          <option value="TODOS">📢 TODOS os clientes ativos</option>
+        </select>
+        <div class="row" style="margin-top: 8px">
+          <div>
+            <label>Resumo do tema (editável)</label>
+            <input
+              id="pe-tema"
+              placeholder="Ex.: Comparativo de carga tributária — transição 2026-2033"
+            />
+          </div>
+        </div>
+        <button
+          class="btn"
+          style="
+            background: #1e7a1e;
+            color: #fff;
+            width: 100%;
+            justify-content: center;
+            margin-top: 12px;
+          "
+          onclick="enviarSimulacao()"
+        >
+          📤 Enviar com protocolo (e-mail)
+        </button>
+        <div id="pe-msg"></div>
+        <p style="font-size: 0.72rem; color: #5b6b7b; margin-top: 8px">
+          O cliente recebe o e-mail oficial ADECONT com a simulação, a capitulação legal e o link de
+          confirmação de recebimento. O envio fica registrado no
+          <a href="./envios.html">Cadastro & Envios</a> (mesmo canal e protocolo
+          SIM-AAAAMMDD-XXXXXX).
+        </p>
       </section>
     </main>
     <script src="./partes/sim-catalogo.js"></script>
@@ -754,6 +850,7 @@
           '.'
         document.getElementById('resultado').style.display = 'block'
         document.getElementById('resultado').scrollIntoView({ behavior: 'smooth' })
+        atualizarPainelResumo()
       }
 
       function compartilhar(modo) {
@@ -788,6 +885,165 @@
             encodeURIComponent('Simulação IBS/CBS — ADECONT') +
             '&body=' +
             encodeURIComponent(txt)
+      }
+
+      // ---------- envio integrado (mesmo canal do Cadastro & Envios) ----------
+      var PB_URL = 'https://verificacao-projeto-panorama-18549.shrd00.internal.goskip.dev'
+      var PE_TOKEN = localStorage.getItem('simul_painel_token') || ''
+      var peUltimoResultado = ''
+
+      function peFetch(path, opts) {
+        opts = opts || {}
+        opts.headers = Object.assign(
+          { 'Content-Type': 'application/json', 'X-Painel-Token': PE_TOKEN },
+          opts.headers || {},
+        )
+        opts.credentials = 'omit'
+        return fetch(PB_URL + path, opts).then(function (r) {
+          if (!r.ok) throw new Error('HTTP ' + r.status)
+          return r.json()
+        })
+      }
+
+      function abrirPainelEnvio() {
+        var p = document.getElementById('painel-envio')
+        p.style.display = 'block'
+        p.scrollIntoView({ behavior: 'smooth' })
+        // carrega clientes uma vez
+        var sel = document.getElementById('pe-cliente')
+        if (sel.options.length <= 2) {
+          peFetch('/api/collections/simul_clientes/records?perPage=500&sort=nome')
+            .then(function (r) {
+              sel.innerHTML =
+                '<option value="">— selecione —</option><option value="TODOS">📢 TODOS os clientes ativos</option>'
+              ;(r.items || []).forEach(function (cl) {
+                var o = document.createElement('option')
+                o.value = cl.id
+                o.textContent = cl.nome + ' (' + cl.email + ')'
+                sel.appendChild(o)
+              })
+              if (!(r.items || []).length) {
+                sel.innerHTML =
+                  '<option value="">— nenhum cliente cadastrado —</option><option value="TODOS">📢 TODOS (0 ativos)</option>'
+              }
+            })
+            .catch(function () {
+              sel.innerHTML =
+                '<option value="">— erro ao carregar (configure o 🔑 Token no Cadastro & Envios) —</option>'
+            })
+        }
+        // pré-preenche com a última simulação
+        atualizarPainelResumo()
+      }
+
+      function atualizarPainelResumo() {
+        var itemEl = document.getElementById('pe-item')
+        var capLinha = document.getElementById('pe-cap-linha')
+        var resLinha = document.getElementById('pe-res-linha')
+        if (sel) {
+          itemEl.textContent = sel.codigo + ' — ' + sel.nome
+        }
+        var cap = document.getElementById('res-cap').textContent || ''
+        if (cap) {
+          document.getElementById('pe-cap').textContent = cap
+          capLinha.style.display = 'block'
+        }
+        var corpo = document.getElementById('res-corpo')
+        if (corpo && corpo.innerText && peUltimoResultado !== corpo.innerText) {
+          peUltimoResultado = corpo.innerText
+          document.getElementById('pe-res').textContent = corpo.innerText.slice(0, 300)
+          resLinha.style.display = 'block'
+          var tema = sel ? sel.codigo + ' — ' + sel.nome : ''
+          document.getElementById('pe-tema').value =
+            'Simulação IBS/CBS — ' + tema + ' (transição 2026-2033)'
+        }
+      }
+
+      function enviarSimulacao() {
+        var clienteId = document.getElementById('pe-cliente').value
+        if (!clienteId) {
+          document.getElementById('pe-msg').innerHTML =
+            '<div class="pe-erro">Selecione o destinatário (ou cadastre clientes no 📇 Cadastro & Envios).</div>'
+          return
+        }
+        if (!sel) {
+          document.getElementById('pe-msg').innerHTML =
+            '<div class="pe-erro">Selecione um produto/serviço e clique em ▶ Simular antes de enviar.</div>'
+          return
+        }
+        var grupo = sel.grupo || 'regular'
+        var capMapEnvio = {
+          cesta_zero: 'LC 214/2025, Anexo I (Cesta Básica Nacional) — alíquota zero (art. 147).',
+          reducao60:
+            'LC 214/2025, arts. 148 e 149 — redução de 60% (saúde, educação, transporte público etc.).',
+          reducao30:
+            'LC 214/2025, art. 127 — redução de 30% (profissionais liberais regulamentados).',
+          dispositivos60:
+            'LC 214/2025, art. 148, IV — dispositivos médicos e acessibilidade (60%).',
+          insumos_agro: 'LC 214/2025, arts. 287 e ss. — créditos presumidos agropecuária.',
+          imposto_seletivo:
+            'LC 214/2025, arts. 156–171 — Imposto Seletivo (bens nocivos/supérfluos).',
+          regular: 'LC 214/2025 — regime regular, alíquota de referência.',
+          imobiliario:
+            'LC 214/2025, arts. 252-261 (alienação −50%, locação −70%, redutores sociais) e arts. 485-488 (RET).',
+          depreciacao: 'RIBS — Res. CGIBS 6/2026, art. 48 e Anexo I (depreciação).',
+          repetro: 'RIBS — Res. CGIBS 6/2026, art. 164 e Anexo II (Repetro).',
+          zfm: 'RIBS — Res. CGIBS 6/2026, Anexo V e art. 521, §1º, IV (crédito presumido ZFM).',
+          suspensao: 'RIBS — Res. CGIBS 6/2026, art. 186, §5º e Anexo III (REPORTO — suspensão).',
+          bens_capital: 'RIBS — Res. CGIBS 6/2026, arts. 196-197 e Anexo IV (bens de capital).',
+          regime_especial: 'LC 214/2025, arts. 204-205 (consórcios) e regime específico aplicável.',
+          agro: 'LC 214/2025, arts. 287 e seguintes (crédito presumido agropecuária).',
+          credito_presumido: 'LC 214/2025, arts. 168-169 (créditos presumidos).',
+        }
+        var body = {
+          cliente_id: clienteId,
+          tema_resumo: document.getElementById('pe-tema').value,
+          capitulacao_legal: capMapEnvio[grupo] || capMapEnvio.regular,
+          grupo: grupo,
+          item_codigo: sel.codigo,
+          item_nome: sel.nome,
+          payload: {
+            origem: 'simulador-geral',
+            resultado: peUltimoResultado.slice(0, 1500),
+            url: location.href,
+          },
+        }
+        var btn = event && event.target ? event.target : null
+        if (btn) {
+          btn.disabled = true
+          btn.textContent = '⏳ Enviando…'
+        }
+        peFetch('/backend/v1/simul-enviar', { method: 'POST', body: JSON.stringify(body) })
+          .then(function (r) {
+            var ok = r.envios.filter(function (x) {
+              return x.status === 'ENVIADO'
+            }).length
+            var prot = r.envios
+              .map(function (x) {
+                return x.protocolo
+              })
+              .join(', ')
+            document.getElementById('pe-msg').innerHTML =
+              '<div class="pe-ok">✔ ' +
+              ok +
+              '/' +
+              r.total +
+              ' enviados. Protocolo(s): <b>' +
+              prot +
+              '</b> — o cliente recebe o e-mail e confirma o recebimento pelo link.</div>'
+          })
+          .catch(function (e) {
+            document.getElementById('pe-msg').innerHTML =
+              '<div class="pe-erro">Erro no envio: ' +
+              e.message +
+              ' — se for 401, configure o 🔑 Token no 📇 Cadastro & Envios.</div>'
+          })
+          .finally(function () {
+            if (btn) {
+              btn.disabled = false
+              btn.textContent = '📤 Enviar com protocolo (e-mail)'
+            }
+          })
       }
 
       atualizarAno()
