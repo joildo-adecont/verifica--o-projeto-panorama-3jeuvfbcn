@@ -1,3 +1,4 @@
+import { Fragment } from 'react'
 import { ExternalLink, Info, AlertTriangle } from 'lucide-react'
 
 export function SectionFontesPrimarias() {
@@ -761,8 +762,8 @@ export function SectionFontesPrimarias() {
             </thead>
             <tbody>
               {grupos.map((g) => (
-                <>
-                  <tr key={g.nome} className="bg-blue-100">
+                <Fragment key={g.nome}>
+                  <tr className="bg-blue-100">
                     <td colSpan={4} className="px-3 py-2 font-bold text-blue-900">
                       {g.nome}{' '}
                       <span className="font-normal text-xs text-blue-700">
@@ -771,7 +772,7 @@ export function SectionFontesPrimarias() {
                     </td>
                   </tr>
                   {g.bases.map(([nome, orgao, data, url], i) => (
-                    <tr key={g.nome + '-' + i} className="odd:bg-white even:bg-slate-50">
+                    <tr key={`${g.nome}-${nome}-${i}`} className="odd:bg-white even:bg-slate-50">
                       <td className="px-3 py-2 align-top">{nome}</td>
                       <td className="px-3 py-2 align-top">{orgao}</td>
                       <td className="px-3 py-2 align-top text-xs">{data}</td>
@@ -791,7 +792,7 @@ export function SectionFontesPrimarias() {
                       </td>
                     </tr>
                   ))}
-                </>
+                </Fragment>
               ))}
             </tbody>
           </table>

@@ -10,6 +10,7 @@ import {
   ListChecks,
   Home,
   Layers,
+  Mail,
 } from 'lucide-react'
 
 type Agente = {
