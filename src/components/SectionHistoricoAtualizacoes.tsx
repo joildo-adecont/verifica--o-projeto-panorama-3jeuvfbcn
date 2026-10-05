@@ -39,6 +39,22 @@ const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
     data: '04/10/2026',
+    hora: '21:50',
+    titulo:
+      'Seção 6C — simulador de consórcios (4 modos: taxa & lances, carta de crédito, garantia fiduciária, apuração & créditos/débitos)',
+    conteudo:
+      'A pedido do CEO, no mesmo layout dos simuladores da 6A/6B/6E: (1) 💰 Taxa & lances — base de cálculo passo a passo do art. 204 (taxa + tarifas/encargos/multas/juros efetivamente pagos, regime de caixa, dedução da intermediação §1º), IBS+CBS sobre a taxa e tabela do efeito dos lances (0-50% do crédito): lance maior reduz o saldo, a taxa e o tributo; contemplação não é fato gerador; (2) 🧾 Carta de crédito — mapa do art. 204, §2º: bem móvel (normas gerais), imóvel (regime 6A), regime específico, contemplação e parcelas (sem FG); responsabilidade do consorciado (administradora NÃO responde); crédito integral (contribuinte) × sem crédito (PF consumidora final); isenções/não incidências do consórcio; (3) ⚖️ Garantia fiduciária — mapa do art. 204, §3º: consolidação sem incidência, alienação conforme a condição do consorciado (§3º, II), adquirente com as mesmas regras (§3º, III), remuneração da administradora tributada (§3º, IV); (4) 📊 Apuração & créditos/débitos — quem apura o quê (administradora, intermediadora, consorciado PJ regular/Simples/PF, grupo) e tabela de créditos e débitos por operação (quem credita, quem debita), com bloco de pontos que dependem das próximas edições legislativas (alíquota CBS 2027 — Senado; IBS 19,11% — Res. 14/2026; regulamentação da dedução da intermediação e identificação do adquirente no RIBS) — monitorados na rotina semanal e registrados na Seção 13.',
+    fontes: [
+      {
+        nome: 'LC 214/2025 compilada — Planalto (arts. 204-206)',
+        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+      },
+    ],
+    caminho: 'Panorama (62493) — SectionConsorcios.tsx (aba 🧮 Simulador de consórcios, 4 modos)',
+    versao: '62493 v0.0.112',
+  },
+  {
+    data: '04/10/2026',
     hora: '21:35',
     titulo:
       'Seção 6B — simulador do agronegócio (4 modos: produtor, insumos/diferimento, créditos presumidos, cooperativa)',
