@@ -415,7 +415,7 @@ routerAdd('GET', '/backend/v1/simul-consolidado', (e) => {
       message: 'Token do painel ausente ou inválido (X-Painel-Token).',
     })
   }
-  var envios = $app.findRecordsByFilter('simul_envios', 'id != ""', '-created', 2000, 0)
+  var envios = $app.findRecordsByFilter('simul_envios', 'protocolo != ""', '-created', 2000, 0)
   var porCliente = {}
   var ordem = []
   var total = 0
