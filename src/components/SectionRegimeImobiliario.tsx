@@ -1,10 +1,162 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Building2, Calculator, Home, Landmark, KeyRound, TrendingDown } from 'lucide-react'
 function fmt(v: number) {
   return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })
 }
 
 const SIM_URL = '/simulador.html'
+
+// ============ DESIGN SYSTEM v2 — Simuladores Modernos (04/10/2026) ============
+// Capitulação legal como indicador de origem em cada bloco.
+
+const ORIGENS: Record<string, { rotulo: string; cor: string }> = {
+  lei: { rotulo: 'LEI COMPLEMENTAR', cor: 'bg-blue-100 text-blue-800 border-blue-300' },
+  decreto: {
+    rotulo: 'DECRETO / REGULAMENTO',
+    cor: 'bg-purple-100 text-purple-800 border-purple-300',
+  },
+  resolucao: {
+    rotulo: 'RESOLUÇÃO CGIBS/CGSN',
+    cor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+  },
+  ato: { rotulo: 'ATO CONJUNTO', cor: 'bg-orange-100 text-orange-800 border-orange-300' },
+  ref: { rotulo: 'REFERÊNCIA', cor: 'bg-slate-100 text-slate-700 border-slate-300' },
+}
+
+function Origem({ tipo, texto }: { tipo: keyof typeof ORIGENS; texto: string }) {
+  const o = ORIGENS[tipo]
+  return (
+    <span
+      className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold border ${o.cor}`}
+    >
+      📎 {o.rotulo}: {texto}
+    </span>
+  )
+}
+
+function HeroSim({
+  titulo,
+  sub,
+  teclas,
+  capitulacao,
+}: {
+  titulo: string
+  sub: string
+  teclas: string
+  capitulacao: string
+}) {
+  return (
+    <div className="rounded-2xl overflow-hidden bg-gradient-to-br from-panorama-navy via-panorama-navy to-panorama-navy-light text-white shadow-lg">
+      <div className="p-5 sm:p-6">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="px-2.5 py-1 rounded-lg bg-panorama-gold text-panorama-navy text-[11px] font-black tracking-wider">
+            SIMULADOR
+          </span>
+          <span className="text-[11px] font-semibold text-white/70">{teclas}</span>
+        </div>
+        <h3 className="mt-2 text-xl sm:text-2xl font-bold tracking-tight">{titulo}</h3>
+        <p className="mt-1.5 text-xs sm:text-sm text-white/80 leading-relaxed">{sub}</p>
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {capitulacao.split(' · ').map((c) => (
+            <span
+              key={c}
+              className="px-2 py-0.5 rounded-md bg-white/10 border border-white/20 text-[10px] font-mono font-semibold"
+            >
+              {c}
+            </span>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ModoChips<T extends string>({
+  modos,
+  modo,
+  setModo,
+}: {
+  modos: { id: T; label: string; icone: string }[]
+  modo: T
+  setModo: (m: T) => void
+}) {
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+      {modos.map((m, i) => (
+        <button
+          key={m.id}
+          onClick={() => setModo(m.id)}
+          className={`group relative px-3 py-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+            modo === m.id
+              ? 'bg-gradient-to-br from-panorama-navy to-panorama-navy-light text-white border-panorama-navy shadow-md'
+              : 'bg-white border-slate-200 text-slate-700 hover:border-panorama-gold hover:bg-panorama-cream'
+          }`}
+        >
+          <div className="text-base leading-none">{m.icone}</div>
+          <div
+            className={`mt-1 text-xs font-bold leading-tight ${modo === m.id ? 'text-white' : 'text-slate-800'}`}
+          >
+            {m.label}
+          </div>
+          <div
+            className={`absolute top-1.5 right-1.5 px-1.5 rounded text-[9px] font-black ${modo === m.id ? 'bg-panorama-gold text-panorama-navy' : 'bg-slate-100 text-slate-400 group-hover:text-panorama-gold-dark'}`}
+          >
+            ⌥{i + 1}
+          </div>
+        </button>
+      ))}
+    </div>
+  )
+}
+
+function useModoTeclado<T extends string>(setModo: (m: T) => void, ids: T[]) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!e.altKey || e.ctrlKey || e.metaKey) return
+      const n = Number(e.key)
+      if (n >= 1 && n <= ids.length) {
+        e.preventDefault()
+        setModo(ids[n - 1])
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [setModo, ids])
+}
+
+function BlocoH({ n, titulo, capitulacao }: { n: string; titulo: string; capitulacao?: string }) {
+  return (
+    <div className="flex items-center gap-2 flex-wrap mb-2">
+      <span className="flex items-center justify-center w-6 h-6 rounded-lg bg-gradient-to-br from-panorama-gold to-panorama-gold-dark text-panorama-navy font-black text-[11px] shadow-sm">
+        {n}
+      </span>
+      <h4 className="text-sm font-bold text-slate-900">{titulo}</h4>
+      {capitulacao && <Origem tipo="lei" texto={capitulacao} />}
+    </div>
+  )
+}
+
+function RodapeCapitulacao({ itens }: { itens: string[] }) {
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white p-4">
+      <div className="flex items-center gap-2 mb-2">
+        <span className="text-xs font-bold text-slate-900">
+          📚 Capitulação legal — origem de cada cálculo
+        </span>
+      </div>
+      <div className="flex flex-wrap gap-1.5">
+        {itens.map((it) => {
+          const [tipo, texto] = it.split('|')
+          return <Origem key={it} tipo={tipo as keyof typeof ORIGENS} texto={texto} />
+        })}
+      </div>
+      <p className="mt-2 text-[10px] text-slate-500">
+        Fontes monitoradas na rotina semanal (seg 11h) — atualizações registradas na Seção 13 —
+        Histórico.
+      </p>
+    </div>
+  )
+}
 
 /** Seção 6A — Regime Imobiliário (LC 214/2025, arts. 252–261 e 485–488).
  *  Fontes extraídas do texto compilado do Planalto (conferido em 04/10/2026). */
@@ -116,26 +268,28 @@ function KpiA({
 }: {
   titulo: string
   valor: string
-  sub: string
+  sub?: string
   destaque?: boolean
 }) {
   return (
     <div
-      className={`rounded-xl border p-3.5 ${destaque ? 'bg-panorama-navy text-white border-panorama-navy' : 'bg-white border-slate-200'}`}
+      className={`rounded-xl border p-3.5 transition-shadow hover:shadow-md ${destaque ? 'bg-gradient-to-br from-panorama-navy to-panorama-navy-light text-white border-panorama-navy shadow-md' : 'bg-white border-slate-200'}`}
     >
       <div
-        className={`text-[11px] font-semibold uppercase tracking-wide ${destaque ? 'text-panorama-gold-light' : 'text-slate-500'}`}
+        className={`text-[10px] font-bold uppercase tracking-wider ${destaque ? 'text-panorama-gold-light' : 'text-slate-500'}`}
       >
         {titulo}
       </div>
       <div
-        className={`mt-1 text-2xl font-bold ${destaque ? 'text-panorama-gold-light' : 'text-slate-900'}`}
+        className={`mt-1 text-xl font-black tabular-nums ${destaque ? 'text-panorama-gold-light' : 'text-slate-900'}`}
       >
         {valor}
       </div>
-      <div className={`mt-0.5 text-[11px] ${destaque ? 'text-white/70' : 'text-slate-500'}`}>
-        {sub}
-      </div>
+      {sub && (
+        <div className={`mt-0.5 text-[11px] ${destaque ? 'text-white/70' : 'text-slate-500'}`}>
+          {sub}
+        </div>
+      )}
     </div>
   )
 }
@@ -143,15 +297,16 @@ function KpiA({
 function BadgeA({ ok, texto }: { ok: boolean; texto: string }) {
   return (
     <span
-      className={`inline-block px-2 py-0.5 rounded text-[11px] font-bold border ${ok ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-red-100 text-red-800 border-red-300'}`}
+      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold border ${ok ? 'bg-emerald-50 text-emerald-700 border-emerald-300' : 'bg-amber-50 text-amber-700 border-amber-300'}`}
     >
-      {texto}
+      {ok ? '✓' : '⚠'} {texto}
     </span>
   )
 }
 
 function SimuladorImobiliario() {
   const [modo, setModo] = useState<'venda' | 'locacao'>('venda')
+  useModoTeclado(setModo, ['venda', 'locacao'] as const)
   // Venda
   const [preco, setPreco] = useState(800000)
   const [tipoVenda, setTipoVenda] = useState<'novo' | 'usado' | 'lote'>('novo')
@@ -236,29 +391,21 @@ function SimuladorImobiliario() {
 
   return (
     <div className="space-y-5">
-      <div className="p-3.5 rounded-lg bg-panorama-gold/10 border border-panorama-gold/50 text-sm text-slate-800">
-        <strong>Como calcula (LC 214, arts. 255–262):</strong> base de cálculo = valor da operação −
-        redutor de ajuste (só venda de usado; custo de aquisição corrigido pelo IPCA) − redutor
-        social (R$ 100 mil imóvel novo / R$ 30 mil lote / R$ 600/mês por imóvel residencial locado,
-        atualizados pelo IPCA). Alíquota = referência total (27,91%, Res. CGIBS 14/2026) ×{' '}
-        <strong>50%</strong> na venda ou × <strong>30%</strong> na locação (redução de 70% — art.
-        261). Simulação didática — não substitui apuração contábil.
-      </div>
+      <HeroSim
+        titulo="Simulador Imobiliário — venda e aluguel"
+        sub="Base de cálculo = valor da operação − redutor de ajuste (custo + IPCA, só usado) − redutor social (R$ 100 mil novo / R$ 30 mil lote / R$ 600/mês residencial, atualizados pelo IPCA). Alíquota = referência 27,91% × 50% (venda) × 30% (locação)."
+        teclas="Alt+1 Venda · Alt+2 Aluguel"
+        capitulacao="LEI LC 214/2025, arts. 255–262 · LEI LC 227/2026 (art. 260) · DECRETO 12.955/2026, art. 382 · RESOLUÇÃO CGIBS 14/2026 (ref. 27,91%)"
+      />
 
-      <div className="flex gap-2">
-        <button
-          onClick={() => setModo('venda')}
-          className={`px-4 py-2 rounded-lg text-sm font-semibold border cursor-pointer ${modo === 'venda' ? 'bg-panorama-navy text-panorama-gold-light border-panorama-navy' : 'bg-white border-slate-300 text-slate-600 hover:bg-slate-100'}`}
-        >
-          🏠 Venda de imóvel
-        </button>
-        <button
-          onClick={() => setModo('locacao')}
-          className={`px-4 py-2 rounded-lg text-sm font-semibold border cursor-pointer ${modo === 'locacao' ? 'bg-panorama-navy text-panorama-gold-light border-panorama-navy' : 'bg-white border-slate-300 text-slate-600 hover:bg-slate-100'}`}
-        >
-          🔑 Aluguel (locação)
-        </button>
-      </div>
+      <ModoChips
+        modos={[
+          { id: 'venda', label: 'Venda de imóvel', icone: '🏠' },
+          { id: 'locacao', label: 'Aluguel (locação)', icone: '🔑' },
+        ]}
+        modo={modo}
+        setModo={setModo}
+      />
 
       {/* Entradas */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -366,9 +513,11 @@ function SimuladorImobiliario() {
       {/* 0 — Enquadramento / obrigatoriedade (só locação) */}
       {!e && (
         <div>
-          <h4 className="text-sm font-bold text-slate-900 mb-2">
-            0️⃣ Enquadramento — obrigatoriedade de apurar IBS/CBS (art. 251)
-          </h4>
+          <BlocoH
+            n="0"
+            titulo="Enquadramento — obrigatoriedade de apurar IBS/CBS"
+            capitulacao="art. 251, §§1º, 2º e 5º (LC 214/2025)"
+          />
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
             <label className="block">
               <span className="text-xs font-semibold text-slate-700">
@@ -424,7 +573,7 @@ function SimuladorImobiliario() {
 
       {/* 1 — KPIs */}
       <div>
-        <h4 className="text-sm font-bold text-slate-900 mb-2">1️⃣ Percentuais do cenário</h4>
+        <BlocoH n="1" titulo="Percentuais do cenário" />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           <KpiA
             titulo="Alíquota de referência"
@@ -452,9 +601,11 @@ function SimuladorImobiliario() {
 
       {/* 2 — Base de cálculo demonstrada */}
       <div>
-        <h4 className="text-sm font-bold text-slate-900 mb-2">
-          2️⃣ Base de cálculo — passo a passo (art. 255 e ss.)
-        </h4>
+        <BlocoH
+          n="2"
+          titulo="Base de cálculo — passo a passo"
+          capitulacao="art. 255 e ss. (LC 214/2025)"
+        />
         <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-xs">
           <table className="w-full text-left border-collapse text-xs sm:text-sm">
             <thead>
@@ -546,9 +697,7 @@ function SimuladorImobiliario() {
       {/* 3 — Faixa de imóveis (só locação) */}
       {!e && (
         <div>
-          <h4 className="text-sm font-bold text-slate-900 mb-2">
-            3️⃣ Faixa de imóveis — mínimo a máximo (1 a 12 imóveis)
-          </h4>
+          <BlocoH n="3" titulo="Faixa de imóveis — mínimo a máximo (1 a 12)" />
           <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-xs">
             <table className="w-full text-left border-collapse text-xs sm:text-sm">
               <thead>
@@ -602,9 +751,7 @@ function SimuladorImobiliario() {
       {/* 4 — Valores apurados (só locação) */}
       {!e && (
         <div>
-          <h4 className="text-sm font-bold text-slate-900 mb-2">
-            4️⃣ Valores apurados — compõem a obrigatoriedade?
-          </h4>
+          <BlocoH n="4" titulo="Valores apurados — compõem a obrigatoriedade?" />
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             <KpiA
               titulo="Receita anual apurada"
@@ -649,9 +796,7 @@ function SimuladorImobiliario() {
 
       {/* 5 — Comparativo com hoje */}
       <div>
-        <h4 className="text-sm font-bold text-slate-900 mb-2">
-          5️⃣ Comparativo — reforma × tributação atual
-        </h4>
+        <BlocoH n="5" titulo="Comparativo — reforma × tributação atual" />
         <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-xs">
           <table className="w-full text-left border-collapse text-xs sm:text-sm">
             <thead>
@@ -711,9 +856,11 @@ function SimuladorImobiliario() {
 
       {/* 6 — RET */}
       <div>
-        <h4 className="text-sm font-bold text-slate-900 mb-2">
-          6️⃣ Referência — RET da incorporação (art. 485)
-        </h4>
+        <BlocoH
+          n="6"
+          titulo="Referência — RET da incorporação"
+          capitulacao="art. 485 (LC 214/2025)"
+        />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <KpiA
             titulo="RET — patrimônio de afetação"
@@ -742,6 +889,15 @@ function SimuladorImobiliario() {
         §5º) e os redutores sociais são atualizados mensalmente pelo IPCA desde 16/01/2025 — informe
         o IPCA acumulado para o valor vigente.
       </div>
+
+      <RodapeCapitulacao
+        itens={[
+          'lei|LC 214/2025 — arts. 251–263 (regime imobiliário)',
+          'lei|LC 227/2026 — redutor social mensal (art. 260)',
+          'decreto|Decreto 12.955/2026 — art. 382 (enquadramento)',
+          'resolucao|Res. CGIBS 14/2026 — referência 27,91%',
+        ]}
+      />
     </div>
   )
 }

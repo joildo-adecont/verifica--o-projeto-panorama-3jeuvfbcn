@@ -1,7 +1,159 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Calculator } from 'lucide-react'
 
 const SIM_URL = '/simulador.html'
+
+// ============ DESIGN SYSTEM v2 — Simuladores Modernos (04/10/2026) ============
+// Capitulação legal como indicador de origem em cada bloco.
+
+const ORIGENS: Record<string, { rotulo: string; cor: string }> = {
+  lei: { rotulo: 'LEI COMPLEMENTAR', cor: 'bg-blue-100 text-blue-800 border-blue-300' },
+  decreto: {
+    rotulo: 'DECRETO / REGULAMENTO',
+    cor: 'bg-purple-100 text-purple-800 border-purple-300',
+  },
+  resolucao: {
+    rotulo: 'RESOLUÇÃO CGIBS/CGSN',
+    cor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+  },
+  ato: { rotulo: 'ATO CONJUNTO', cor: 'bg-orange-100 text-orange-800 border-orange-300' },
+  ref: { rotulo: 'REFERÊNCIA', cor: 'bg-slate-100 text-slate-700 border-slate-300' },
+}
+
+function Origem({ tipo, texto }: { tipo: keyof typeof ORIGENS; texto: string }) {
+  const o = ORIGENS[tipo]
+  return (
+    <span
+      className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold border ${o.cor}`}
+    >
+      📎 {o.rotulo}: {texto}
+    </span>
+  )
+}
+
+function HeroSim({
+  titulo,
+  sub,
+  teclas,
+  capitulacao,
+}: {
+  titulo: string
+  sub: string
+  teclas: string
+  capitulacao: string
+}) {
+  return (
+    <div className="rounded-2xl overflow-hidden bg-gradient-to-br from-panorama-navy via-panorama-navy to-panorama-navy-light text-white shadow-lg">
+      <div className="p-5 sm:p-6">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="px-2.5 py-1 rounded-lg bg-panorama-gold text-panorama-navy text-[11px] font-black tracking-wider">
+            SIMULADOR
+          </span>
+          <span className="text-[11px] font-semibold text-white/70">{teclas}</span>
+        </div>
+        <h3 className="mt-2 text-xl sm:text-2xl font-bold tracking-tight">{titulo}</h3>
+        <p className="mt-1.5 text-xs sm:text-sm text-white/80 leading-relaxed">{sub}</p>
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {capitulacao.split(' · ').map((c) => (
+            <span
+              key={c}
+              className="px-2 py-0.5 rounded-md bg-white/10 border border-white/20 text-[10px] font-mono font-semibold"
+            >
+              {c}
+            </span>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ModoChips<T extends string>({
+  modos,
+  modo,
+  setModo,
+}: {
+  modos: { id: T; label: string; icone: string }[]
+  modo: T
+  setModo: (m: T) => void
+}) {
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+      {modos.map((m, i) => (
+        <button
+          key={m.id}
+          onClick={() => setModo(m.id)}
+          className={`group relative px-3 py-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+            modo === m.id
+              ? 'bg-gradient-to-br from-panorama-navy to-panorama-navy-light text-white border-panorama-navy shadow-md'
+              : 'bg-white border-slate-200 text-slate-700 hover:border-panorama-gold hover:bg-panorama-cream'
+          }`}
+        >
+          <div className="text-base leading-none">{m.icone}</div>
+          <div
+            className={`mt-1 text-xs font-bold leading-tight ${modo === m.id ? 'text-white' : 'text-slate-800'}`}
+          >
+            {m.label}
+          </div>
+          <div
+            className={`absolute top-1.5 right-1.5 px-1.5 rounded text-[9px] font-black ${modo === m.id ? 'bg-panorama-gold text-panorama-navy' : 'bg-slate-100 text-slate-400 group-hover:text-panorama-gold-dark'}`}
+          >
+            ⌥{i + 1}
+          </div>
+        </button>
+      ))}
+    </div>
+  )
+}
+
+function useModoTeclado<T extends string>(setModo: (m: T) => void, ids: T[]) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!e.altKey || e.ctrlKey || e.metaKey) return
+      const n = Number(e.key)
+      if (n >= 1 && n <= ids.length) {
+        e.preventDefault()
+        setModo(ids[n - 1])
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [setModo, ids])
+}
+
+function BlocoH({ n, titulo, capitulacao }: { n: string; titulo: string; capitulacao?: string }) {
+  return (
+    <div className="flex items-center gap-2 flex-wrap mb-2">
+      <span className="flex items-center justify-center w-6 h-6 rounded-lg bg-gradient-to-br from-panorama-gold to-panorama-gold-dark text-panorama-navy font-black text-[11px] shadow-sm">
+        {n}
+      </span>
+      <h4 className="text-sm font-bold text-slate-900">{titulo}</h4>
+      {capitulacao && <Origem tipo="lei" texto={capitulacao} />}
+    </div>
+  )
+}
+
+function RodapeCapitulacao({ itens }: { itens: string[] }) {
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white p-4">
+      <div className="flex items-center gap-2 mb-2">
+        <span className="text-xs font-bold text-slate-900">
+          📚 Capitulação legal — origem de cada cálculo
+        </span>
+      </div>
+      <div className="flex flex-wrap gap-1.5">
+        {itens.map((it) => {
+          const [tipo, texto] = it.split('|')
+          return <Origem key={it} tipo={tipo as keyof typeof ORIGENS} texto={texto} />
+        })}
+      </div>
+      <p className="mt-2 text-[10px] text-slate-500">
+        Fontes monitoradas na rotina semanal (seg 11h) — atualizações registradas na Seção 13 —
+        Histórico.
+      </p>
+    </div>
+  )
+}
 
 /** Seção 6D — Serviços Financeiros (LC 214/2025, arts. 182–214).
  *  Layout de tabela uniformizado com a Seção 6A. */
@@ -149,17 +301,23 @@ function KpiF({
 }) {
   return (
     <div
-      className={`rounded-xl border p-3.5 ${destaque ? 'bg-panorama-gold/10 border-panorama-gold/60' : 'bg-white border-slate-200'}`}
+      className={`rounded-xl border p-3.5 transition-shadow hover:shadow-md ${destaque ? 'bg-gradient-to-br from-panorama-navy to-panorama-navy-light text-white border-panorama-navy shadow-md' : 'bg-white border-slate-200'}`}
     >
-      <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+      <div
+        className={`text-[10px] font-bold uppercase tracking-wider ${destaque ? 'text-panorama-gold-light' : 'text-slate-500'}`}
+      >
         {titulo}
       </div>
       <div
-        className={`mt-1 text-lg font-bold ${destaque ? 'text-panorama-navy' : 'text-slate-900'}`}
+        className={`mt-1 text-xl font-black tabular-nums ${destaque ? 'text-panorama-gold-light' : 'text-slate-900'}`}
       >
         {valor}
       </div>
-      {sub && <div className="mt-0.5 text-[11px] text-slate-500">{sub}</div>}
+      {sub && (
+        <div className={`mt-0.5 text-[11px] ${destaque ? 'text-white/70' : 'text-slate-500'}`}>
+          {sub}
+        </div>
+      )}
     </div>
   )
 }
@@ -167,15 +325,16 @@ function KpiF({
 function BadgeF({ ok, texto }: { ok: boolean; texto: string }) {
   return (
     <span
-      className={`inline-block px-2 py-0.5 rounded text-[11px] font-bold border ${ok ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-amber-100 text-amber-800 border-amber-300'}`}
+      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold border ${ok ? 'bg-emerald-50 text-emerald-700 border-emerald-300' : 'bg-amber-50 text-amber-700 border-amber-300'}`}
     >
-      {texto}
+      {ok ? '✓' : '⚠'} {texto}
     </span>
   )
 }
 
 function SimuladorFinanceiro() {
   const [modo, setModo] = useState<'credito' | 'tarifas' | 'sujeitos' | 'obrigacoes'>('credito')
+  useModoTeclado(setModo, ['credito', 'tarifas', 'sujeitos', 'obrigacoes'] as const)
   // Empréstimo (art. 194)
   const [principal, setPrincipal] = useState(100000)
   const [parcelas, setParcelas] = useState(12)
@@ -425,43 +584,23 @@ function SimuladorFinanceiro() {
 
   return (
     <div className="space-y-5">
-      <div className="p-3.5 rounded-lg bg-panorama-gold/10 border border-panorama-gold/50 text-sm text-slate-800">
-        <strong>Como calcula (LC 214, arts. 182–214):</strong> o regime específico tributa as{' '}
-        <strong>receitas das operações</strong> com as deduções do art. 192 (captação, câmbio,
-        perdas com títulos, encargos de dívida, perdas de crédito nas regras do IR,
-        assessores/correspondentes) — <strong>o principal do empréstimo não é receita</strong> (art.
-        192, §1º, I). Tarifas bancárias de conta/saque/transferência seguem as{' '}
-        <strong>normas gerais</strong> (art. 184). O correntista PJ do regime regular credita sobre
-        despesas financeiras <strong>acima da Selic</strong> (art. 194) e sobre tarifas (art. 198).
-        Simulação didática.
-      </div>
+      <HeroSim
+        titulo="Simulador de Serviços Financeiros"
+        sub="O regime específico tributa as RECEITAS das operações com as deduções do art. 192 — o principal do empréstimo NÃO é receita (art. 192, §1º, I). Tarifas de conta/saque/transferência seguem as normas gerais (art. 184). O correntista PJ credita sobre despesas financeiras ACIMA da Selic (art. 194) e sobre tarifas (art. 198)."
+        teclas="Alt+1 Empréstimo · Alt+2 Tarifas · Alt+3 Sujeitos · Alt+4 Obrigações"
+        capitulacao="LEI LC 214/2025, arts. 182–214 · LEI LC 227/2026 (art. 192 V) · RESOLUÇÃO CGIBS 14/2026 (ref. 27,91%)"
+      />
 
-      <div className="flex flex-wrap gap-2">
-        <button
-          onClick={() => setModo('credito')}
-          className={`px-4 py-2 rounded-lg text-sm font-semibold border cursor-pointer ${modo === 'credito' ? 'bg-panorama-navy text-panorama-gold-light border-panorama-navy' : 'bg-white border-slate-300 text-slate-600 hover:bg-slate-100'}`}
-        >
-          🏦 Empréstimo (crédito)
-        </button>
-        <button
-          onClick={() => setModo('tarifas')}
-          className={`px-4 py-2 rounded-lg text-sm font-semibold border cursor-pointer ${modo === 'tarifas' ? 'bg-panorama-navy text-panorama-gold-light border-panorama-navy' : 'bg-white border-slate-300 text-slate-600 hover:bg-slate-100'}`}
-        >
-          💳 Tarifas bancárias
-        </button>
-        <button
-          onClick={() => setModo('sujeitos')}
-          className={`px-4 py-2 rounded-lg text-sm font-semibold border cursor-pointer ${modo === 'sujeitos' ? 'bg-panorama-navy text-panorama-gold-light border-panorama-navy' : 'bg-white border-slate-300 text-slate-600 hover:bg-slate-100'}`}
-        >
-          👥 Sujeitos ativos e passivos
-        </button>
-        <button
-          onClick={() => setModo('obrigacoes')}
-          className={`px-4 py-2 rounded-lg text-sm font-semibold border cursor-pointer ${modo === 'obrigacoes' ? 'bg-panorama-navy text-panorama-gold-light border-panorama-navy' : 'bg-white border-slate-300 text-slate-600 hover:bg-slate-100'}`}
-        >
-          📋 Obrigações: banco × correntista
-        </button>
-      </div>
+      <ModoChips
+        modos={[
+          { id: 'credito', label: 'Empréstimo (crédito)', icone: '🏦' },
+          { id: 'tarifas', label: 'Tarifas bancárias', icone: '💳' },
+          { id: 'sujeitos', label: 'Sujeitos ativos e passivos', icone: '👥' },
+          { id: 'obrigacoes', label: 'Obrigações: banco × correntista', icone: '📋' },
+        ]}
+        modo={modo}
+        setModo={setModo}
+      />
 
       {modo === 'credito' && (
         <>
@@ -526,9 +665,7 @@ function SimuladorFinanceiro() {
           </div>
 
           <div>
-            <h4 className="text-sm font-bold text-slate-900 mb-2">
-              1️⃣ Percentuais e valores do cenário
-            </h4>
+            <BlocoH n="1" titulo="⃣ Percentuais e valores do cenário" />
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
               <KpiF
                 titulo="Alíquota de referência"
@@ -559,9 +696,11 @@ function SimuladorFinanceiro() {
           </div>
 
           <div>
-            <h4 className="text-sm font-bold text-slate-900 mb-2">
-              2️⃣ Base de cálculo — passo a passo (arts. 192 e 194)
-            </h4>
+            <BlocoH
+              n="2"
+              titulo="⃣ Base de cálculo — passo a passo"
+              capitulacao="arts. 192 e 194 (LC 214/2025)"
+            />
             <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-xs">
               <table className="w-full text-left border-collapse text-xs sm:text-sm">
                 <thead>
@@ -649,9 +788,11 @@ function SimuladorFinanceiro() {
           </div>
 
           <div>
-            <h4 className="text-sm font-bold text-slate-900 mb-2">
-              3️⃣ Custos por parcela — o que o tomador paga e o que credita
-            </h4>
+            <BlocoH
+              n="3"
+              titulo="⃣ Custos por parcela — o que o tomador paga e o que credita"
+              capitulacao="art. 194 (regime de caixa)"
+            />
             <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-xs">
               <table className="w-full text-left border-collapse text-xs sm:text-sm">
                 <thead>
@@ -801,9 +942,7 @@ function SimuladorFinanceiro() {
           </div>
 
           <div>
-            <h4 className="text-sm font-bold text-slate-900 mb-2">
-              1️⃣ Percentuais e valores do cenário
-            </h4>
+            <BlocoH n="1" titulo="⃣ Percentuais e valores do cenário" />
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
               <KpiF
                 titulo="Receita mensal de tarifas"
@@ -830,9 +969,11 @@ function SimuladorFinanceiro() {
           </div>
 
           <div>
-            <h4 className="text-sm font-bold text-slate-900 mb-2">
-              2️⃣ Base de cálculo — passo a passo (art. 184)
-            </h4>
+            <BlocoH
+              n="2"
+              titulo="⃣ Base de cálculo — passo a passo"
+              capitulacao="art. 184 (normas gerais)"
+            />
             <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-xs">
               <table className="w-full text-left border-collapse text-xs sm:text-sm">
                 <thead>
@@ -900,9 +1041,11 @@ function SimuladorFinanceiro() {
           </div>
 
           <div>
-            <h4 className="text-sm font-bold text-slate-900 mb-2">
-              3️⃣ Mapa das tarifas — quem pode cobrar e como tributa
-            </h4>
+            <BlocoH
+              n="3"
+              titulo="⃣ Mapa das tarifas — quem pode cobrar e como tributa"
+              capitulacao="arts. 184 e 214"
+            />
             <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-xs">
               <table className="w-full text-left border-collapse text-xs sm:text-sm">
                 <thead>
@@ -939,9 +1082,11 @@ function SimuladorFinanceiro() {
       {modo === 'sujeitos' && (
         <>
           <div>
-            <h4 className="text-sm font-bold text-slate-900 mb-2">
-              1️⃣ Sujeitos ativos (fornecedores) e passivos (tomadores) — art. 183
-            </h4>
+            <BlocoH
+              n="1"
+              titulo="⃣ Sujeitos ativos (fornecedores) e passivos (tomadores) — art. 183"
+              capitulacao="art. 183 (29 tipos + §2º)"
+            />
             <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-xs">
               <table className="w-full text-left border-collapse text-xs sm:text-sm">
                 <thead>
@@ -980,9 +1125,11 @@ function SimuladorFinanceiro() {
       {modo === 'obrigacoes' && (
         <>
           <div>
-            <h4 className="text-sm font-bold text-slate-900 mb-2">
-              1️⃣ Obrigações fiscais e financeiras — banco × correntista
-            </h4>
+            <BlocoH
+              n="1"
+              titulo="⃣ Obrigações fiscais e financeiras — banco × correntista"
+              capitulacao="arts. 185–199 e 203"
+            />
             <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-xs">
               <table className="w-full text-left border-collapse text-xs sm:text-sm">
                 <thead>
@@ -1023,6 +1170,15 @@ function SimuladorFinanceiro() {
             alterar enquadramentos (art. 193, §4º). Qualquer mudança entra na Seção 13 — Histórico
             de Atualizações.
           </div>
+
+          <RodapeCapitulacao
+            itens={[
+              'lei|LC 214/2025 — arts. 182–214 (serviços financeiros)',
+              'lei|LC 227/2026 — art. 192, V (perdas de crédito)',
+              'resolucao|Res. CGIBS 14/2026 — referência 27,91%',
+              'ref|Alíquotas 2027–2033 — art. 233 (a definir)',
+            ]}
+          />
         </>
       )}
     </div>
