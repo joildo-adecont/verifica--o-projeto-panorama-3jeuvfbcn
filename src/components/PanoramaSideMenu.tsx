@@ -226,6 +226,16 @@ const ITENS: MenuItem[] = [
     borda: 'border-fuchsia-200',
   },
   {
+    id: '#assistentes-seguranca',
+    tecla: 'x',
+    numero: '15',
+    label: 'Assistentes & Segurança',
+    Icon: ShieldCheck,
+    cor: 'text-indigo-600',
+    bg: 'bg-indigo-50',
+    borda: 'border-indigo-200',
+  },
+  {
     id: '#central-entrega',
     tecla: 'e',
     numero: '14',

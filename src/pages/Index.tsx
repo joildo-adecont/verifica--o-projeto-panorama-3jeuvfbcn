@@ -21,6 +21,7 @@ import { SectionFontes } from '@/components/SectionFontes'
 import { SectionFontesAgregador } from '@/components/SectionFontesAgregador'
 import { SectionFontesPrimarias } from '@/components/SectionFontesPrimarias'
 import { SectionCentralEntrega } from '@/components/SectionCentralEntrega'
+import { SectionAssistentesSeguranca } from '@/components/SectionAssistentesSeguranca'
 import { SectionHistoricoAtualizacoes } from '@/components/SectionHistoricoAtualizacoes'
 import { PanoramaFooter } from '@/components/PanoramaFooter'
 import { fetchTaxNorms } from '@/services/panorama'
@@ -152,6 +153,9 @@ export default function Index() {
 
           {/* Seção 14: Central de Entrega — impressão e envio ao cliente */}
           <SectionCentralEntrega />
+
+          {/* Seção 15: Central de Assistentes & Segurança */}
+          <SectionAssistentesSeguranca />
 
           {/* Seção 13: Histórico de Atualizações — registro cronológico */}
           <SectionHistoricoAtualizacoes />
