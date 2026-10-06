@@ -99,30 +99,42 @@ routerAdd('POST', '/backend/v1/import-classifications', (e) => {
         if (data.dataAtualizacao) dateRef = data.dataAtualizacao
         if (data.ato) atoRef = data.ato
       } else {
-        const ncmUrl =
-          'https://portalunico.siscomex.gov.br/classif/api/publico/nomenclatura/download/json'
-        const res = $http.send({
-          url: ncmUrl,
-          method: 'GET',
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ADECONT-TaxReform-Sync/1.0',
-            Accept: 'application/json, text/plain, */*',
-          },
-          timeout: 60,
-        })
-
-        if (res.statusCode >= 200 && res.statusCode < 300) {
-          let ncmData = null
+        const urls = [
+          'https://portalunico.siscomex.gov.br/classif/api/publico/nomenclatura/download/json',
+          'https://val.portalunico.siscomex.gov.br/classif/api/publico/nomenclatura/download/json',
+        ]
+        for (let u = 0; u < urls.length; u++) {
           try {
-            ncmData = JSON.parse(res.raw)
-          } catch (_) {
-            ncmData = res.json
-          }
-          if (ncmData && Array.isArray(ncmData.Nomenclaturas)) {
-            list = ncmData.Nomenclaturas
-            if (ncmData.Data_Ultima_Atualizacao_NCM) dateRef = ncmData.Data_Ultima_Atualizacao_NCM
-            if (ncmData.Ato) atoRef = ncmData.Ato
-          }
+            const res = $http.send({
+              url: urls[u],
+              method: 'GET',
+              headers: {
+                'User-Agent':
+                  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ADECONT-TaxReform-Sync/1.0',
+                Accept: 'application/json, text/plain, */*',
+              },
+              timeout: 60,
+            })
+            if (res.statusCode >= 200 && res.statusCode < 300) {
+              let ncmData = null
+              try {
+                ncmData = JSON.parse(res.raw)
+              } catch (_) {
+                ncmData = res.json
+              }
+              if (
+                ncmData &&
+                Array.isArray(ncmData.Nomenclaturas) &&
+                ncmData.Nomenclaturas.length > 0
+              ) {
+                list = ncmData.Nomenclaturas
+                if (ncmData.Data_Ultima_Atualizacao_NCM)
+                  dateRef = ncmData.Data_Ultima_Atualizacao_NCM
+                if (ncmData.Ato) atoRef = ncmData.Ato
+                break
+              }
+            }
+          } catch (_) {}
         }
       }
 
