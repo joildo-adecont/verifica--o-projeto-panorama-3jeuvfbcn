@@ -22,6 +22,7 @@ import { SectionFontesAgregador } from '@/components/SectionFontesAgregador'
 import { SectionFontesPrimarias } from '@/components/SectionFontesPrimarias'
 import { SectionCentralEntrega } from '@/components/SectionCentralEntrega'
 import { SectionAssistentesSeguranca } from '@/components/SectionAssistentesSeguranca'
+import { SectionControleAcesso } from '@/components/SectionControleAcesso'
 import { SectionHistoricoAtualizacoes } from '@/components/SectionHistoricoAtualizacoes'
 import { PanoramaFooter } from '@/components/PanoramaFooter'
 import { fetchTaxNorms } from '@/services/panorama'
@@ -156,6 +157,9 @@ export default function Index() {
 
           {/* Seção 15: Central de Assistentes & Segurança */}
           <SectionAssistentesSeguranca />
+
+          {/* Seção 16: Níveis de Acesso (CRUD) & Autorizações de Uso */}
+          <SectionControleAcesso />
 
           {/* Seção 13: Histórico de Atualizações — registro cronológico */}
           <SectionHistoricoAtualizacoes />

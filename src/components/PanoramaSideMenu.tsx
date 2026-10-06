@@ -22,6 +22,7 @@ import {
   Landmark,
   Smartphone,
   Printer,
+  KeyRound,
 } from 'lucide-react'
 
 /**
@@ -254,6 +255,16 @@ const ITENS: MenuItem[] = [
     cor: 'text-lime-600',
     bg: 'bg-lime-50',
     borda: 'border-lime-200',
+  },
+  {
+    id: '#controle-acesso',
+    tecla: 'l',
+    numero: '16',
+    label: 'Níveis de Acesso (CRUD)',
+    Icon: KeyRound,
+    cor: 'text-amber-700',
+    bg: 'bg-amber-50',
+    borda: 'border-amber-300',
   },
 ]
 

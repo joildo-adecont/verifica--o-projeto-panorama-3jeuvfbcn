@@ -39,6 +39,23 @@ const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
     data: '05/10/2026',
+    hora: '22:10',
+    titulo:
+      'Seção 16 — Níveis de Acesso (CRUD) & Autorizações de Uso (tecla L) — modelo das chaves de hotel',
+    conteudo:
+      'A pedido do CEO, nova Seção 16 "Níveis de Acesso (CRUD) & Autorizações de Uso" no Panorama (acesso rápido: tecla L no menu lateral, ícone 🔑, nº 16). Modelo definido pelo CEO: controla quem pode apenas VER informações e quem tem autorização para CRIAR, ALTERAR ou APAGAR dados, em quatro níveis diretos — N1 Somente Leitura (ver), N2 Leitura e Criação (ver+criar), N3 Leitura, Criação e Edição (ver+criar+editar) e N4 Acesso Total (ver+criar+editar+apagar, o administrador), com a analogia das CHAVES DE HOTEL: a chave do hóspede só abre o quarto dele, a chave mestra da gerência abre todos os quartos. Estrutura: (1) cartões dos 4 níveis com as ações liberadas; (2) tabela de COMANDOS LIBERADOS POR NÍVEL (VER→N1, CRIAR→N2, EDITAR→N3, APAGAR→N4, AUTORIZAR→N4) — novos comandos entram no catálogo e na API declarando o nível mínimo; (3) MURAL DE CHAVES — cadastro de autorizações por pessoa (nome, e-mail, nível, observação), reajuste de nível e bloqueio (comando EDITAR, exige N3) e devolução da chave (comando APAGAR, exige N4), com confirmação antes de apagar; (4) validação no BACKEND (hook controle_acesso.js + coleções acesso_usuarios e acesso_comandos, migration 0050): cada endpoint exige o nível mínimo — mesmo burlando a tela, o comando é recusado — e toda tentativa (OK ou NEGADO) é registrada na coleção acesso_comandos para auditoria. Regra de segurança: ninguém entrega ou atribui nível acima do da própria chave; o token do painel (SIMUL_PAINEL_TOKEN) opera como chave mestra gerencial (N4).',
+    fontes: [
+      {
+        nome: 'LC 214/2025 compilada — Planalto (fonte oficial primária de referência)',
+        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+      },
+    ],
+    caminho:
+      'Panorama (62493) — src/components/SectionControleAcesso.tsx (novo) + Index.tsx + PanoramaSideMenu.tsx (tecla L) + pocketbase/hooks/controle_acesso.js + pocketbase/migrations/0050_acesso_usuarios.js',
+    versao: '62493 v0.0.148',
+  },
+  {
+    data: '05/10/2026',
     hora: '03:26',
     titulo:
       'Guardião de Artefatos (07h40) e Conector de Integrações (07h45) autônomos — 4 agentes ativos',
