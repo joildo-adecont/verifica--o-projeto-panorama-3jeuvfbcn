@@ -39,6 +39,23 @@ const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
     data: '05/10/2026',
+    hora: '22:35',
+    titulo:
+      'Seção 17 — Responsividade em Celulares (tecla M) — auditoria ao vivo e relatório por aparelho',
+    conteudo:
+      'A pedido do CEO, nova Seção 17 "Responsividade em Celulares" no Panorama (acesso rápido: tecla M no menu lateral, ícone 📱, nº 17). Modelo do CEO: garante que botões, imagens e textos se encaixem perfeitamente em telas pequenas sem quebrar ou sumir — como uma ROUPA DE TECIDO ELÁSTICO que veste bem uma pessoa pequena ou uma grande, sem rasgar nem ficar frouxa; qualquer erro visual é informado indicando o MODELO DO APARELHO e a PARTE QUE ENTORTOU. Estrutura: (1) painel do aparelho — modelo (extraído do user-agent: Android/iPhone/iPad/PC/Mac), tamanho da tela, densidade e navegador; (2) AUDITORIA AO VIVO — mede a página inteira no aparelho real: overflow horizontal (roupa rasgando), elementos que estouram a tela, alvos de toque abaixo de 40px (dedo), imagens sem limite de largura e fontes menores que 11px; (3) OTIMIZAÇÃO "tecido elástico" — aplica no ato somente correções seguras (imagens limitadas a 100%, sem rolagem lateral, tabelas contidas, código com quebra de linha) sem apagar nada; (4) RELATÓRIO DE ERRO — resumo por severidade (🔴 Rasgou/ALTA, 🟠 Apertado/MÉDIA, 🟢 Frouxo/BAIXA) com lista de cada ponto (tipo, parte exata, medida) e botões Copiar, WhatsApp e E-mail para joildo@adecont.com.br. Auditoria roda automaticamente ao abrir a seção e a cada clique.',
+    fontes: [
+      {
+        nome: 'LC 214/2025 compilada — Planalto (fonte oficial primária de referência)',
+        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+      },
+    ],
+    caminho:
+      'Panorama (62493) — src/components/SectionResponsividade.tsx (novo) + Index.tsx + PanoramaSideMenu.tsx (tecla M)',
+    versao: '62493 v0.0.158',
+  },
+  {
+    data: '05/10/2026',
     hora: '22:20',
     titulo:
       'Trava de Segurança na Seção 16 — Rate Limit (porta giratória) + bloqueio na 3ª tentativa',

@@ -23,6 +23,7 @@ import {
   Smartphone,
   Printer,
   KeyRound,
+  Smartphone,
 } from 'lucide-react'
 
 /**
@@ -265,6 +266,16 @@ const ITENS: MenuItem[] = [
     cor: 'text-amber-700',
     bg: 'bg-amber-50',
     borda: 'border-amber-300',
+  },
+  {
+    id: '#responsividade-celulares',
+    tecla: 'm',
+    numero: '17',
+    label: 'Responsividade em Celulares',
+    Icon: Smartphone,
+    cor: 'text-cyan-700',
+    bg: 'bg-cyan-50',
+    borda: 'border-cyan-300',
   },
 ]
 
