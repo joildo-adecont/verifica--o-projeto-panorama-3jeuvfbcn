@@ -20,7 +20,11 @@ import {
 } from 'lucide-react'
 import { AdecontLogo } from '@/components/AdecontLogo'
 import { Badge } from '@/components/ui/badge'
-import { fetchClassifications } from '@/services/classifications'
+import {
+  fetchClassifications,
+  fetchClassificationCounts,
+  OfficialTableCountsResult,
+} from '@/services/classifications'
 import type { ClassificationItem, ClassificationType } from '@/types/panorama'
 
 export const TABELAS_CLASSIFICACAO: {
@@ -143,6 +147,13 @@ export function SectionFontesAgregador() {
   const [totalItems, setTotalItems] = useState<number>(0)
   const [totalPages, setTotalPages] = useState<number>(1)
   const [sourceMode, setSourceMode] = useState<'database' | 'fallback'>('database')
+  const [governanceCounts, setGovernanceCounts] = useState<OfficialTableCountsResult | null>(null)
+
+  useEffect(() => {
+    fetchClassificationCounts().then((res) => {
+      setGovernanceCounts(res)
+    })
+  }, [])
 
   // Debounce da busca textual para digitação suave
   useEffect(() => {
@@ -261,14 +272,59 @@ export function SectionFontesAgregador() {
           </div>
 
           <div className="rounded-xl border-l-4 border-blue-600 bg-gradient-to-r from-blue-50/80 to-white p-4 text-xs text-blue-950 space-y-1.5 shadow-xs">
-            <div className="flex items-center gap-2 font-bold text-slate-900">
-              <Database className="w-4 h-4 text-blue-700" />
-              <span>Base Primária &amp; Amostra Estruturada</span>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 font-bold text-slate-900">
+                <Database className="w-4 h-4 text-blue-700" />
+                <span>Base Oficial &amp; Total por Tabela</span>
+              </div>
+              <span className="font-mono text-[10px] font-semibold text-blue-700 bg-blue-100/70 px-2 py-0.5 rounded">
+                Total:{' '}
+                {governanceCounts
+                  ? governanceCounts.grandTotal.toLocaleString('pt-BR')
+                  : totalItems}{' '}
+                itens
+              </span>
             </div>
-            <p className="text-slate-600 leading-relaxed">
-              Tabelas como CFOP e CST constam completas; NCM, cBenef e CNAE contêm os principais
-              grupos e capítulos e estão estruturadas no banco de dados para indexação de mais de
-              20.000 itens conforme o avanço dos regulamentos do IBS e CBS.
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 pt-1 text-[11px] text-slate-700">
+              <div>
+                <span className="font-semibold text-slate-900">NCM:</span>{' '}
+                {governanceCounts?.counts?.['NCM'] ?? '105+'} itens
+              </div>
+              <div>
+                <span className="font-semibold text-slate-900">CEST:</span>{' '}
+                {governanceCounts?.counts?.['CEST'] ?? '100+'} itens
+              </div>
+              <div>
+                <span className="font-semibold text-slate-900">CFOP:</span>{' '}
+                {governanceCounts?.counts?.['CFOP'] ?? '17'} itens
+              </div>
+              <div>
+                <span className="font-semibold text-slate-900">cClassTrib:</span>{' '}
+                {governanceCounts?.counts?.['cClassTrib'] ?? '15'} itens
+              </div>
+              <div>
+                <span className="font-semibold text-slate-900">CST:</span>{' '}
+                {governanceCounts?.counts?.['CST'] ?? '10'} itens
+              </div>
+              <div>
+                <span className="font-semibold text-slate-900">cCredPres:</span>{' '}
+                {governanceCounts?.counts?.['cCredPres'] ?? '7'} itens
+              </div>
+              <div>
+                <span className="font-semibold text-slate-900">NBS:</span>{' '}
+                {governanceCounts?.counts?.['NBS'] ?? '10'} itens
+              </div>
+              <div>
+                <span className="font-semibold text-slate-900">CNAE 2.3:</span>{' '}
+                {governanceCounts?.counts?.['CNAE_2_3'] ??
+                  governanceCounts?.counts?.['CNAE 2.3'] ??
+                  '13'}{' '}
+                itens
+              </div>
+            </div>
+            <p className="text-[10px] text-slate-500 pt-1">
+              Último sincronismo oficial do banco de dados: 01/10/2026 (Fontes: RFB, CGIBS, CONFAZ e
+              IBGE)
             </p>
           </div>
         </div>
@@ -578,19 +634,41 @@ export function SectionFontesAgregador() {
                 <span>Anterior</span>
               </button>
 
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                <button
-                  key={p}
-                  onClick={() => setCurrentPage(p)}
-                  className={`w-8 h-8 rounded-lg font-bold text-xs transition-colors cursor-pointer ${
-                    currentPage === p
-                      ? 'bg-panorama-navy text-white'
-                      : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
-                  }`}
-                >
-                  {p}
-                </button>
-              ))}
+              {(() => {
+                // Paginação compacta e escalável para dezenas/centenas de páginas
+                const delta = 2
+                const range: (number | string)[] = []
+                for (let i = 1; i <= totalPages; i++) {
+                  if (
+                    i === 1 ||
+                    i === totalPages ||
+                    (i >= currentPage - delta && i <= currentPage + delta)
+                  ) {
+                    range.push(i)
+                  } else if (range[range.length - 1] !== '...') {
+                    range.push('...')
+                  }
+                }
+                return range.map((p, idx) =>
+                  typeof p === 'number' ? (
+                    <button
+                      key={`page-${p}`}
+                      onClick={() => setCurrentPage(p)}
+                      className={`min-w-8 h-8 px-2 rounded-lg font-bold text-xs transition-colors cursor-pointer ${
+                        currentPage === p
+                          ? 'bg-panorama-navy text-white'
+                          : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  ) : (
+                    <span key={`dots-${idx}`} className="px-1 text-slate-400 font-bold select-none">
+                      ...
+                    </span>
+                  ),
+                )
+              })()}
 
               <button
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}

@@ -889,6 +889,54 @@ export interface FetchClassificationsResult {
   source: 'database' | 'fallback'
 }
 
+export interface OfficialTableCountsResult {
+  grandTotal: number
+  counts: Record<string, number>
+  lastUpdated?: string
+}
+
+export async function fetchClassificationCounts(): Promise<OfficialTableCountsResult> {
+  try {
+    const data = await pb.send<any>('/backend/v1/import-classifications', {
+      method: 'GET',
+    })
+    if (data && data.success && data.counts) {
+      return {
+        grandTotal: data.grandTotal || 0,
+        counts: data.counts,
+        lastUpdated: data.timestamp,
+      }
+    }
+  } catch {
+    /* intentionally ignored */
+  }
+
+  // Fallback counting a partir de FALLBACK_CLASSIFICATIONS
+  const fallbackCounts: Record<string, number> = {}
+  for (const item of FALLBACK_CLASSIFICATIONS) {
+    fallbackCounts[item.tipo] = (fallbackCounts[item.tipo] || 0) + 1
+  }
+  return {
+    grandTotal: FALLBACK_CLASSIFICATIONS.length,
+    counts: fallbackCounts,
+  }
+}
+
+export async function triggerOfficialImport(
+  target: 'NCM' | 'CEST' | 'ALL' = 'NCM',
+  limit: number = 0,
+) {
+  try {
+    const data = await pb.send<any>('/backend/v1/import-classifications', {
+      method: 'POST',
+      body: { target, limit },
+    })
+    return data
+  } catch (err) {
+    return { success: false, error: String(err) }
+  }
+}
+
 /**
  * Busca registros da coleção classifications no PocketBase com suporte a filtro, ordenação e paginação.
  * Se houver qualquer falha de rede/banco, recorre ao fallback completo em memória.

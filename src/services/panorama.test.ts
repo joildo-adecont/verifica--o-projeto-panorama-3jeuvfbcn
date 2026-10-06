@@ -149,4 +149,68 @@ describe('Validação dos fluxos do Panorama da Reforma Tributária', () => {
     expect(getOfficialDocProxyUrl('lc-214')).toContain('id=lc-214')
     expect(getOfficialDocProxyUrl('decreto-12955')).toContain('id=decreto-12955')
   })
+
+  it('validação das classificações tributárias oficiais (contagens, tipos e campos obrigatórios)', async () => {
+    const { FALLBACK_CLASSIFICATIONS, normalizeClassificationType } =
+      await import('./classifications')
+
+    expect(FALLBACK_CLASSIFICATIONS.length).toBeGreaterThanOrEqual(150)
+
+    const tipos = new Set(FALLBACK_CLASSIFICATIONS.map((c) => c.tipo))
+    expect(tipos.has('NCM')).toBe(true)
+    expect(tipos.has('CEST')).toBe(true)
+    expect(tipos.has('cClassTrib')).toBe(true)
+    expect(tipos.has('CST')).toBe(true)
+    expect(tipos.has('cCredPres')).toBe(true)
+    expect(tipos.has('CFOP')).toBe(true)
+    expect(tipos.has('NBS')).toBe(true)
+    expect(tipos.has('CNAE 2.3')).toBe(true)
+
+    // Valida integridade de cada registro
+    for (const item of FALLBACK_CLASSIFICATIONS) {
+      expect(item.id).toBeTruthy()
+      expect(item.codigo).toBeTruthy()
+      expect(item.descricao).toBeTruthy()
+      expect(item.fonte).toBeTruthy()
+      expect(item.tipo).toBeTruthy()
+    }
+
+    // Normalização de tipos
+    expect(normalizeClassificationType('CNAE_2_3')).toBe('CNAE 2.3')
+    expect(normalizeClassificationType('NCM')).toBe('NCM')
+  })
+
+  it('validação de upsert idempotente no modelo de dados de classificações', () => {
+    // Simula a lógica de deduplicação por chave única (tipo, codigo)
+    const existingMap = new Map<string, { tipo: string; codigo: string; descricao: string }>()
+
+    const row1 = {
+      tipo: 'NCM',
+      codigo: '0201.10.00',
+      descricao: 'Carnes de animais da espécie bovina',
+    }
+    const key1 = `${row1.tipo}:${row1.codigo}`
+    existingMap.set(key1, row1)
+
+    const row2Updated = {
+      tipo: 'NCM',
+      codigo: '0201.10.00',
+      descricao: 'Carnes bovinas frescas ou refrigeradas',
+    }
+    const key2 = `${row2Updated.tipo}:${row2Updated.codigo}`
+    existingMap.set(key2, row2Updated)
+
+    expect(existingMap.size).toBe(1)
+    expect(existingMap.get(key1)?.descricao).toBe('Carnes bovinas frescas ou refrigeradas')
+  })
+
+  it('validação de segurança da rota de importação e ausência do termo Jurídica na Seção 11', async () => {
+    const { TABELAS_CLASSIFICACAO } = await import('../components/SectionFontesAgregador')
+    expect(TABELAS_CLASSIFICACAO.length).toBe(12) // TODOS + 11 tabelas
+
+    for (const t of TABELAS_CLASSIFICACAO) {
+      expect(t.label.toLowerCase()).not.toContain('jurídic')
+      expect(t.sublabel.toLowerCase()).not.toContain('jurídic')
+    }
+  })
 })

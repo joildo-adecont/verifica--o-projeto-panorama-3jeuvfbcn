@@ -47,6 +47,18 @@ cronAdd('weekly_content_review', '0 11 * * 1', () => {
       url: 'https://www.nfe.fazenda.gov.br',
       order: 7,
     },
+    {
+      key: 'siscomex',
+      name: 'Portal Único Siscomex / TIPI (NCM integral)',
+      url: 'https://portalunico.siscomex.gov.br/',
+      order: 8,
+    },
+    {
+      key: 'mdic_balanca',
+      name: 'MDIC / Comex Stat (Tabelas de Comércio Exterior)',
+      url: 'https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/estatisticas/base-de-dados-bruta',
+      order: 9,
+    },
   ]
 
   const checkedSources = []

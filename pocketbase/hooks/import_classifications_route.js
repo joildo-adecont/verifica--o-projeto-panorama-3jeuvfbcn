@@ -11,6 +11,11 @@ routerAdd('OPTIONS', '/backend/v1/import-classifications', (e) => {
   return e.noContent(204)
 })
 
+routerAdd('GET', '/backend/v1/test-import-route', (e) => {
+  e.response.header().set('Access-Control-Allow-Origin', '*')
+  return e.json(200, { ok: true, message: 'Rota import_classifications ativa' })
+})
+
 routerAdd('GET', '/backend/v1/import-classifications', (e) => {
   e.response.header().set('Access-Control-Allow-Origin', '*')
 
@@ -81,137 +86,148 @@ routerAdd('POST', '/backend/v1/import-classifications', (e) => {
     details: {},
   }
 
-  // 1. IMPORTAÇÃO NCM INTEGRAL VIA SISCOMEX (GOV.BR)
+  // 1. IMPORTAÇÃO NCM INTEGRAL VIA SISCOMEX (GOV.BR) OU PAYLOAD ENVIADO
   if (target === 'NCM' || target === 'ALL') {
     try {
-      const ncmUrl =
-        'https://portalunico.siscomex.gov.br/classif/api/publico/nomenclatura/download/json'
-      const res = $http.send({
-        url: ncmUrl,
-        method: 'GET',
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ADECONT-TaxReform-Sync/1.0',
-          Accept: 'application/json, text/plain, */*',
-        },
-        timeout: 90,
-      })
+      let list = []
+      let dateRef = '2026-10-01'
+      let atoRef = 'Resolução Gecex nº 926/2026'
+      const fonteOficial = 'RFB / MDIC / Siscomex'
 
-      if (res.statusCode >= 200 && res.statusCode < 300) {
-        let ncmData = null
-        try {
-          ncmData = JSON.parse(res.raw)
-        } catch (_) {
-          ncmData = res.json
-        }
-
-        if (ncmData && Array.isArray(ncmData.Nomenclaturas)) {
-          const list = ncmData.Nomenclaturas
-          const dateRef = ncmData.Data_Ultima_Atualizacao_NCM || '2026-10-01'
-          const atoRef = ncmData.Ato || 'Resolução Gecex / TIPI'
-          const fonteOficial = 'RFB / MDIC / Siscomex'
-          const totalToProcess = maxRecords > 0 ? Math.min(maxRecords, list.length) : list.length
-
-          let countProcessed = 0
-          const batchSize = 400
-
-          for (let start = 0; start < totalToProcess; start += batchSize) {
-            const end = Math.min(start + batchSize, totalToProcess)
-
-            $app.runInTransaction((txApp) => {
-              for (let i = start; i < end; i++) {
-                const item = list[i]
-                if (!item || !item.Codigo) continue
-
-                const rawCode = String(item.Codigo).trim()
-                const rawDesc = String(item.Descricao || '')
-                  .replace(/<[^>]*>?/gm, '')
-                  .trim()
-                const ato = item.Tipo_Ato_Ini
-                  ? (
-                      item.Tipo_Ato_Ini +
-                      ' ' +
-                      (item.Numero_Ato_Ini || '') +
-                      '/' +
-                      (item.Ano_Ato_Ini || '')
-                    ).trim()
-                  : atoRef
-                const nomeCurto = rawDesc.length > 80 ? rawDesc.slice(0, 77) + '...' : rawDesc
-                const obs = ato ? 'Ato legal: ' + ato : ''
-
-                const now = new Date().toISOString()
-                const idRand = $security.randomString(15)
-
-                try {
-                  txApp
-                    .db()
-                    .newQuery(`
-                    INSERT INTO classifications (id, tipo, codigo, descricao, nome, fonte, tabela_origem, atualizado_em, observacoes, created, updated)
-                    VALUES ({:id}, 'NCM', {:codigo}, {:descricao}, {:nome}, {:fonte}, {:tabela_origem}, {:atualizado_em}, {:observacoes}, {:now}, {:now})
-                    ON CONFLICT(tipo, codigo) DO UPDATE SET
-                      descricao = {:descricao},
-                      nome = {:nome},
-                      fonte = {:fonte},
-                      tabela_origem = {:tabela_origem},
-                      atualizado_em = {:atualizado_em},
-                      observacoes = {:observacoes},
-                      updated = {:now}
-                  `)
-                    .bind({
-                      id: idRand,
-                      codigo: rawCode,
-                      descricao: rawDesc || rawCode,
-                      nome: nomeCurto || rawCode,
-                      fonte: fonteOficial,
-                      tabela_origem: 'Siscomex / TIPI (' + atoRef + ')',
-                      atualizado_em: dateRef,
-                      observacoes: obs,
-                      now: now,
-                    })
-                    .execute()
-
-                  countProcessed++
-                } catch (recErr) {
-                  // Fallback para API Records
-                  try {
-                    let rec
-                    try {
-                      rec = txApp.findFirstRecordByData('classifications', 'codigo', rawCode)
-                    } catch (_) {
-                      const col = txApp.findCollectionByNameOrId('classifications')
-                      rec = new Record(col)
-                      rec.set('tipo', 'NCM')
-                      rec.set('codigo', rawCode)
-                    }
-                    rec.set('descricao', rawDesc || rawCode)
-                    rec.set('nome', nomeCurto || rawCode)
-                    rec.set('fonte', fonteOficial)
-                    rec.set('tabela_origem', 'Siscomex / TIPI (' + atoRef + ')')
-                    rec.set('atualizado_em', dateRef)
-                    rec.set('observacoes', obs)
-                    txApp.save(rec)
-                    countProcessed++
-                  } catch (_) {}
-                }
-              }
-            })
-          }
-
-          report.details.NCM = {
-            totalFonte: list.length,
-            processados: countProcessed,
-            dataAtualizacao: dateRef,
-            ato: atoRef,
-            fonte: fonteOficial,
-          }
-          report.imported += countProcessed
-        } else {
-          report.errors.push('JSON NCM Siscomex não contém array Nomenclaturas')
-        }
+      if (data.ncmItems && Array.isArray(data.ncmItems) && data.ncmItems.length > 0) {
+        list = data.ncmItems
+        if (data.dataAtualizacao) dateRef = data.dataAtualizacao
+        if (data.ato) atoRef = data.ato
       } else {
-        report.errors.push('Siscomex retornou status ' + res.statusCode)
+        const ncmUrl =
+          'https://portalunico.siscomex.gov.br/classif/api/publico/nomenclatura/download/json'
+        const res = $http.send({
+          url: ncmUrl,
+          method: 'GET',
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ADECONT-TaxReform-Sync/1.0',
+            Accept: 'application/json, text/plain, */*',
+          },
+          timeout: 60,
+        })
+
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          let ncmData = null
+          try {
+            ncmData = JSON.parse(res.raw)
+          } catch (_) {
+            ncmData = res.json
+          }
+          if (ncmData && Array.isArray(ncmData.Nomenclaturas)) {
+            list = ncmData.Nomenclaturas
+            if (ncmData.Data_Ultima_Atualizacao_NCM) dateRef = ncmData.Data_Ultima_Atualizacao_NCM
+            if (ncmData.Ato) atoRef = ncmData.Ato
+          }
+        }
+      }
+
+      if (list.length > 0) {
+        const totalToProcess = maxRecords > 0 ? Math.min(maxRecords, list.length) : list.length
+        let countProcessed = 0
+        const batchSize = 300
+
+        for (let start = 0; start < totalToProcess; start += batchSize) {
+          const end = Math.min(start + batchSize, totalToProcess)
+
+          $app.runInTransaction((txApp) => {
+            for (let i = start; i < end; i++) {
+              const item = list[i]
+              if (!item) continue
+
+              const rawCode = String(item.Codigo || item.codigo || '').trim()
+              if (!rawCode) continue
+
+              const rawDesc = String(item.Descricao || item.descricao || '')
+                .replace(/<[^>]*>?/gm, '')
+                .trim()
+              const ato = item.Tipo_Ato_Ini
+                ? (
+                    item.Tipo_Ato_Ini +
+                    ' ' +
+                    (item.Numero_Ato_Ini || '') +
+                    '/' +
+                    (item.Ano_Ato_Ini || '')
+                  ).trim()
+                : atoRef
+              const nomeCurto =
+                item.nome || (rawDesc.length > 80 ? rawDesc.slice(0, 77) + '...' : rawDesc)
+              const obs = item.observacoes || (ato ? 'Ato legal: ' + ato : '')
+
+              const now = new Date().toISOString()
+              const idRand = $security.randomString(15)
+
+              try {
+                txApp
+                  .db()
+                  .newQuery(`
+                  INSERT INTO classifications (id, tipo, codigo, descricao, nome, fonte, tabela_origem, atualizado_em, observacoes, created, updated)
+                  VALUES ({:id}, 'NCM', {:codigo}, {:descricao}, {:nome}, {:fonte}, {:tabela_origem}, {:atualizado_em}, {:observacoes}, {:now}, {:now})
+                  ON CONFLICT(tipo, codigo) DO UPDATE SET
+                    descricao = {:descricao},
+                    nome = {:nome},
+                    fonte = {:fonte},
+                    tabela_origem = {:tabela_origem},
+                    atualizado_em = {:atualizado_em},
+                    observacoes = {:observacoes},
+                    updated = {:now}
+                `)
+                  .bind({
+                    id: idRand,
+                    codigo: rawCode,
+                    descricao: rawDesc || rawCode,
+                    nome: nomeCurto || rawCode,
+                    fonte: fonteOficial,
+                    tabela_origem: 'Siscomex / TIPI (' + atoRef + ')',
+                    atualizado_em: dateRef,
+                    observacoes: obs,
+                    now: now,
+                  })
+                  .execute()
+
+                countProcessed++
+              } catch (_) {
+                try {
+                  let rec
+                  try {
+                    rec = txApp.findFirstRecordByData('classifications', 'codigo', rawCode)
+                  } catch (_) {
+                    const col = txApp.findCollectionByNameOrId('classifications')
+                    rec = new Record(col)
+                    rec.set('tipo', 'NCM')
+                    rec.set('codigo', rawCode)
+                  }
+                  rec.set('descricao', rawDesc || rawCode)
+                  rec.set('nome', nomeCurto || rawCode)
+                  rec.set('fonte', fonteOficial)
+                  rec.set('tabela_origem', 'Siscomex / TIPI (' + atoRef + ')')
+                  rec.set('atualizado_em', dateRef)
+                  rec.set('observacoes', obs)
+                  txApp.save(rec)
+                  countProcessed++
+                } catch (_) {}
+              }
+            }
+          })
+        }
+
+        report.details.NCM = {
+          totalFonte: list.length,
+          processados: countProcessed,
+          dataAtualizacao: dateRef,
+          ato: atoRef,
+          fonte: fonteOficial,
+        }
+        report.imported += countProcessed
+      } else {
+        report.errors.push('Não foi possível carregar a lista de NCMs')
       }
     } catch (ncmErr) {
-      report.errors.push('Erro na requisição Siscomex NCM: ' + String(ncmErr))
+      report.errors.push('Erro na importação NCM: ' + String(ncmErr))
     }
   }
 
