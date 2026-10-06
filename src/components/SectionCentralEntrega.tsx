@@ -14,6 +14,8 @@ import {
   Download,
 } from 'lucide-react'
 import { ModalAtalhosInstalacao } from '@/components/ModalAtalhosInstalacao'
+import { ModalBaseClassificacoes } from '@/components/ModalBaseClassificacoes'
+import { FileSpreadsheet } from 'lucide-react'
 
 const SIM_URL = '/simulador.html'
 const ENVIOS_URL = '/envios.html'
@@ -252,6 +254,7 @@ export function SectionCentralEntrega() {
   const [busca, setBusca] = useState('')
   const [cat, setCat] = useState<Item['categoria'] | 'todos'>('todos')
   const [modalAtalhosAberto, setModalAtalhosAberto] = useState(false)
+  const [modalBaseAberto, setModalBaseAberto] = useState(false)
 
   const filtrados = useMemo(() => {
     const t = norm(busca.trim())
@@ -291,37 +294,75 @@ export function SectionCentralEntrega() {
         </p>
       </div>
 
-      {/* BANNER DESTACADO ADECONT — Atalhos de Instalação do Sistema (Celular e PC) */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-panorama-navy via-[#2E2260] to-[#1E1643] text-white p-4 sm:p-5 shadow-md border-2 border-panorama-gold/40 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div className="flex items-start gap-3.5 z-10">
-          <div className="p-3 bg-white/10 rounded-xl backdrop-blur-xs border border-white/20 shrink-0 text-panorama-gold-light">
-            <Smartphone className="w-6 h-6 sm:w-7 sm:h-7" />
-          </div>
-          <div className="space-y-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm sm:text-base font-bold text-white tracking-tight flex items-center gap-1.5">
-                📲 Atalhos de Instalação do Sistema (Celulares & Computadores)
-              </span>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-panorama-gold text-panorama-navy uppercase tracking-wider">
-                Entrega Rápida
-              </span>
+      {/* BANNERS DESTACADOS ADECONT — Atalhos de Instalação & Base de Classificações */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* BANNER 1: Base de Classificações (NCM e tabelas oficiais) */}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#0F294A] via-[#12315E] to-[#1A4A8C] text-white p-4 sm:p-5 shadow-md border-2 border-emerald-400/50 flex flex-col justify-between gap-4">
+          <div className="flex items-start gap-3.5 z-10">
+            <div className="p-3 bg-white/10 rounded-xl backdrop-blur-xs border border-white/20 shrink-0 text-emerald-300">
+              <FileSpreadsheet className="w-6 h-6 sm:w-7 sm:h-7" />
             </div>
-            <p className="text-xs text-slate-200 leading-relaxed max-w-2xl">
-              Deposite instruções no banco de dados e envie aos clientes os atalhos de instalação
-              (PWA nativo com logo ADECONT) para celulares Android (Chrome), iPhones (Safari) e
-              computadores (Chrome/Edge), com links formatados e QR Code instantâneo.
-            </p>
+            <div className="space-y-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-sm sm:text-base font-bold text-white tracking-tight flex items-center gap-1.5">
+                  📊 Base de Classificações (NCM e tabelas oficiais)
+                </span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-400 text-slate-950 uppercase tracking-wider">
+                  Download &amp; Envio
+                </span>
+              </div>
+              <p className="text-xs text-slate-200 leading-relaxed">
+                Deposite e envie aos clientes o link de download direto da base oficial NCM completa
+                (15.240 itens Siscomex/MDIC) e demais tabelas (CEST, cClassTrib, CST, cCredPres,
+                CFOP, NBS, CNAE, cBenef, MVA-ST). Pronto para abrir no Excel (CSV UTF-8) com QR Code
+                e disparo WhatsApp/E-mail.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 z-10 pt-1">
+            <button
+              onClick={() => setModalBaseAberto(true)}
+              className="flex-1 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-500 text-slate-950 font-bold text-xs sm:text-sm shadow-lg hover:brightness-105 active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <Download className="w-4 h-4" />
+              <span>Abrir Envio da Base NCM / Tabelas</span>
+            </button>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 w-full md:w-auto shrink-0 z-10 pt-2 md:pt-0">
-          <button
-            onClick={() => setModalAtalhosAberto(true)}
-            className="w-full md:w-auto px-4 py-2.5 rounded-xl bg-gradient-to-r from-panorama-gold via-amber-400 to-panorama-gold-dark text-panorama-navy font-bold text-xs sm:text-sm shadow-lg hover:brightness-105 active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer"
-          >
-            <QrCode className="w-4 h-4" />
-            <span>Abrir Painel de Instalação</span>
-          </button>
+        {/* BANNER 2: Atalhos de Instalação do Sistema (Celular e PC) */}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-panorama-navy via-[#2E2260] to-[#1E1643] text-white p-4 sm:p-5 shadow-md border-2 border-panorama-gold/40 flex flex-col justify-between gap-4">
+          <div className="flex items-start gap-3.5 z-10">
+            <div className="p-3 bg-white/10 rounded-xl backdrop-blur-xs border border-white/20 shrink-0 text-panorama-gold-light">
+              <Smartphone className="w-6 h-6 sm:w-7 sm:h-7" />
+            </div>
+            <div className="space-y-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-sm sm:text-base font-bold text-white tracking-tight flex items-center gap-1.5">
+                  📲 Atalhos de Instalação do Sistema (Celular &amp; PC)
+                </span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-panorama-gold text-panorama-navy uppercase tracking-wider">
+                  Entrega Rápida
+                </span>
+              </div>
+              <p className="text-xs text-slate-200 leading-relaxed">
+                Deposite instruções no banco de dados e envie aos clientes os atalhos de instalação
+                (PWA nativo com logo ADECONT) para celulares Android (Chrome), iPhones (Safari) e
+                computadores (Chrome/Edge), com links formatados e QR Code instantâneo.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 z-10 pt-1">
+            <button
+              onClick={() => setModalAtalhosAberto(true)}
+              className="flex-1 px-4 py-2.5 rounded-xl bg-gradient-to-r from-panorama-gold via-amber-400 to-panorama-gold-dark text-panorama-navy font-bold text-xs sm:text-sm shadow-lg hover:brightness-105 active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <QrCode className="w-4 h-4" />
+              <span>Abrir Painel de Instalação</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -467,6 +508,9 @@ export function SectionCentralEntrega() {
         isOpen={modalAtalhosAberto}
         onClose={() => setModalAtalhosAberto(false)}
       />
+
+      {/* Modal de Base de Classificações Oficiais (NCM e tabelas) */}
+      <ModalBaseClassificacoes isOpen={modalBaseAberto} onClose={() => setModalBaseAberto(false)} />
     </section>
   )
 }

@@ -219,6 +219,13 @@
         </button>
         <button
           class="btn"
+          onclick="aba('base')"
+          style="background: #0f4c3a; color: #a7f3d0; border: 1px solid #34d399"
+        >
+          📊 Base de Classificações (NCM)
+        </button>
+        <button
+          class="btn"
           onclick="aba('inst')"
           style="background: #2e2260; color: #ffd66b; border: 1px solid #ffd66b"
         >
@@ -233,11 +240,19 @@
         <button class="tab" data-tab="env" onclick="aba('env')">3. Envio & Protocolo</button>
         <button
           class="tab"
+          data-tab="base"
+          onclick="aba('base')"
+          style="background: #e6f7f2; color: #064e3b; font-weight: 700"
+        >
+          📊 4. Base de Classificações (NCM)
+        </button>
+        <button
+          class="tab"
           data-tab="inst"
           onclick="aba('inst')"
           style="background: #e8e2f8; color: #2e2260; font-weight: 700"
         >
-          📲 4. Instalação do Sistema
+          📲 5. Instalação do Sistema
         </button>
       </div>
 
@@ -513,6 +528,187 @@
           </table>
         </div>
       </div>
+
+      <!-- ABA BASE DE CLASSIFICACOES (NCM e tabelas) -->
+      <div class="card" id="tab-base" style="display: none">
+        <div
+          style="
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+            border-bottom: 2px solid #0f4c3a;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+          "
+        >
+          <div>
+            <h2 style="margin: 0; color: #0f4c3a; border: none; padding: 0">
+              📊 Central de Entrega — Base de Classificações (NCM e Tabelas Oficiais)
+            </h2>
+            <p class="nota">
+              Gere o link seguro de download e envie aos clientes a base NCM completa (15.240 itens
+              oficiais do Siscomex/MDIC) e as demais 10 tabelas oficiais com formato Excel (CSV
+              UTF-8 com BOM) ou JSON.
+            </p>
+          </div>
+          <img src="/logo-adecont.png" alt="ADECONT" style="height: 34px; width: auto" />
+        </div>
+
+        <div
+          style="
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 14px;
+          "
+        >
+          <h3 style="font-size: 0.9rem; color: #065f46; margin-bottom: 8px">
+            1. Envio da Base aos Clientes (Link Oficial, WhatsApp e E-mail)
+          </h3>
+          <div class="row">
+            <div>
+              <label>Tabela de Classificação Oficial</label>
+              <select id="base_tab_select" onchange="atualizarDadosBase()">
+                <option value="NCM">2. NCM — 15.240 itens oficiais (Siscomex / MDIC / RFB)</option>
+                <option value="CEST">6. CEST — Substituição Tributária Estadual (CONFAZ)</option>
+                <option value="cClassTrib">
+                  3. cClassTrib — Classificação Tributária IBS/CBS (CGIBS/RFB)
+                </option>
+                <option value="CST">4. CST — Situação Tributária IBS/CBS (RFB/SPED)</option>
+                <option value="cCredPres">5. cCredPres — Crédito Presumido (SVRS/CGIBS)</option>
+                <option value="CFOP">8. CFOP — Operações e Prestações (CONFAZ/SINIEF)</option>
+                <option value="NBS">9. NBS — Serviços e Intangíveis (MDIC/RFB)</option>
+                <option value="CNAE 2.3">10. CNAE 2.3 — Atividades Econômicas (IBGE/CONCLA)</option>
+                <option value="cBenef">11. cBenef — Benefícios Fiscais (Sefaz UFs)</option>
+                <option value="MVA-ST">7. MVA-ST — Margem de Valor Agregado (CONFAZ)</option>
+                <option value="Nome">1. Nome — Especificação Usual de Produtos (RFB/MAPA)</option>
+                <option value="TODOS">Todos — Consolidado de 11 Tabelas Oficiais</option>
+              </select>
+            </div>
+            <div>
+              <label>Formato do Arquivo</label>
+              <select id="base_formato_select" onchange="atualizarDadosBase()">
+                <option value="csv">CSV (Padrão Excel BR com BOM UTF-8 e ponto-e-vírgula)</option>
+                <option value="json">JSON (Estruturado UTF-8 para ERP / Integrações)</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="margin-top: 10px">
+            <label
+              >Link direto de download (servido pelo sistema ADECONT — política
+              anti-bloqueio)</label
+            >
+            <div style="display: flex; gap: 6px">
+              <input
+                id="base_url_view"
+                readonly
+                style="background: #eef2f6; font-family: monospace; font-size: 0.78rem"
+              />
+              <button class="btn btn-cinza" onclick="copiarLinkBase()" style="white-space: nowrap">
+                📋 Copiar Link
+              </button>
+              <a
+                id="base_link_baixar"
+                class="btn btn-verde"
+                href="#"
+                target="_blank"
+                download
+                style="white-space: nowrap"
+              >
+                ⬇ Baixar Agora
+              </a>
+            </div>
+          </div>
+
+          <label style="margin-top: 10px"
+            >Mensagem institucional ADECONT pronta para envio ao cliente:</label
+          >
+          <textarea
+            id="base_msg_preview"
+            rows="8"
+            style="font-family: monospace; font-size: 0.8rem"
+          ></textarea>
+
+          <div style="display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap">
+            <button class="btn btn-verde" onclick="enviarBaseWa()">💬 Enviar no WhatsApp</button>
+            <button class="btn btn-azul" onclick="enviarBaseEmail()">✉️ Enviar por E-mail</button>
+            <button class="btn btn-cinza" onclick="copiarMensagemBase()">📋 Copiar mensagem</button>
+          </div>
+          <span id="baseMsg" class="msg"></span>
+        </div>
+
+        <!-- Bloco de Depósito no Banco de Dados -->
+        <div
+          style="
+            background: #fff;
+            border: 1px solid #dbe3ee;
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 14px;
+          "
+        >
+          <h3 style="font-size: 0.9rem; color: #0f4c3a; margin-bottom: 8px">
+            2. Depositar link da base no banco de dados da Central
+          </h3>
+          <p class="nota" style="margin-bottom: 8px">
+            Registra na coleção de atalhos e entregas do sistema (<code>install_shortcuts</code>)
+            para ficar acessível no Histórico da Central, registrando autor e contador de envios.
+          </p>
+          <div class="row">
+            <div>
+              <label>Título do Envio *</label>
+              <input
+                id="dep_base_titulo"
+                placeholder="Ex.: Base NCM Completa (15.240 itens) — Download Excel"
+              />
+            </div>
+            <div>
+              <label>Autor / Responsável</label>
+              <input id="dep_base_autor" value="Equipe ADECONT" />
+            </div>
+          </div>
+          <div style="margin-top: 8px">
+            <label>Observações internas</label>
+            <input
+              id="dep_base_obs"
+              placeholder="Ex.: Base oficial 01/10/2026 para parametrização fiscal de clientes"
+            />
+          </div>
+          <button
+            class="btn"
+            style="background: #0f4c3a; color: #fff; margin-top: 10px"
+            onclick="depositarBaseNoBanco()"
+          >
+            📥 Salvar e Depositar Link no Banco
+          </button>
+          <span id="depBaseMsg" class="msg"></span>
+        </div>
+
+        <!-- Histórico unificado -->
+        <h3 style="font-size: 0.9rem; color: #0f4c3a; margin-top: 14px; margin-bottom: 6px">
+          3. Histórico de envios e depósitos da Central
+          <span class="count-badge" id="cntHistBase">0</span>
+        </h3>
+        <div style="overflow-x: auto">
+          <table id="tblHistBase">
+            <thead>
+              <tr>
+                <th>Título</th>
+                <th>Tipo / Tabela</th>
+                <th>URL</th>
+                <th>Autor</th>
+                <th>Envios</th>
+                <th>Data</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
     </main>
     <script>
       // ---------- infra ----------
@@ -554,7 +750,7 @@
         }, 6000)
       }
       function aba(t) {
-        ;['cad', 'imp', 'env', 'inst'].forEach(function (x) {
+        ;['cad', 'imp', 'env', 'inst', 'base'].forEach(function (x) {
           var el = document.getElementById('tab-' + x)
           if (el) el.style.display = x === t ? 'block' : 'none'
         })
@@ -564,6 +760,7 @@
         if (t === 'cad') carregarClientes()
         if (t === 'env') carregarEnvios()
         if (t === 'inst') carregarAtalhos()
+        if (t === 'base') carregarBaseClassificacoes()
       }
 
       // ---------- cadastro ----------
@@ -962,6 +1159,257 @@
           tb.appendChild(tr)
         })
         document.getElementById('cntAtalhos').textContent = listaAtalhos.length
+      }
+
+      // ---------- base de classificacoes (NCM e tabelas) ----------
+      var META_TABELAS = {
+        NCM: {
+          label: 'NCM (Nomenclatura Comum Mercosul)',
+          orgao: 'Siscomex / MDIC / RFB',
+          volume: '15.240 itens oficiais do Siscomex/MDIC (referência 01/10/2026)',
+        },
+        CEST: {
+          label: 'CEST (Substituição Tributária)',
+          orgao: 'CONFAZ (Conv. 142/18)',
+          volume: '100+ itens oficiais',
+        },
+        cClassTrib: {
+          label: 'cClassTrib (Classificação Tributária IBS/CBS)',
+          orgao: 'CGIBS / RFB / ENCAT',
+          volume: '15 itens oficiais',
+        },
+        CST: {
+          label: 'CST (Situação Tributária IBS/CBS)',
+          orgao: 'RFB / CGIBS / SPED',
+          volume: '10 itens oficiais',
+        },
+        cCredPres: {
+          label: 'cCredPres (Crédito Presumido)',
+          orgao: 'SVRS / RFB / CGIBS',
+          volume: '7 itens oficiais',
+        },
+        CFOP: {
+          label: 'CFOP (Operações e Prestações)',
+          orgao: 'CONFAZ / SINIEF',
+          volume: '17 itens oficiais',
+        },
+        NBS: {
+          label: 'NBS (Nomenclatura de Serviços)',
+          orgao: 'RFB / MDIC / Codex',
+          volume: '10 itens oficiais',
+        },
+        'CNAE 2.3': {
+          label: 'CNAE 2.3 (Atividades Econômicas)',
+          orgao: 'IBGE / CONCLA',
+          volume: '13 itens oficiais',
+        },
+        cBenef: {
+          label: 'cBenef (Benefícios Fiscais)',
+          orgao: 'Sefaz Estaduais',
+          volume: '8 itens oficiais',
+        },
+        'MVA-ST': {
+          label: 'MVA-ST (Margem de Valor Agregado)',
+          orgao: 'CONFAZ / Sefaz UFs',
+          volume: '10 itens oficiais',
+        },
+        Nome: {
+          label: 'Nome / Especificação de Itens',
+          orgao: 'RFB / MAPA / CFC',
+          volume: '12 itens oficiais',
+        },
+        TODOS: {
+          label: 'Consolidado de 11 Tabelas Oficiais',
+          orgao: 'Consolidado Oficial',
+          volume: '15.350+ registros oficiais',
+        },
+      }
+
+      function getUrlExportacao(tipo, formato) {
+        var base = PB_URL || window.location.origin
+        var cleanBase = base.endsWith('/') ? base.slice(0, -1) : base
+        return (
+          cleanBase +
+          '/backend/v1/export-classifications?tipo=' +
+          encodeURIComponent(tipo || 'NCM') +
+          '&formato=' +
+          (formato || 'csv')
+        )
+      }
+
+      function carregarBaseClassificacoes() {
+        atualizarDadosBase()
+        pb('/api/collections/install_shortcuts/records?perPage=100&sort=-created')
+          .then(function (r) {
+            listaAtalhos = r.items || []
+            renderTabelaHistBase()
+          })
+          .catch(function () {
+            renderTabelaHistBase()
+          })
+      }
+
+      function atualizarDadosBase() {
+        var tipo = document.getElementById('base_tab_select').value || 'NCM'
+        var formato = document.getElementById('base_formato_select').value || 'csv'
+        var url = getUrlExportacao(tipo, formato)
+        var meta = META_TABELAS[tipo] || META_TABELAS['NCM']
+
+        document.getElementById('base_url_view').value = url
+        document.getElementById('base_link_baixar').href = url
+
+        var formatoDesc =
+          formato === 'csv'
+            ? 'Arquivo CSV com BOM UTF-8 e separador ponto-e-vírgula (;), abrindo diretamente no Microsoft Excel e Google Planilhas.'
+            : 'Arquivo JSON estruturado para integrações em sistemas ERP e fiscais.'
+
+        var msgTxt =
+          '*ADECONT — Assessoria Contábil e Administrativa*\n' +
+          '📊 *Base Oficial de Classificações (' +
+          tipo +
+          ')*\n\n' +
+          'Prezado cliente,\n' +
+          'Disponibilizamos o download da base oficial completa de classificações do *Panorama da Reforma Tributária*:\n\n' +
+          '📁 *Tabela:* ' +
+          meta.label +
+          '\n' +
+          '🏛️ *Fonte Oficial:* ' +
+          meta.orgao +
+          '\n' +
+          '📦 *Volume:* ' +
+          meta.volume +
+          '\n' +
+          '⚙️ *Compatibilidade:* ' +
+          formatoDesc +
+          '\n\n' +
+          '🔗 *Link Oficial de Download Direto:*\n' +
+          url +
+          '\n\n' +
+          '🛡️ *Segurança ADECONT:*\n' +
+          '- Download direto do sistema da ADECONT (política anti-bloqueio, sem linkar direto em cgibs.gov.br).\n' +
+          '- Atualização contínua pelas normas da Reforma Tributária (LC 214/2025).\n\n' +
+          'Assessoria Contábil e Administrativa ADECONT à disposição.'
+
+        document.getElementById('base_msg_preview').value = msgTxt
+
+        // Atualiza sugestão de título no formulário de depósito
+        if (!document.getElementById('dep_base_titulo').value) {
+          document.getElementById('dep_base_titulo').placeholder =
+            'Base ' + tipo + ' Completa (' + formato.toUpperCase() + ') — ' + meta.volume
+        }
+      }
+
+      function copiarLinkBase() {
+        var el = document.getElementById('base_url_view')
+        el.select()
+        navigator.clipboard.writeText(el.value).then(function () {
+          msg('baseMsg', 'Link de download copiado com sucesso!', true)
+        })
+      }
+
+      function copiarMensagemBase() {
+        var el = document.getElementById('base_msg_preview')
+        el.select()
+        navigator.clipboard.writeText(el.value).then(function () {
+          msg('baseMsg', 'Mensagem institucional completa copiada!', true)
+        })
+      }
+
+      function enviarBaseWa() {
+        var txt = document.getElementById('base_msg_preview').value
+        window.open('https://wa.me/?text=' + encodeURIComponent(txt), '_blank')
+      }
+
+      function enviarBaseEmail() {
+        var tipo = document.getElementById('base_tab_select').value || 'NCM'
+        var txt = document.getElementById('base_msg_preview').value
+        var subject = 'Base Oficial de Classificações (' + tipo + ') — ADECONT'
+        window.location.href =
+          'mailto:?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(txt)
+      }
+
+      function depositarBaseNoBanco() {
+        var tipo = document.getElementById('base_tab_select').value || 'NCM'
+        var formato = document.getElementById('base_formato_select').value || 'csv'
+        var meta = META_TABELAS[tipo] || META_TABELAS['NCM']
+        var url = getUrlExportacao(tipo, formato)
+
+        var tit =
+          document.getElementById('dep_base_titulo').value.trim() ||
+          'Base ' + tipo + ' Completa (' + formato.toUpperCase() + ') — ' + meta.volume
+        var aut = document.getElementById('dep_base_autor').value.trim() || 'Equipe ADECONT'
+        var obs =
+          document.getElementById('dep_base_obs').value.trim() ||
+          'Download da base oficial ' + tipo + ' com ' + meta.volume
+
+        var inst =
+          '1. Baixe o arquivo ' +
+          formato.toUpperCase() +
+          ' no link oficial.\n' +
+          '2. No Excel: Arquivo -> Abrir (arquivo codificado com BOM UTF-8 e ponto-e-virgula).\n' +
+          '3. Fonte: ' +
+          meta.orgao +
+          ' — ADECONT Assessoria Contábil e Administrativa.'
+
+        pb('/api/collections/install_shortcuts/records', {
+          method: 'POST',
+          body: JSON.stringify({
+            titulo: tit,
+            device_type: 'todos',
+            url: url,
+            instrucoes: inst,
+            observacoes: obs,
+            criado_por: aut,
+            envios_count: 0,
+          }),
+        })
+          .then(function () {
+            msg('depBaseMsg', 'Link da base oficial depositado com sucesso no banco!', true)
+            document.getElementById('dep_base_titulo').value = ''
+            document.getElementById('dep_base_obs').value = ''
+            carregarBaseClassificacoes()
+          })
+          .catch(function (err) {
+            msg('depBaseMsg', 'Erro ao salvar no banco. Verifique token ou permissões.', false)
+          })
+      }
+
+      function renderTabelaHistBase() {
+        var tb = document.querySelector('#tblHistBase tbody')
+        if (!tb) return
+        tb.innerHTML = ''
+        listaAtalhos.forEach(function (s) {
+          var isBase =
+            (s.url && s.url.indexOf('export-classifications') >= 0) ||
+            (s.titulo && (s.titulo.indexOf('Base') >= 0 || s.titulo.indexOf('NCM') >= 0))
+          var tr = document.createElement('tr')
+          tr.style.background = isBase ? '#f0fdf4' : ''
+          tr.innerHTML =
+            '<td><b>' +
+            s.titulo +
+            '</b>' +
+            (isBase ? ' <span class="tag t-recebido">Base Oficial</span>' : '') +
+            '</td>' +
+            '<td>' +
+            (isBase ? 'Exportação' : s.device_type) +
+            '</td>' +
+            '<td style="max-width:220px;overflow:hidden;text-overflow:ellipsis"><a href="' +
+            s.url +
+            '" target="_blank" style="color:#0f4c3a;font-weight:600">' +
+            s.url +
+            '</a></td>' +
+            '<td>' +
+            (s.criado_por || 'Sistema ADECONT') +
+            '</td>' +
+            '<td>' +
+            (s.envios_count || 0) +
+            '</td>' +
+            '<td>' +
+            fmtData(s.created) +
+            '</td>'
+          tb.appendChild(tr)
+        })
+        document.getElementById('cntHistBase').textContent = listaAtalhos.length
       }
 
       carregarClientes()
