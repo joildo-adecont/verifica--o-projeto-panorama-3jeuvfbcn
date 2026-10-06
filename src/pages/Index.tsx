@@ -25,6 +25,7 @@ import { SectionAssistentesSeguranca } from '@/components/SectionAssistentesSegu
 import { SectionControleAcesso } from '@/components/SectionControleAcesso'
 import { SectionResponsividade } from '@/components/SectionResponsividade'
 import { SectionHistoricoAtualizacoes } from '@/components/SectionHistoricoAtualizacoes'
+import { SumarioFlutuante } from '@/components/SumarioFlutuante'
 import { PanoramaFooter } from '@/components/PanoramaFooter'
 import { fetchTaxNorms } from '@/services/panorama'
 import type { TaxNormItem } from '@/types/panorama'
@@ -66,6 +67,7 @@ export default function Index() {
       {/* Menu lateral fixo de acesso rápido (teclas 1-9, Q, W, H) */}
       <PanoramaSideMenu />
 
+      <SumarioFlutuante />
       <div className="lg:pl-60 flex flex-col min-h-screen">
         {/* 1. Header fixo com status de atualização, botões automáticos e busca */}
         <PanoramaHeader
