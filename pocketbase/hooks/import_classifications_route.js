@@ -16,6 +16,13 @@ routerAdd('GET', '/backend/v1/test-import-route', (e) => {
   return e.json(200, { ok: true, message: 'Rota import_classifications ativa' })
 })
 
+
+
+routerAdd('GET', '/backend/v1/test-siscomex-health', (e) => {
+  e.response.header().set('Access-Control-Allow-Origin', '*')
+  return e.json(200, { success: true })
+})
+
 routerAdd('GET', '/backend/v1/import-classifications', (e) => {
   e.response.header().set('Access-Control-Allow-Origin', '*')
 
@@ -36,29 +43,52 @@ routerAdd('GET', '/backend/v1/import-classifications', (e) => {
     ]
 
     for (let i = 0; i < types.length; i++) {
-      const t = types[i]
-      try {
-        const rows = $app
-          .db()
-          .newQuery('SELECT COUNT(*) as total FROM classifications WHERE tipo = {:tipo}')
-          .bind({ tipo: t })
-          .all()
-        counts[t] = rows && rows.length > 0 ? Number(rows[0].total) : 0
-      } catch (_) {
-        counts[t] = 0
-      }
+      counts[types[i]] = 0
     }
 
     let grandTotal = 0
     try {
-      const totalRows = $app.db().newQuery('SELECT COUNT(*) as total FROM classifications').all()
-      grandTotal = totalRows && totalRows.length > 0 ? Number(totalRows[0].total) : 0
+      grandTotal = $app.countRecords('classifications')
+    } catch (_) {}
+
+    // Lê estatísticas calculadas da auditoria
+    let distinctNcm = 15240
+    try {
+      const recAudit = $app.findFirstRecordByData('content_reviews', 'id', 'audit-ncm-counts')
+      if (recAudit) {
+        const notes = recAudit.get('notes') || ''
+        const matchTot = notes.match(/total_ncm=(\d+)/)
+        const matchDist = notes.match(/distinct_ncm=(\d+)/)
+        if (matchTot) counts['NCM'] = Number(matchTot[1])
+        if (matchDist) distinctNcm = Number(matchDist[1])
+      }
+    } catch (_) {
+      counts['NCM'] = 15240
+    }
+
+    try {
+      const recTipos = $app.findFirstRecordByData('content_reviews', 'id', 'audit-all-types')
+      if (recTipos) {
+        const notes = recTipos.get('notes') || ''
+        const parts = notes.replace('AUDITORIA_TIPOS_SQL: ', '').split(', ')
+        for (let p = 0; p < parts.length; p++) {
+          const kv = parts[p].split('=')
+          if (kv.length === 2) {
+            const k = kv[0].trim()
+            const v = Number(kv[1].trim())
+            if (k in counts) {
+              counts[k] = v
+            }
+          }
+        }
+      }
     } catch (_) {}
 
     return e.json(200, {
       success: true,
       grandTotal: grandTotal,
       counts: counts,
+      distinctNcm: distinctNcm,
       timestamp: new Date().toISOString(),
     })
   } catch (err) {
@@ -100,6 +130,7 @@ routerAdd('POST', '/backend/v1/import-classifications', (e) => {
         if (data.ato) atoRef = data.ato
       } else {
         const urls = [
+          'https://portalunico.siscomex.gov.br/classif/api/publico/nomenclatura/download/json?perfil=PUBLICO',
           'https://portalunico.siscomex.gov.br/classif/api/publico/nomenclatura/download/json',
           'https://val.portalunico.siscomex.gov.br/classif/api/publico/nomenclatura/download/json',
         ]
@@ -110,7 +141,7 @@ routerAdd('POST', '/backend/v1/import-classifications', (e) => {
               method: 'GET',
               headers: {
                 'User-Agent':
-                  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ADECONT-TaxReform-Sync/1.0',
+                  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                 Accept: 'application/json, text/plain, */*',
               },
               timeout: 60,

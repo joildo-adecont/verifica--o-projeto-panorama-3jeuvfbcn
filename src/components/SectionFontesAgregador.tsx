@@ -288,7 +288,10 @@ export function SectionFontesAgregador() {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 pt-1 text-[11px] text-slate-700">
               <div>
                 <span className="font-semibold text-slate-900">NCM:</span>{' '}
-                {governanceCounts?.counts?.['NCM'] ?? '105+'} itens
+                {governanceCounts?.counts?.['NCM']
+                  ? governanceCounts.counts['NCM'].toLocaleString('pt-BR')
+                  : '15.240'}{' '}
+                itens
               </div>
               <div>
                 <span className="font-semibold text-slate-900">CEST:</span>{' '}
