@@ -39,6 +39,23 @@ const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
     data: '05/10/2026',
+    hora: '22:20',
+    titulo:
+      'Trava de Segurança na Seção 16 — Rate Limit (porta giratória) + bloqueio na 3ª tentativa',
+    conteudo:
+      'A pedido do CEO, a Seção 16 ganhou uma TRAVA DE SEGURANÇA com dois mecanismos: (1) RATE LIMIT — a "porta giratória": a mesma chave só pode fazer 10 pedidos por minuto ao sistema; o 11º é recusado com aviso para aguardar 1 minuto (impede que acessos repetidos derrubem a aplicação por cansaço computacional — exemplo do CEO: fila de banco com porta giratória que só atende dez pessoas por vez); (2) BLOQUEIO NA 3ª TENTATIVA FALHA — 3 comandos negados seguidos (sem chave válida ou nível insuficiente) e a chave fica BLOQUEADA: todo pedido seguinte é recusado até o desbloqueio. DESBLOQUEIO SOMENTE PELO ADMINISTRADOR (Nível 04 — chave mestra/token do painel), com botão 🔓 na fila da trava e registro na auditoria (coleção acesso_comandos). A trava roda no backend dentro dos 4 comandos do Controle de Acesso (VER/CRIAR/EDITAR/APAGAR) — mesmo burlando a tela, é aplicada; registros na nova coleção acesso_bloqueios (migration 0051), exibidos na "Fila da trava" da Seção 16 (falhas X/3, pedidos/minuto 0/10, último comando, estado OK/BLOQUEADA).',
+    fontes: [
+      {
+        nome: 'LC 214/2025 compilada — Planalto (fonte oficial primária de referência)',
+        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+      },
+    ],
+    caminho:
+      'Panorama (62493) — src/components/SectionControleAcesso.tsx (cartão da trava + fila) + pocketbase/hooks/controle_acesso.js (trava nos 4 comandos) + pocketbase/hooks/acesso_bloqueios.js (ver fila/desbloquear N4) + pocketbase/migrations/0051_acesso_bloqueios.js',
+    versao: '62493 v0.0.154',
+  },
+  {
+    data: '05/10/2026',
     hora: '22:10',
     titulo:
       'Seção 16 — Níveis de Acesso (CRUD) & Autorizações de Uso (tecla L) — modelo das chaves de hotel',

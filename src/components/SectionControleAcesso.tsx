@@ -88,6 +88,20 @@ interface Usuario {
   updated?: string
 }
 
+interface Bloqueio {
+  id: string
+  chave: string
+  tentativas: number
+  bloqueado: boolean
+  bloqueado_em: string
+  ultimo_comando: string
+  ultimo_motivo: string
+  acessos_janela: number
+  janela_expirada: boolean
+  desbloqueado_por: string
+  desbloqueado_em: string
+}
+
 const PB_URL = 'https://verificacao-projeto-panorama-18549.shrd00.internal.goskip.dev'
 
 function badgeNivel(n: number) {
@@ -115,6 +129,42 @@ export function SectionControleAcesso() {
   const [editNivel, setEditNivel] = useState(1)
   const [editAtivo, setEditAtivo] = useState(true)
   const [delId, setDelId] = useState<string | null>(null)
+  const [bloqueios, setBloqueios] = useState<Bloqueio[]>([])
+  const [carregandoBloqueios, setCarregandoBloqueios] = useState(false)
+
+  const carregarBloqueios = async () => {
+    setCarregandoBloqueios(true)
+    try {
+      const r = await fetch(`${PB_URL}/backend/v1/acesso-bloqueios`, {
+        headers: { 'X-Painel-Token': lerToken() },
+      })
+      const j = await r.json()
+      if (r.ok && j.bloqueios) setBloqueios(j.bloqueios)
+    } catch {
+      /* silencioso — a lista aparece vazia */
+    } finally {
+      setCarregandoBloqueios(false)
+    }
+  }
+
+  const desbloquear = async (chave: string) => {
+    setMsg(null)
+    try {
+      const r = await fetch(`${PB_URL}/backend/v1/acesso-bloqueios`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Painel-Token': lerToken() },
+        body: JSON.stringify({ chave }),
+      })
+      const j = await r.json()
+      if (!r.ok) setMsg({ ok: false, texto: j.error || 'Erro ao desbloquear.' })
+      else {
+        setMsg({ ok: true, texto: `🔓 Chave ${chave} desbloqueada pelo administrador.` })
+        carregarBloqueios()
+      }
+    } catch {
+      setMsg({ ok: false, texto: 'Falha de conexão com o backend.' })
+    }
+  }
 
   const lerToken = () =>
     typeof window !== 'undefined' ? window.localStorage.getItem('simul_painel_token') || '' : ''
@@ -148,6 +198,7 @@ export function SectionControleAcesso() {
 
   useEffect(() => {
     carregar()
+    carregarBloqueios()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -363,6 +414,148 @@ export function SectionControleAcesso() {
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* Trava de segurança — Rate Limit + bloqueio na 3ª tentativa */}
+      <div className="mt-6 rounded-xl border-2 border-rose-200 bg-rose-50 overflow-hidden">
+        <div className="px-4 py-3 bg-rose-700 border-b-2 border-rose-300 flex items-center justify-between gap-3 flex-wrap">
+          <h3 className="text-sm font-bold text-white flex items-center gap-2">
+            <ShieldCheck className="w-4 h-4 text-rose-100" />🔒 Trava de Segurança — Rate Limit &
+            Bloqueio
+          </h3>
+          <span className="text-[11px] text-rose-100 hidden sm:inline">
+            porta giratória: 10 pedidos/minuto · bloqueio na 3ª tentativa falha
+          </span>
+        </div>
+        <div className="p-4">
+          <div className="grid sm:grid-cols-3 gap-3 mb-4">
+            <div className="rounded-lg bg-white border border-rose-200 p-3">
+              <p className="text-xs font-bold text-rose-800">🚪 Porta giratória (Rate Limit)</p>
+              <p className="text-[11px] text-slate-600 mt-1 leading-snug">
+                A mesma chave só faz <b>10 pedidos por minuto</b>. O 11º volta com aviso “aguarde 1
+                minuto” — como a fila do banco que não deixa a agência lotar.
+              </p>
+            </div>
+            <div className="rounded-lg bg-white border border-rose-200 p-3">
+              <p className="text-xs font-bold text-rose-800">⛔ Bloqueio na 3ª tentativa</p>
+              <p className="text-[11px] text-slate-600 mt-1 leading-snug">
+                <b>3 comandos negados</b> (sem chave, nível insuficiente) e a chave fica
+                <b> BLOQUEADA</b> — todo pedido seguinte é recusado até o desbloqueio.
+              </p>
+            </div>
+            <div className="rounded-lg bg-white border border-rose-200 p-3">
+              <p className="text-xs font-bold text-rose-800">
+                🔑 Desbloqueio só com o administrador
+              </p>
+              <p className="text-[11px] text-slate-600 mt-1 leading-snug">
+                Somente o <b>Nível 04</b> (chave mestra / token do painel) devolve a chave ao mural.
+                Cada desbloqueio fica registrado na auditoria.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between mb-2">
+            <h4 className="text-xs font-bold uppercase tracking-wide text-slate-500">
+              Fila da trava — chaves monitoradas
+              <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 text-[11px] font-bold">
+                {bloqueios.length}
+              </span>
+            </h4>
+            <button
+              onClick={carregarBloqueios}
+              disabled={carregandoBloqueios}
+              className="p-2 rounded-lg border border-rose-300 text-rose-700 hover:bg-rose-100 disabled:opacity-50"
+              title="Atualizar fila da trava"
+            >
+              <RefreshCw className={`w-4 h-4 ${carregandoBloqueios ? 'animate-spin' : ''}`} />
+            </button>
+          </div>
+          <div className="overflow-x-auto rounded-lg border border-rose-200 bg-white">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-rose-700 text-white border-b-2 border-rose-300">
+                  <th className="px-3 py-2 text-left text-xs uppercase font-semibold">Chave</th>
+                  <th className="px-3 py-2 text-center text-xs uppercase font-semibold">Falhas</th>
+                  <th className="px-3 py-2 text-center text-xs uppercase font-semibold">
+                    Pedidos/min
+                  </th>
+                  <th className="px-3 py-2 text-left text-xs uppercase font-semibold">
+                    Último comando
+                  </th>
+                  <th className="px-3 py-2 text-center text-xs uppercase font-semibold">Estado</th>
+                  <th className="px-3 py-2 text-right text-xs uppercase font-semibold">
+                    Ação (N4)
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {carregandoBloqueios && bloqueios.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="px-3 py-4 text-center text-slate-400 text-xs">
+                      Carregando fila da trava…
+                    </td>
+                  </tr>
+                )}
+                {!carregandoBloqueios && bloqueios.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="px-3 py-4 text-center text-slate-400 text-xs">
+                      Nenhuma chave monitorada ainda — a trava registra na primeira tentativa.
+                    </td>
+                  </tr>
+                )}
+                {bloqueios.map((b) => (
+                  <tr key={b.id} className="border-b border-slate-100">
+                    <td className="px-3 py-2 font-mono text-xs font-bold text-slate-800">
+                      {b.chave}
+                    </td>
+                    <td className="px-3 py-2 text-center">
+                      <span
+                        className={`inline-block px-2 py-0.5 rounded-full text-[11px] font-bold ${
+                          b.tentativas >= 3
+                            ? 'bg-rose-100 text-rose-800'
+                            : 'bg-amber-100 text-amber-800'
+                        }`}
+                      >
+                        {b.tentativas}/3
+                      </span>
+                    </td>
+                    <td className="px-3 py-2 text-center text-xs text-slate-600">
+                      {b.acessos_janela}/10{b.janela_expirada ? ' (janela renovada)' : ''}
+                    </td>
+                    <td className="px-3 py-2 text-xs text-slate-600">
+                      <b>{b.ultimo_comando || '—'}</b>
+                      {b.ultimo_motivo && (
+                        <span className="block text-[10px] text-slate-400">{b.ultimo_motivo}</span>
+                      )}
+                    </td>
+                    <td className="px-3 py-2 text-center">
+                      <span
+                        className={`inline-block px-2 py-0.5 rounded-full text-[11px] font-bold ${
+                          b.bloqueado ? 'bg-rose-600 text-white' : 'bg-emerald-100 text-emerald-800'
+                        }`}
+                      >
+                        {b.bloqueado ? '🔒 BLOQUEADA' : 'OK'}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2 text-right">
+                      {b.bloqueado ? (
+                        <button
+                          onClick={() => desbloquear(b.chave)}
+                          className="inline-flex items-center gap-1 px-2 py-1.5 rounded-lg bg-rose-700 text-white text-xs font-bold hover:bg-rose-800"
+                          title="Desbloquear (somente N4 — administrador)"
+                        >
+                          🔓 Desbloquear
+                        </button>
+                      ) : (
+                        <span className="text-[11px] text-slate-300">—</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
 
       {/* Mural de chaves */}
