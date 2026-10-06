@@ -384,7 +384,7 @@ export function PanoramaSideMenu() {
               </span>
               <span className="flex-1 leading-tight">{item.label}</span>
               <kbd
-                className={`hidden lg:inline-flex items-center px-1 rounded text-[10px] font-mono ${
+                className={`inline-flex items-center px-1 rounded text-[10px] font-mono ${
                   isAtivo
                     ? 'bg-panorama-gold/20 text-panorama-gold-dark'
                     : 'bg-slate-100 text-slate-400'
