@@ -266,21 +266,42 @@ ${url}
 Em caso de dúvidas na parametrização contábil do seu sistema, nossa equipe de Assessoria Contábil e Administrativa está à disposição.`
   }
 
+  function formatarUrlDownload(rawUrl?: string): string {
+    if (!rawUrl) return downloadUrl
+    if (rawUrl.startsWith('http://') || rawUrl.startsWith('https://')) {
+      return rawUrl
+    }
+    const origin = typeof window !== 'undefined' ? window.location.origin : ''
+    return rawUrl.startsWith('/') ? `${origin}${rawUrl}` : `${origin}/${rawUrl}`
+  }
+
   async function handleEnviarWhatsApp(shortcutItem?: InstallShortcutItem) {
-    const texto = gerarTextoMensagem(shortcutItem?.url, shortcutItem?.titulo)
+    const urlFinal = formatarUrlDownload(shortcutItem?.url)
+    const texto = gerarTextoMensagem(urlFinal, shortcutItem?.titulo)
     const waUrl = 'https://wa.me/?text=' + encodeURIComponent(texto)
     if (shortcutItem?.id) {
       await registerShortcutSend(shortcutItem.id)
+      setShortcuts((prev) =>
+        prev.map((s) =>
+          s.id === shortcutItem.id ? { ...s, envios_count: (s.envios_count || 0) + 1 } : s,
+        ),
+      )
     }
     window.open(waUrl, '_blank')
   }
 
   async function handleEnviarEmail(shortcutItem?: InstallShortcutItem) {
-    const texto = gerarTextoMensagem(shortcutItem?.url, shortcutItem?.titulo)
+    const urlFinal = formatarUrlDownload(shortcutItem?.url)
+    const texto = gerarTextoMensagem(urlFinal, shortcutItem?.titulo)
     const assunto = `Base Oficial de Classificações (${tabelaSelecionada}) — ADECONT`
     const mailto = `mailto:?subject=${encodeURIComponent(assunto)}&body=${encodeURIComponent(texto)}`
     if (shortcutItem?.id) {
       await registerShortcutSend(shortcutItem.id)
+      setShortcuts((prev) =>
+        prev.map((s) =>
+          s.id === shortcutItem.id ? { ...s, envios_count: (s.envios_count || 0) + 1 } : s,
+        ),
+      )
     }
     window.location.href = mailto
   }
@@ -817,7 +838,7 @@ Em caso de dúvidas na parametrização contábil do seu sistema, nossa equipe d
                           <button
                             onClick={() => {
                               copiarParaClipboard(
-                                gerarTextoMensagem(item.url, item.titulo),
+                                gerarTextoMensagem(formatarUrlDownload(item.url), item.titulo),
                                 `hist_${item.id}`,
                               )
                             }}
@@ -839,7 +860,7 @@ Em caso de dúvidas na parametrização contábil do seu sistema, nossa equipe d
                             <MessageCircle className="w-4 h-4" />
                           </button>
                           <a
-                            href={item.url}
+                            href={formatarUrlDownload(item.url)}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="p-1.5 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200"

@@ -85,6 +85,19 @@ const FALLBACK_SHORTCUTS: InstallShortcutItem[] = [
     envios_count: 0,
     created: new Date().toISOString(),
   },
+  {
+    id: 'local-base-ncm',
+    titulo: 'Base de Classificações NCM — Completa (15.240 itens oficiais)',
+    device_type: 'todos',
+    url: '/backend/v1/export-classifications?tipo=NCM&formato=csv',
+    instrucoes:
+      '1. Clique no link para baixar o arquivo CSV oficial da base NCM.\n2. Compatibilidade direta: arquivo codificado com BOM UTF-8 e separador ponto-e-vírgula (;), abrindo com acentuação e colunas perfeitas no Microsoft Excel e Google Planilhas.\n3. Contém a base integral NCM oficial (15.240 itens oficiais do Siscomex/MDIC, referência 01/10/2026) servida pelo backend seguro ADECONT (política anti-bloqueio).',
+    observacoes:
+      'Base oficial completa NCM (15.240 itens Siscomex/MDIC, ref. 01/10/2026) em CSV com BOM UTF-8 e ponto-e-vírgula.',
+    criado_por: 'Equipe ADECONT',
+    envios_count: 0,
+    created: new Date().toISOString(),
+  },
 ]
 
 export async function fetchInstallShortcuts(): Promise<InstallShortcutItem[]> {
