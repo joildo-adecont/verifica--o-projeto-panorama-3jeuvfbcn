@@ -71,7 +71,7 @@ routerAdd('GET', '/backend/v1/acesso-usuarios', (e) => {
     audit('VER', 1, cham.email, 'NEGADO', 'nível insuficiente (N' + cham.nivel + ')')
     return e.json(403, { status: 403, error: 'Comando VER exige Nível 01.' })
   }
-  var registros = $app.findRecordsByFilter('acesso_usuarios', 'id != ""', '-updated', 0, 0)
+  var registros = $app.findRecordsByFilter('acesso_usuarios', 'id != ""', '-atualizado_em', 0, 0)
   var lista = []
   for (var i = 0; i < registros.length; i++) {
     var u = registros[i]
