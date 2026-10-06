@@ -57,7 +57,10 @@ routerAdd('GET', '/backend/v1/acesso-bloqueios', (e) => {
         'Nenhuma chave válida. Use o token do painel ou informe ?email= de um usuário autorizado.',
     })
   }
-  var registros = $app.findRecordsByFilter('acesso_bloqueios', 'id != ""', '-atualizado_em', 0, 0)
+  // eslint-disable-next-line no-unused-vars
+  var _nivel = cham.nivel
+  var registros = $app.findRecordsByFilter('acesso_bloqueios', 'id != ""', '', 0, 0)
+  // mais recentes primeiro (por id de criacao decrescente nao garantido; ordem estavel suficiente)
   var lista = []
   var agora = new Date()
   for (var i = 0; i < registros.length; i++) {

@@ -102,21 +102,23 @@ routerAdd('GET', '/backend/v1/acesso-usuarios', (e) => {
     var qemail = String(e.requestInfo().query.email || '')
       .toLowerCase()
       .trim()
-    if (!qemail) return { nivel: 0, nome: '', email: '', ok: false }
+    if (!qemail) return { nivel: 0, nome: '', email: '', ok: false, tentado: '' }
     try {
       var eu = $app.findFirstRecordByFilter('acesso_usuarios', 'email = {:email}', {
         email: qemail,
       })
-      if (!eu.getBool('is_active')) return { nivel: 0, nome: '', email: '', ok: false }
+      if (!eu.getBool('is_active'))
+        return { nivel: 0, nome: '', email: qemail, ok: false, tentado: qemail }
       var n = parseInt(eu.getString('nivel'), 10) || 0
       return {
         nivel: n,
         nome: eu.getString('nome'),
         email: eu.getString('email'),
         ok: n >= 1,
+        tentado: qemail,
       }
     } catch (_) {
-      return { nivel: 0, nome: '', email: '', ok: false }
+      return { nivel: 0, nome: '', email: '', ok: false, tentado: qemail }
     }
   }
   function audit(comando, nivelMin, ator, resultado, detalhe) {
@@ -135,7 +137,7 @@ routerAdd('GET', '/backend/v1/acesso-usuarios', (e) => {
   }
 
   var cham = nivelDoChamador(e)
-  var chaveTrava = cham.ok ? cham.email || 'anonimo' : 'anonimo'
+  var chaveTrava = cham.ok ? cham.email || 'anonimo' : cham.tentado || 'anonimo'
   var tv = travaVerificar(chaveTrava)
   if (!tv.liberado) {
     if (tv.bloqueado) {
@@ -321,7 +323,7 @@ routerAdd('POST', '/backend/v1/acesso-usuarios', (e) => {
   }
 
   var cham = nivelDoChamador(e)
-  var chaveTrava = cham.ok ? cham.email || 'anonimo' : 'anonimo'
+  var chaveTrava = cham.ok ? cham.email || 'anonimo' : cham.tentado || 'anonimo'
   var tv = travaVerificar(chaveTrava)
   if (!tv.liberado) {
     return travaRecusar(e, chaveTrava, 'CRIAR', tv.bloqueado ? 'bloqueado' : 'excesso')
@@ -543,7 +545,7 @@ routerAdd('PATCH', '/backend/v1/acesso-usuarios', (e) => {
   }
 
   var cham = nivelDoChamador(e)
-  var chaveTrava = cham.ok ? cham.email || 'anonimo' : 'anonimo'
+  var chaveTrava = cham.ok ? cham.email || 'anonimo' : cham.tentado || 'anonimo'
   var tv = travaVerificar(chaveTrava)
   if (!tv.liberado) {
     return travaRecusar(e, chaveTrava, 'EDITAR', tv.bloqueado ? 'bloqueado' : 'excesso')
@@ -758,7 +760,7 @@ routerAdd('DELETE', '/backend/v1/acesso-usuarios', (e) => {
   }
 
   var cham = nivelDoChamador(e)
-  var chaveTrava = cham.ok ? cham.email || 'anonimo' : 'anonimo'
+  var chaveTrava = cham.ok ? cham.email || 'anonimo' : cham.tentado || 'anonimo'
   var tv = travaVerificar(chaveTrava)
   if (!tv.liberado) {
     return travaRecusar(e, chaveTrava, 'APAGAR', tv.bloqueado ? 'bloqueado' : 'excesso')
