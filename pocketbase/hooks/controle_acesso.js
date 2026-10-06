@@ -16,11 +16,12 @@
 //    chave fica BLOQUEADA (423 Locked) ate o administrador (N4) desbloquear.
 //  - Desbloqueio: POST /backend/v1/acesso-bloqueios (hook acesso_bloqueios.js).
 // Registros da trava ficam na colecao acesso_bloqueios (migration 0051).
-var TRAVA_LIMITE_POR_MINUTO = 10
-var TRAVA_MAX_TENTATIVAS = 3
+// (constantes da trava definidas INLINE em cada callback — regra de QA do JSVM)
 
 // ---------- 1. VER (Nivel 1) ----------
 routerAdd('GET', '/backend/v1/acesso-usuarios', (e) => {
+  var TRAVA_LIMITE_POR_MINUTO = 10
+  var TRAVA_MAX_TENTATIVAS = 3
   function travaRegistrar(chave, falhou, comando, motivo) {
     var chaveNorm = String(chave || 'anonimo')
       .toLowerCase()
@@ -189,6 +190,8 @@ routerAdd('GET', '/backend/v1/acesso-usuarios', (e) => {
 
 // ---------- 2. CRIAR (Nivel 2) ----------
 routerAdd('POST', '/backend/v1/acesso-usuarios', (e) => {
+  var TRAVA_LIMITE_POR_MINUTO = 10
+  var TRAVA_MAX_TENTATIVAS = 3
   function nivelDoChamador(e) {
     var esperado = $secrets.get('SIMUL_PAINEL_TOKEN') || ''
     var recebido = e.request.header.get('X-Painel-Token') || ''
@@ -409,6 +412,8 @@ routerAdd('POST', '/backend/v1/acesso-usuarios', (e) => {
 
 // ---------- 3. EDITAR (Nivel 3) ----------
 routerAdd('PATCH', '/backend/v1/acesso-usuarios', (e) => {
+  var TRAVA_LIMITE_POR_MINUTO = 10
+  var TRAVA_MAX_TENTATIVAS = 3
   function nivelDoChamador(e) {
     var esperado = $secrets.get('SIMUL_PAINEL_TOKEN') || ''
     var recebido = e.request.header.get('X-Painel-Token') || ''
@@ -622,6 +627,8 @@ routerAdd('PATCH', '/backend/v1/acesso-usuarios', (e) => {
 
 // ---------- 4. APAGAR (Nivel 4) ----------
 routerAdd('DELETE', '/backend/v1/acesso-usuarios', (e) => {
+  var TRAVA_LIMITE_POR_MINUTO = 10
+  var TRAVA_MAX_TENTATIVAS = 3
   function nivelDoChamador(e) {
     var esperado = $secrets.get('SIMUL_PAINEL_TOKEN') || ''
     var recebido = e.request.header.get('X-Painel-Token') || ''
