@@ -80,10 +80,8 @@
     <script>
       var qs = new URLSearchParams(location.search)
       var token = qs.get('token') || ''
-      fetch(
-        'https://verificacao-projeto-panorama-18549.goskip.app/backend/v1/simul-confirmar?token=' +
-          encodeURIComponent(token),
-      )
+      var PB = window.location.origin
+      fetch(PB + '/backend/v1/simul-confirmar?token=' + encodeURIComponent(token))
         .then(function (r) {
           return r.json()
         })

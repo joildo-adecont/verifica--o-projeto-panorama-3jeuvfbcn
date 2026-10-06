@@ -160,9 +160,9 @@ export function SectionFontes() {
     },
     {
       orgao: 'CGIBS',
-      fonte: 'cgibs.gov.br/resolucoes',
+      fonte: 'cgibs.gov.br',
       conteudo: 'Resoluções do Comitê (Regulamento IBS 6/2026 e alterações)',
-      url: 'https://cgibs.gov.br/resolucoes',
+      url: 'https://www.cgibs.gov.br/',
     },
     {
       orgao: 'Receita Federal',
