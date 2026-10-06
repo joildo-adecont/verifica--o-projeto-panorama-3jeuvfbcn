@@ -1,5 +1,5 @@
 // Catalogo do Simulador de Transicao — ADECONT
-// 132 itens manuais/curados (prioridade) + 869 itens da Secao 7A deduplicados (fontes oficiais: RIBS, LC 214)
+// 133 itens manuais/curados (prioridade) + 869 itens da Secao 7A deduplicados (fontes oficiais: RIBS, LC 214)
 // Estrutura: [codigo, nome, grupo, fator, fonte]
 // Regenerado automaticamente pela rotina semanal de fontes oficiais
 const SIM_CATALOGO = [
@@ -572,7 +572,15 @@ const SIM_CATALOGO = [
     'imobiliario',
     1,
     'LC 214 art. 485, I',
-  ][('1', 'INSTALAÇÕES', 'depreciacao', 1.0, 'RIBS Anexo I (art. 48) — Depreciação')],
+  ],
+  [
+    '1.0506.00.00',
+    'Incorporação RET especial (Lei 10.931 arts. 4 §6º/8º) — 0,53% da receita mensal',
+    'imobiliario',
+    1,
+    'LC 214 art. 485, II',
+  ],
+  ['1', 'INSTALAÇÕES', 'depreciacao', 1.0, 'RIBS Anexo I (art. 48) — Depreciação'],
   ['2', 'EDIFICAÇÕES', 'depreciacao', 1.0, 'RIBS Anexo I (art. 48) — Depreciação'],
   ['3', 'Capítulo 01 ANIMAIS VIVOS', 'depreciacao', 1.0, 'RIBS Anexo I (art. 48) — Depreciação'],
   [

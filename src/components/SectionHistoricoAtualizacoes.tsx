@@ -38,6 +38,24 @@ function ehRecente(dataBR: string): boolean {
 const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
+    data: '06/10/2026',
+    hora: '10:50',
+    titulo:
+      'Auditor diário detectou e corrigiu corrupção no catálogo do Simulador — itens RET especial restaurados',
+    conteudo:
+      'A auditoria das 07h35 apontou divergência no catálogo do Simulador. A investigação encontrou uma elisão de concatenação (vírgula faltante entre o bloco manual e o bloco da Seção 7A) que fazia o JavaScript interpretar "][" como acesso de índice, engolindo 2 itens (1.0505.00.00 Incorporação com RET 2,08% e 1.0506.00.00 Incorporação RET especial 0,53%) e criando um slot null no array. CORREÇÕES: (1) regenerador com join corrigido, itens curados protegidos (PROTEGIDOS) e validação do JS via node ANTES do upload — nada inválido sobe; (2) catálogo regenerado com 1.002 itens (133 curados + 869 da Seção 7A), 9 imobiliários e 6 financeiros preservados; (3) Auditor de Automações v2 valida a integridade REAL do catálogo (parse via node, conta itens corrompidos, exige imo≥9 e fin≥6) em vez de contar linhas. Publicado e validado em produção.',
+    fontes: [
+      { nome: 'Regenerador do catálogo (scripts/sim-catalogo/regenerar.py) — correção v06/10' },
+      {
+        nome: 'Auditor de Automações (scripts/agentes/auditor.py) — v2 com validação de integridade',
+      },
+    ],
+    caminho:
+      'public/partes/sim-catalogo.js e public/panorama-reforma/partes/sim-catalogo.js (2 cópias) + auditor v2',
+    versao: '62493 v0.0.188',
+    bloco: 'sistema',
+  },
+  {
     data: '05/10/2026',
     hora: '23:45',
     titulo:
