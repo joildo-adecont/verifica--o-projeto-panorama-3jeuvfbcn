@@ -6,14 +6,14 @@ migrate(
     try {
       // Formato Goja dbx all: em Goja/PocketBase, newQuery('...').all() pode precisar de passar um slice/array ou retorna []
       const rows = []
-      app.db().newQuery("SELECT count(*) as total FROM classifications").all(rows)
+      app.db().newQuery('SELECT count(*) as total FROM classifications').all(rows)
       result.withArg = rows
     } catch (e1) {
       result.withArgErr = String(e1)
     }
 
     try {
-      const q = app.db().newQuery("SELECT count(*) as total FROM classifications")
+      const q = app.db().newQuery('SELECT count(*) as total FROM classifications')
       const r = q.all()
       result.withoutArg = r
       if (r && r.length > 0) {
@@ -25,18 +25,18 @@ migrate(
     }
 
     try {
-      const recs = app.findRecordsByFilter("classifications", "tipo = 'NCM'", "", 5, 0)
+      const recs = app.findRecordsByFilter('classifications', "tipo = 'NCM'", '', 5, 0)
       result.findRecordsCount = recs ? recs.length : 0
       if (recs && recs.length > 0) {
-        result.firstRecCodigo = recs[0].get("codigo")
-        result.firstRecTipo = recs[0].get("tipo")
+        result.firstRecCodigo = recs[0].get('codigo')
+        result.firstRecTipo = recs[0].get('tipo')
       }
     } catch (e3) {
       result.findRecordsErr = String(e3)
     }
 
     try {
-      const c = app.countRecords("classifications")
+      const c = app.countRecords('classifications')
       result.countRecordsDirect = c
     } catch (e4) {
       result.countRecordsErr = String(e4)

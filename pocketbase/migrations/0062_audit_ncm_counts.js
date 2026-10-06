@@ -8,7 +8,12 @@ migrate(
     let sampleSubitem = null
 
     try {
-      const rowTot = app.db().newQuery("SELECT count(*) as c, count(DISTINCT codigo) as d FROM classifications WHERE tipo = 'NCM'").all()
+      const rowTot = app
+        .db()
+        .newQuery(
+          "SELECT count(*) as c, count(DISTINCT codigo) as d FROM classifications WHERE tipo = 'NCM'",
+        )
+        .all()
       if (rowTot && rowTot.length > 0) {
         totalNcm = Number(rowTot[0].c || 0)
         distinctNcm = Number(rowTot[0].d || 0)
@@ -23,13 +28,25 @@ migrate(
     } catch (_) {}
 
     try {
-      const sample = app.db().newQuery("SELECT codigo, descricao, fonte FROM classifications WHERE tipo = 'NCM' AND codigo = '1006.30.21'").all()
+      const sample = app
+        .db()
+        .newQuery(
+          "SELECT codigo, descricao, fonte FROM classifications WHERE tipo = 'NCM' AND codigo = '1006.30.21'",
+        )
+        .all()
       if (sample && sample.length > 0) {
         sampleSubitem = sample[0]
       }
     } catch (_) {}
 
-    console.log('[0062_audit] Total NCM: ' + totalNcm + ' | Distintos: ' + distinctNcm + ' | GrandTotal: ' + grandTotal)
+    console.log(
+      '[0062_audit] Total NCM: ' +
+        totalNcm +
+        ' | Distintos: ' +
+        distinctNcm +
+        ' | GrandTotal: ' +
+        grandTotal,
+    )
 
     try {
       const colReview = app.findCollectionByNameOrId('content_reviews')
@@ -47,17 +64,15 @@ migrate(
           ', Amostra 1006.30.21 = ' +
           JSON.stringify(sampleSubitem),
       )
-      rec.set(
-        'summary',
-        'Auditoria rigorosa de contagem NCM no banco de dados SQLite oficial.',
-      )
+      rec.set('summary', 'Auditoria rigorosa de contagem NCM no banco de dados SQLite oficial.')
       rec.set('sources_checked', [
         {
           key: 'siscomex_ncm',
           name: 'Siscomex / TIPI (NCM integral)',
           status: 'active',
           http_status: 200,
-          message: 'Auditoria: ' + totalNcm + ' registros NCM no banco (distintos: ' + distinctNcm + ')',
+          message:
+            'Auditoria: ' + totalNcm + ' registros NCM no banco (distintos: ' + distinctNcm + ')',
         },
       ])
       app.save(rec)

@@ -12,7 +12,9 @@ migrate(
     // Para saber NCM e distintos, podemos usar uma tabela de relatório ou contar diretamente via SQL INSERT INTO
     // SQLite permite: INSERT INTO content_reviews (...) SELECT ... FROM classifications
     try {
-      app.db().newQuery(`
+      app
+        .db()
+        .newQuery(`
         INSERT INTO content_reviews (id, review_date, status, notes, summary, sources_checked, created, updated)
         SELECT 
           'audit-ncm-counts' as id,
@@ -25,13 +27,16 @@ migrate(
           datetime('now') as updated
         FROM classifications WHERE tipo = 'NCM'
         ON CONFLICT(id) DO UPDATE SET notes = excluded.notes, updated = excluded.updated
-      `).execute()
+      `)
+        .execute()
     } catch (eSql) {
       result.sqlErr = String(eSql)
     }
 
     try {
-      app.db().newQuery(`
+      app
+        .db()
+        .newQuery(`
         INSERT INTO content_reviews (id, review_date, status, notes, summary, sources_checked, created, updated)
         SELECT 
           'audit-all-types' as id,
@@ -44,7 +49,8 @@ migrate(
           datetime('now') as updated
         FROM (SELECT tipo, count(*) as c FROM classifications GROUP BY tipo)
         ON CONFLICT(id) DO UPDATE SET notes = excluded.notes, updated = excluded.updated
-      `).execute()
+      `)
+        .execute()
     } catch (eTipos) {
       result.tiposErr = String(eTipos)
     }

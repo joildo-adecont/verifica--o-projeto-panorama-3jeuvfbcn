@@ -16,7 +16,168 @@ routerAdd('GET', '/backend/v1/test-import-route', (e) => {
   return e.json(200, { ok: true, message: 'Rota import_classifications ativa' })
 })
 
+// Rota de exportação das classificações
+routerAdd('OPTIONS', '/backend/v1/export-classifications', (e) => {
+  e.response.header().set('Access-Control-Allow-Origin', '*')
+  e.response.header().set('Access-Control-Allow-Methods', 'GET, OPTIONS')
+  e.response.header().set('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-token')
+  return e.noContent(204)
+})
 
+routerAdd('GET', '/backend/v1/export-classifications', (e) => {
+  e.response.header().set('Access-Control-Allow-Origin', '*')
+
+  // 1. Parâmetros de consulta
+  const rawTipo = String(e.request.url.query().get('tipo') || 'NCM').trim()
+  const rawFormato = String(e.request.url.query().get('formato') || 'csv')
+    .trim()
+    .toLowerCase()
+
+  // Normalização do tipo
+  let filterTipo = rawTipo
+  if (rawTipo === 'CNAE 2.3') {
+    filterTipo = 'CNAE_2_3'
+  }
+
+  const isAll =
+    filterTipo === 'TODOS' || filterTipo === 'ALL' || filterTipo === '*' || filterTipo === ''
+
+  // Data de referência oficial
+  const dataReferencia = '2026-10-01'
+
+  // Nome do arquivo de saída
+  const sanitizeName = (isAll ? 'Todas-Classificacoes' : filterTipo).replace(/[^a-zA-Z0-9_-]/g, '-')
+  const filename =
+    rawFormato === 'json'
+      ? sanitizeName + '-base-completa-' + dataReferencia + '.json'
+      : sanitizeName + '-base-completa-' + dataReferencia + '.csv'
+
+  if (rawFormato === 'json') {
+    e.response.header().set('Content-Type', 'application/json; charset=utf-8')
+    e.response.header().set('Content-Disposition', 'attachment; filename="' + filename + '"')
+    e.response.header().set('Cache-Control', 'public, max-age=3600')
+
+    const batchSize = 500
+    let offset = 0
+    let totalCount = 0
+
+    e.response.writeHeader(200)
+    e.response.write('[\n')
+
+    let isFirst = true
+
+    while (true) {
+      let filterExp = isAll ? '' : "tipo = '" + filterTipo + "'"
+      const records = $app.findRecordsByFilter(
+        'classifications',
+        filterExp,
+        'codigo',
+        batchSize,
+        offset,
+      )
+
+      if (!records || records.length === 0) {
+        break
+      }
+
+      for (let i = 0; i < records.length; i++) {
+        const rec = records[i]
+        const itemObj = {
+          tipo: rec.getString('tipo'),
+          codigo: rec.getString('codigo'),
+          nome: rec.getString('nome'),
+          descricao: rec.getString('descricao'),
+          fonte: rec.getString('fonte'),
+          tabela_origem: rec.getString('tabela_origem'),
+          atualizado_em: rec.getString('atualizado_em'),
+          observacoes: rec.getString('observacoes'),
+        }
+
+        const prefix = isFirst ? '  ' : ',\n  '
+        e.response.write(prefix + JSON.stringify(itemObj))
+        isFirst = false
+        totalCount++
+      }
+
+      if (records.length < batchSize) {
+        break
+      }
+
+      offset += batchSize
+    }
+
+    e.response.write('\n]\n')
+    return null
+  }
+
+  // 2. Formato CSV (padrão) com BOM UTF-8
+  e.response.header().set('Content-Type', 'text/csv; charset=utf-8')
+  e.response.header().set('Content-Disposition', 'attachment; filename="' + filename + '"')
+  e.response.header().set('Cache-Control', 'public, max-age=3600')
+
+  e.response.writeHeader(200)
+  e.response.write('\uFEFF')
+
+  const csvHeader = 'tipo;codigo;nome;descricao;fonte;tabela_origem;atualizado_em;observacoes\r\n'
+  e.response.write(csvHeader)
+
+  const batchSize = 500
+  let offset = 0
+  let totalCount = 0
+
+  while (true) {
+    let filterExp = isAll ? '' : "tipo = '" + filterTipo + "'"
+    const records = $app.findRecordsByFilter(
+      'classifications',
+      filterExp,
+      'codigo',
+      batchSize,
+      offset,
+    )
+
+    if (!records || records.length === 0) {
+      break
+    }
+
+    let chunk = ''
+    for (let i = 0; i < records.length; i++) {
+      const rec = records[i]
+
+      const sanitizeCsvField = function (val) {
+        if (val === null || val === undefined) return '""'
+        const str = String(val)
+          .replace(/\r\n/g, ' ')
+          .replace(/[\r\n]/g, ' ')
+        return '"' + str.replace(/"/g, '""') + '"'
+      }
+
+      const row =
+        [
+          sanitizeCsvField(rec.getString('tipo')),
+          sanitizeCsvField(rec.getString('codigo')),
+          sanitizeCsvField(rec.getString('nome')),
+          sanitizeCsvField(rec.getString('descricao')),
+          sanitizeCsvField(rec.getString('fonte')),
+          sanitizeCsvField(rec.getString('tabela_origem')),
+          sanitizeCsvField(rec.getString('atualizado_em')),
+          sanitizeCsvField(rec.getString('observacoes')),
+        ].join(';') + '\r\n'
+
+      chunk += row
+      totalCount++
+    }
+
+    e.response.write(chunk)
+
+    if (records.length < batchSize) {
+      break
+    }
+
+    offset += batchSize
+  }
+
+  return null
+})
 
 routerAdd('GET', '/backend/v1/test-siscomex-health', (e) => {
   e.response.header().set('Access-Control-Allow-Origin', '*')

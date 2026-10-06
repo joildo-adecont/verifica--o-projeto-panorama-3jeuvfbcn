@@ -39,11 +39,7 @@ migrate(
             ncmData = res.json
           }
 
-          if (
-            ncmData &&
-            Array.isArray(ncmData.Nomenclaturas) &&
-            ncmData.Nomenclaturas.length > 0
-          ) {
+          if (ncmData && Array.isArray(ncmData.Nomenclaturas) && ncmData.Nomenclaturas.length > 0) {
             list = ncmData.Nomenclaturas
             if (ncmData.Data_Ultima_Atualizacao_NCM) {
               dateRef = ncmData.Data_Ultima_Atualizacao_NCM

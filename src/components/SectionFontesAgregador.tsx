@@ -17,12 +17,14 @@ import {
   ChevronLeft,
   ChevronRight,
   BookOpen,
+  Download,
 } from 'lucide-react'
 import { AdecontLogo } from '@/components/AdecontLogo'
 import { Badge } from '@/components/ui/badge'
 import {
   fetchClassifications,
   fetchClassificationCounts,
+  getExportClassificationsUrl,
   OfficialTableCountsResult,
 } from '@/services/classifications'
 import type { ClassificationItem, ClassificationType } from '@/types/panorama'
@@ -329,6 +331,23 @@ export function SectionFontesAgregador() {
               Último sincronismo oficial do banco de dados: 01/10/2026 (Fontes: RFB, CGIBS, CONFAZ e
               IBGE)
             </p>
+            <div className="pt-2 border-t border-blue-100 flex items-center justify-between">
+              <span className="text-[10px] text-slate-600">
+                Exportação integral ({activeTabelaInfo.label}):
+              </span>
+              <a
+                href={getExportClassificationsUrl(selectedTabela, 'csv')}
+                download
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[11px] font-bold text-emerald-700 hover:text-emerald-800 flex items-center gap-1"
+              >
+                <Download className="w-3 h-3" />
+                <span>
+                  Baixar {activeTabelaInfo.id === 'TODOS' ? 'todas' : activeTabelaInfo.label} em CSV
+                </span>
+              </a>
+            </div>
           </div>
         </div>
 
@@ -453,11 +472,24 @@ export function SectionFontesAgregador() {
               <button
                 onClick={loadClassifications}
                 disabled={loading}
-                title="Recarregar dados"
+                title="Recarregar dados da tabela"
                 className="p-2 rounded-lg border border-slate-300 bg-white text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
               </button>
+
+              {/* Botão de download direto da base completa (CSV) */}
+              <a
+                href={getExportClassificationsUrl(selectedTabela, 'csv')}
+                download
+                target="_blank"
+                rel="noopener noreferrer"
+                title={`Baixar todos os registros da base ${activeTabelaInfo.label} em formato CSV (Excel)`}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-emerald-600 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-xs hover:shadow cursor-pointer"
+              >
+                <Download className="w-3.5 h-3.5 text-white" />
+                <span>⬇ Baixar base completa (CSV)</span>
+              </a>
             </div>
           </div>
 

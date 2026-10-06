@@ -922,6 +922,20 @@ export async function fetchClassificationCounts(): Promise<OfficialTableCountsRe
   }
 }
 
+/**
+ * Retorna a URL direta de download da base de classificações (exportação completa oficial).
+ * Endpoint seguro no backend: /backend/v1/export-classifications
+ */
+export function getExportClassificationsUrl(
+  tipo: string = 'NCM',
+  formato: 'csv' | 'json' = 'csv',
+): string {
+  const baseUrl = pb.baseUrl || ''
+  const cleanBase = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl
+  const encodedTipo = encodeURIComponent(tipo || 'NCM')
+  return `${cleanBase}/backend/v1/export-classifications?tipo=${encodedTipo}&formato=${formato}`
+}
+
 export async function triggerOfficialImport(
   target: 'NCM' | 'CEST' | 'ALL' = 'NCM',
   limit: number = 0,
