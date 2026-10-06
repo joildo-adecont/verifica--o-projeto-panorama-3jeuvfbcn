@@ -23,7 +23,7 @@ import {
   Smartphone,
   Printer,
   KeyRound,
-  Smartphone,
+  MonitorSmartphone,
 } from 'lucide-react'
 
 /**
@@ -272,7 +272,7 @@ const ITENS: MenuItem[] = [
     tecla: 'm',
     numero: '17',
     label: 'Responsividade em Celulares',
-    Icon: Smartphone,
+    Icon: MonitorSmartphone,
     cor: 'text-cyan-700',
     bg: 'bg-cyan-50',
     borda: 'border-cyan-300',
