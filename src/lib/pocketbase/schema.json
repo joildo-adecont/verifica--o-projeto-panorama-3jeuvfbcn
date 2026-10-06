@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-06T02:59:18.705Z",
+  "generatedAt": "2026-10-06T03:20:54.587Z",
   "collections": [
     {
       "name": "users",
@@ -1100,7 +1100,8 @@
       ],
       "indexes": [
         "CREATE INDEX idx_classifications_tipo ON classifications (tipo)",
-        "CREATE INDEX idx_classifications_codigo ON classifications (codigo)"
+        "CREATE INDEX idx_classifications_codigo ON classifications (codigo)",
+        "CREATE UNIQUE INDEX `idx_classifications_tipo_codigo_unique` ON `classifications` (tipo, codigo)"
       ]
     }
   ]
