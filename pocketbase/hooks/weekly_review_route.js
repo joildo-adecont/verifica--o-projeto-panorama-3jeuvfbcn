@@ -37,6 +37,24 @@ routerAdd('POST', '/backend/v1/trigger-weekly-review', (e) => {
       url: 'https://www.in.gov.br',
       order: 4,
     },
+    {
+      key: 'confaz',
+      name: 'CONFAZ (CEST, MVA-ST e CFOP)',
+      url: 'https://www.confaz.fazenda.gov.br',
+      order: 5,
+    },
+    {
+      key: 'ibge',
+      name: 'IBGE / Concla (CNAE 2.3)',
+      url: 'https://cnae.ibge.gov.br',
+      order: 6,
+    },
+    {
+      key: 'nfe_portal',
+      name: 'Portal Nacional NF-e / SVRS (cClassTrib, cCredPres e cBenef)',
+      url: 'https://www.nfe.fazenda.gov.br',
+      order: 7,
+    },
   ]
 
   const checkedSources = []
@@ -127,10 +145,10 @@ routerAdd('POST', '/backend/v1/trigger-weekly-review', (e) => {
     reviewRecord = new Record(colReviews)
 
     const notes =
-      'Verificação abrangente de atos normativos da Reforma Tributária (Emendas Constitucionais, Leis Complementares, Decretos, Portarias, Atos Conjuntos e Resoluções CGIBS/CGSN) nas fontes oficiais Planalto / CGIBS / Receita / DOU.'
+      'Verificação abrangente de atos normativos e tabelas de classificação da Reforma Tributária (NCM, cClassTrib, CST, cCredPres, CEST, MVA-ST, CFOP, NBS, CNAE 2.3, cBenef) nas fontes oficiais Planalto / CGIBS / Receita / DOU / CONFAZ / IBGE / SVRS.'
 
     let summaryText =
-      'Todas as fontes oficiais de atos normativos responderam ativas na verificação técnica.'
+      'Todas as fontes oficiais de atos normativos e tabelas de classificação responderam ativas na verificação técnica.'
     if (overallStatus === 'warning') {
       summaryText = 'Verificação concluída com aviso em uma ou mais fontes oficiais.'
     } else if (overallStatus === 'attention') {

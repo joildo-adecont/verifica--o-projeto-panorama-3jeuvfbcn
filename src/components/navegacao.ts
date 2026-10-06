@@ -190,6 +190,16 @@ export const NAVEGACAO: LinkNavegacao[] = [
     borda: 'border-cyan-200',
   },
   {
+    href: '#fontes-agregador',
+    label: 'Agregadores (Buscador)',
+    tecla: 'q',
+    numero: '11',
+    Icon: Globe2,
+    cor: 'text-sky-600',
+    bg: 'bg-sky-50',
+    borda: 'border-sky-200',
+  },
+  {
     href: '#secao-9',
     label: 'Fontes & Atualização',
     tecla: '9',
@@ -198,16 +208,6 @@ export const NAVEGACAO: LinkNavegacao[] = [
     cor: 'text-violet-600',
     bg: 'bg-violet-50',
     borda: 'border-violet-200',
-  },
-  {
-    href: '#fontes-agregador',
-    label: 'Agregadores (Buscador NCM)',
-    tecla: 'q',
-    numero: '11',
-    Icon: Globe2,
-    cor: 'text-sky-600',
-    bg: 'bg-sky-50',
-    borda: 'border-sky-200',
   },
   {
     href: '#fontes-primarias',

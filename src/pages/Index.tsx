@@ -148,11 +148,11 @@ export default function Index() {
           {/* Seção 8: Cronograma 2026–2033, simulador e pontos de atenção */}
           <SectionCronograma />
 
+          {/* Seção 11: Agregadores — Buscador de Produtos e Atividades por 11 Tabelas de Classificações */}
+          <SectionFontesAgregador />
+
           {/* Seção 9: Fontes oficiais, governança de atualização e formulário de contato */}
           <SectionFontes />
-
-          {/* Seção 11: Fontes de referência — agregadores especializados (Buscador NCM) */}
-          <SectionFontesAgregador />
 
           {/* Seção 12: Índice das fontes oficiais primárias — 110 bases */}
           <SectionFontesPrimarias />

@@ -140,3 +140,30 @@ export interface FloorplanItem {
   description: string
   image_url: string
 }
+
+export type ClassificationType =
+  | 'Nome'
+  | 'NCM'
+  | 'cClassTrib'
+  | 'CST'
+  | 'cCredPres'
+  | 'CEST'
+  | 'MVA-ST'
+  | 'CFOP'
+  | 'NBS'
+  | 'CNAE 2.3'
+  | 'cBenef'
+
+export interface ClassificationItem {
+  id: string
+  tipo: ClassificationType
+  codigo: string
+  descricao: string
+  nome?: string
+  fonte: string
+  tabela_origem?: string
+  atualizado_em?: string
+  observacoes?: string
+  created?: string
+  updated?: string
+}

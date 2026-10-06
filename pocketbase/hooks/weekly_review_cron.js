@@ -29,6 +29,24 @@ cronAdd('weekly_content_review', '0 11 * * 1', () => {
       url: 'https://www.in.gov.br',
       order: 4,
     },
+    {
+      key: 'confaz',
+      name: 'CONFAZ (CEST, MVA-ST e CFOP)',
+      url: 'https://www.confaz.fazenda.gov.br',
+      order: 5,
+    },
+    {
+      key: 'ibge',
+      name: 'IBGE / Concla (CNAE 2.3)',
+      url: 'https://cnae.ibge.gov.br',
+      order: 6,
+    },
+    {
+      key: 'nfe_portal',
+      name: 'Portal Nacional NF-e / SVRS (cClassTrib, cCredPres e cBenef)',
+      url: 'https://www.nfe.fazenda.gov.br',
+      order: 7,
+    },
   ]
 
   const checkedSources = []
@@ -120,10 +138,10 @@ cronAdd('weekly_content_review', '0 11 * * 1', () => {
     const reviewRecord = new Record(colReviews)
 
     const notes =
-      'Verificação semanal abrangente de atos normativos da Reforma Tributária (Emendas, Leis Complementares, Decretos, Portarias, Atos Conjuntos e Resoluções CGIBS/CGSN) — Planalto / CGIBS / Receita Federal / DOU.'
+      'Verificação semanal abrangente de atos normativos e tabelas de classificação da Reforma Tributária (NCM, cClassTrib, CST, cCredPres, CEST, MVA-ST, CFOP, NBS, CNAE 2.3, cBenef) — Planalto / CGIBS / Receita Federal / DOU / CONFAZ / IBGE / SVRS.'
 
     let summaryText =
-      'Todas as fontes oficiais de atos normativos responderam ativas na verificação semanal. Arcabouço amplo mantido em conformidade.'
+      'Todas as fontes oficiais de atos normativos e tabelas de classificação responderam ativas na verificação semanal. Arcabouço amplo mantido em conformidade.'
     if (overallStatus === 'warning') {
       summaryText =
         'Verificação semanal concluída com aviso em uma ou mais fontes de atos normativos.'
