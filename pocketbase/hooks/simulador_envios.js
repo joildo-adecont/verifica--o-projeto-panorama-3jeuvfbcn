@@ -50,15 +50,16 @@ routerAdd('POST', '/backend/v1/simul-importar', (e) => {
 
   function audit(entity, operation, payload, userId) {
     try {
-      var col = $app.findCollectionByNameOrId('audit_log')
+      var col = $app.findCollectionByNameOrId('acesso_comandos')
       var a = new Record(col)
-      a.set('entity', entity)
-      a.set('operation', operation)
-      a.set('payload', payload)
-      if (userId) a.set('user', userId)
+      a.set('comando', 'SIMUL_' + operation)
+      a.set('nivel_minimo', '1')
+      a.set('ator_email', userId || 'sistema')
+      a.set('resultado', 'OK')
+      a.set('detalhe', JSON.stringify({ entity: entity, payload: payload }))
       $app.save(a)
     } catch (err) {
-      console.log('[simul] audit fail: ' + err)
+      console.log('[simul] audit log: ' + err)
     }
   }
 
@@ -200,15 +201,16 @@ routerAdd('POST', '/backend/v1/simul-enviar', (e) => {
 
   function audit(entity, operation, payload, userId) {
     try {
-      var col = $app.findCollectionByNameOrId('audit_log')
+      var col = $app.findCollectionByNameOrId('acesso_comandos')
       var a = new Record(col)
-      a.set('entity', entity)
-      a.set('operation', operation)
-      a.set('payload', payload)
-      if (userId) a.set('user', userId)
+      a.set('comando', 'SIMUL_' + operation)
+      a.set('nivel_minimo', '1')
+      a.set('ator_email', userId || 'sistema')
+      a.set('resultado', 'OK')
+      a.set('detalhe', JSON.stringify({ entity: entity, payload: payload }))
       $app.save(a)
     } catch (err) {
-      console.log('[simul] audit fail: ' + err)
+      console.log('[simul] audit log: ' + err)
     }
   }
 
@@ -235,27 +237,6 @@ routerAdd('POST', '/backend/v1/simul-enviar', (e) => {
   function capitulacaoPara(grupo) {
     return CAPITULACAO[grupo] || CAPITULACAO.regular
   }
-
-  var CAPITULACAO = {
-    regular: 'LC 214/2025 (arts. 124-127); RIBS - Res. CGIBS 6/2026; Decreto 12.955/2026 (CBS).',
-    cesta_zero:
-      'LC 214/2025, art. 149 e Anexo I (cesta básica); RIBS - Res. CGIBS 6/2026; Decreto 12.955/2026, Anexo III.',
-    zero: 'LC 214/2025, art. 147 (alíquota zero específica).',
-    reducao60: 'LC 214/2025, arts. 128-130 (redução de 60% - saúde, educação, medicamentos).',
-    dispositivos60:
-      'LC 214/2025, Anexo IV (dispositivos médicos - redução 60%); RIBS - Res. CGIBS 6/2026.',
-    imposto_seletivo: 'LC 214/2025, Livro II (Imposto Seletivo); Decreto 12.955/2026, Anexo IV.',
-    zfm: 'RIBS - Res. CGIBS 6/2026, Anexo V e art. 521, §1º, IV (crédito presumido ZFM); EC 132/2023, art. 93.',
-    suspensao: 'RIBS - Res. CGIBS 6/2026, art. 186, §5º e Anexo III (REPORTO).',
-    bens_capital: 'RIBS - Res. CGIBS 6/2026, arts. 196-197 e Anexo IV (bens de capital).',
-    regime_especial:
-      'LC 214/2025, arts. 204-205 (consórcios); RIBS - Res. CGIBS 6/2026, art. 397 (catering).',
-    agro: 'LC 214/2025, arts. 287 e seguintes (crédito presumido agropecuária).',
-  }
-  function capitulacaoPara(grupo) {
-    return CAPITULACAO[grupo] || CAPITULACAO[grupo]
-  }
-
   var body = {}
   try {
     body = e.requestInfo().body || {}
@@ -545,15 +526,16 @@ routerAdd('GET', '/backend/v1/simul-confirmar', (e) => {
 
   function audit(entity, operation, payload, userId) {
     try {
-      var col = $app.findCollectionByNameOrId('audit_log')
+      var col = $app.findCollectionByNameOrId('acesso_comandos')
       var a = new Record(col)
-      a.set('entity', entity)
-      a.set('operation', operation)
-      a.set('payload', payload)
-      if (userId) a.set('user', userId)
+      a.set('comando', 'SIMUL_' + operation)
+      a.set('nivel_minimo', '1')
+      a.set('ator_email', userId || 'sistema')
+      a.set('resultado', 'OK')
+      a.set('detalhe', JSON.stringify({ entity: entity, payload: payload }))
       $app.save(a)
     } catch (err) {
-      console.log('[simul] audit fail: ' + err)
+      console.log('[simul] audit log: ' + err)
     }
   }
 
@@ -653,15 +635,16 @@ routerAdd('GET', '/backend/v1/simul-protocolo', (e) => {
 
   function audit(entity, operation, payload, userId) {
     try {
-      var col = $app.findCollectionByNameOrId('audit_log')
+      var col = $app.findCollectionByNameOrId('acesso_comandos')
       var a = new Record(col)
-      a.set('entity', entity)
-      a.set('operation', operation)
-      a.set('payload', payload)
-      if (userId) a.set('user', userId)
+      a.set('comando', 'SIMUL_' + operation)
+      a.set('nivel_minimo', '1')
+      a.set('ator_email', userId || 'sistema')
+      a.set('resultado', 'OK')
+      a.set('detalhe', JSON.stringify({ entity: entity, payload: payload }))
       $app.save(a)
     } catch (err) {
-      console.log('[simul] audit fail: ' + err)
+      console.log('[simul] audit log: ' + err)
     }
   }
 
