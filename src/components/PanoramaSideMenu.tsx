@@ -1,283 +1,23 @@
 import { useState, useEffect } from 'react'
-import {
-  X,
-  Search,
-  ChevronRight,
-  Scale,
-  Factory,
-  ShoppingBasket,
-  ShieldCheck,
-  Percent,
-  Layers,
-  Paperclip,
-  CalendarDays,
-  Database,
-  Globe2,
-  ListChecks,
-  History,
-  Table2,
-  Home,
-  Tractor,
-  Handshake,
-  Landmark,
-  Smartphone,
-  Printer,
-  KeyRound,
-  MonitorSmartphone,
-} from 'lucide-react'
+import { X, Search, ChevronRight } from 'lucide-react'
+import { NAVEGACAO } from '@/components/navegacao'
 
 /**
- * Menu lateral de acesso rápido do Panorama.
- * - Fixo à esquerda em telas grandes (lg+); gaveta em telas menores.
- * - Teclas de atalho: teclas 1..9, Q, W e H acessam as seções; "/" abre a
- *   busca do header; Esc fecha a gaveta.
- * - Destaca a seção visível conforme a rolagem da página.
- * - Mesmos ícones coloridos do menu principal (identidade visual por seção).
+ * Menu lateral de acesso rápido do Panorama — agora lendo a NAVEGACAO única
+ * (mesma lista do header; sem duplicação). Aparência e teclas mantidas.
+ * Teclas de atalho: teclas 1..9, letras; "/" abre a busca; Esc fecha a gaveta.
  */
 
-interface MenuItem {
-  id: string
-  tecla: string
-  numero: string
-  label: string
-  Icon: React.ComponentType<{ className?: string }>
-  cor: string
-  bg: string
-  borda: string
-}
-
-const ITENS: MenuItem[] = [
-  {
-    id: '#secao-1',
-    tecla: '1',
-    numero: '1',
-    label: 'Normas (arcabouço)',
-    Icon: Scale,
-    cor: 'text-indigo-600',
-    bg: 'bg-indigo-50',
-    borda: 'border-indigo-200',
-  },
-  {
-    id: '#secao-2',
-    tecla: '2',
-    numero: '2',
-    label: 'Fato Gerador',
-    Icon: Factory,
-    cor: 'text-blue-600',
-    bg: 'bg-blue-50',
-    borda: 'border-blue-200',
-  },
-  {
-    id: '#secao-3',
-    tecla: '3',
-    numero: '3',
-    label: 'Cesta Básica',
-    Icon: ShoppingBasket,
-    cor: 'text-emerald-600',
-    bg: 'bg-emerald-50',
-    borda: 'border-emerald-200',
-  },
-  {
-    id: '#secao-4',
-    tecla: '4',
-    numero: '4',
-    label: 'Imunidades',
-    Icon: ShieldCheck,
-    cor: 'text-teal-600',
-    bg: 'bg-teal-50',
-    borda: 'border-teal-200',
-  },
-  {
-    id: '#secao-5',
-    tecla: '5',
-    numero: '5',
-    label: 'Isenções e Alíquotas',
-    Icon: Percent,
-    cor: 'text-amber-600',
-    bg: 'bg-amber-50',
-    borda: 'border-amber-200',
-  },
-  {
-    id: '#secao-6',
-    tecla: '6',
-    numero: '6',
-    label: 'Regimes Específicos',
-    Icon: Layers,
-    cor: 'text-orange-600',
-    bg: 'bg-orange-50',
-    borda: 'border-orange-200',
-  },
-  {
-    id: '#regime-imobiliario',
-    tecla: 'I',
-    numero: '6A',
-    label: 'Regime Imobiliário',
-    Icon: Home,
-    cor: 'text-amber-700',
-    bg: 'bg-amber-50',
-    borda: 'border-amber-200',
-  },
-  {
-    id: '#agronegocio',
-    tecla: 'G',
-    numero: '6B',
-    label: 'Agronegócio',
-    Icon: Tractor,
-    cor: 'text-emerald-700',
-    bg: 'bg-emerald-50',
-    borda: 'border-emerald-200',
-  },
-  {
-    id: '#consorcios',
-    tecla: 'C',
-    numero: '6C',
-    label: 'Consórcios',
-    Icon: Handshake,
-    cor: 'text-violet-700',
-    bg: 'bg-violet-50',
-    borda: 'border-violet-200',
-  },
-  {
-    id: '#financeiros',
-    tecla: 'F',
-    numero: '6D',
-    label: 'Financeiros',
-    Icon: Landmark,
-    cor: 'text-violet-700',
-    bg: 'bg-violet-50',
-    borda: 'border-violet-200',
-  },
-  {
-    id: '#simples',
-    tecla: 'P',
-    numero: '6E',
-    label: 'Simples Nacional',
-    Icon: Percent,
-    cor: 'text-blue-700',
-    bg: 'bg-blue-50',
-    borda: 'border-blue-200',
-  },
-  {
-    id: '#profissionais-plataformas',
-    tecla: 'R',
-    numero: '6F',
-    label: 'Profissionais e Plataformas',
-    Icon: Smartphone,
-    cor: 'text-indigo-700',
-    bg: 'bg-indigo-50',
-    borda: 'border-indigo-200',
-  },
-  {
-    id: '#secao-7',
-    tecla: '7',
-    numero: '7',
-    label: 'Anexos',
-    Icon: Paperclip,
-    cor: 'text-rose-600',
-    bg: 'bg-rose-50',
-    borda: 'border-rose-200',
-  },
-  {
-    id: '#tabela-geral',
-    tecla: 'A',
-    numero: '7A',
-    label: 'Tabela Geral dos Anexos',
-    Icon: Table2,
-    cor: 'text-rose-700',
-    bg: 'bg-rose-100',
-    borda: 'border-rose-300',
-  },
-  {
-    id: '#secao-8',
-    tecla: '8',
-    numero: '8',
-    label: 'Cronograma 2026–2033',
-    Icon: CalendarDays,
-    cor: 'text-cyan-600',
-    bg: 'bg-cyan-50',
-    borda: 'border-cyan-200',
-  },
-  {
-    id: '#secao-9',
-    tecla: '9',
-    numero: '9',
-    label: 'Fontes & Atualização',
-    Icon: Database,
-    cor: 'text-violet-600',
-    bg: 'bg-violet-50',
-    borda: 'border-violet-200',
-  },
-  {
-    id: '#fontes-agregador',
-    tecla: 'q',
-    numero: '11',
-    label: 'Agregadores (Buscador NCM)',
-    Icon: Globe2,
-    cor: 'text-sky-600',
-    bg: 'bg-sky-50',
-    borda: 'border-sky-200',
-  },
-  {
-    id: '#fontes-primarias',
-    tecla: 'w',
-    numero: '12',
-    label: 'Fontes primárias (110 bases)',
-    Icon: ListChecks,
-    cor: 'text-fuchsia-600',
-    bg: 'bg-fuchsia-50',
-    borda: 'border-fuchsia-200',
-  },
-  {
-    id: '#assistentes-seguranca',
-    tecla: 'x',
-    numero: '15',
-    label: 'Assistentes & Segurança',
-    Icon: ShieldCheck,
-    cor: 'text-indigo-600',
-    bg: 'bg-indigo-50',
-    borda: 'border-indigo-200',
-  },
-  {
-    id: '#central-entrega',
-    tecla: 'e',
-    numero: '14',
-    label: 'Central de Entrega (imprimir/enviar)',
-    Icon: Printer,
-    cor: 'text-rose-600',
-    bg: 'bg-rose-50',
-    borda: 'border-rose-200',
-  },
-  {
-    id: '#historico-atualizacoes',
-    tecla: 'h',
-    numero: '13',
-    label: 'Histórico de Atualizações',
-    Icon: History,
-    cor: 'text-lime-600',
-    bg: 'bg-lime-50',
-    borda: 'border-lime-200',
-  },
-  {
-    id: '#controle-acesso',
-    tecla: 'l',
-    numero: '16',
-    label: 'Níveis de Acesso (CRUD)',
-    Icon: KeyRound,
-    cor: 'text-amber-700',
-    bg: 'bg-amber-50',
-    borda: 'border-amber-300',
-  },
-  {
-    id: '#responsividade-celulares',
-    tecla: 'm',
-    numero: '17',
-    label: 'Responsividade em Celulares',
-    Icon: MonitorSmartphone,
-    cor: 'text-cyan-700',
-    bg: 'bg-cyan-50',
-    borda: 'border-cyan-300',
-  },
-]
+const ITENS = NAVEGACAO.map((n) => ({
+  id: n.href,
+  tecla: n.tecla,
+  numero: n.numero || '',
+  label: n.label,
+  Icon: n.Icon,
+  cor: n.cor,
+  bg: n.bg,
+  borda: n.borda,
+}))
 
 // Mapeia âncora → id real da seção no DOM (as seções usam ids sem "#")
 const alvo = (id: string) => document.getElementById(id.replace('#', ''))
@@ -336,7 +76,7 @@ export function PanoramaSideMenu() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  const ir = (item: MenuItem) => {
+  const ir = (item: (typeof ITENS)[number]) => {
     setAberto(false)
     const el = alvo(item.id)
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -368,8 +108,7 @@ export function PanoramaSideMenu() {
           />
         </div>
         <p className="text-[11px] text-slate-400 mt-2 leading-snug">
-          Atalhos: teclas <b>1–9</b>, <b>Q</b>, <b>W</b> e <b>H</b> · <b>/</b> foca a busca ·{' '}
-          <b>Esc</b> fecha
+          Atalhos: teclas <b>1–9</b> e letras · <b>/</b> foca a busca · <b>Esc</b> fecha
         </p>
       </div>
 

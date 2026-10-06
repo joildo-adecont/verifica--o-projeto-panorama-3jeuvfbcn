@@ -1,28 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
-import {
-  RotateCw,
-  Clock,
-  ExternalLink,
-  Search,
-  Menu,
-  X,
-  FileText,
-  Scale,
-  Factory,
-  ShoppingBasket,
-  ShieldCheck,
-  Percent,
-  Layers,
-  Paperclip,
-  CalendarDays,
-  Database,
-  Globe2,
-  ListChecks,
-  History,
-} from 'lucide-react'
+import { RotateCw, Clock, ExternalLink, Search, Menu, X, FileText } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { AdecontLogo } from '@/components/AdecontLogo'
 import { AlternadorTema } from '@/components/AlternadorTema'
+import { NAVEGACAO } from '@/components/navegacao'
 import { fetchSourceStatuses, triggerSourceCheck } from '@/services/panorama'
 import { useToast } from '@/hooks/use-toast'
 import type { SourceStatusItem } from '@/types/panorama'
@@ -33,8 +14,10 @@ interface PanoramaHeaderProps {
   onManualRefresh?: () => void
 }
 
-// Itens do menu principal com tecla de atalho e ícone colorido
-const NAV_LINKS = [
+// Itens do menu principal — agora vindos da NAVEGACAO única (fonte única de verdade)
+const NAV_LINKS = NAVEGACAO
+
+const NAV_LINKS_ANTIGA = [
   {
     href: '#secao-1',
     label: 'Normas',
@@ -144,6 +127,7 @@ const NAV_LINKS = [
     borda: 'border-lime-200',
   },
 ]
+void NAV_LINKS_ANTIGA
 
 export function PanoramaHeader({
   searchTerm,
