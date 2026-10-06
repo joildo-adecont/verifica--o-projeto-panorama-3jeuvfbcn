@@ -17,7 +17,7 @@ interface PanoramaHeaderProps {
 // Itens do menu principal — agora vindos da NAVEGACAO única (fonte única de verdade)
 const NAV_LINKS = NAVEGACAO
 
-const NAV_LINKS_ANTIGA = [
+const _REMOVIDO = [
   {
     href: '#secao-1',
     label: 'Normas',
@@ -127,7 +127,8 @@ const NAV_LINKS_ANTIGA = [
     borda: 'border-lime-200',
   },
 ]
-void NAV_LINKS_ANTIGA
+]
+void _REMOVIDO
 
 export function PanoramaHeader({
   searchTerm,
