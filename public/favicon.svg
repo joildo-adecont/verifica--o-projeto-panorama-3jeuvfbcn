@@ -1,22 +1,22 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <defs>
-    <radialGradient id="favSphere" cx="49%" cy="46%" r="52%" fx="49%" fy="46%">
+    <radialGradient id="sphereGrad_512" cx="48%" cy="45%" r="52%" fx="48%" fy="45%">
       <stop offset="0%" stop-color="#FFFFFF" stop-opacity="1" />
-      <stop offset="25%" stop-color="#AEE1FA" stop-opacity="0.98" />
-      <stop offset="55%" stop-color="#7EC8F0" />
-      <stop offset="78%" stop-color="#4FA8DC" />
+      <stop offset="22%" stop-color="#AEE1FA" stop-opacity="0.98" />
+      <stop offset="52%" stop-color="#7EC8F0" />
+      <stop offset="76%" stop-color="#4FA8DC" />
       <stop offset="92%" stop-color="#2A7EB8" />
       <stop offset="100%" stop-color="#1B4F7D" />
     </radialGradient>
-    <filter id="softCenterGlowFav" x="-30%" y="-30%" width="160%" height="160%">
-      <feGaussianBlur stdDeviation="3.5" result="blur" />
+    <filter id="softCenterGlow_512" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="5.12" result="blur" />
       <feComposite in="SourceGraphic" in2="blur" operator="over" />
     </filter>
   </defs>
+  <rect width="512" height="512" fill="#FFFFFF" />
 
-  <!-- Centralizado 512x512 a partir do símbolo oficial -->
-  <g transform="translate(256, 260) scale(0.68) translate(-486, -210)">
-    <!-- Arco azul-marinho profundo oficial #2E2260 -->
+  <g transform="translate(256, 266.24) scale(0.38912) translate(-486, -210)">
+    <!-- Arco azul-marinho oficial #2E2260 -->
     <path
       d="M 122 370
          C 142 320, 206 182, 326 84
@@ -29,23 +29,21 @@
          C 246 174, 178 266, 122 370 Z"
       fill="#2E2260"
     />
-
-    <!-- Esfera circular sob o pico -->
+    <!-- Esfera central degradê azul -->
     <circle
       cx="486"
       cy="216"
       r="59"
-      fill="url(#favSphere)"
+      fill="url(#sphereGrad_512)"
     />
-
-    <!-- Glow difuso no centro -->
+    <!-- Ponto de luz no centro -->
     <circle
       cx="486"
       cy="216"
       r="16"
       fill="#FFFFFF"
-      opacity="0.82"
-      filter="url(#softCenterGlowFav)"
+      opacity="0.85"
+      filter="url(#softCenterGlow_512)"
     />
   </g>
 </svg>
