@@ -4,16 +4,126 @@ import zlib from 'zlib'
 
 // Dimensões da imagem original: 1920 x 1080
 // Test image reading tools in node
-async function checkImageTools() {
-  const builtins = ['canvas', 'jimp', 'jpeg-js', 'pngjs']
-  for (const b of builtins) {
-    try {
-      const m = await import(b)
-      console.log(`[pkg ${b}]: available`)
-    } catch {}
+// Helper to inspect logo-adecont.png
+function decodePngChunks(buf) {
+  let offset = 8
+  const chunks = []
+  while (offset < buf.length) {
+    const len = buf.readUInt32BE(offset)
+    const type = buf.subarray(offset + 4, offset + 8).toString('ascii')
+    const data = buf.subarray(offset + 8, offset + 8 + len)
+    chunks.push({ type, data })
+    offset += 8 + len + 4
+  }
+  return chunks
+}
+
+function parsePngRgba(filePath) {
+  const buf = fs.readFileSync(filePath)
+  const width = buf.readUInt32BE(16)
+  const height = buf.readUInt32BE(20)
+  const bitDepth = buf.readUInt8(24)
+  const colorType = buf.readUInt8(25)
+  const chunks = decodePngChunks(buf)
+  const idats = chunks.filter((c) => c.type === 'IDAT').map((c) => c.data)
+  const uncompressed = zlib.inflateSync(Buffer.concat(idats))
+
+  // For colorType 6 (RGBA) and bitDepth 8:
+  // Each line has 1 filter byte + width * 4 bytes
+  const bytesPerPixel = 4
+  const stride = 1 + width * bytesPerPixel
+  const rgba = Buffer.alloc(width * height * 4)
+
+  for (let y = 0; y < height; y++) {
+    const filter = uncompressed[y * stride]
+    const lineStart = y * stride + 1
+    const prevLineStart = (y - 1) * stride + 1
+
+    for (let i = 0; i < width * bytesPerPixel; i++) {
+      let val = uncompressed[lineStart + i]
+      const a = i >= bytesPerPixel ? rgba[y * width * 4 + i - bytesPerPixel] : 0
+      const b = y > 0 ? rgba[(y - 1) * width * 4 + i] : 0
+      const c = y > 0 && i >= bytesPerPixel ? rgba[(y - 1) * width * 4 + i - bytesPerPixel] : 0
+
+      if (filter === 1) {
+        // Sub
+        val = (val + a) & 0xff
+      } else if (filter === 2) {
+        // Up
+        val = (val + b) & 0xff
+      } else if (filter === 3) {
+        // Average
+        val = (val + Math.floor((a + b) / 2)) & 0xff
+      } else if (filter === 4) {
+        // Paeth
+        const p = a + b - c
+        const pa = Math.abs(p - a)
+        const pb = Math.abs(p - b)
+        const pc = Math.abs(p - c)
+        let pr = c
+        if (pa <= pb && pa <= pc) pr = a
+        else if (pb <= pc) pr = b
+        val = (val + pr) & 0xff
+      }
+      rgba[y * width * 4 + i] = val
+    }
+  }
+  return { width, height, rgba }
+}
+
+function testDecode() {
+  const target = path.resolve(process.cwd(), 'public/logo-adecont.png')
+  if (fs.existsSync(target)) {
+    const { width, height, rgba } = parsePngRgba(target)
+    console.log(`[DECODE SUCCESS] width=${width}, height=${height}, rgbaLen=${rgba.length}`)
+
+    // Find bounding box of non-transparent pixels
+    let minX = width,
+      maxX = 0,
+      minY = height,
+      maxY = 0
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const a = rgba[(y * width + x) * 4 + 3]
+        if (a > 20) {
+          if (x < minX) minX = x
+          if (x > maxX) maxX = x
+          if (y < minY) minY = y
+          if (y > maxY) maxY = y
+        }
+      }
+    }
+    console.log(
+      `[BBOX] x: ${minX}..${maxX} (${maxX - minX + 1}), y: ${minY}..${maxY} (${maxY - minY + 1})`,
+    )
+    const rowStats = []
+    for (let y = 0; y < 600; y += 20) {
+      let rMin = width,
+        rMax = 0,
+        count = 0
+      for (let x = 0; x < width; x++) {
+        const a = rgba[(y * width + x) * 4 + 3]
+        if (a > 20) {
+          if (x < rMin) rMin = x
+          if (x > rMax) rMax = x
+          count++
+        }
+      }
+      if (count > 0) {
+        rowStats.push({ y, rMin, rMax, widthSpan: rMax - rMin, count })
+      }
+    }
+    const outPath = path.resolve(process.cwd(), 'artifacts/decode-info.json')
+    fs.writeFileSync(
+      outPath,
+      JSON.stringify({ width, height, minX, maxX, minY, maxY, rowStats }, null, 2),
+    )
+    console.log('Wrote decode-info.json successfully!')
+  } else {
+    console.log('Target not found: ' + target)
   }
 }
-await checkImageTools()
+testDecode()
 
 /**
  * Script de geração de ícones e favicons da ADECONT a partir do novo traço oficial:
