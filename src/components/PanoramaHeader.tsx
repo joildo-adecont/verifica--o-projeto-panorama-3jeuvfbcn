@@ -22,6 +22,7 @@ import {
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { AdecontLogo } from '@/components/AdecontLogo'
+import { AlternadorTema } from '@/components/AlternadorTema'
 import { fetchSourceStatuses, triggerSourceCheck } from '@/services/panorama'
 import { useToast } from '@/hooks/use-toast'
 import type { SourceStatusItem } from '@/types/panorama'
@@ -346,6 +347,8 @@ export function PanoramaHeader({
               <RotateCw className={`w-3 h-3 ${isRefreshing ? 'animate-spin' : ''}`} />
               <span>🔄 Atualizar agora</span>
             </button>
+
+            <AlternadorTema />
           </div>
         </div>
       </div>
