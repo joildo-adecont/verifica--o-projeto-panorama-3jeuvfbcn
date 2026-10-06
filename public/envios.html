@@ -207,7 +207,7 @@
     <header>
       <h1>📇 Cadastro de Clientes & Protocolo de Envios — Simulador de Transição</h1>
       <p>ADECONT • Panorama da Reforma Tributária • controle de entrega com capitulação legal</p>
-      <div style="margin-top: 8px">
+      <div style="margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap; align-items: center">
         <a class="btn btn-voltar" href="./simulador.html">← Voltar ao Simulador</a>
         <a class="btn btn-voltar" href="/">← Voltar ao Panorama</a>
         <button
@@ -217,6 +217,13 @@
         >
           🔑 Token
         </button>
+        <button
+          class="btn"
+          onclick="aba('inst')"
+          style="background: #2e2260; color: #ffd66b; border: 1px solid #ffd66b"
+        >
+          📲 Atalhos de Instalação (Celular/PC)
+        </button>
       </div>
     </header>
     <main>
@@ -224,6 +231,14 @@
         <button class="tab on" data-tab="cad" onclick="aba('cad')">1. Cadastro de Clientes</button>
         <button class="tab" data-tab="imp" onclick="aba('imp')">2. Importação</button>
         <button class="tab" data-tab="env" onclick="aba('env')">3. Envio & Protocolo</button>
+        <button
+          class="tab"
+          data-tab="inst"
+          onclick="aba('inst')"
+          style="background: #e8e2f8; color: #2e2260; font-weight: 700"
+        >
+          📲 4. Instalação do Sistema
+        </button>
       </div>
 
       <!-- ABA CADASTRO -->
@@ -351,6 +366,153 @@
           </table>
         </div>
       </div>
+
+      <!-- ABA INSTALACAO DO SISTEMA -->
+      <div class="card" id="tab-inst" style="display: none">
+        <div
+          style="
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+            border-bottom: 2px solid #2e2260;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+          "
+        >
+          <div>
+            <h2 style="margin: 0; color: #2e2260; border: none; padding: 0">
+              📲 Central de Entrega — Instalação do Sistema
+            </h2>
+            <p class="nota">
+              Deposite novos atalhos no banco e envie links e instruções prontas para Android,
+              iPhone e computadores com a marca ADECONT.
+            </p>
+          </div>
+          <img src="/logo-adecont.png" alt="ADECONT" style="height: 34px; width: auto" />
+        </div>
+
+        <div
+          style="
+            background: #f8fafc;
+            border: 1px solid #c9d4e0;
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 14px;
+          "
+        >
+          <h3 style="font-size: 0.9rem; color: #2e2260; margin-bottom: 8px">
+            1. Enviar atalho ao cliente (WhatsApp ou E-mail)
+          </h3>
+          <div class="row">
+            <div>
+              <label>Formato do atalho / dispositivo</label>
+              <select id="inst_dev_select" onchange="selecionarAtalhoParaEnvio()">
+                <option value="todos">Universal (Android, iPhone e Computadores)</option>
+                <option value="android">Android (Google Chrome — Tela inicial)</option>
+                <option value="iphone">iPhone (Apple Safari — Tela de Início)</option>
+                <option value="computador">Computadores (Chrome/Edge — App Desktop)</option>
+              </select>
+            </div>
+            <div>
+              <label>Link oficial do sistema</label>
+              <input id="inst_url_view" readonly style="background: #eef2f6" />
+            </div>
+          </div>
+
+          <label style="margin-top: 10px">Mensagem formatada com instruções e marca ADECONT:</label>
+          <textarea
+            id="inst_msg_preview"
+            rows="7"
+            style="font-family: monospace; font-size: 0.8rem"
+          ></textarea>
+
+          <div style="display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap">
+            <button class="btn btn-verde" onclick="enviarAtalhoWa()">💬 Enviar no WhatsApp</button>
+            <button class="btn btn-azul" onclick="enviarAtalhoEmail()">✉️ Enviar por E-mail</button>
+            <button class="btn btn-cinza" onclick="copiarMensagemAtalho()">
+              📋 Copiar mensagem
+            </button>
+          </div>
+          <span id="instMsg" class="msg"></span>
+        </div>
+
+        <!-- Bloco para DEPOSITAR novo atalho -->
+        <div
+          style="
+            background: #fff;
+            border: 1px solid #dbe3ee;
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 14px;
+          "
+        >
+          <h3 style="font-size: 0.9rem; color: #2e2260; margin-bottom: 8px">
+            2. Depositar novo atalho no banco de dados
+          </h3>
+          <div class="row">
+            <div>
+              <label>Título do atalho *</label>
+              <input id="dep_titulo" placeholder="Ex.: Instalação Corporativa Cliente VIP" />
+            </div>
+            <div>
+              <label>Tipo de dispositivo *</label>
+              <select id="dep_device">
+                <option value="todos">Universal (Todos)</option>
+                <option value="android">Android</option>
+                <option value="iphone">iPhone</option>
+                <option value="computador">Computador</option>
+              </select>
+            </div>
+          </div>
+          <label style="margin-top: 8px">URL do sistema *</label>
+          <input id="dep_url" placeholder="https://..." />
+          <label style="margin-top: 8px">Instruções de instalação passo a passo *</label>
+          <textarea
+            id="dep_inst"
+            rows="3"
+            placeholder="1. Abra o link...&#10;2. Clique em adicionar à tela inicial..."
+          ></textarea>
+          <div class="row" style="margin-top: 8px">
+            <div>
+              <label>Observações</label>
+              <input id="dep_obs" placeholder="Opcional" />
+            </div>
+            <div>
+              <label>Criado por</label>
+              <input id="dep_autor" value="Equipe ADECONT" />
+            </div>
+          </div>
+          <button
+            class="btn"
+            style="background: #2e2260; color: #fff; margin-top: 10px"
+            onclick="depositarAtalho()"
+          >
+            📥 Salvar e Depositar no Banco
+          </button>
+          <span id="depMsg" class="msg"></span>
+        </div>
+
+        <!-- Histórico de atalhos -->
+        <h3 style="font-size: 0.9rem; color: #2e2260; margin-top: 14px; margin-bottom: 6px">
+          3. Histórico de atalhos depositados <span class="count-badge" id="cntAtalhos">0</span>
+        </h3>
+        <div style="overflow-x: auto">
+          <table id="tblAtalhos">
+            <thead>
+              <tr>
+                <th>Título</th>
+                <th>Dispositivo</th>
+                <th>URL</th>
+                <th>Instruções</th>
+                <th>Data</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
     </main>
     <script>
       // ---------- infra ----------
@@ -392,14 +554,16 @@
         }, 6000)
       }
       function aba(t) {
-        ;['cad', 'imp', 'env'].forEach(function (x) {
-          document.getElementById('tab-' + x).style.display = x === t ? 'block' : 'none'
+        ;['cad', 'imp', 'env', 'inst'].forEach(function (x) {
+          var el = document.getElementById('tab-' + x)
+          if (el) el.style.display = x === t ? 'block' : 'none'
         })
         document.querySelectorAll('.tab').forEach(function (b) {
           b.classList.toggle('on', b.dataset.tab === t)
         })
         if (t === 'cad') carregarClientes()
         if (t === 'env') carregarEnvios()
+        if (t === 'inst') carregarAtalhos()
       }
 
       // ---------- cadastro ----------
@@ -665,6 +829,141 @@
           return s
         }
       }
+      // ---------- atalhos de instalacao ----------
+      var listaAtalhos = []
+      function carregarAtalhos() {
+        var baseLocalUrl = window.location.origin
+        document.getElementById('inst_url_view').value = baseLocalUrl
+        document.getElementById('dep_url').value = baseLocalUrl
+
+        pb('/api/collections/install_shortcuts/records?perPage=100&sort=-created')
+          .then(function (r) {
+            listaAtalhos = r.items || []
+            renderTabelaAtalhos()
+            selecionarAtalhoParaEnvio()
+          })
+          .catch(function (e) {
+            console.warn('[atalhos] usando padroes:', e)
+            renderTabelaAtalhos()
+            selecionarAtalhoParaEnvio()
+          })
+      }
+
+      function selecionarAtalhoParaEnvio() {
+        var dev = document.getElementById('inst_dev_select').value
+        var item = listaAtalhos.find(function (s) {
+          return s.device_type === dev
+        }) ||
+          listaAtalhos.find(function (s) {
+            return s.device_type === 'todos'
+          }) || {
+            titulo: 'Atalho Universal ADECONT',
+            url: window.location.origin,
+            instrucoes:
+              '1. Celulares (Android): Menu (⋮) → Adicionar à tela inicial.\n2. iPhone: Compartilhar → Adicionar à Tela de Início.\n3. Computadores: Menu do Chrome/Edge → Instalar aplicativo.',
+          }
+        document.getElementById('inst_url_view').value = item.url || window.location.origin
+
+        var msgTxt =
+          '*ADECONT — Assessoria Contábil e Administrativa*\n' +
+          '📱 *' +
+          (item.titulo || 'Instalação do Sistema') +
+          '*\n\n' +
+          'Prezado cliente,\n' +
+          'Acesse com praticidade o *Panorama da Reforma Tributária* instalando o atalho oficial:\n\n' +
+          '🔗 *Link de Instalação:*\n' +
+          (item.url || window.location.origin) +
+          '\n\n' +
+          '📋 *Instruções passo a passo:*\n' +
+          (item.instrucoes || '') +
+          '\n\n' +
+          '🛡️ _ADECONT: atualização semanal contínua e fontes primárias oficiais._'
+
+        document.getElementById('inst_msg_preview').value = msgTxt
+      }
+
+      function enviarAtalhoWa() {
+        var txt = document.getElementById('inst_msg_preview').value
+        window.open('https://wa.me/?text=' + encodeURIComponent(txt), '_blank')
+      }
+
+      function enviarAtalhoEmail() {
+        var txt = document.getElementById('inst_msg_preview').value
+        var subject = 'Atalho de Instalação — ADECONT Panorama da Reforma Tributária'
+        window.location.href =
+          'mailto:?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(txt)
+      }
+
+      function copiarMensagemAtalho() {
+        var el = document.getElementById('inst_msg_preview')
+        el.select()
+        navigator.clipboard.writeText(el.value).then(function () {
+          msg('instMsg', 'Mensagem copiada para a área de transferência!', true)
+        })
+      }
+
+      function depositarAtalho() {
+        var tit = document.getElementById('dep_titulo').value.trim()
+        var dev = document.getElementById('dep_device').value
+        var url = document.getElementById('dep_url').value.trim()
+        var ins = document.getElementById('dep_inst').value.trim()
+        var obs = document.getElementById('dep_obs').value.trim()
+        var aut = document.getElementById('dep_autor').value.trim() || 'Equipe ADECONT'
+
+        if (!tit || !url || !ins) {
+          msg('depMsg', 'Preencha título, URL e instruções.', false)
+          return
+        }
+
+        pb('/api/collections/install_shortcuts/records', {
+          method: 'POST',
+          body: JSON.stringify({
+            titulo: tit,
+            device_type: dev,
+            url: url,
+            instrucoes: ins,
+            observacoes: obs,
+            criado_por: aut,
+            envios_count: 0,
+          }),
+        })
+          .then(function () {
+            msg('depMsg', 'Atalho depositado com sucesso no banco!', true)
+            document.getElementById('dep_titulo').value = ''
+            document.getElementById('dep_obs').value = ''
+            carregarAtalhos()
+          })
+          .catch(function (err) {
+            msg('depMsg', 'Erro ao salvar: verifique permissões ou token.', false)
+          })
+      }
+
+      function renderTabelaAtalhos() {
+        var tb = document.querySelector('#tblAtalhos tbody')
+        tb.innerHTML = ''
+        listaAtalhos.forEach(function (s) {
+          var tr = document.createElement('tr')
+          tr.innerHTML =
+            '<td><b>' +
+            s.titulo +
+            '</b></td>' +
+            '<td><span class="tag t-enviado">' +
+            s.device_type +
+            '</span></td>' +
+            '<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis">' +
+            s.url +
+            '</td>' +
+            '<td style="max-width:300px;font-size:0.72rem;white-space:pre-line">' +
+            (s.instrucoes || '—') +
+            '</td>' +
+            '<td>' +
+            fmtData(s.created) +
+            '</td>'
+          tb.appendChild(tr)
+        })
+        document.getElementById('cntAtalhos').textContent = listaAtalhos.length
+      }
+
       carregarClientes()
     </script>
   </body>

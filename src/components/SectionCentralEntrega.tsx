@@ -9,7 +9,11 @@ import {
   Mail,
   MessageCircle,
   ExternalLink,
+  Smartphone,
+  QrCode,
+  Download,
 } from 'lucide-react'
+import { ModalAtalhosInstalacao } from '@/components/ModalAtalhosInstalacao'
 
 const SIM_URL = '/simulador.html'
 const ENVIOS_URL = '/envios.html'
@@ -247,6 +251,7 @@ function acaoUrl(item: Item, acao: string) {
 export function SectionCentralEntrega() {
   const [busca, setBusca] = useState('')
   const [cat, setCat] = useState<Item['categoria'] | 'todos'>('todos')
+  const [modalAtalhosAberto, setModalAtalhosAberto] = useState(false)
 
   const filtrados = useMemo(() => {
     const t = norm(busca.trim())
@@ -284,6 +289,40 @@ export function SectionCentralEntrega() {
           <strong>✉️ E-mail</strong> ou <strong>📤 Enviar ao cliente</strong> (canal único com
           protocolo SIM-).
         </p>
+      </div>
+
+      {/* BANNER DESTACADO ADECONT — Atalhos de Instalação do Sistema (Celular e PC) */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-panorama-navy via-[#2E2260] to-[#1E1643] text-white p-4 sm:p-5 shadow-md border-2 border-panorama-gold/40 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div className="flex items-start gap-3.5 z-10">
+          <div className="p-3 bg-white/10 rounded-xl backdrop-blur-xs border border-white/20 shrink-0 text-panorama-gold-light">
+            <Smartphone className="w-6 h-6 sm:w-7 sm:h-7" />
+          </div>
+          <div className="space-y-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-sm sm:text-base font-bold text-white tracking-tight flex items-center gap-1.5">
+                📲 Atalhos de Instalação do Sistema (Celulares & Computadores)
+              </span>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-panorama-gold text-panorama-navy uppercase tracking-wider">
+                Entrega Rápida
+              </span>
+            </div>
+            <p className="text-xs text-slate-200 leading-relaxed max-w-2xl">
+              Deposite instruções no banco de dados e envie aos clientes os atalhos de instalação
+              (PWA nativo com logo ADECONT) para celulares Android (Chrome), iPhones (Safari) e
+              computadores (Chrome/Edge), com links formatados e QR Code instantâneo.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 w-full md:w-auto shrink-0 z-10 pt-2 md:pt-0">
+          <button
+            onClick={() => setModalAtalhosAberto(true)}
+            className="w-full md:w-auto px-4 py-2.5 rounded-xl bg-gradient-to-r from-panorama-gold via-amber-400 to-panorama-gold-dark text-panorama-navy font-bold text-xs sm:text-sm shadow-lg hover:brightness-105 active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <QrCode className="w-4 h-4" />
+            <span>Abrir Painel de Instalação</span>
+          </button>
+        </div>
       </div>
 
       {/* Busca + filtros */}
@@ -422,6 +461,12 @@ export function SectionCentralEntrega() {
         legislação e os tópicos refletem a última atualização da rotina semanal (seg 11h) —
         registrada na Seção 13.
       </div>
+
+      {/* Modal de Atalhos e Instalação do Sistema */}
+      <ModalAtalhosInstalacao
+        isOpen={modalAtalhosAberto}
+        onClose={() => setModalAtalhosAberto(false)}
+      />
     </section>
   )
 }
