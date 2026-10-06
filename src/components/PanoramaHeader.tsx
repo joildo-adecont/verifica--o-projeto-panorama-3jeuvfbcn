@@ -127,7 +127,6 @@ const _REMOVIDO = [
     borda: 'border-lime-200',
   },
 ]
-]
 void _REMOVIDO
 
 export function PanoramaHeader({
