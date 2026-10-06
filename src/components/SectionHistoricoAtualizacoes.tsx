@@ -39,6 +39,23 @@ const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
     data: '05/10/2026',
+    hora: '23:45',
+    titulo:
+      'Modernização visual — 4 etapas de praticidade concluídas (sumário flutuante, modo escuro, navegação única, painel de atalhos)',
+    conteudo:
+      'A pedido do CEO, as 4 etapas de modernização foram executadas uma a uma, cada uma publicada e validada em produção, SEM mexer em tabelas, motores ou funções — nenhuma regra de cálculo, coleção, endpoint ou lógica de simulador foi alterada. ETAPA 1 (v0.0.164) — Sumário flutuante: botão "voltar ao topo" que aparece ao rolar + indicador discreto da seção atual (desktop); ETAPA 2 (v0.0.165) — Modo escuro opcional: alternador ☀️/🌙 na barra superior, usa as variáveis .dark já existentes, preferência salva no navegador (localStorage panorama_tema), testado (classe dark aplicada e persistida); ETAPA 3 (v0.0.166-169) — Navegação unificada: novo arquivo src/components/navegacao.ts como FONTE ÚNICA dos menus — header (23 links) e lateral (24 itens) agora leem a mesma lista, eliminando a duplicação; bug de runtime corrigido (bloco antigo referenciava ícones removidos do import — root vazio; arquivo do header reescrito limpo); ETAPA 4 (v0.0.170) — Painel de Atalhos: tecla "?" abre painel com todas as teclas do sistema (gerais + 23 seções), botão flutuante discreto no canto, Esc fecha.',
+    fontes: [
+      {
+        nome: 'LC 214/2025 compilada — Planalto (fonte oficial primária de referência)',
+        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+      },
+    ],
+    caminho:
+      'Panorama (62493) — src/components/SumarioFlutuante.tsx (novo), AlternadorTema.tsx (novo), navegacao.ts (novo, fonte única), PainelAtalhos.tsx (novo), PanoramaHeader.tsx (lê NAVEGACAO), PanoramaSideMenu.tsx (lê NAVEGACAO), Index.tsx (monta os 2 novos) — SOMENTE apresentação',
+    versao: '62493 v0.0.164-170',
+  },
+  {
+    data: '05/10/2026',
     hora: '23:30',
     titulo:
       'Modernização visual — camada de apresentação refinada SEM tocar no motor (cálculos, dados e APIs intactos)',
