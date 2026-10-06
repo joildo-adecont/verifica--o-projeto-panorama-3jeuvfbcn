@@ -32,7 +32,7 @@ export function PanoramaFooter() {
 
           <button
             onClick={scrollToTop}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-slate-200 text-xs font-semibold transition-colors self-end md:self-auto border border-panorama-gold/40"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-slate-200 text-xs font-semibold transition-all hover:-translate-y-px hover:shadow-md self-end md:self-auto border border-panorama-gold/40"
           >
             <span>Voltar ao topo</span>
             <ArrowUp className="w-3.5 h-3.5" />

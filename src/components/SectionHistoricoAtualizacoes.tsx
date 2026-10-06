@@ -39,6 +39,23 @@ const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
     data: '05/10/2026',
+    hora: '23:30',
+    titulo:
+      'Modernização visual — camada de apresentação refinada SEM tocar no motor (cálculos, dados e APIs intactos)',
+    conteudo:
+      'A pedido do CEO, modernização do visual do Panorama com critério básico de funcionalidade: a parte visual fica bonita, organizada e fácil de usar, SEM misturar a aparência com o motor que roda nos bastidores — nenhuma regra de cálculo, processamento interno, coleção, endpoint ou lógica de simulador foi alterada. Mudanças aplicadas (só apresentação): (1) CORREÇÃO DE DEFEITO REAL — os links do menu principal do header tinham classes de hover montadas dinamicamente (hover:${link.bg}), que o Tailwind não compila: o efeito de passar o mouse NUNCA funcionou; agora hover estático (fundo suave + leve elevação + sombra) e o badge da tecla de atalho acende em dourado ADECONT no hover; (2) foco visível dourado (:focus-visible) em todo o sistema — navegação por teclado mais clara; (3) tabelas com hover suave nas linhas (leitura mais fácil); (4) botões de ação (Cadastro & Envios, Simulador) e hero com micro-elevação ao passar o mouse; (5) cartão de métricas do hero com brilho dourado discreto no hover; (6) botão Voltar ao topo com micro-interação. Motor intacto: fetchTaxNorms, fetchSourceStatuses, triggerSourceCheck, catálogo do Simulador, hooks e coleções — zero alteração.',
+    fontes: [
+      {
+        nome: 'LC 214/2025 compilada — Planalto (fonte oficial primária de referência)',
+        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+      },
+    ],
+    caminho:
+      'Panorama (62493) — src/components/PanoramaHeader.tsx (hover do menu corrigido + botões), src/components/PanoramaHero.tsx (cartão de métricas), src/components/PanoramaFooter.tsx (voltar ao topo), src/main.css (foco, tabelas, links externos) — SOMENTE apresentação',
+    versao: '62493 v0.0.160',
+  },
+  {
+    data: '05/10/2026',
     hora: '22:35',
     titulo:
       'Seção 17 — Responsividade em Celulares (tecla M) — auditoria ao vivo e relatório por aparelho',

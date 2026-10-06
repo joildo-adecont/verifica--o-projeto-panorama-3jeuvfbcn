@@ -25,6 +25,23 @@
     background: #c5a059;
     color: #0b1528;
   }
+  /* Foco visível e elegante em todo o sistema (acessibilidade + praticidade) */
+  :focus-visible {
+    outline: 2px solid #c5a059;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  /* Tabelas: linhas com respiração e hover suave (leitura mais fácil) */
+  table tbody tr {
+    transition: background-color 0.15s ease;
+  }
+  table tbody tr:hover {
+    background-color: rgba(197, 160, 89, 0.06);
+  }
+  /* Links externos: indicação discreta de que saem do sistema */
+  a[target='_blank'] {
+    text-decoration-color: rgba(197, 160, 89, 0.5);
+  }
   /* Scrollbar discreta e moderna */
   ::-webkit-scrollbar {
     width: 10px;

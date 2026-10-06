@@ -445,14 +445,14 @@ export function PanoramaHeader({
           <div className="hidden sm:flex items-center gap-2">
             <a
               href="/panorama-reforma/envios.html"
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-panorama-navy bg-panorama-gold hover:bg-panorama-gold-light px-3 py-1.5 rounded-md shadow-sm transition-colors"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-panorama-navy bg-panorama-gold hover:bg-panorama-gold-light px-3 py-1.5 rounded-md shadow-sm transition-all hover:-translate-y-px hover:shadow-md"
               title="Cadastro de Clientes & Protocolo de Envios"
             >
               <span>📇 Cadastro & Envios</span>
             </a>
             <a
               href="/panorama-reforma/simulador.html"
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-[#1E4FD8] hover:bg-[#2A5BE8] px-3 py-1.5 rounded-md shadow-sm transition-colors"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-[#1E4FD8] hover:bg-[#2A5BE8] px-3 py-1.5 rounded-md shadow-sm transition-all hover:-translate-y-px hover:shadow-md"
               title="Simulador Didático de Transição — regime atual vs IBS/CBS"
             >
               <span>🧮 Simulador</span>
@@ -544,7 +544,7 @@ export function PanoramaHeader({
               <a
                 key={link.href}
                 href={link.href}
-                className={`group inline-flex items-center gap-1.5 whitespace-nowrap transition-colors py-1 px-1.5 rounded-md hover:${link.bg} hover:text-${link.cor}`}
+                className="group inline-flex items-center gap-1.5 whitespace-nowrap transition-all py-1 px-1.5 rounded-md hover:bg-slate-100 hover:-translate-y-px hover:shadow-sm active:translate-y-0"
                 title={`Tecla de atalho: ${link.tecla.toUpperCase()} — ${link.label}`}
               >
                 <span
@@ -553,7 +553,7 @@ export function PanoramaHeader({
                   <Icon className="w-3.5 h-3.5" />
                 </span>
                 <span className="leading-tight">{link.label}</span>
-                <kbd className="inline-flex items-center justify-center min-w-[16px] h-4 px-1 rounded border border-slate-300 bg-slate-100 text-[9px] font-mono text-slate-500 group-hover:border-blue-400 group-hover:text-blue-600 group-hover:bg-blue-50 transition-colors">
+                <kbd className="inline-flex items-center justify-center min-w-[16px] h-4 px-1 rounded border border-slate-300 bg-slate-100 text-[9px] font-mono text-slate-500 group-hover:border-panorama-gold group-hover:text-panorama-gold-dark group-hover:bg-panorama-gold/10 transition-colors">
                   {link.tecla.toUpperCase()}
                 </kbd>
               </a>

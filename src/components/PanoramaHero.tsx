@@ -44,7 +44,7 @@ export function PanoramaHero() {
             <div className="flex flex-wrap items-center gap-3 pt-2">
               <a
                 href="#secao-1"
-                className="inline-flex items-center gap-2 bg-panorama-gold hover:bg-panorama-gold-light text-panorama-navy font-bold text-xs sm:text-sm px-5 py-2.5 rounded-lg shadow-md transition-all hover:shadow-lg hover:-translate-y-0.5"
+                className="inline-flex items-center gap-2 bg-panorama-gold hover:bg-panorama-gold-light text-panorama-navy font-bold text-xs sm:text-sm px-5 py-2.5 rounded-lg shadow-md transition-all hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0"
               >
                 <span>Ver Arcabouço Normativo</span>
                 <ArrowRight className="w-4 h-4" />
@@ -69,7 +69,7 @@ export function PanoramaHero() {
           </div>
 
           {/* Quick Metrics Card */}
-          <div className="lg:col-span-4 bg-white/[0.06] backdrop-blur-md border border-white/10 rounded-2xl p-5 shadow-2xl space-y-4 ring-1 ring-panorama-gold/20">
+          <div className="lg:col-span-4 bg-white/[0.06] backdrop-blur-md border border-white/10 rounded-2xl p-5 shadow-2xl space-y-4 ring-1 ring-panorama-gold/20 transition-shadow hover:shadow-[0_20px_60px_-15px_rgba(197,160,89,0.25)]">
             <div className="flex items-center justify-between border-b border-white/10 pb-3">
               <span className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
                 Status Operacional 2026
