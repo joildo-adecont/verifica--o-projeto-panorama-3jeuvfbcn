@@ -38,6 +38,40 @@ function ehRecente(dataBR: string): boolean {
 const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
+    data: '07/10/2026',
+    hora: '11:00',
+    titulo:
+      'Revisão semanal de fontes oficiais — zero novidades normativas; rotina de verificação reparada',
+    conteudo:
+      'Revisão semanal (quarta, 11:00) das fontes oficiais primárias concluída SEM novos atos normativos: CGIBS segue com 18 resoluções (a última, Res. 18/2026 de 15/09, é institucional — ampliação da força de trabalho, sem impacto tributário); LC 214/2025 compilada no Planalto sem alteração (852.649 caracteres, hash inalterado); LC 227/2026 monitorada (texto íntegro de 415.289 caracteres); RFB sem novo ato na página da Reforma Tributária; Buscador NCM sem mudança de versão — cClassTrib IT 2025.002 v1.70 e Calculadora RTC V0059; LC 235/2026 ainda não publicada (404 informativo). Paralelamente, os verificadores automáticos da rotina foram REPARADOS: as execuções anteriores falhavam em silêncio (erro de decodificação nas coletas e extração de resoluções CGIBS vazia — os números estão nos links dos PDFs, não no texto da página), o que mascarava o monitoramento real. Agora as 6 fontes são coletadas com assinatura (hash) e comparadas a cada semana; correções também na URL da LC 227 e no regex de versão do cClassTrib (evita falso positivo com contagens de produtos).',
+    fontes: [
+      {
+        nome: 'CGIBS — Resoluções (18/18, última Res. 18/2026 institucional)',
+        url: 'https://cgibs.gov.br/resolucoes',
+      },
+      {
+        nome: 'Planalto — LC 214/2025 compilada (sem alteração)',
+        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+      },
+      {
+        nome: 'Planalto — LC 227/2026 (monitorada, sem alteração)',
+        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp227.htm',
+      },
+      {
+        nome: 'RFB — Reforma Tributária (sem novo ato)',
+        url: 'https://www.gov.br/receitafederal/pt-br/assuntos/reforma-tributaria',
+      },
+      {
+        nome: 'Buscador NCM — fontes (cClassTrib v1.70, Calculadora V0059, sem mudança)',
+        url: 'https://buscadorncm.com.br/fontes',
+      },
+    ],
+    caminho:
+      'Rotina semanal (scripts/1b8edc430ba4e07b/run.sh) — verificadores scripts/d3c20c92c899fa15/checar_fontes.py e scripts/045058ec889fa823/check.py reparados; nenhum conteúdo do Panorama alterado',
+    versao: '62493 v0.0.189',
+    bloco: 'sistema',
+  },
+  {
     data: '06/10/2026',
     hora: '10:50',
     titulo:
