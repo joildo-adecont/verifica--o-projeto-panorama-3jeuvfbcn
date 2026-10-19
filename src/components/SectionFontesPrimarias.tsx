@@ -712,8 +712,8 @@ export function SectionFontesPrimarias() {
             Índice das fontes oficiais primárias — 110 bases indexadas
           </h2>
           <p className="text-sm text-slate-500 mt-1">
-            Levantamento em 01/10/2026 a partir da página "Fontes oficiais e datas de atualização"
-            do Buscador NCM (
+            Levantamento em 01/10/2026, re-conferido em 12/10/2026 e em 19/10/2026 pela rotina
+            semanal, a partir da página "Fontes oficiais e datas de atualização" do Buscador NCM (
             <a
               href="https://buscadorncm.com.br/fontes"
               target="_blank"
@@ -756,7 +756,7 @@ export function SectionFontesPrimarias() {
                 {' '}
                 <th className="px-3 py-2 font-semibold">Base de dados</th>
                 <th className="px-3 py-2 font-semibold">Órgão / fonte primária</th>
-                <th className="px-3 py-2 font-semibold">Situação (01/10/2026)</th>
+                <th className="px-3 py-2 font-semibold">Situação (re-conferida em 19/10/2026)</th>
                 <th className="px-3 py-2 font-semibold">Link</th>
               </tr>
             </thead>

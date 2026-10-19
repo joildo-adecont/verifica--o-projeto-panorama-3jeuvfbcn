@@ -38,6 +38,61 @@ function ehRecente(dataBR: string): boolean {
 const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
+    data: '19/10/2026',
+    hora: '11:00',
+    titulo:
+      'Revisão semanal de fontes oficiais — sem novos atos normativos; seções 11 e 12 re-conferidas e re-datadas',
+    conteudo:
+      'Revisão semanal (segunda, 11:00) das fontes oficiais primárias concluída SEM novos atos normativos: CGIBS segue com 18 resoluções (última: Res. 18/2026, institucional); LC 214/2025 compilada no Planalto sem alteração desde 12/10; LC 227/2026 e LC 235/2026 monitoradas sem mudança; Buscador NCM re-conferido em 18/10 — cClassTrib IT 2025.002 v1.70 (implantação nos autorizadores até 16/10/2026 CONCLUÍDA), Calculadora RTC segue no banco V0059 (30/09, agora com o pacote do Simples Nacional do mesmo banco incorporado em 01/10), documentação técnica 1.3.0 do IBS (DeRE) pacote completo (manual/eventos/anexos em 02/10, esquemas XSD em 05/10). Na RFB, notícia de 16/10/2026 atualiza o balanço das opções: 657.753 pedidos pelo Simples Nacional (256.607 deferidos, 401.146 indeferidos — regularização de pendências até 30/10) e 917.331 pedidos pelo regime regular do IBS/CBS, com prazo de opção encerrando em 30/10/2026. Seções 11 e 12 re-datadas para 19/10/2026 nos dois projetos (56819 e 62493).',
+    fontes: [
+      {
+        nome: 'RFB — Balanço das opções Simples Nacional e regime regular IBS/CBS (16/10/2026)',
+        url: 'https://www.gov.br/receitafederal/pt-br/assuntos/noticias/2026/outubro/a-receita-federal-divulga-a-atualizacao-dos-numeros-referentes-as-solicitacoes-de-opcao-pelo-simples-nacional-e-pelo-regime-regular-do-ibs-e-da-cbs',
+      },
+      {
+        nome: 'CGIBS — Resoluções (18/18, sem mudança)',
+        url: 'https://cgibs.gov.br/resolucoes',
+      },
+      {
+        nome: 'Planalto — LC 214/2025 compilada (sem alteração desde 12/10)',
+        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+      },
+      {
+        nome: 'Buscador NCM — fontes (cClassTrib v1.70 implantada; Calculadora V0059)',
+        url: 'https://buscadorncm.com.br/fontes',
+      },
+    ],
+    caminho:
+      'Rotina semanal (scripts/1b8edc430ba4e07b/run.sh + scripts/045058ec889fa823/check.py) — public/panorama-reforma/partes/parte-conteudo-5.html e -6.html (56819), src/components/SectionFontesPrimarias.tsx (62493)',
+    versao: '62493 v0.0.190 · 56819 v0.0.97',
+    bloco: 'sistema',
+  },
+  {
+    data: '12/10/2026',
+    hora: '11:00',
+    titulo: '⚖️ Compilado do Planalto reflete a revogação do art. 87-B da LC 123 pela LC 227/2026',
+    conteudo:
+      'A LC 214/2025 compilada do Planalto recebeu o selo "(Vide Lei Complementar nº 227, de 2026)" no art. 87-B da LC 123 (redação dada pelo art. 517 da LC 214 — janela extraordinária de opção do Simples Nacional em setembro/2026 para efeitos em 2027). A LC 227/2026 (art. 181, IV, "a") REVOGOU esse dispositivo. Efeito prático: nenhum — a janela de setembro (último dia útil) para efeitos no ano seguinte segue valendo pela regra geral do art. 16, § 2º, da LC 123. Mudança apenas de fonte/compilação. Na mesma re-conferência: Buscador NCM re-datado para 12/10/2026 (ATC nº 6 de 28/09 aprovou a documentação técnica 1.3.0 do IBS/DeRE; cCredPres com dado oficial de 01/10; NT 2026.008 rejeições 1278–1283 em 02/10; 9 cClassTrib novos do IT 2025.002 v1.70 com implantação nos autorizadores até 16/10/2026). Seções 11 e 12 re-datadas para 12/10/2026.',
+    fontes: [
+      {
+        nome: 'Planalto — LC 214/2025 compilada (art. 87-B da LC 123 com selo de revogação)',
+        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+      },
+      {
+        nome: 'Planalto — LC 227/2026 (art. 181, IV, "a")',
+        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp227.htm',
+      },
+      {
+        nome: 'Buscador NCM — fontes (re-conferência de 12/10/2026)',
+        url: 'https://buscadorncm.com.br/fontes',
+      },
+    ],
+    caminho:
+      'Rotina semanal — public/panorama-reforma/partes/parte-conteudo-5.html e -6.html (56819), src/components/SectionFontesPrimarias.tsx (62493); conteúdo das seções 6E/7 sem alteração',
+    versao: '56819 v0.0.97 · 62493 v0.0.190',
+    bloco: 'legislacao',
+  },
+  {
     data: '07/10/2026',
     hora: '11:00',
     titulo:
@@ -930,6 +985,36 @@ const REGISTROS: Registro[] = [
   },
 
   // ============ BLOCO: ATUALIZAÇÃO DA LEGISLAÇÃO (órgãos oficiais) ============
+  {
+    data: '19/10/2026',
+    hora: '11:00',
+    titulo:
+      'Revogação do art. 87-B da LC 123 pela LC 227/2026 refletida no compilado do Planalto; fontes re-conferidas sem novos atos',
+    conteudo:
+      'Revisão semanal confirmou que o texto compilado da LC 214/2025 no Planalto recebeu o selo "(Vide Lei Complementar nº 227, de 2026)" no art. 87-B da LC 123 (redação dada pelo art. 517 da LC 214) — dispositivo revogado pelo art. 181, IV, "a", da LC 227/2026. Efeito prático: NENHUM — a janela extraordinária de setembro/2026 para opção no Simples com efeitos em 2027 segue valendo pela regra geral do art. 16, § 2º, da LC 123; a Seção 6E já reflete corretamente a janela geral e não exigiu mudança. Na mesma rodada, as 6 fontes oficiais foram re-conferidas sem novos atos normativos (CGIBS segue em 18 resoluções; cClassTrib IT 2025.002 v1.70; Calculadora RTC V0059; LC 235/2026 monitorada em /leis/lcp/lcp235.htm). Pendência da rodada de 12/10 encerrada: seções 11 e 12 (56819 e 62493) re-datadas com a re-conferência de 12/10/2026.',
+    fontes: [
+      {
+        nome: 'Planalto — LC 214/2025 compilada (selo de revogação no art. 87-B da LC 123)',
+        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+      },
+      {
+        nome: 'Planalto — LC 227/2026 (art. 181, IV, "a" — revogação)',
+        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp227.htm',
+      },
+      {
+        nome: 'CGIBS — Resoluções (18/18, sem alteração)',
+        url: 'https://cgibs.gov.br/resolucoes',
+      },
+      {
+        nome: 'Buscador NCM — fontes (cClassTrib v1.70, Calculadora V0059, sem mudança)',
+        url: 'https://buscadorncm.com.br/fontes',
+      },
+    ],
+    caminho:
+      'Rotina semanal (scripts/47e38105b990048f/run.sh) — seções 11/12 re-datadas nos 2 projetos (parte-conteudo-5/6.html no 56819; SectionFontesPrimarias.tsx no 62493); Seção 6E conferida sem mudança',
+    versao: '62493 v0.0.190',
+    bloco: 'legislacao',
+  },
   {
     data: '01/10/2026',
     hora: '10:00',
