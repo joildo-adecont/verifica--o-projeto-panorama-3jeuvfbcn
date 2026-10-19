@@ -64,7 +64,7 @@ const REGISTROS: Registro[] = [
     ],
     caminho:
       'Rotina semanal (scripts/1b8edc430ba4e07b/run.sh + scripts/045058ec889fa823/check.py) — public/panorama-reforma/partes/parte-conteudo-5.html e -6.html (56819), src/components/SectionFontesPrimarias.tsx (62493)',
-    versao: '62493 v0.0.193 · 56819 v0.0.98',
+    versao: '62493 v0.0.196 · 56819 v0.0.101',
     bloco: 'sistema',
   },
   {
