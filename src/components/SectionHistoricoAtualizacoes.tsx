@@ -38,6 +38,31 @@ function ehRecente(dataBR: string): boolean {
 const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
+    data: '21/10/2026',
+    hora: '11:00',
+    titulo: 'Revisão semanal — 1 base re-consolidada no Buscador NCM; seções 11 e 12 re-datadas',
+    conteudo:
+      'Revisão semanal (quarta, 11:00) das fontes oficiais primárias concluída SEM novos atos normativos: CGIBS segue com 18 resoluções (última: Res. 18/2026); LC 214/2025, LC 227/2026 e LC 235/2026 sem alteração no Planalto; RFB sem notícia nova da reforma. No agregador Buscador NCM (113 bases), a assinatura da página divergiu e a conferência item a item identificou UMA mudança material: a base "Alíquotas de PIS/COFINS por CST (regimes e monofásico)" foi re-consolidada em 20/10/2026 (antes: conferida em 14/07/2026) — tabela do regime atual (PIS/COFINS), sem impacto no IBS/CBS. As tabelas-chave da reforma seguem intactas: cClassTrib IT 2025.002 v1.70 (dado oficial 01/10), cCredPres (01/10), Calculadora RTC banco V0059 (30/09), NTs da reforma (01/10). Seções 11 e 12 re-datadas para 21/10/2026 nos dois projetos (56819 e 62493), com a data da base PIS/COFINS atualizada para 20/10/2026.',
+    fontes: [
+      {
+        nome: 'Buscador NCM — fontes (base PIS/COFINS por CST re-consolidada em 20/10/2026)',
+        url: 'https://buscadorncm.com.br/fontes',
+      },
+      {
+        nome: 'CGIBS — Resoluções (18/18, sem mudança)',
+        url: 'https://cgibs.gov.br/resolucoes',
+      },
+      {
+        nome: 'Planalto — LC 214/2025 compilada (sem alteração)',
+        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/Lcp214compilado.htm',
+      },
+    ],
+    caminho:
+      'Rotina semanal (scripts/1b8edc430ba4e07b/run.sh) — public/panorama-reforma/partes/parte-conteudo-5.html e -6.html (56819), src/components/SectionFontesPrimarias.tsx e SectionFontesAgregador.tsx (62493)',
+    versao: 'preencher-versao',
+    bloco: 'sistema',
+  },
+  {
     data: '19/10/2026',
     hora: '11:00',
     titulo:

@@ -328,7 +328,7 @@ export function SectionFontesAgregador() {
               </div>
             </div>
             <p className="text-[10px] text-slate-500 pt-1">
-              Último sincronismo oficial do banco de dados: 19/10/2026 (Fontes: RFB, CGIBS, CONFAZ e
+              Último sincronismo oficial do banco de dados: 21/10/2026 (Fontes: RFB, CGIBS, CONFAZ e
               IBGE)
             </p>
             <div className="pt-2 border-t border-blue-100 flex items-center justify-between">
@@ -641,7 +641,7 @@ export function SectionFontesAgregador() {
                       <td className="py-3 px-3.5 align-top text-xs text-slate-500 whitespace-nowrap">
                         <div className="flex items-center gap-1 font-mono text-[11px]">
                           <Calendar className="w-3 h-3 text-slate-400" />
-                          <span>{row.atualizado_em || '19/10/2026'}</span>
+                          <span>{row.atualizado_em || '21/10/2026'}</span>
                         </div>
                       </td>
                     </tr>
@@ -765,7 +765,7 @@ export function SectionFontesAgregador() {
               </a>
             </span>
             <span className="font-mono text-[11px]">
-              Política ADECONT: Verificação Semanal • Atualizado em 19/10/2026
+              Política ADECONT: Verificação Semanal • Atualizado em 21/10/2026
             </span>
           </div>
         </div>
