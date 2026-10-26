@@ -134,6 +134,12 @@ export function SectionFontesPrimarias() {
           'https://www8.receita.fazenda.gov.br/SimplesNacional/Arquivos/manual/Anexo_XI.pdf',
         ],
         [
+          'Limite de receita e número de empregados do MEI',
+          'Presidência da República (Planalto) — LC 123/2006, arts. 18-A e 18-C',
+          'Dado oficial de 21/10/2026 (LC 238/2026: R$ 110 mil em 2027 e R$ 140 mil a partir de 2028)',
+          'https://www.planalto.gov.br/ccivil_03/leis/lcp/Lcp238.htm',
+        ],
+        [
           'Anexo Único da DIRBI — incentivos, renúncias, benefícios e imunidades de natureza tributária',
           'Receita Federal do Brasil',
           '15 de dezembro de 2025',
@@ -142,7 +148,7 @@ export function SectionFontesPrimarias() {
         [
           'Anexos I a V do Simples Nacional (alíquotas e partilha)',
           'Presidência da República (Planalto)',
-          'Conferido em 12/10/2026',
+          'Conferido em 21/10/2026',
           'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp123.htm',
         ],
         [
@@ -178,13 +184,13 @@ export function SectionFontesPrimarias() {
         [
           'Códigos de benefício fiscal da NF-e (cBenef) — 8 UFs (cobertura completa)',
           'as 8 Sefaz que adotam o campo (SP, PR, ES, GO, RJ, RS, DF, SC)',
-          'Conferido em 15/10/2026',
+          'Conferido em 23/10/2026',
           'https://portal.fazenda.sp.gov.br/servicos/nfe/Paginas/cBenef.aspx',
         ],
         [
           'Códigos de receita DARF (SIEF Receitas)',
           'Receita Federal (SIEF)',
-          'Conferido em 17/10/2026',
+          'Conferido em 19/10/2026',
           'https://siefreceitas.receita.economia.gov.br/api/receitas',
         ],
         [
@@ -442,7 +448,7 @@ export function SectionFontesPrimarias() {
         [
           'Tabelas SPED (CFOP, CST, gênero IPI, selo IPI)',
           'Receita Federal',
-          'Conferido em 14/10/2026',
+          'Conferido em 21/10/2026',
           'https://www.sped.fazenda.gov.br/spedtabelas/AppConsulta/publico/aspx/ConsultaTabelasExternas.aspx?CodSistema=SpedFiscal',
         ],
         [
@@ -532,7 +538,7 @@ export function SectionFontesPrimarias() {
         [
           'MVA-ST por CEST — legislação estadual (7 UFs fora do Portal Nacional)',
           'as 7 Sefaz que não publicam no Portal Nacional da ST (MG, RJ, RS, MT, AC, AM, DF)',
-          'Conferido em 17/10/2026',
+          'Conferido em 23/10/2026',
           'https://ww1.receita.fazenda.df.gov.br/legislacao/visualizar-legislacao?txtNumero=18955&txtAno=1997&txtTipo=6&txtParte=ANEXO%2004%20CADERNO%2001',
         ],
         [
@@ -556,7 +562,7 @@ export function SectionFontesPrimarias() {
         [
           'Alíquotas brasileiras diferentes da TEC',
           'CAMEX/MDIC',
-          '5 de outubro de 2026',
+          '19 de outubro de 2026',
           'https://www.gov.br/mdic/pt-br/assuntos/camex/se-camex/strat/tarifas/vigentes',
         ],
         [
@@ -568,19 +574,19 @@ export function SectionFontesPrimarias() {
         [
           'Concessões Tarifárias OMC (Listas GATT/OMC)',
           'CAMEX/MDIC',
-          '5 de outubro de 2026',
+          '19 de outubro de 2026',
           'https://www.gov.br/mdic/pt-br/assuntos/camex/se-camex/strat/tarifas/vigentes',
         ],
         [
           'Cotas CAMEX vigentes',
           'SECEX/MDIC',
-          '16 de outubro de 2026',
+          '19 de outubro de 2026',
           'https://www.gov.br/siscomex/pt-br/informacoes/importacao',
         ],
         [
           'DCC — Elevações Tarifárias por Desequilíbrios',
           'CAMEX/MDIC',
-          '5 de outubro de 2026',
+          '19 de outubro de 2026',
           'https://www.gov.br/mdic/pt-br/assuntos/camex/se-camex/strat/tarifas/vigentes',
         ],
         [
@@ -592,19 +598,19 @@ export function SectionFontesPrimarias() {
         [
           'LEBITBK — Lista de Exceções BIT/BK',
           'CAMEX/MDIC',
-          '5 de outubro de 2026',
+          '19 de outubro de 2026',
           'https://www.gov.br/mdic/pt-br/assuntos/camex/se-camex/strat/tarifas/vigentes',
         ],
         [
           'LESSIN — Lista de Bens e Mercadorias Sem Similar Nacional',
           'CAMEX/MDIC',
-          '16 de outubro de 2026',
+          '19 de outubro de 2026',
           'https://www.gov.br/mdic/pt-br/assuntos/camex/se-camex/strat/lista-de-bens-sem-similar-nacional-lessin',
         ],
         [
           'LETEC — Lista de Exceções à TEC',
           'CAMEX/MDIC',
-          '5 de outubro de 2026',
+          '19 de outubro de 2026',
           'https://www.gov.br/mdic/pt-br/assuntos/camex/se-camex/strat/tarifas/vigentes',
         ],
         [
@@ -622,25 +628,25 @@ export function SectionFontesPrimarias() {
         [
           'Reduções por Desabastecimento',
           'CAMEX/MDIC',
-          '5 de outubro de 2026',
+          '19 de outubro de 2026',
           'https://www.gov.br/mdic/pt-br/assuntos/camex/se-camex/strat/tarifas/vigentes',
         ],
         [
           'Regime Automotivo ACE-14 (Acordo Brasil-Argentina)',
           'CAMEX/MDIC',
-          '5 de outubro de 2026',
+          '19 de outubro de 2026',
           'https://www.gov.br/mdic/pt-br/assuntos/camex/se-camex/strat/tarifas/vigentes',
         ],
         [
           'Relação das Apurações de Produção Nacional',
           'SECEX/MDIC',
-          '14 de outubro de 2026',
+          '21 de outubro de 2026',
           'https://www.gov.br/siscomex/pt-br/informacoes/importacao',
         ],
         [
           'TEC — Tarifa Externa Comum (Mercosul)',
           'CAMEX/MDIC',
-          '5 de outubro de 2026',
+          '19 de outubro de 2026',
           'https://www.gov.br/mdic/pt-br/assuntos/camex/se-camex/strat/tarifas/vigentes',
         ],
         [
@@ -682,7 +688,7 @@ export function SectionFontesPrimarias() {
         [
           'CNAE 2.3 — Classificação Nacional de Atividades Econômicas',
           'IBGE/Concla',
-          'Conferido em 17/10/2026',
+          'Conferido em 19/10/2026',
           'https://concla.ibge.gov.br/busca-online-cnae.html',
         ],
         [
@@ -727,12 +733,12 @@ export function SectionFontesPrimarias() {
             Seção 12
           </p>
           <h2 className="text-xl md:text-2xl font-bold text-slate-900 mt-1">
-            Índice das fontes oficiais primárias — 113 bases indexadas
+            Índice das fontes oficiais primárias — 114 bases indexadas
           </h2>
           <p className="text-sm text-slate-500 mt-1">
-            Levantamento em 19/10/2026, re-conferido em 12/10/2026, em 19/10/2026 e em 21/10/2026
-            pela rotina semanal, a partir da página "Fontes oficiais e datas de atualização" do
-            Buscador NCM (
+            Levantamento em 26/10/2026, re-conferido em 12/10/2026, em 19/10/2026, em 21/10/2026 e
+            em 26/10/2026 pela rotina semanal, a partir da página "Fontes oficiais e datas de
+            atualização" do Buscador NCM (
             <a
               href="https://buscadorncm.com.br/fontes"
               target="_blank"
@@ -775,7 +781,7 @@ export function SectionFontesPrimarias() {
                 {' '}
                 <th className="px-3 py-2 font-semibold">Base de dados</th>
                 <th className="px-3 py-2 font-semibold">Órgão / fonte primária</th>
-                <th className="px-3 py-2 font-semibold">Situação (re-conferida em 21/10/2026)</th>
+                <th className="px-3 py-2 font-semibold">Situação (re-conferida em 26/10/2026)</th>
                 <th className="px-3 py-2 font-semibold">Link</th>
               </tr>
             </thead>
@@ -823,7 +829,7 @@ export function SectionFontesPrimarias() {
             <p>
               <strong>Como ler as datas:</strong> "Dado oficial de…" = última publicação do próprio
               órgão (versão em vigor); "Conferido em…" = última re-conferência do agregador na
-              fonte. As 113 bases cobrem os grupos acima; a lista completa, com ato normativo de
+              fonte. As 114 bases cobrem os grupos acima; a lista completa, com ato normativo de
               cada base, está na página de fontes do agregador.
             </p>
           </div>

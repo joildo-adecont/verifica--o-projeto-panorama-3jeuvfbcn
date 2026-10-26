@@ -38,6 +38,36 @@ function ehRecente(dataBR: string): boolean {
 const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
+    data: '26/10/2026',
+    hora: '11:00',
+    titulo:
+      'Revisão semanal — RFB publica serviço "Escolher Regime de Apuração de IBS e CBS"; agregador chega a 114 bases (nova: limites do MEI, LC 238/2026)',
+    conteudo:
+      'Revisão semanal (segunda, 11:00) das fontes oficiais concluída COM 2 mudanças: (1) RFB — a página Reforma Tributária passou a oferecer o serviço "Escolher Regime de Apuração de IBS e CBS" (opção/renúncia ao regime regular, com histórico de pedidos; para condomínios, consórcios, sociedades em conta de participação, nanoempreendedores, produtores rurais, transportadores autônomos de carga e optantes do Simples Nacional) — sem novo ato normativo; CGIBS segue com 18 resoluções e LC 214/227/235 sem alteração no Planalto. (2) Buscador NCM — de 113 para 114 bases: NOVA base "Limite de receita e número de empregados do MEI" (LC 123/2006, arts. 18-A/18-C; LC 238/2026 — R$ 110 mil em 2027 e R$ 140 mil a partir de 2028) e 5 bases re-consolidadas: cBenef (23/10), MVA-ST legislação estadual de 7 UFs (23/10), Anexos I–V do Simples (21/10), Relação das Apurações de Produção Nacional (21/10) e Tabelas SPED (21/10); bases CAMEX/TEC re-conferidas em 19/10. Tabelas-chave da reforma intactas: cClassTrib IT 2025.002 v1.70 e cCredPres (dado oficial 01/10), Calculadora RTC banco V0059 (30/09), NTs da reforma (01/10). Seções 11 e 12 re-datadas para 26/10/2026 nos dois projetos (56819 e 62493), com a base do MEI incluída na Seção 12.',
+    fontes: [
+      {
+        nome: 'RFB — serviço Escolher Regime de Apuração de IBS e CBS',
+        url: 'https://www.gov.br/pt-br/servicos/escolher-regime-de-apuracao-de-bens-e-servicos-ibs-e-da-contribuicao-sobre-bens-e-servicos-cbs',
+      },
+      {
+        nome: 'Buscador NCM — fontes (114 bases; nova base MEI)',
+        url: 'https://buscadorncm.com.br/fontes',
+      },
+      {
+        nome: 'Planalto — LC 238/2026 (limites do MEI)',
+        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/Lcp238.htm',
+      },
+      {
+        nome: 'CGIBS — Resoluções (18/18, sem mudança)',
+        url: 'https://cgibs.gov.br/resolucoes',
+      },
+    ],
+    caminho:
+      'Rotina semanal (scripts/d3c20c92c899fa15/run.sh) — public/panorama-reforma/partes/parte-conteudo-5.html e -6.html (56819), src/components/SectionFontesPrimarias.tsx e SectionFontesAgregador.tsx (62493)',
+    versao: '62493 v0.0.198 · 56819 v0.0.103',
+    bloco: 'sistema',
+  },
+  {
     data: '21/10/2026',
     hora: '11:00',
     titulo: 'Revisão semanal — 1 base re-consolidada no Buscador NCM; seções 11 e 12 re-datadas',
