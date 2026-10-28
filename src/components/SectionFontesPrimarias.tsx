@@ -16,7 +16,7 @@ export function SectionFontesPrimarias() {
         [
           'Anexo VIII — Correlação Item LC 116 × NBS × IndOp × cClassTrib (IBS/CBS)',
           'Receita Federal — Portal Nacional da NFS-e',
-          '24 de junho de 2026',
+          '26 de outubro de 2026',
           'https://www.gov.br/nfse/pt-br/biblioteca/documentacao-tecnica/rtc',
         ],
         [
@@ -38,6 +38,12 @@ export function SectionFontesPrimarias() {
           'https://www.cgibs.gov.br/upload/arquivos/202607/31091735-20260730-16h30-ato-conjunto-rfb-cgibs-na-c2-ba-4-260731-090909.pdf',
         ],
         [
+          'Emissor Nacional da NFS-e para ME e EPP do Simples Nacional',
+          'Comitê Gestor do Simples Nacional — Receita Federal (Resolução CGSN nº 191/2026)',
+          '10 de agosto de 2026',
+          'https://www.in.gov.br/en/web/dou/-/resolucao-cgsn-n-191-de-4-de-agosto-de-2026-724399487',
+        ],
+        [
           'Esquemas XSD da DeRE, pacote 1.3.0',
           'Comitê Gestor do IBS (CGIBS) e Receita Federal do Brasil',
           '5 de outubro de 2026',
@@ -52,7 +58,7 @@ export function SectionFontesPrimarias() {
         [
           'IBS/CBS nos DF-e: as Notas Técnicas da Reforma Tributária',
           'Portal Nacional dos DF-e / SVRS',
-          '1 de outubro de 2026',
+          '27 de outubro de 2026',
           'https://dfe-portal.svrs.rs.gov.br/Dfe/Documentos',
         ],
         [
@@ -733,10 +739,10 @@ export function SectionFontesPrimarias() {
             Seção 12
           </p>
           <h2 className="text-xl md:text-2xl font-bold text-slate-900 mt-1">
-            Índice das fontes oficiais primárias — 114 bases indexadas
+            Índice das fontes oficiais primárias — 115 bases indexadas
           </h2>
           <p className="text-sm text-slate-500 mt-1">
-            Levantamento em 26/10/2026, re-conferido em 12/10/2026, em 19/10/2026, em 21/10/2026 e
+            Levantamento em 28/10/2026, re-conferido em 12/10/2026, em 19/10/2026, em 21/10/2026 e
             em 26/10/2026 pela rotina semanal, a partir da página "Fontes oficiais e datas de
             atualização" do Buscador NCM (
             <a
@@ -781,7 +787,7 @@ export function SectionFontesPrimarias() {
                 {' '}
                 <th className="px-3 py-2 font-semibold">Base de dados</th>
                 <th className="px-3 py-2 font-semibold">Órgão / fonte primária</th>
-                <th className="px-3 py-2 font-semibold">Situação (re-conferida em 26/10/2026)</th>
+                <th className="px-3 py-2 font-semibold">Situação (re-conferida em 28/10/2026)</th>
                 <th className="px-3 py-2 font-semibold">Link</th>
               </tr>
             </thead>
@@ -829,7 +835,7 @@ export function SectionFontesPrimarias() {
             <p>
               <strong>Como ler as datas:</strong> "Dado oficial de…" = última publicação do próprio
               órgão (versão em vigor); "Conferido em…" = última re-conferência do agregador na
-              fonte. As 114 bases cobrem os grupos acima; a lista completa, com ato normativo de
+              fonte. As 115 bases cobrem os grupos acima; a lista completa, com ato normativo de
               cada base, está na página de fontes do agregador.
             </p>
           </div>

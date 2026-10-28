@@ -38,6 +38,40 @@ function ehRecente(dataBR: string): boolean {
 const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
+    data: '28/10/2026',
+    hora: '11:00',
+    titulo:
+      'Revisão semanal — ENCAT posterga produção das NTs da reforma (NF-e 16/11, CT-e 14/12); agregador chega a 115 bases (nova: Emissor Nacional da NFS-e do Simples)',
+    conteudo:
+      'Revisão semanal (quarta, 11:00) das fontes oficiais concluída COM 1 mudança material e 1 base nova: (1) ENCAT/Portal Nacional dos DF-e — aviso de 27/10/2026 postergou datas de implantação em produção: NT 2025.002 v1.50, NT 2026.006 v1.00 e NT 2026.007 v1.00 (NF-e/NFC-e) vão para 16/11/2026, junto das NT 2026.008 v1.00, 2025.002 v1.52 e 2026.007 v1.10 (que estavam em 03/11); a NT 2026.004 v1.00 do CT-e vai para 14/12/2026; homologação das NTs de 05/10 mantida em 26/10. (2) Buscador NCM — de 114 para 115 bases: NOVA base "Emissor Nacional da NFS-e para ME e EPP do Simples Nacional" (Resolução CGSN nº 191, de 04/08/2026, arts. 1º e 3º, I; redação do art. 59 da Resolução CGSN 140/2018, dado oficial de 10/08/2026). Além dela, o Anexo VIII do Portal da NFS-e foi re-consolidado em 26/10 (v1.02.00 — correlação de 90 NBS revista: cClassTrib em 27, cIndOp em 67, itens da LC 116 em 12, com a coluna COD_ATIV_SN do Simples) e a base de Notas Técnicas da reforma em 27/10. As Tabelas SPED foram re-consolidadas em 28/10 e o bloco CAMEX/TEC em 26/10 (TEC, alíquotas diferentes da TEC, Reduções por Desabastecimento, DCC, LETEC, LEBITBK, OMC, ACE-14) — sem impacto IBS/CBS. Tabelas-chave da reforma intactas: cClassTrib IT 2025.002 v1.70 e cCredPres (dado oficial 01/10), Calculadora RTC banco V0059 (30/09). CGIBS segue com 18 resoluções; LC 214/227/235 sem alteração (Planalto bloqueou o acesso automático com "Acesso Negado" nesta rodada — sem indício de mudança). Seções 11 e 12 re-datadas para 28/10/2026 nos dois projetos (56819 e 62493), com a base do Emissor Nacional da NFS-e incluída na Seção 12.',
+    fontes: [
+      {
+        nome: 'ENCAT — aviso de 27/10/2026 (postergação de NTs)',
+        url: 'https://dfe-portal.svrs.rs.gov.br/Nfe/Avisos/3014',
+      },
+      {
+        nome: 'Portal Nacional da NF-e — informes (27/10/2026)',
+        url: 'https://www.nfe.fazenda.gov.br/portal/informe.aspx?ehCTG=false',
+      },
+      {
+        nome: 'Buscador NCM — fontes (115 bases; nova base Emissor Nacional NFS-e)',
+        url: 'https://buscadorncm.com.br/fontes',
+      },
+      {
+        nome: 'DOU — Resolução CGSN nº 191, de 4 de agosto de 2026',
+        url: 'https://www.in.gov.br/en/web/dou/-/resolucao-cgsn-n-191-de-4-de-agosto-de-2026-724399487',
+      },
+      {
+        nome: 'CGIBS — Resoluções (18/18, sem mudança)',
+        url: 'https://cgibs.gov.br/resolucoes',
+      },
+    ],
+    caminho:
+      'Rotina semanal (scripts/1b8edc430ba4e07b/run.sh) — public/panorama-reforma/partes/parte-conteudo-5.html e -6.html (56819), src/components/SectionFontesPrimarias.tsx e SectionFontesAgregador.tsx (62493)',
+    versao: '56819 v0.0.105 · 62493 v0.0.202',
+    bloco: 'sistema',
+  },
+  {
     data: '26/10/2026',
     hora: '11:00',
     titulo:
