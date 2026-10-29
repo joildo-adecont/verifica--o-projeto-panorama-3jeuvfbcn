@@ -45,6 +45,54 @@ function ehRecente(dataBR: string): boolean {
 const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
+    data: '29/10/2026',
+    hora: '00:25',
+    titulo:
+      'Ligação item a item — cada linha da Tabela Geral passa a mostrar o dispositivo legal de origem',
+    conteudo:
+      'A pedido do CEO, executadas as fases 1 e 2 da ligação entre a legislação e as tabelas. As 1.053 linhas da Tabela Geral (Seção 7A) passam a carregar o dispositivo de origem: 954 com vínculo confirmado, 66 parciais e 33 sem confirmação. O vínculo não foi digitado — veio do cruzamento do código de cada linha com o catálogo do Simulador, que já trazia a base legal item por item (990 dos 1.002 itens). A chave é anexo + item + código, e não só o código: o mesmo NCM 7308 aparece 15 vezes no catálogo, uma na tabela de depreciação e catorze no REPETRO, com tratamentos diferentes — ligar por código puro apontaria a linha errada. As 11 linhas que pareciam sem correspondência eram falso negativo: o item estava no catálogo, mas registrado em outro anexo do mesmo diploma. Nenhuma origem foi atribuída sem essa checagem; a linha sem confirmação mostra "sem origem" em vez de uma origem inventada. Sobre os 15.240 códigos NCM do cadastro: eles têm origem na TIPI (Resolução Gecex 926/2026), não na reforma — o campo de observações não menciona IBS, CBS nem a LC 214 uma única vez. Por isso a ligação foi invertida: a reforma cita 846 códigos e 28 capítulos, e qualquer um dos 15.240 NCM é resolvido contra eles por prefixo. Resultado: 4.931 NCM ligados e 10.309 que passam a declarar que sua origem é a TIPI.',
+    fontes: [
+      {
+        nome: 'normas.leg.br — LC 214/2025 (texto integral)',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
+      },
+      {
+        nome: 'CGIBS — Resolução 6/2026 (Regulamento do IBS, anexos)',
+        url: 'https://cgibs.gov.br/resolucoes',
+      },
+      {
+        nome: 'Receita Federal / MDIC — Siscomex, TIPI (Res. Gecex 926/2026)',
+        url: 'https://www.gov.br/receitafederal/pt-br/assuntos/aduana-e-comercio-exterior',
+      },
+    ],
+    caminho:
+      'src/data/vinculosLegislacao.ts (novo) + src/data/ncmReforma.ts (novo) + src/components/SectionTabelaGeral.tsx + scripts/ligacao-item/gerar_vinculos.py',
+    versao: 'v0.0.217',
+    bloco: 'sistema',
+  },
+  {
+    data: '29/10/2026',
+    hora: '00:25',
+    titulo:
+      'Fase 3 — o Monitor mostra quantas linhas cada norma sustenta, e a rotina semanal passa a medir o impacto',
+    conteudo:
+      'Concluídas as fases 3 e 4. No Monitor Legislativo (Seção 12A), cada norma da linha do tempo ganhou o número de linhas de tabela que ela sustenta: a Resolução CGIBS 6/2026 sustenta 855 linhas em 5 anexos e a LC 214/2025 sustenta 198 linhas em 11 anexos, somando as 1.053. Ao abrir a norma, aparece o detalhamento por anexo com o dispositivo de cada um (Anexo I art. 125, Anexo IX art. 138, RIBS Anexo II art. 164) e a lista das seções do Panorama que dependem dela. Na fase 4, a rotina semanal ganhou um quarto passo: quando a verificação detecta que o texto de uma lei mudou, o script scripts/ligacao-item/vigiar.py traduz a mudança em impacto antes de qualquer publicação — quantas linhas, em quais anexos e quais seções precisam ser revisadas. Testado com um relatório de mudança simulado: RIBS alterado devolve 855 linhas e 4 seções; LC 214 alterada devolve 198 linhas e 5 seções. Norma sem tabela vinculada, como a LC 238/2026, devolve zero em vez de um número inventado.',
+    fontes: [
+      {
+        nome: 'CGIBS — Resolução 6/2026 (Regulamento do IBS)',
+        url: 'https://cgibs.gov.br/resolucoes',
+      },
+      {
+        nome: 'normas.leg.br — LC 214/2025',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
+      },
+    ],
+    caminho:
+      'src/components/SectionMonitorLegislativo.tsx + scripts/ligacao-item/vigiar.py (novo) + scripts/1b8edc430ba4e07b/run.sh (passo 4/4)',
+    versao: 'v0.0.218',
+    bloco: 'sistema',
+  },
+  {
     data: '28/10/2026',
     hora: '23:05',
     titulo:
