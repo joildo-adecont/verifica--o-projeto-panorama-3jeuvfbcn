@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Calculator } from 'lucide-react'
+import { REF_TOTAL as REF_TOTAL_ALIQ, CBS_REF, IBS_REF, pct } from '@/data/aliquotas'
 
 const SIM_URL = '/simulador.html'
 
@@ -619,7 +620,7 @@ function SimuladorHibrido() {
   const [anexo, setAnexo] = useState('I')
   const [faixa, setFaixa] = useState(2)
   const [custoPct, setCustoPct] = useState(50)
-  const [cbsRef, setCbsRef] = useState(8.8)
+  const [cbsRef, setCbsRef] = useState(CBS_REF)
 
   const A = ANEXOS[anexo]
   const rbt12 = [180000, 360000, 720000, 1800000, 3600000, 4800000][faixa]
@@ -920,8 +921,8 @@ function SimuladorHibrido() {
         <p className="text-[11px] text-slate-500 mt-1">
           Partilha dos Anexos XVIII–XXII da LC 214 (IBS: 0,17% em 2027–28; 3,35%→13,40% em 2029–32;
           33,50% em 2033, faixas 3ª–5ª; 1ª–2ª ligeiramente maior). IBS do híbrido: art. 344 (0,1% em
-          2027–28; 0,3/0,6/0,9/1,2% em 2029–32) e pleno em 2033 (referência total 27,91% da Res.
-          14/2026 − CBS ref estimada). 6ª faixa: tratamento próprio.
+          2027–28; 0,3/0,6/0,9/1,2% em 2029–32) e pleno em 2033 (referência total {pct(REF_TOTAL)}{' '}
+          da Res. 14/2026 − CBS ref estimada). 6ª faixa: tratamento próprio.
         </p>
       </div>
 

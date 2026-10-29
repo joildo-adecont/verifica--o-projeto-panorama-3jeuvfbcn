@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Calculator } from 'lucide-react'
+import { REF_TOTAL as REF_TOTAL_ALIQ, CBS_REF, IBS_REF, pct } from '@/data/aliquotas'
 
 const SIM_URL = '/simulador.html'
 
@@ -306,7 +307,7 @@ function Tabela({
   )
 }
 
-const REF_TOTAL = 27.91
+const REF_TOTAL = REF_TOTAL_ALIQ
 
 function fmtC(v: number) {
   return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 })
@@ -381,7 +382,7 @@ function SimuladorConsorcio() {
   )
 
   const aliCheia = REF_TOTAL
-  const cbsRef = 8.8
+  const cbsRef = CBS_REF
   const ibsRef = REF_TOTAL - cbsRef
 
   // ---------- TAXA / LANCES (art. 204) ----------
@@ -487,7 +488,7 @@ function SimuladorConsorcio() {
     {
       quem: 'Administradora do consórcio',
       oque: 'Taxa de administração + encargos, multas e juros efetivamente pagos (regime de caixa), deduzida a intermediação',
-      como: 'Regime regular — alíquota de referência (27,91%) sobre a base de caixa',
+      como: `Regime regular — alíquota de referência (${pct(REF_TOTAL)}) sobre a base de caixa`,
       base: 'arts. 182, VII, 204 e 206',
     },
     {
@@ -529,7 +530,7 @@ function SimuladorConsorcio() {
         titulo="Simulador de Consórcios"
         sub="A administradora tributa APENAS a taxa de administração — regime de caixa (tarifas, comissões, taxas, encargos, multas e juros efetivamente pagos), deduzida a intermediação (§1º). Contemplação (sorteio ou lance) NÃO é fato gerador. Aquisição com carta segue o regime do bem — administradora não responde (§2º). Garantia: consolidação sem incidência; alienação segue a condição do consorciado (§3º)."
         teclas="Alt+1 Taxa & lances · Alt+2 Carta · Alt+3 Garantia · Alt+4 Apuração"
-        capitulacao="LEI LC 214/2025, arts. 204–206 · RESOLUÇÃO CGIBS 14/2026 (ref. 27,91%) · RIBS Res. CGIBS 6/2026 (regulamentação)"
+        capitulacao={`LEI LC 214/2025, arts. 204–206 · RESOLUÇÃO CGIBS 14/2026 (ref. ${pct(REF_TOTAL)}) · RIBS Res. CGIBS 6/2026 (regulamentação)`}
       />
 
       <ModoChips
@@ -1211,11 +1212,11 @@ function SimuladorConsorcio() {
             </strong>{' '}
             (1) a alíquota de referência da CBS 2027 depende de resolução do Senado (LC 214, art.
             349) — hoje 8,8% é estimativa (8,8% − 0,1 p.p. do art. 347); (2) o IBS de 19,11% deriva
-            da referência total de 27,91% (Res. CGIBS 14/2026) e será ajustado pelos entes; (3) a
-            dedução da intermediação (art. 204, §1º) e a identificação do adquirente para o crédito
-            (art. 206, §2º) dependem de regulamento (RIBS — Res. CGIBS 6/2026); (4) novos atos do
-            CGIBS e da RFB podem alterar leiautes de documento fiscal e a forma de apuração.
-            Qualquer mudança entra na Seção 13 — Histórico de Atualizações.
+            da referência total de {pct(REF_TOTAL)} (Res. CGIBS 14/2026) e será ajustado pelos
+            entes; (3) a dedução da intermediação (art. 204, §1º) e a identificação do adquirente
+            para o crédito (art. 206, §2º) dependem de regulamento (RIBS — Res. CGIBS 6/2026); (4)
+            novos atos do CGIBS e da RFB podem alterar leiautes de documento fiscal e a forma de
+            apuração. Qualquer mudança entra na Seção 13 — Histórico de Atualizações.
           </div>
 
           <BotaoEnviarSimulacao termo="taxa de administração" />
@@ -1223,7 +1224,7 @@ function SimuladorConsorcio() {
           <RodapeCapitulacao
             itens={[
               'lei|LC 214/2025 — arts. 204–206 (consórcios)',
-              'resolucao|Res. CGIBS 14/2026 — referência 27,91%',
+              `resolucao|Res. CGIBS 14/2026 — referência ${pct(REF_TOTAL)}`,
               'resolucao|RIBS Res. CGIBS 6/2026 — regulamentação',
               'ref|CBS 2027 — pendente de resolução do Senado',
             ]}

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Building2, Calculator, Home, Landmark, KeyRound, TrendingDown } from 'lucide-react'
+import { REF_TOTAL as REF_TOTAL_ALIQ, CBS_REF, IBS_REF, pct } from '@/data/aliquotas'
 function fmt(v: number) {
   return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })
 }
@@ -275,7 +276,7 @@ const PERMUTAS = [
  *  redutor social → base efetiva; alíquota cheia × redução (50% venda / 70% locação);
  *  comparação com a tributação atual (PIS/Cofins 3,65% + IRPJ/CSLL presumidos). */
 
-const REF_TOTAL = 27.91 // referência total IBS+CBS (Res. CGIBS 14/2026)
+const REF_TOTAL = REF_TOTAL_ALIQ
 
 function KpiA({
   titulo,
@@ -338,7 +339,7 @@ function SimuladorImobiliario() {
   const [receitaAnterior, setReceitaAnterior] = useState(300000)
   const [ipcaLimite, setIpcaLimite] = useState(10)
 
-  const cbsRef = 8.8
+  const cbsRef = CBS_REF
   const ibsRef = REF_TOTAL - cbsRef
   const aliCheia = cbsRef + ibsRef
 
@@ -410,9 +411,9 @@ function SimuladorImobiliario() {
     <div className="space-y-5">
       <HeroSim
         titulo="Simulador Imobiliário — venda e aluguel"
-        sub="Base de cálculo = valor da operação − redutor de ajuste (custo + IPCA, só usado) − redutor social (R$ 100 mil novo / R$ 30 mil lote / R$ 600/mês residencial, atualizados pelo IPCA). Alíquota = referência 27,91% × 50% (venda) × 30% (locação)."
+        sub={`Base de cálculo = valor da operação − redutor de ajuste (custo + IPCA, só usado) − redutor social (R$ 100 mil novo / R$ 30 mil lote / R$ 600/mês residencial, atualizados pelo IPCA). Alíquota = referência ${pct(REF_TOTAL)} × 50% (venda) × 30% (locação).`}
         teclas="Alt+1 Venda · Alt+2 Aluguel"
-        capitulacao="LEI LC 214/2025, arts. 255–262 · LEI LC 227/2026 (art. 260) · DECRETO 12.955/2026, art. 382 · RESOLUÇÃO CGIBS 14/2026 (ref. 27,91%)"
+        capitulacao={`LEI LC 214/2025, arts. 255–262 · LEI LC 227/2026 (art. 260) · DECRETO 12.955/2026, art. 382 · RESOLUÇÃO CGIBS 14/2026 (ref. ${pct(REF_TOTAL)})`}
       />
 
       <ModoChips
@@ -605,7 +606,7 @@ function SimuladorImobiliario() {
           <KpiA
             titulo="Alíquota efetiva"
             valor={aliEfetiva.toFixed(2) + '%'}
-            sub={e ? '27,91% × 50%' : '27,91% × 30%'}
+            sub={e ? `${pct(REF_TOTAL)} × 50%` : `${pct(REF_TOTAL)} × 30%`}
             destaque
           />
           <KpiA
@@ -900,11 +901,11 @@ function SimuladorImobiliario() {
       <div className="p-3.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-xs sm:text-sm">
         ⚠️ A alíquota de referência da CBS 2027 ainda depende de resolução do Senado (LC 214, art.
         349). A CBS de 8,8% é estimativa de mercado (8,8% − 0,1 p.p. do art. 347) e o IBS de 19,11%
-        deriva da referência total de 27,91% (Res. CGIBS 14/2026). O redutor de ajuste dos imóveis
-        detidos em 31/12/2026 usa custo de aquisição corrigido ou, por opção, o valor de referência
-        (art. 258, I) — aqui simulado pelo custo + IPCA informado. O limite de R$ 240 mil (art. 251,
-        §5º) e os redutores sociais são atualizados mensalmente pelo IPCA desde 16/01/2025 — informe
-        o IPCA acumulado para o valor vigente.
+        deriva da referência total de ${pct(REF_TOTAL)} (Res. CGIBS 14/2026). O redutor de ajuste
+        dos imóveis detidos em 31/12/2026 usa custo de aquisição corrigido ou, por opção, o valor de
+        referência (art. 258, I) — aqui simulado pelo custo + IPCA informado. O limite de R$ 240 mil
+        (art. 251, §5º) e os redutores sociais são atualizados mensalmente pelo IPCA desde
+        16/01/2025 — informe o IPCA acumulado para o valor vigente.
       </div>
 
       <BotaoEnviarSimulacao termo="venda de imóvel residencial novo" />
@@ -914,7 +915,7 @@ function SimuladorImobiliario() {
           'lei|LC 214/2025 — arts. 251–263 (regime imobiliário)',
           'lei|LC 227/2026 — redutor social mensal (art. 260)',
           'decreto|Decreto 12.955/2026 — art. 382 (enquadramento)',
-          'resolucao|Res. CGIBS 14/2026 — referência 27,91%',
+          `resolucao|Res. CGIBS 14/2026 — referência ${pct(REF_TOTAL)}`,
         ]}
       />
     </div>

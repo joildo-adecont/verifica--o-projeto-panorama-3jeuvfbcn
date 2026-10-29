@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Calculator } from 'lucide-react'
+import { REF_TOTAL as REF_TOTAL_ALIQ, CBS_REF, IBS_REF, pct } from '@/data/aliquotas'
 
 const SIM_URL = '/simulador.html'
 
@@ -298,7 +299,7 @@ function Tabela({
   )
 }
 
-const REF_TOTAL = 27.91
+const REF_TOTAL = REF_TOTAL_ALIQ
 
 function fmtP(v: number) {
   return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 })
@@ -378,45 +379,45 @@ const LINHA_TEMPO = [
   },
   {
     ano: '2027',
-    cbs: '8,8% (estimativa −0,1 p.p. art. 347)',
+    cbs: `{pct(CBS_REF)} (referência TCU 2027)`,
     ibs: '0,05%+0,05% (teste — art. 344)',
     efetiva: '≈ 8,90% × 0,70 = 6,23%',
   },
   {
     ano: '2028',
-    cbs: '8,8% (estimativa)',
+    cbs: `{pct(CBS_REF)} (referência TCU)`,
     ibs: '0,05%+0,05% (teste)',
     efetiva: '≈ 8,90% × 0,70 = 6,23%',
   },
   {
     ano: '2029',
-    cbs: '8,8% (estimativa)',
+    cbs: `{pct(CBS_REF)} (referência TCU)`,
     ibs: '19,11% × 10% = 1,91%',
     efetiva: '≈ 10,71% × 0,70 = 7,50%',
   },
   {
     ano: '2030',
-    cbs: '8,8% (estimativa)',
+    cbs: `{pct(CBS_REF)} (referência TCU)`,
     ibs: '19,11% × 40% = 7,64%',
     efetiva: '≈ 16,44% × 0,70 = 11,51%',
   },
   {
     ano: '2031',
-    cbs: '8,8% (estimativa)',
+    cbs: `{pct(CBS_REF)} (referência TCU)`,
     ibs: '19,11% × 70% = 13,38%',
     efetiva: '≈ 22,18% × 0,70 = 15,53%',
   },
   {
     ano: '2032',
-    cbs: '8,8% (estimativa)',
+    cbs: `{pct(CBS_REF)} (referência TCU)`,
     ibs: '19,11% × 90% = 17,20%',
     efetiva: '≈ 26,00% × 0,70 = 18,20%',
   },
   {
     ano: '2033',
-    cbs: '8,8% (estimativa)',
+    cbs: `{pct(CBS_REF)} (referência TCU)`,
     ibs: '19,11% (pleno)',
-    efetiva: '27,91% × 0,70 = 19,54%',
+    efetiva: `${pct(REF_TOTAL)} × 0,70 = 19,54%`,
   },
 ]
 
@@ -429,7 +430,7 @@ function SimuladorProfissionais() {
 
   const prof = PROFISSOES.find((p) => p.nome === profissao)!
   const aliCheia = REF_TOTAL
-  const cbsRef = 8.8
+  const cbsRef = CBS_REF
   const ibsRef = REF_TOTAL - cbsRef
   const reducaoOk = tipoPrestador === 'pf' || requisitosOk
   const aliEfetiva = reducaoOk ? aliCheia * 0.7 : aliCheia
@@ -488,9 +489,9 @@ function SimuladorProfissionais() {
     <div className="space-y-5">
       <HeroSim
         titulo="Simulador de Profissões Regulamentadas"
-        sub="Alíquotas reduzidas em 30% (efetiva = referência 27,91% × 0,70 = 19,54%) para as 18 profissões regulamentadas. PF: serviços vinculados à habilitação (§1º, I). PJ: requisitos cumulativos (§1º, II)."
+        sub={`Alíquotas reduzidas em 30% (efetiva = referência ${pct(REF_TOTAL)} × 0,70 = 19,54%) para as 18 profissões regulamentadas. PF: serviços vinculados à habilitação (§1º, I). PJ: requisitos cumulativos (§1º, II).`}
         teclas="Selecione a profissão e o ano — apuração imediata"
-        capitulacao="LEI LC 214/2025, art. 127 (caput e §§1º–3º) · RESOLUÇÃO CGIBS 14/2026 (ref. 27,91%) · ARTS. 343–347 e 295–296 (transição)"
+        capitulacao={`LEI LC 214/2025, art. 127 (caput e §§1º–3º) · RESOLUÇÃO CGIBS 14/2026 (ref. ${pct(REF_TOTAL)}) · ARTS. 343–347 e 295–296 (transição)`}
       />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -562,7 +563,7 @@ function SimuladorProfissionais() {
           <KpiP
             titulo="Alíquota efetiva"
             valor={aliEfetiva.toFixed(2) + '%'}
-            sub="27,91% × 0,70"
+            sub={`${pct(REF_TOTAL)} × 0,70`}
             destaque
           />
           <KpiP
@@ -782,7 +783,7 @@ function SimuladorProfissionais() {
       <RodapeCapitulacao
         itens={[
           'lei|LC 214/2025 — art. 127 (profissões regulamentadas)',
-          'resolucao|Res. CGIBS 14/2026 — referência 27,91%',
+          `resolucao|Res. CGIBS 14/2026 — referência ${pct(REF_TOTAL)}`,
           'ref|Transição — arts. 343–347 e 295–296 (LC 214/2025)',
         ]}
       />
@@ -801,7 +802,7 @@ function SimuladorPlataformas() {
   const [produto, setProduto] = useState<'regular' | 'cesta' | 'reducao60' | 'servico'>('regular')
 
   const aliCheia = REF_TOTAL
-  const cbsRef = 8.8
+  const cbsRef = CBS_REF
   const ibsRef = REF_TOTAL - cbsRef
   const fatores: Record<string, number> = { regular: 1, cesta: 0, reducao60: 0.4, servico: 1 }
   const fator = fatores[produto]
@@ -898,7 +899,7 @@ function SimuladorPlataformas() {
     {
       grupo: 'Produto/serviço regular (sem benefício)',
       fator: '100%',
-      ali: '27,91%',
+      ali: `${pct(REF_TOTAL)}`,
       base: 'LC 214, arts. 46-49',
     },
     {
@@ -916,7 +917,7 @@ function SimuladorPlataformas() {
     {
       grupo: 'Serviço regular (ex.: streaming, SaaS)',
       fator: '100%',
-      ali: '27,91%',
+      ali: `${pct(REF_TOTAL)}`,
       base: 'LC 214, arts. 46-49',
     },
   ]
@@ -1022,8 +1023,8 @@ function SimuladorPlataformas() {
               produto === 'cesta'
                 ? 'zero — cesta básica'
                 : produto === 'reducao60'
-                  ? '27,91% × 0,40 (−60%)'
-                  : 'referência 27,91%'
+                  ? `${pct(REF_TOTAL)} × 0,40 (−60%)`
+                  : `referência ${pct(REF_TOTAL)}`
             }
             destaque
           />

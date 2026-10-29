@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Calculator } from 'lucide-react'
+import { REF_TOTAL as REF_TOTAL_ALIQ, CBS_REF, IBS_REF, pct } from '@/data/aliquotas'
 
 const SIM_URL = '/simulador.html'
 
@@ -299,7 +300,7 @@ function Tabela({
   )
 }
 
-const REF_TOTAL = 27.91
+const REF_TOTAL = REF_TOTAL_ALIQ
 
 function fmtF(v: number) {
   return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 })
@@ -370,7 +371,7 @@ function SimuladorFinanceiro() {
   const [tipoInstituicao, setTipoInstituicao] = useState<'banco' | 'pagamento' | 'outra'>('banco')
 
   const aliCheia = REF_TOTAL
-  const cbsRef = 8.8
+  const cbsRef = CBS_REF
   const ibsRef = REF_TOTAL - cbsRef
 
   // ---------- CRÉDITO (arts. 194/192) ----------
@@ -605,7 +606,7 @@ function SimuladorFinanceiro() {
         titulo="Simulador de Serviços Financeiros"
         sub="O regime específico tributa as RECEITAS das operações com as deduções do art. 192 — o principal do empréstimo NÃO é receita (art. 192, §1º, I). Tarifas de conta/saque/transferência seguem as normas gerais (art. 184). O correntista PJ credita sobre despesas financeiras ACIMA da Selic (art. 194) e sobre tarifas (art. 198)."
         teclas="Alt+1 Empréstimo · Alt+2 Tarifas · Alt+3 Sujeitos · Alt+4 Obrigações"
-        capitulacao="LEI LC 214/2025, arts. 182–214 · LEI LC 227/2026 (art. 192 V) · RESOLUÇÃO CGIBS 14/2026 (ref. 27,91%)"
+        capitulacao={`LEI LC 214/2025, arts. 182–214 · LEI LC 227/2026 (art. 192 V) · RESOLUÇÃO CGIBS 14/2026 (ref. ${pct(REF_TOTAL)})`}
       />
 
       <ModoChips
@@ -1180,12 +1181,12 @@ function SimuladorFinanceiro() {
               de fontes oficiais):
             </strong>{' '}
             (1) alíquota de referência da CBS 2027 — resolução do Senado pendente (LC 214, art.
-            349); (2) IBS de 19,11% deriva da referência total de 27,91% (Res. CGIBS 14/2026) e será
-            ajustado; (3) alíquotas do regime financeiro 2027-2033 seguem o art. 233 e serão
-            nacionalmente uniformes (art. 189); (4) forma de prestação das informações ao CGIBS/RFB
-            (arts. 190-191) depende de regulamento (RIBS); (5) novos atos do CMN/Bacen/CVM podem
-            alterar enquadramentos (art. 193, §4º). Qualquer mudança entra na Seção 13 — Histórico
-            de Atualizações.
+            349); (2) IBS de 19,11% deriva da referência total de {pct(REF_TOTAL)} (Res. CGIBS
+            14/2026) e será ajustado; (3) alíquotas do regime financeiro 2027-2033 seguem o art. 233
+            e serão nacionalmente uniformes (art. 189); (4) forma de prestação das informações ao
+            CGIBS/RFB (arts. 190-191) depende de regulamento (RIBS); (5) novos atos do CMN/Bacen/CVM
+            podem alterar enquadramentos (art. 193, §4º). Qualquer mudança entra na Seção 13 —
+            Histórico de Atualizações.
           </div>
 
           <BotaoEnviarSimulacao termo="empréstimos" />
@@ -1194,7 +1195,7 @@ function SimuladorFinanceiro() {
             itens={[
               'lei|LC 214/2025 — arts. 182–214 (serviços financeiros)',
               'lei|LC 227/2026 — art. 192, V (perdas de crédito)',
-              'resolucao|Res. CGIBS 14/2026 — referência 27,91%',
+              `resolucao|Res. CGIBS 14/2026 — referência ${pct(REF_TOTAL)}`,
               'ref|Alíquotas 2027–2033 — art. 233 (a definir)',
             ]}
           />

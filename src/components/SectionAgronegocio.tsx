@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Calculator } from 'lucide-react'
+import { REF_TOTAL as REF_TOTAL_ALIQ, CBS_REF, IBS_REF, pct } from '@/data/aliquotas'
 
 const SIM_URL = '/simulador.html'
 
@@ -391,7 +392,7 @@ function Tabela({
   )
 }
 
-const REF_TOTAL = 27.91
+const REF_TOTAL = REF_TOTAL_ALIQ
 
 function fmt(v: number) {
   return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 })
@@ -463,7 +464,7 @@ function SimuladorAgro() {
   const [anulouCreditos, setAnulouCreditos] = useState(true)
 
   const aliCheia = REF_TOTAL
-  const cbsRef = 8.8
+  const cbsRef = CBS_REF
   const ibsRef = REF_TOTAL - cbsRef
   const aliInsumo = aliCheia * 0.4
 
@@ -611,7 +612,7 @@ function SimuladorAgro() {
         titulo="Simulador do Agronegócio"
         sub="Produtor rural com receita até R$ 3,6 mi/ano (IPCA) e o produtor integrado NÃO são contribuintes (art. 164). In natura e insumos do Anexo IX: −60% (arts. 137–138). Tratores/máquinas e veículos de carga: alíquota ZERO (art. 110). Créditos presumidos (arts. 168–169) e cooperativas zero (art. 271)."
         teclas="Alt+1 Produtor · Alt+2 Insumos · Alt+3 Créditos · Alt+4 Cooperativa"
-        capitulacao="LEI LC 214/2025, arts. 110, 137–138, 164–169 e 271–272 · RESOLUÇÃO CGIBS 14/2026 (ref. 27,91%) · ATO CONJUNTO Fazenda/CGIBS (créditos presumidos)"
+        capitulacao={`LEI LC 214/2025, arts. 110, 137–138, 164–169 e 271–272 · RESOLUÇÃO CGIBS 14/2026 (ref. ${pct(REF_TOTAL)}) · ATO CONJUNTO Fazenda/CGIBS (créditos presumidos)`}
       />
 
       <ModoChips
@@ -911,7 +912,7 @@ function SimuladorAgro() {
               <KpiA
                 titulo="Alíquota efetiva"
                 valor={aliInsumo.toFixed(2) + '%'}
-                sub="27,91% × 40%"
+                sub=pct(REF_TOTAL)+' × 40%'
                 destaque
               />
               <KpiA
@@ -952,7 +953,7 @@ function SimuladorAgro() {
                   <tr className="hover:bg-slate-50/70">
                     <td className="py-2.5 px-4 font-bold text-slate-400">2</td>
                     <td className="py-2.5 px-4 font-semibold text-slate-900">
-                      Alíquota de referência (27,91%)
+                      Alíquota de referência ({pct(REF_TOTAL)})
                     </td>
                     <td className="py-2.5 px-4 text-slate-700 font-mono">{aliCheia.toFixed(2)}%</td>
                     <td className="py-2.5 px-3 text-[11px] font-mono text-slate-500">
@@ -1275,7 +1276,7 @@ function SimuladorAgro() {
               <KpiA
                 titulo="IBS + CBS a recolher"
                 valor={fmt(ibsCbsCoop)}
-                sub={zero ? 'operação com alíquota zero' : '27,91% sobre a operação'}
+                sub={zero ? 'operação com alíquota zero' : `${pct(REF_TOTAL)} sobre a operação`}
               />
               <KpiA
                 titulo="Crédito presumido da cooperativa"
@@ -1329,7 +1330,7 @@ function SimuladorAgro() {
       <div className="p-3.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-xs sm:text-sm">
         ⚠️ A alíquota de referência da CBS 2027 ainda depende de resolução do Senado (LC 214, art.
         349); a CBS de 8,8% é estimativa de mercado (8,8% − 0,1 p.p. do art. 347) e o IBS de 19,11%
-        deriva da referência total de 27,91% (Res. CGIBS 14/2026). O limite de R$ 3,6 milhões é
+        deriva da referência total de {pct(REF_TOTAL)} (Res. CGIBS 14/2026). O limite de R$ 3,6 milhões é
         atualizado anualmente pelo IPCA (art. 167). Os percentuais dos créditos presumidos serão
         divulgados anualmente (arts. 168–169) — o valor de {percentual.toFixed(0)}% aqui é editável
         e didático.
@@ -1340,7 +1341,7 @@ function SimuladorAgro() {
       <RodapeCapitulacao
         itens={[
           'lei|LC 214/2025 — arts. 110, 137–138, 164–169, 271–272 (agro)',
-          'resolucao|Res. CGIBS 14/2026 — referência 27,91%',
+          `resolucao|Res. CGIBS 14/2026 — referência ${pct(REF_TOTAL)}`,
           'ato|Ato conjunto Fazenda/CGIBS — % dos créditos presumidos (a divulgar)',
           'ref|Anexo IX — lista de insumos (revisão a cada 120 dias)',
         ]}

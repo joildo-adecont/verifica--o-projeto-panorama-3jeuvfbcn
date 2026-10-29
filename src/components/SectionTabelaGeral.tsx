@@ -797,9 +797,9 @@ export function SectionTabelaGeral() {
       <div className="p-3.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-xs sm:text-sm leading-relaxed">
         <strong>Verificação de fidelidade:</strong> as linhas vêm da extração item a item dos textos
         oficiais (RIBS, LC 214/2025 e Decreto 12.955/2026) e do catálogo do Simulador de Transição.
-        Alíquotas efetivas usam a referência de 27,91% (Res. CGIBS 14/2026) — estimativas até a
-        fixação legal. As tabelas entram na rotina semanal de fontes oficiais, com registro no
-        Histórico de Atualizações (Seção 13).
+        Alíquotas efetivas usam a referência de 30,00% — CBS 11,3% (TCU, 28/10/2026, válida a partir
+        de 01/01/2027) + IBS 18,70% (Res. CGIBS 14/2026). As tabelas entram na rotina semanal de
+        fontes oficiais, com registro no Histórico de Atualizações (Seção 13).
       </div>
     </section>
   )
