@@ -188,15 +188,38 @@ export function PainelInicial() {
   }, [])
   const maiorAno = Math.max(...porAno.map(([, v]) => v), 1)
 
-  const gruposVisiveis = GRUPOS.filter((g) => {
-    if (!filtro.trim()) return true
-    const t = norm(filtro)
-    return (
-      norm(g.nome).includes(t) ||
-      norm(g.proposito).includes(t) ||
-      g.itens.some((i) => norm(`${i.label} ${i.descricao}`).includes(t))
+  /**
+   * A BUSCA NÃO MEXE NAS ABAS.
+   *
+   * Antes, filtrar removia grupos da lista de abas. Consequência: a aba ativa
+   * (calculada como "a primeira visível") mudava sozinha a cada tecla e a altura
+   * do painel variava — a tela pulava no momento da busca. Era exatamente o que
+   * incomodava.
+   *
+   * Agora as cinco abas ficam sempre no lugar. A busca age DENTRO da aba aberta,
+   * filtrando os cards; cada aba mostra quantos resultados tem, e uma aba sem
+   * resultado avisa ali mesmo, sem trocar a aba debaixo do usuário.
+   */
+  const termo = norm(filtro.trim())
+
+  const itensDoGrupo = (g: (typeof GRUPOS)[number]) => {
+    if (!termo) return g.itens
+    return g.itens.filter((i) =>
+      norm(`${i.label} ${i.curto} ${i.descricao} ${i.numero}`).includes(termo),
     )
-  })
+  }
+
+  const contagemPorGrupo = GRUPOS.reduce<Record<string, number>>((acc, g) => {
+    acc[g.id] = itensDoGrupo(g).length
+    return acc
+  }, {})
+
+  const totalEncontrado = Object.values(contagemPorGrupo).reduce((s, n) => s + n, 0)
+
+  // a aba escolhida; se o usuário nunca escolheu, a primeira
+  const abaCorrente = abaAtiva ?? GRUPOS[0].id
+  const grupoCorrente = GRUPOS.find((g) => g.id === abaCorrente) ?? GRUPOS[0]
+  const itensCorrentes = itensDoGrupo(grupoCorrente)
 
   return (
     <section id="inicio" className="scroll-mt-24">
@@ -231,9 +254,18 @@ export function PainelInicial() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
             value={filtro}
-            onChange={(e) => setFiltro(e.target.value)}
+            onChange={(e) => {
+              // guarda a posição: digitar não pode fazer a tela correr
+              const y = window.scrollY
+              setFiltro(e.target.value)
+              window.requestAnimationFrame(() => window.scrollTo({ top: y, behavior: 'instant' }))
+            }}
             onKeyDown={(e) => {
-              if (e.key === 'Escape') setFiltro('')
+              if (e.key === 'Escape') {
+                const y = window.scrollY
+                setFiltro('')
+                window.requestAnimationFrame(() => window.scrollTo({ top: y, behavior: 'instant' }))
+              }
             }}
             placeholder="Buscar seção, assunto ou simulação (ex.: combustível, imóvel, Simples)…"
             className="w-full pl-10 pr-9 py-2.5 rounded-xl border border-slate-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-panorama-gold/50"
@@ -353,86 +385,99 @@ export function PainelInicial() {
           </div>
         </div>
 
-        {/* ── ABAS: cinco grupos, ícones grandes ── */}
+        {/* ── ABAS: cinco grupos fixos, ícones grandes ── */}
         <div className="mt-5">
           <div className="flex items-center gap-2 mb-2.5">
             <span className="text-xs font-bold text-slate-900">Por onde navegar</span>
             <div className="flex-1 h-px bg-slate-200" />
             {filtro && (
-              <span className="text-[10px] text-slate-500">
-                {gruposVisiveis.length} de {GRUPOS.length} grupos
+              <span className="text-[10px] text-slate-600 font-bold tabular-nums">
+                {totalEncontrado === 0
+                  ? 'nenhum resultado'
+                  : `${totalEncontrado} resultado${totalEncontrado === 1 ? '' : 's'}`}
               </span>
             )}
           </div>
 
-          {gruposVisiveis.length === 0 ? (
-            <p className="text-sm text-slate-500 py-6 text-center bg-white border border-slate-200 rounded-xl">
-              Nada encontrado para “{filtro}”. Tente outra palavra.
-            </p>
-          ) : (
-            <>
-              {/* Barra de abas — ícone grande + nome */}
-              <div role="tablist" className="flex gap-1.5 overflow-x-auto pb-1.5 -mx-1 px-1">
-                {gruposVisiveis.map((g) => {
-                  const cores = COR_GRUPO[g.id] ?? COR_GRUPO.sistema
-                  const ativa = (abaAtiva ?? gruposVisiveis[0].id) === g.id
-                  return (
-                    <button
-                      key={g.id}
-                      role="tab"
-                      aria-selected={ativa}
-                      onClick={() => setAbaAtiva(g.id)}
-                      className={`flex items-center gap-2 rounded-t-xl border-2 border-b-0 px-3.5 py-2.5 shrink-0 transition-colors cursor-pointer ${
-                        ativa
-                          ? `bg-white border-slate-300 ${cores.seta}`
-                          : 'bg-slate-100/70 border-transparent text-slate-500 hover:bg-slate-100'
-                      }`}
-                    >
-                      <span
-                        className={`flex items-center justify-center w-9 h-9 rounded-lg border-2 shrink-0 ${cores.icone}`}
-                      >
-                        <g.Icon className="w-4.5 h-4.5" style={{ width: 18, height: 18 }} />
-                      </span>
-                      <span className="text-left">
-                        <span className="block text-[13px] font-bold leading-tight whitespace-nowrap">
-                          {g.nome}
-                        </span>
-                        <span className="block text-[10px] leading-tight whitespace-nowrap opacity-70">
-                          {g.itens.length} seções
-                        </span>
-                      </span>
-                    </button>
-                  )
-                })}
-              </div>
-
-              {/* Conteúdo da aba ativa */}
-              {gruposVisiveis.map((g) => {
-                const cores = COR_GRUPO[g.id] ?? COR_GRUPO.sistema
-                const ativa = (abaAtiva ?? gruposVisiveis[0].id) === g.id
-                if (!ativa) return null
-                return (
-                  <div
-                    key={g.id}
-                    role="tabpanel"
-                    className="rounded-b-2xl rounded-tr-2xl border-2 border-slate-300 bg-white p-3.5"
+          {/* Barra de abas — SEMPRE as cinco, sem filtrar */}
+          <div role="tablist" className="flex gap-1.5 overflow-x-auto pb-1.5 -mx-1 px-1">
+            {GRUPOS.map((g) => {
+              const cores = COR_GRUPO[g.id] ?? COR_GRUPO.sistema
+              const ativa = abaCorrente === g.id
+              const n = contagemPorGrupo[g.id] ?? 0
+              const vazia = termo !== '' && n === 0
+              return (
+                <button
+                  key={g.id}
+                  role="tab"
+                  aria-selected={ativa}
+                  onClick={() => setAbaAtiva(g.id)}
+                  className={`flex items-center gap-2 rounded-t-xl border-2 border-b-0 px-3.5 py-2.5 shrink-0 transition-colors cursor-pointer ${
+                    ativa
+                      ? `bg-white border-slate-300 ${cores.seta}`
+                      : vazia
+                        ? 'bg-slate-50/70 border-transparent text-slate-400 opacity-60 hover:opacity-100'
+                        : 'bg-slate-100/70 border-transparent text-slate-500 hover:bg-slate-100'
+                  }`}
+                >
+                  <span
+                    className={`flex items-center justify-center w-9 h-9 rounded-lg border-2 shrink-0 ${cores.icone}`}
                   >
-                    <div className="flex items-center gap-2 mb-3">
-                      <g.Icon className={`w-4 h-4 ${g.cor}`} />
-                      <p className="text-[11px] text-slate-600">
-                        <b className="text-slate-900">{g.nome}</b> — {g.proposito}
-                      </p>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-                      {g.itens.map((item) => (
-                        <CardItem key={item.href + item.tecla} item={item} corBarra={cores.barra} />
-                      ))}
-                    </div>
-                  </div>
-                )
-              })}
-            </>
-          )}
+                    <g.Icon style={{ width: 18, height: 18 }} />
+                  </span>
+                  <span className="text-left">
+                    <span className="block text-[13px] font-bold leading-tight whitespace-nowrap">
+                      {g.nome}
+                    </span>
+                    <span className="block text-[10px] leading-tight whitespace-nowrap opacity-70">
+                      {termo ? `${n} de ${g.itens.length}` : `${g.itens.length} seções`}
+                    </span>
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+
+          {/* Conteúdo: só a aba aberta, com altura mínima para a tela não pular */}
+          <div
+            role="tabpanel"
+            className="rounded-b-2xl rounded-tr-2xl border-2 border-slate-300 bg-white p-3.5 min-h-[168px]"
+          >
+            <div className="flex items-center gap-2 mb-3">
+              <grupoCorrente.Icon className={`w-4 h-4 ${grupoCorrente.cor}`} />
+              <p className="text-[11px] text-slate-600">
+                <b className="text-slate-900">{grupoCorrente.nome}</b> — {grupoCorrente.proposito}
+              </p>
+            </div>
+
+            {itensCorrentes.length === 0 ? (
+              <div className="py-6 text-center">
+                <p className="text-[12px] font-bold text-slate-700">
+                  Nenhuma seção de {grupoCorrente.nome} corresponde a “{filtro}”
+                </p>
+                <p className="text-[10.5px] text-slate-500 mt-1 leading-snug">
+                  As outras abas mostram acima quantos resultados têm. Escolha uma delas, ou{' '}
+                  <button
+                    onClick={() => setFiltro('')}
+                    className="font-bold text-slate-700 underline cursor-pointer"
+                  >
+                    limpar a busca
+                  </button>
+                  .
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                {itensCorrentes.map((item) => (
+                  <CardItem
+                    key={item.href + item.tecla}
+                    item={item}
+                    corBarra={(COR_GRUPO[grupoCorrente.id] ?? COR_GRUPO.sistema).barra}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* ── Ações rápidas ── */}
