@@ -46,6 +46,32 @@ const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
     data: '28/10/2026',
+    hora: '23:05',
+    titulo:
+      'Nova Seção 12A — Monitor Legislativo: painel mostra o que o sistema vigia e como prova',
+    conteudo:
+      'A pedido do CEO, criada a Seção 12A logo abaixo de Fontes Primárias, com atalho de teclado V no menu lateral. O painel expõe a situação MEDIDA de cada uma das 16 fontes catalogadas: 8 ativas, 2 bloqueadas, 4 sem rota e 2 marcadas como não usar — incluindo o Planalto, que aparece como bloqueado em vez de escondido. Mostra quatro indicadores (fontes ativas, cobertura por função 5/5, texto da LC 214 com 544 artigos e 661 mil caracteres, próxima varredura em 04/11 às 11:00), um quadro de cobertura que prova que todo tipo de consulta tem fonte ativa, uma tabela filtrável por situação com a prova da última leitura de cada fonte, o histórico das três últimas varreduras e duas notas de método. Os números não são digitados: vêm do relatório da execução da rotina semanal e do registro central de fontes.',
+    fontes: [
+      {
+        nome: 'normas.leg.br — LC 214/2025 (texto integral conferido)',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
+      },
+      {
+        nome: 'Senado Federal — Dados Abertos (catálogo de Leis Complementares)',
+        url: 'https://legis.senado.leg.br/dadosabertos/legislacao/lista?tipo=LCP&ano=2026',
+      },
+      {
+        nome: 'CGIBS — Resoluções',
+        url: 'https://cgibs.gov.br/resolucoes',
+      },
+    ],
+    caminho:
+      'src/components/SectionMonitorLegislativo.tsx (novo) + navegacao.ts + src/pages/Index.tsx + SumarioFlutuante.tsx',
+    versao: 'v0.0.214',
+    bloco: 'sistema',
+  },
+  {
+    data: '28/10/2026',
     hora: '22:30',
     titulo:
       'Busca de legislação reorganizada: texto integral passa a vir do normas.leg.br (Senado/Congresso) e do DOU — o Planalto sai das citações',
