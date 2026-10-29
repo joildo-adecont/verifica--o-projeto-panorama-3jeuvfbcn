@@ -46,6 +46,20 @@ const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
     data: '29/10/2026',
+    hora: '20:35',
+    titulo:
+      'Central de Indicadores ganha comparador de setores, calculadora de custo do erro e exportação em PDF',
+    conteudo:
+      'Terceira etapa: o CEO aprovou as três sugestões e todas foram aplicadas. (1) COMPARADOR DE SETORES: nova aba que coloca dois dos seis regimes setoriais lado a lado — escolhe-se qual em cada lado — com a alíquota efetiva de cada tratamento em barra comparativa, o tratamento de referência, os demais tratamentos, o ponto de atenção que muda a resposta e a capitulação legal. Cobre Imobiliário (6A), Agronegócio (6B), Consórcios (6C), Serviços financeiros (6D), Simples Nacional (6E) e Profissionais e plataformas (6F). O Simples aparece como faixa tracejada em vez de percentual, porque sua alíquota depende do RBT12 — usar número fixo daria resultado falso. Bloco final explica o que a comparação não resolve: base de cálculo, créditos e obrigações acessórias. (2) CUSTO DO ERRO: calculadora que compara o regime adotado com o que seria aplicável sobre uma receita informada, mostrando a diferença em reais no período, a projeção em 12 meses e em 5 anos, os dois valores lado a lado e a diferença em pontos percentuais. Traz CINCO ressalvas visíveis, não escondidas em rodapé: é aritmética de alíquotas e não planejamento tributário; crédito não está na conta; regime não é escolha livre; o Simples ficou fora por depender de faixa; obrigações acessórias não entram. Mostra também a fórmula usada, para o cálculo ser auditável. (3) EXPORTAÇÃO EM PDF: botão Imprimir/PDF no cabeçalho da seção que injeta folha de estilo de impressão escopada, esconde header fixo, menu lateral, sumário flutuante e rodapé, imprime apenas a aba aberta em A4 retrato com as cores preservadas e carimba a data de geração no pé do documento. Preferido a um gerador de PDF porque imprime o que está na tela, sem risco de divergência. O card da Central de Indicadores também entrou na Central de Entrega, com ações de imprimir, WhatsApp e e-mail.',
+    fontes: [],
+    caminho:
+      'src/components/ComparadorSetores.tsx (novo) + src/components/CustoDoErro.tsx (novo) + src/components/BotaoExportarPDF.tsx (novo) + src/components/SectionIndicadores.tsx + src/components/SectionCentralEntrega.tsx',
+    versao: 'v0.0.247 a v0.0.248',
+    bloco: 'sistema',
+  },
+  // ============ BLOCO: ATUALIZAÇÃO DA LEGISLAÇÃO ============
+  {
+    data: '29/10/2026',
     hora: '20:10',
     titulo:
       'Central de Indicadores (Seção 8A) — todos os números do sistema em uma tela, com 4 abas',
