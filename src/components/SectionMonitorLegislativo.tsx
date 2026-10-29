@@ -37,6 +37,7 @@ import {
   type SituacaoNorma,
   type TipoNorma,
 } from '@/data/legislacaoCronologica'
+import { LINHAS_POR_DISPOSITIVO } from '@/data/vinculosLegislacao'
 
 /**
  * Seção 12A — MONITOR LEGISLATIVO
@@ -96,6 +97,31 @@ function norm(s: string) {
     .toLowerCase()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
+}
+
+/**
+ * Liga uma norma da linha do tempo às linhas de tabela que ela sustenta.
+ *
+ * O casamento é por trecho do nome da norma: o vínculo grava 'LC 214/2025' ou
+ * 'Resolução CGIBS 6/2026 — RIBS', e a cronologia usa 'LC 214/2025' e
+ * 'Resolução CGIBS 6/2026'. Normalizar os dois lados evita depender de o texto
+ * ser idêntico — e, quando não casa, devolve zero em vez de chutar.
+ */
+function linhasDaNorma(codigo: string) {
+  const alvo = norm(codigo)
+  const achados = LINHAS_POR_DISPOSITIVO.filter((l) => {
+    const nome = norm(l.norma)
+    // 'lc 214/2025' casa com 'LC 214/2025'; 'resolucao cgibs 6/2026' casa com
+    // 'Resolução CGIBS 6/2026 — RIBS'
+    return nome === alvo || nome.startsWith(alvo) || alvo.startsWith(nome)
+  })
+  if (!achados.length) return undefined
+  return {
+    total: achados.reduce((s, l) => s + l.linhas, 0),
+    alta: achados.reduce((s, l) => s + l.confianca_alta, 0),
+    anexos: Array.from(new Set(achados.map((l) => l.anexo))),
+    dispositivos: achados,
+  }
 }
 
 function dataBR(iso: string) {
@@ -431,6 +457,19 @@ export function SectionMonitorLegislativo() {
                           >
                             {i.situacao}
                           </span>
+                          {(() => {
+                            const v = linhasDaNorma(i.codigo)
+                            if (!v) return null
+                            return (
+                              <span
+                                title={`Sustenta ${v.total} linhas de tabela em ${v.anexos.length} anexo(s)`}
+                                className="inline-flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded bg-violet-100 text-violet-800 shrink-0"
+                              >
+                                <Link2 className="w-2.5 h-2.5" />
+                                {v.total} linhas
+                              </span>
+                            )
+                          })()}
                         </div>
                         <p className="text-[11px] text-slate-600 mt-1 leading-snug pl-0 sm:pl-20">
                           {i.objeto}
@@ -484,6 +523,40 @@ export function SectionMonitorLegislativo() {
                               <b className="text-panorama-gold-dark">Conferência:</b> {i.nota}
                             </div>
                           )}
+                          {(() => {
+                            const v = linhasDaNorma(i.codigo)
+                            if (!v) return null
+                            return (
+                              <div className="rounded border border-violet-200 bg-white p-2.5">
+                                <p className="text-[9px] font-bold uppercase tracking-wide text-violet-700 flex items-center gap-1">
+                                  <Link2 className="w-3 h-3" />
+                                  Linhas de tabela que esta norma sustenta
+                                </p>
+                                <p className="text-[11px] text-slate-700 mt-1">
+                                  <b className="text-violet-800">{v.total} linhas</b> em{' '}
+                                  {v.anexos.length} anexo{v.anexos.length > 1 ? 's' : ''} ·{' '}
+                                  <span className="text-emerald-700">
+                                    {v.alta} com vínculo confirmado
+                                  </span>
+                                </p>
+                                <div className="flex flex-wrap gap-1 mt-1.5">
+                                  {v.dispositivos.map((d) => (
+                                    <a
+                                      key={d.anexo + d.dispositivo}
+                                      href={`#tabela-geral`}
+                                      title={`${d.norma} — ${d.dispositivo}: ${d.linhas} linhas (${d.confianca_alta} confirmadas)`}
+                                      className="text-[9px] font-bold rounded border border-violet-200 bg-violet-50 text-violet-800 px-1.5 py-0.5 hover:bg-violet-100"
+                                    >
+                                      {d.anexo} · {d.linhas}
+                                    </a>
+                                  ))}
+                                </div>
+                                <p className="text-[9px] text-slate-400 mt-1.5">
+                                  Clique num anexo para abrir a Tabela Geral (Seção 7A).
+                                </p>
+                              </div>
+                            )
+                          })()}
                           <a
                             href={i.url}
                             target="_blank"
