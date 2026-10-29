@@ -5,16 +5,24 @@
  * Endpoint: POST /backend/v1/agente-fontes/notificar
  * Header:   X-Painel-Token: <AGENTE_FONTES_TOKEN>
  *
- * Recebe o estado da varredura (as fontes que mudaram) e envia o aviso para o
- * e-mail do diretor. É chamado pela rotina semanal, depois de regenerar
- * agenteFontes.ts, quando há pelo menos uma fonte com assinatura divergente.
+ * DOIS MODOS DE MENSAGEM
  *
- * REGRA DE OURO: este hook não decide o que mudou. Ele recebe a lista de
- * mudanças já apurada pela varredura e apenas notifica. Se a lista vier vazia,
- * não envia nada — alerta inventado destrói a confiança no alerta verdadeiro.
+ *   modo: 'alerta'  — há fonte com assinatura divergente. Faixa vermelha, tom de
+ *                     urgência, o que mudou e o que revisar. Exige ação.
+ *
+ *   modo: 'resumo'  — a vigilância rodou e está tudo igual. Faixa verde, tom de
+ *                     prestação de contas: quantas fontes foram conferidas,
+ *                     quando, e a confirmação de que nada mudou. Existe porque
+ *                     silêncio não prova que o sistema funcionou — e um aviso que
+ *                     nunca chega não se distingue de um sistema parado.
+ *
+ * REGRA DE OURO: este hook não decide o que mudou. Ele recebe a lista já apurada
+ * pela varredura e apenas redige e envia. No modo alerta, lista vazia não vira
+ * e-mail: alerta sem motivo ensina a ignorar o alerta.
  *
  * QUIRK do PocketBase JSVM: funções helper no topo do arquivo NÃO são acessíveis
- * dentro dos callbacks do router. Por isso tudo é inline em cada handler.
+ * dentro dos callbacks do router — por isso tudo é inline em cada handler.
+ * O handler recebe (e), usa e.requestInfo().body e e.request.header.get().
  */
 
 routerAdd('POST', '/backend/v1/agente-fontes/notificar', (e) => {
@@ -28,7 +36,6 @@ routerAdd('POST', '/backend/v1/agente-fontes/notificar', (e) => {
     return e.json(403, { ok: false, erro: 'token inválido' })
   }
 
-  // ── corpo ──
   var body = {}
   try {
     body = e.requestInfo().body || {}
@@ -37,18 +44,22 @@ routerAdd('POST', '/backend/v1/agente-fontes/notificar', (e) => {
   }
 
   var mudancas = body.mudancas || []
+  var fontes = body.fontes || []
   var execucao = body.execucao || ''
   var resumo = body.resumo || ''
   var destinatario = body.destinatario || 'joildo@adecont.com.br'
   var forcar = body.forcar === true
+  var modo = body.modo || (mudancas.length ? 'alerta' : 'resumo')
 
-  if (!mudancas.length && !forcar) {
+  // modo alerta sem mudança e sem forçar: não envia
+  if (modo === 'alerta' && !mudancas.length && !forcar) {
     return e.json(200, { ok: true, enviado: false, motivo: 'nenhuma mudança — nada a notificar' })
   }
 
   var baseUrl = body.baseUrl || 'https://verificacao-projeto-panorama-18549.goskip.app'
+  var alerta = modo === 'alerta' || mudancas.length > 0
 
-  // ── monta a lista de impactos ──
+  // ── blocos de impacto (modo alerta) ──
   var blocos = ''
   for (var i = 0; i < mudancas.length; i++) {
     var m = mudancas[i]
@@ -98,17 +109,80 @@ routerAdd('POST', '/backend/v1/agente-fontes/notificar', (e) => {
       '</div>'
   }
 
-  var totalLinhas = 0
-  for (var k = 0; k < mudancas.length; k++) {
-    var mm = mudancas[k]
-    if (mm.linhas) totalLinhas += mm.linhas
+  // ── tabela de fontes conferidas (modo resumo) ──
+  var tabelaFontes = ''
+  if (!alerta && fontes.length) {
+    var ativas = 0
+    var linhas = ''
+    for (var f = 0; f < fontes.length; f++) {
+      var ft = fontes[f]
+      var ok = ft.status === 'ok'
+      if (ok) ativas++
+      linhas +=
+        '<tr>' +
+        '<td style="padding:6px 8px;border-bottom:1px solid #e2e8f0;font-size:12px">' +
+        (ok ? '✅' : '⚠️') +
+        ' ' +
+        (ft.rotulo || ft.id || '') +
+        '</td>' +
+        '<td style="padding:6px 8px;border-bottom:1px solid #e2e8f0;font-size:12px;color:#475569">' +
+        (ft.orgao || '') +
+        '</td>' +
+        '<td style="padding:6px 8px;border-bottom:1px solid #e2e8f0;font-size:12px;text-align:right;color:' +
+        (ok ? '#166534' : '#b45309') +
+        '">' +
+        (ok ? 'sem alteração' : ft.status || 'verificar') +
+        '</td>' +
+        '</tr>'
+    }
+    tabelaFontes =
+      '<table style="width:100%;border-collapse:collapse;margin:0 0 14px">' +
+      '<thead><tr>' +
+      '<th style="text-align:left;padding:6px 8px;border-bottom:2px solid #0b3142;font-size:11px;color:#0b3142;text-transform:uppercase">Fonte</th>' +
+      '<th style="text-align:left;padding:6px 8px;border-bottom:2px solid #0b3142;font-size:11px;color:#0b3142;text-transform:uppercase">Órgão</th>' +
+      '<th style="text-align:right;padding:6px 8px;border-bottom:2px solid #0b3142;font-size:11px;color:#0b3142;text-transform:uppercase">Resultado</th>' +
+      '</tr></thead><tbody>' +
+      linhas +
+      '</tbody></table>' +
+      '<p style="font-size:12px;color:#475569;margin:0 0 4px">' +
+      ativas +
+      ' de ' +
+      fontes.length +
+      ' fontes conferidas sem alteração nesta varredura.</p>'
   }
 
-  var assunto =
-    mudancas.length === 1
-      ? '[ADECONT] Alerta de legislação: ' +
-        (mudancas[0].rotulo || mudancas[0].fonte || 'fonte alterada')
-      : '[ADECONT] Alerta de legislação: ' + mudancas.length + ' fontes com alteração'
+  var totalLinhas = 0
+  for (var k = 0; k < mudancas.length; k++) {
+    if (mudancas[k].linhas) totalLinhas += mudancas[k].linhas
+  }
+
+  var assunto
+  if (alerta) {
+    assunto =
+      mudancas.length === 1
+        ? '[ADECONT] Alerta de legislação: ' +
+          (mudancas[0].rotulo || mudancas[0].fonte || 'fonte alterada')
+        : '[ADECONT] Alerta de legislação: ' + mudancas.length + ' fontes com alteração'
+  } else {
+    assunto =
+      '[ADECONT] Vigilância semanal: ' +
+      (fontes.length || 'todas as') +
+      ' fontes conferidas, nenhuma alteração'
+  }
+
+  var titulo = alerta ? '⚠ Alerta de alteração na legislação' : '✅ Vigilância semanal — nada mudou'
+  var corTitulo = alerta ? '#7f1d1d' : '#14532d'
+  var corFaixa = alerta ? '#b91c1c' : '#15803d'
+
+  var abertura = alerta
+    ? '<p style="font-size:14px">O Agente de Vigilância das Fontes detectou alteração em ' +
+      mudancas.length +
+      ' fonte(s) das quais a legislação da reforma tributária depende.' +
+      (totalLinhas > 0
+        ? ' Isso alcança <b>' + totalLinhas + ' linha(s)</b> de tabela do Panorama.'
+        : '') +
+      '</p>'
+    : '<p style="font-size:14px">A vigilância semanal foi executada e <b>nenhuma das fontes de origem da legislação mudou</b>. Nada a fazer: este e-mail é a confirmação de que o sistema está de pé e conferiu as fontes.</p>'
 
   var html =
     '<div style="font-family:Arial,sans-serif;max-width:640px;margin:0 auto;color:#1c2b3a">' +
@@ -117,15 +191,16 @@ routerAdd('POST', '/backend/v1/agente-fontes/notificar', (e) => {
     baseUrl +
     '/logo-adecont-branco.png" alt="ADECONT" style="max-height:52px">' +
     '</div>' +
+    '<div style="height:4px;background:' +
+    corFaixa +
+    '"></div>' +
     '<div style="padding:22px;background:#fff;border:1px solid #dbe3ee">' +
-    '<h2 style="color:#7f1d1d;margin-top:0">⚠ Alerta de alteração na legislação</h2>' +
-    '<p style="font-size:14px">O Agente de Vigilância das Fontes detectou alteração em ' +
-    mudancas.length +
-    ' fonte(s) das quais a legislação da reforma tributária depende.' +
-    (totalLinhas > 0
-      ? ' Isso alcança <b>' + totalLinhas + ' linha(s)</b> de tabela do Panorama.'
-      : '') +
-    '</p>' +
+    '<h2 style="color:' +
+    corTitulo +
+    ';margin-top:0">' +
+    titulo +
+    '</h2>' +
+    abertura +
     '<div style="background:#f6f8fc;border:1px solid #dbe3ee;border-radius:8px;padding:10px 14px;margin:0 0 16px;font-size:13px;color:#475569">' +
     '<b>Varredura:</b> ' +
     (execucao || 'agora') +
@@ -133,7 +208,12 @@ routerAdd('POST', '/backend/v1/agente-fontes/notificar', (e) => {
     (resumo || 'não informado') +
     '</div>' +
     blocos +
-    '<p style="font-size:13px;margin-top:18px">O que fazer: abra o Monitor Legislativo, confira as seções indicadas e atualize o Panorama se a alteração valer. A varredura compara o hash do texto de cada fonte — uma divergência significa ato novo ou texto alterado, não erro de leitura.</p>' +
+    tabelaFontes +
+    '<p style="font-size:13px;margin-top:18px">' +
+    (alerta
+      ? 'O que fazer: abra o Monitor Legislativo, confira as seções indicadas e atualize o Panorama se a alteração valer. A varredura compara o hash do texto de cada fonte — uma divergência significa ato novo ou texto alterado, não erro de leitura.'
+      : 'Como funciona: cada fonte guarda a assinatura de conteúdo (o hash do texto) da varredura anterior. Quando o hash muda, o aviso deixa de ser este resumo e passa a ser um alerta com as seções a revisar.') +
+    '</p>' +
     '<p style="margin:20px 0 0;text-align:center">' +
     '<a href="' +
     baseUrl +
@@ -141,7 +221,7 @@ routerAdd('POST', '/backend/v1/agente-fontes/notificar', (e) => {
     '</p>' +
     '</div>' +
     '<div style="padding:14px 22px 26px;background:#f6f8fc;border:1px solid #dbe3ee;border-top:none;text-align:center">' +
-    '<p style="margin:0;font-size:11px;color:#8a97a8">ADECONT Assessoria Administrativa, Contábil · aviso automático do Agente de Vigilância das Fontes · não responda</p>' +
+    '<p style="margin:0;font-size:11px;color:#8a97a8">ADECONT Assessoria Administrativa, Contábil · aviso automático do Agente de Vigilância das Fontes · toda quarta-feira, 11:00 · não responda</p>' +
     '</div></div>'
 
   // ── envia ──
@@ -158,8 +238,8 @@ routerAdd('POST', '/backend/v1/agente-fontes/notificar', (e) => {
       }),
     )
     enviado = true
-  } catch (e) {
-    erro = String(e)
+  } catch (sendErr) {
+    erro = String(sendErr)
     console.log('[agente-fontes] falha ao enviar: ' + erro)
   }
 
@@ -167,10 +247,17 @@ routerAdd('POST', '/backend/v1/agente-fontes/notificar', (e) => {
   try {
     var col = $app.findCollectionByNameOrId('acesso_comandos')
     var rec = new Record(col)
-    rec.set('comando', 'ALERTA_FONTES')
+    rec.set('comando', alerta ? 'ALERTA_FONTES' : 'RESUMO_FONTES')
     rec.set(
       'descricao',
-      'Aviso de alteração enviado a ' + destinatario + ' (' + mudancas.length + ' fonte(s))',
+      (alerta ? 'Aviso de alteração' : 'Resumo semanal') +
+        ' enviado a ' +
+        destinatario +
+        ' (' +
+        mudancas.length +
+        ' mudança(s), ' +
+        fontes.length +
+        ' fonte(s))',
     )
     rec.set('nivel_minimo', '1')
     rec.set('ator_email', 'agente-fontes@sistema')
@@ -181,7 +268,13 @@ routerAdd('POST', '/backend/v1/agente-fontes/notificar', (e) => {
     console.log('[agente-fontes] log falhou: ' + logErr)
   }
 
-  return e.json(200, { ok: true, enviado: enviado, destinatario: destinatario, erro: erro })
+  return e.json(200, {
+    ok: true,
+    enviado: enviado,
+    modo: alerta ? 'alerta' : 'resumo',
+    destinatario: destinatario,
+    erro: erro,
+  })
 })
 
 /**
@@ -199,5 +292,6 @@ routerAdd('GET', '/backend/v1/agente-fontes/status', (e) => {
     ok: true,
     tokenConfigurado: !!esperado,
     destinatarioPadrao: 'joildo@adecont.com.br',
+    modos: ['alerta', 'resumo'],
   })
 })
