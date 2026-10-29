@@ -46,6 +46,36 @@ const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
     data: '29/10/2026',
+    hora: '16:20',
+    titulo:
+      'Agente de Vigilância das Fontes no Monitor — avisa quando uma origem da legislação muda',
+    conteudo:
+      'A pedido do CEO, criado o Agente de Vigilância das Fontes e Origens da Legislação, dentro do Monitor Legislativo (Seção 12A). O agente responde uma pergunta só: as fontes de onde esta legislação vem mudaram? Cada uma das 16 fontes catalogadas guarda uma assinatura de conteúdo da varredura anterior — o hash do texto, não a data da página. Assinatura que diverge vira alerta vermelho, com o que mudou e as seções do Panorama a revisar. Fonte que falha vira alerta branco, com o substituto que cobre a função dela. O card mostra ainda a última varredura, o resumo medido (hoje: 9/9 fontes ok, 0 mudanças, 0 erros), as 8 normas ativas com o que cada uma verifica e as 23 normas da linha do tempo sob vigilância. As 8 fontes fora de rota aparecem com motivo e substituto, em vez de serem escondidas: duas bloqueadas por WAF (Planalto e Presidência barram IP de datacenter), quatro sem rota a partir deste ambiente e duas marcadas como não usar. Os números não são digitados na tela — são gerados do registro central de fontes e do relatório da última varredura, para não envelhecerem em silêncio.',
+    fontes: [
+      {
+        nome: 'CGIBS — Resoluções',
+        url: 'https://cgibs.gov.br/resolucoes',
+      },
+      {
+        nome: 'normas.leg.br — texto integral (Senado/Congresso)',
+        url: 'https://normas.leg.br',
+      },
+      {
+        nome: 'Imprensa Nacional — Diário Oficial da União',
+        url: 'https://www.in.gov.br',
+      },
+      {
+        nome: 'Receita Federal — Reforma Tributária',
+        url: 'https://www.gov.br/receitafederal/pt-br/assuntos/reforma-tributaria',
+      },
+    ],
+    caminho:
+      'src/components/AgenteFontes.tsx (novo) + src/data/agenteFontes.ts (novo, gerado) + src/components/SectionMonitorLegislativo.tsx + scripts/ligacao-item/gerar_agente_fontes.py (novo)',
+    versao: 'v0.0.220',
+    bloco: 'sistema',
+  },
+  {
+    data: '29/10/2026',
     hora: '00:25',
     titulo:
       'Ligação item a item — cada linha da Tabela Geral passa a mostrar o dispositivo legal de origem',
