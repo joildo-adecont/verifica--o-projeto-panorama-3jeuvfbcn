@@ -122,7 +122,7 @@ const ALERTAS: Alerta[] = [
     sev: 'BAIXA',
     titulo: 'CBS 2027 depende de resolução do Senado',
     detalhe:
-      'A alíquota de referência da CBS em 2027 é estimativa de mercado (8,8% − 0,1 p.p.). O sistema marca como estimativa editável até a publicação oficial.',
+      'A alíquota de referência da CBS para 2027 foi fixada pelo TCU em 11,3% (28/10/2026); falta a resolução do Senado, que tem até 15/12/2026. Sem manifestação, prevalece o cálculo do TCU.',
     quando: 'desde 04/10/2026',
     estado: 'OBSERVANDO',
   },

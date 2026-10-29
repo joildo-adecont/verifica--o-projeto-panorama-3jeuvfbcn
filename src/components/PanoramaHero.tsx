@@ -118,7 +118,7 @@ export function PanoramaHero() {
             <div className="p-2.5 rounded-lg bg-panorama-gold/10 border border-panorama-gold/30 text-[11px] text-panorama-gold-light flex items-start gap-2">
               <Info className="w-3.5 h-3.5 text-panorama-gold-light shrink-0 mt-0.5" />
               <span>
-                Alíquota estimada 2033 (IBSLab): <strong>≈ 26,5%</strong> (17,7% IBS + 8,8% CBS).
+                Referência de regime pleno: <strong>30,00%</strong> (IBS 18,70% + CBS 11,30%).
               </span>
             </div>
           </div>
