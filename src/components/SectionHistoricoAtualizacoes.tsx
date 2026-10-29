@@ -46,6 +46,18 @@ const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
     data: '29/10/2026',
+    hora: '17:15',
+    titulo: 'Segundo destinatário do agente, escolhido do cadastro de clientes ou de usuários',
+    conteudo:
+      'A pedido do CEO, o Agente de Vigilância passou a aceitar destinatários em cópia, escolhidos do cadastro — clientes do Simulador ou usuários do sistema — em vez de e-mail digitado à mão. O motivo: e-mail digitado pode estar errado (e o alerta se perde em silêncio) ou ser de alguém que não deveria ver avisos internos. Vindo do cadastro, o endereço é o mesmo que a empresa já mantém, e quem sai do cadastro deixa de receber sem ninguém precisar lembrar de remover. O servidor revalida a cada gravação: e-mail que não conste em nenhum dos dois cadastros é recusado com o motivo, mesmo que o painel o envie. A tela mostra o destinatário principal, as cópias atuais com a origem de cada uma (cliente ou usuário) e as duas listas de candidatos; o envio lê a lista do banco, não do corpo da requisição, de modo que o chamador não pode acrescentar destinatário por conta própria. Testado em produção: e-mail inventado recusado, e-mail do cadastro aceito, e a lista de candidatos mostrando corretamente zero disponíveis porque o único cadastrado é o próprio destinatário principal.',
+    fontes: [],
+    caminho:
+      'src/components/DestinatariosAgente.tsx (novo) + src/components/AgenteFontes.tsx + pocketbase/migrations/0070_agente_config.js (nova) + pocketbase/hooks/agente_fontes.js',
+    versao: 'v0.0.231',
+    bloco: 'sistema',
+  },
+  {
+    data: '29/10/2026',
     hora: '16:50',
     titulo: 'Resumo semanal por e-mail — o CEO recebe a confirmação mesmo quando nada mudou',
     conteudo:
