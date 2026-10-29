@@ -1,6 +1,16 @@
 import { useState, useEffect, useRef } from 'react'
-import { Search, Table2, Calculator, X, ChevronDown } from 'lucide-react'
+import {
+  Search,
+  Table2,
+  Calculator,
+  X,
+  ChevronDown,
+  Link2,
+  CircleAlert,
+  CircleCheck,
+} from 'lucide-react'
 import type { LinhaTabelaGeral } from '@/data/tabelaGeralDados'
+import { confiancaDaLinha, resumoBloco, type Confianca } from '@/data/vinculosLegislacao'
 
 interface BlocoResumo {
   id: string
@@ -380,6 +390,25 @@ const TRATAMENTO_META: Record<string, { badge: string; dot: string }> = {
   '—': { badge: 'bg-slate-100 border-slate-200 text-slate-500', dot: 'bg-slate-300' },
 }
 
+/** Como o selo de origem aparece em cada nível de confiança. */
+const SELO_CONFIANCA: Record<Confianca, { cor: string; rotulo: string; titulo: string }> = {
+  alta: {
+    cor: 'text-emerald-700 bg-emerald-50 border-emerald-200',
+    rotulo: 'origem',
+    titulo: 'Vínculo confirmado contra o catálogo do Simulador',
+  },
+  media: {
+    cor: 'text-amber-700 bg-amber-50 border-amber-200',
+    rotulo: 'origem parcial',
+    titulo: 'Vínculo parcial — a linha cita mais de um código, ou o código está em outro anexo',
+  },
+  baixa: {
+    cor: 'text-slate-500 bg-slate-50 border-slate-200',
+    rotulo: 'sem origem',
+    titulo: 'Sem vínculo confirmado — linha de cabeçalho ou código ausente do catálogo',
+  },
+}
+
 const INSTRUMENTO_ROTULO: Record<string, string> = {
   RIBS: 'RIBS — Res. CGIBS 6/2026',
   LC214: 'LC 214/2025',
@@ -395,6 +424,7 @@ export function SectionTabelaGeral() {
   const [instrumento, setInstrumento] = useState<string | null>(null)
   const [dados, setDados] = useState<Record<string, LinhaTabelaGeral[]> | null>(null)
   const [carregando, setCarregando] = useState(false)
+  const [mostrarOrigem, setMostrarOrigem] = useState(true)
   const buscaRef = useRef<HTMLInputElement>(null)
 
   // Tecla T foca a busca desta seção (fora de campos de texto)
@@ -458,6 +488,26 @@ export function SectionTabelaGeral() {
           <kbd className="px-1 border rounded text-[10px]">T</kbd> foca esta busca ·{' '}
           <kbd className="px-1 border rounded text-[10px]">Esc</kbd> limpa.
         </p>
+      </div>
+
+      {/* Origem das linhas: o que está ligado e o que não está */}
+      <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50/70 px-3 py-2 flex items-start gap-2 flex-wrap">
+        <Link2 className="w-3.5 h-3.5 text-panorama-gold-dark shrink-0 mt-0.5" />
+        <p className="text-[11px] text-slate-600 flex-1 min-w-[220px]">
+          <b>Origem de cada linha:</b> 954 com vínculo confirmado, 66 parciais e 33 sem confirmação,
+          em 1.053 linhas. O selo vem do cruzamento com o catálogo do Simulador — nenhuma origem é
+          atribuída sem essa checagem, e a linha sem confirmação diz isso.
+        </p>
+        <button
+          onClick={() => setMostrarOrigem((v) => !v)}
+          className={`text-[10px] font-bold px-2 py-1 rounded border cursor-pointer ${
+            mostrarOrigem
+              ? 'bg-panorama-navy text-panorama-gold-light border-panorama-navy'
+              : 'bg-white text-slate-600 border-slate-300'
+          }`}
+        >
+          {mostrarOrigem ? 'Selos visíveis' : 'Selos ocultos'}
+        </button>
       </div>
 
       {/* Busca + filtros */}
@@ -559,14 +609,20 @@ export function SectionTabelaGeral() {
         {blocos.map((r) => {
           const isOpen = aberto === r.id
           const meta = TRATAMENTO_META[r.tratamento] ?? TRATAMENTO_META['—']
-          const linhas = (dados?.[r.id] ?? []).filter(
-            (l) =>
-              (!tratamento || l.tratamento === tratamento) &&
-              (!termo ||
-                `${l.item} ${l.descricao} ${l.codigo} ${l.tratamento} ${l.aliquota} ${l.detalhe ?? ''}`
-                  .toLowerCase()
-                  .includes(termo)),
-          )
+          // guarda o índice ORIGINAL de cada linha: o vínculo é por posição, e o
+          // filtro abaixo não pode deslocar essa posição
+          const resumo = resumoBloco(r.id)
+          const linhas = dados?.[r.id] ?? []
+          const visiveis = linhas
+            .map((l, origIdx) => ({ l, origIdx }))
+            .filter(
+              ({ l }) =>
+                (!tratamento || l.tratamento === tratamento) &&
+                (!termo ||
+                  `${l.item} ${l.descricao} ${l.codigo} ${l.tratamento} ${l.aliquota} ${l.detalhe ?? ''}`
+                    .toLowerCase()
+                    .includes(termo)),
+            )
           return (
             <div
               key={r.id}
@@ -603,7 +659,26 @@ export function SectionTabelaGeral() {
 
               {isOpen && (
                 <div className="px-4 pb-4 space-y-3 border-t border-slate-100 pt-3">
-                  <p className="text-xs text-slate-600 leading-relaxed">{r.resumo}</p>
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    {r.resumo}
+                    {resumo && (
+                      <span className="block mt-1 text-[10px]">
+                        <span className="text-emerald-700 font-semibold">
+                          {resumo.alta} confirmadas
+                        </span>
+                        {resumo.media > 0 && (
+                          <span className="text-amber-700"> · {resumo.media} parciais</span>
+                        )}
+                        {resumo.baixa > 0 && (
+                          <span className="text-slate-500"> · {resumo.baixa} sem confirmação</span>
+                        )}
+                        <span className="text-slate-500">
+                          {' '}
+                          · {resumo.norma}, {resumo.dispositivo}
+                        </span>
+                      </span>
+                    )}
+                  </p>
                   {r.grupoSim && (
                     <a
                       href={`${SIM_URL}?grupo=${r.grupoSim}`}
@@ -641,15 +716,30 @@ export function SectionTabelaGeral() {
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-slate-100">
-                            {linhas.map((l, i) => {
+                            {visiveis.map(({ l, origIdx }) => {
                               const m = TRATAMENTO_META[l.tratamento] ?? TRATAMENTO_META['—']
+                              const conf = confiancaDaLinha(r.id, origIdx)
+                              const selo = conf ? SELO_CONFIANCA[conf] : undefined
                               return (
                                 <tr
-                                  key={l.item + '-' + i}
+                                  key={l.item + '-' + origIdx}
                                   className="hover:bg-slate-50/70 align-top"
                                 >
                                   <td className="py-1.5 px-3 font-bold text-slate-900 whitespace-nowrap">
                                     {l.item}
+                                    {mostrarOrigem && selo && (
+                                      <span
+                                        title={`${resumo?.norma ?? ''} — ${resumo?.dispositivo ?? ''}${resumo?.remissao ? ' · ' + resumo.remissao : ''}. ${selo.titulo}`}
+                                        className={`mt-0.5 flex items-center gap-0.5 w-fit text-[8px] font-bold rounded border px-1 py-px cursor-help ${selo.cor}`}
+                                      >
+                                        {conf === 'baixa' ? (
+                                          <CircleAlert className="w-2 h-2" />
+                                        ) : (
+                                          <CircleCheck className="w-2 h-2" />
+                                        )}
+                                        {selo.rotulo}
+                                      </span>
+                                    )}
                                   </td>
                                   <td className="py-1.5 px-3 text-slate-700 leading-snug">
                                     {l.descricao}
