@@ -30,6 +30,7 @@ import {
   type FonteVigiada,
   type StatusFonte,
 } from '@/data/agenteFontes'
+import { DestinatariosAgente } from '@/components/DestinatariosAgente'
 
 /**
  * AGENTE DE VIGILÂNCIA DAS FONTES E ORIGENS DA LEGISLAÇÃO
@@ -318,6 +319,11 @@ export function AgenteFontes() {
             )
           })}
         </div>
+      </div>
+
+      {/* Quem recebe: escolha pelo cadastro */}
+      <div className="mt-3">
+        <DestinatariosAgente />
       </div>
 
       {/* Como o agente decide */}
