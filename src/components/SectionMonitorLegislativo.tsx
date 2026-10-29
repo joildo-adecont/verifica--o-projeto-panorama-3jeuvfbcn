@@ -1,250 +1,158 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
   Activity,
   AlertOctagon,
   AlertTriangle,
+  ArrowRight,
+  Calendar,
   CheckCircle2,
   Clock,
   Database,
   ExternalLink,
   Eye,
   FileSearch,
+  GitBranch,
   History,
+  Layers,
+  Link2,
+  ListTree,
+  Lock,
   RefreshCw,
+  Search,
   ShieldCheck,
+  Table2,
   XCircle,
 } from 'lucide-react'
+import {
+  ANOS,
+  CONEXOES,
+  CRONOLOGIA,
+  INCORPORADAS,
+  PENDENTES,
+  POR_ANO,
+  TOTAL,
+  ULTIMA,
+  type Conexao,
+  type ItemCronologia,
+  type SituacaoNorma,
+  type TipoNorma,
+} from '@/data/legislacaoCronologica'
 
 /**
- * Seção 12A — Monitor Legislativo
+ * Seção 12A — MONITOR LEGISLATIVO
  *
- * Painel de TRANSPARÊNCIA da vigilância normativa: mostra, para cada fonte que o
- * sistema consulta de fato, se ela está ativa, quando foi a última conferência e
- * qual foi o resultado. Não é um painel decorativo — cada linha corresponde a uma
- * fonte que a rotina semanal executa.
+ * Central de controle da legislação da reforma. Quatro funções:
  *
- * Números desta seção (conferidos em 28/10/2026):
- *   - 8 fontes ativas de 16 catalogadas (registro central: scripts/fontes_oficiais)
- *   - 3 de texto integral, 2 de catálogo, 1 de publicação, 1 portal, 1 de tabela
- *   - cobertura 5/5: todo tipo de consulta tem pelo menos uma fonte ativa
- *   - LC 214 com 544 artigos e 661.175 caracteres no texto integral
- *   - 14 Leis Complementares publicadas em 2026
+ *   1. LINHA DO TEMPO — toda a legislação em ordem cronológica, com data de
+ *      assinatura, URN oficial e situação (vigente / alterada / revogada).
+ *   2. PAINEL DE CONTROLE — atalhos para cada lei da reforma, um por vez.
+ *   3. CONEXÕES — os "pinos" que ligam esta legislação às tabelas, células e
+ *      seções que dependem dela.
+ *   4. CONTROLE DE ACESSO — quem pode ver, criar, editar e apagar, no modelo
+ *      N1–N4 já existente no sistema (Seção 16).
  *
- * Nada aqui é estimativa: todos os valores vêm do relatório da última execução
- * (scripts/d3c20c92c899fa15/state/ultimo-relatorio.json).
+ * Os dados vêm de src/data/legislacaoCronologica.ts, conferidos em 28/10/2026
+ * contra o Senado Dados Abertos, o DOU e o CGIBS. Nenhum item aqui é inventado:
+ * norma sem data confirmada fica fora até ser conferida.
  */
 
-type Situacao = 'ativa' | 'bloqueada' | 'sem_rota' | 'nao_usar'
-
-interface FonteMonitorada {
-  id: string
-  nome: string
-  orgao: string
-  tipo: string
-  situacao: Situacao
-  funcao: string
-  prova: string
-  url: string
+const CORES_SITUACAO: Record<SituacaoNorma, string> = {
+  vigente: 'bg-emerald-50 text-emerald-800 border-emerald-300',
+  alterada: 'bg-amber-50 text-amber-800 border-amber-300',
+  revogada: 'bg-rose-50 text-rose-800 border-rose-300',
 }
 
-const FONTES: FonteMonitorada[] = [
-  {
-    id: 'normas_leg',
-    nome: 'normas.leg.br',
-    orgao: 'Senado Federal / Congresso Nacional',
-    tipo: 'Texto integral',
-    situacao: 'ativa',
-    funcao: 'Fonte primária de texto de lei — API pública, sem autenticação',
-    prova: 'LC 214: 544 artigos · 661.175 caracteres',
-    url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
-  },
-  {
-    id: 'senado_legis',
-    nome: 'Senado LEGIS',
-    orgao: 'Senado Federal',
-    tipo: 'Texto integral',
-    situacao: 'ativa',
-    funcao: 'Texto por código da norma — rota alternativa para conferência',
-    prova: 'LC 227: 118 artigos · LC 123: 95 artigos',
-    url: 'https://legis.senado.leg.br/norma/40180341',
-  },
-  {
-    id: 'dou',
-    nome: 'DOU / Imprensa Nacional',
-    orgao: 'Imprensa Nacional',
-    tipo: 'Publicação',
-    situacao: 'ativa',
-    funcao: 'Fonte de publicação oficial — decreto, portaria, ato conjunto',
-    prova: 'Decretos 13.133 e 13.140 conferidos na íntegra',
-    url: 'https://www.in.gov.br/consulta',
-  },
-  {
-    id: 'rfb_normas',
-    nome: 'Normas RFB',
-    orgao: 'Receita Federal do Brasil',
-    tipo: 'Texto integral',
-    situacao: 'ativa',
-    funcao: 'Atos internos da RFB — instrução normativa, solução de consulta',
-    prova: 'Consulta ativa no acervo Sijut',
-    url: 'https://normas.receita.fazenda.gov.br',
-  },
-  {
-    id: 'senado_dados_abertos',
-    nome: 'Senado — Dados Abertos',
-    orgao: 'Senado Federal',
-    tipo: 'Catálogo',
-    situacao: 'ativa',
-    funcao: 'Descoberta de norma nova e resolução da URN LexML',
-    prova: '14 Leis Complementares de 2026 catalogadas',
-    url: 'https://legis.senado.leg.br/dadosabertos/legislacao/lista?tipo=LCP&ano=2026',
-  },
-  {
-    id: 'cgibs',
-    nome: 'CGIBS',
-    orgao: 'Comitê Gestor do IBS',
-    tipo: 'Catálogo',
-    situacao: 'ativa',
-    funcao: 'Resoluções do Comitê, Regulamento do IBS e alíquotas',
-    prova: '18 resoluções inventariadas (última: 18/2026)',
-    url: 'https://cgibs.gov.br/resolucoes',
-  },
-  {
-    id: 'rfb_reforma',
-    nome: 'RFB — Reforma Tributária',
-    orgao: 'Receita Federal do Brasil',
-    tipo: 'Portal',
-    situacao: 'ativa',
-    funcao: 'Orientações da reforma, RTC e obrigações acessórias',
-    prova: '37 notícias relacionadas monitoradas',
-    url: 'https://www.gov.br/receitafederal/pt-br/assuntos/reforma-tributaria',
-  },
-  {
-    id: 'buscadorncm',
-    nome: 'Buscador NCM',
-    orgao: 'Agregador privado — SECUNDÁRIO',
-    tipo: 'Tabela',
-    situacao: 'ativa',
-    funcao: 'Detector de mudança nas tabelas (cClassTrib, cCredPres, CEST, MVA)',
-    prova: 'cClassTrib 1.70 · Calculadora V0059',
-    url: 'https://buscadorncm.com.br/fontes',
-  },
-  {
-    id: 'planalto',
-    nome: 'Planalto',
-    orgao: 'Presidência da República',
-    tipo: 'Texto integral',
-    situacao: 'bloqueada',
-    funcao: 'Bloqueado por WAF de IP estrangeiro — substituído por normas.leg.br',
-    prova: 'HTTP 200 com 814 bytes de "Acesso Negado"',
-    url: 'https://www.planalto.gov.br',
-  },
-  {
-    id: 'camara',
-    nome: 'Câmara dos Deputados',
-    orgao: 'Câmara dos Deputados',
-    tipo: 'Catálogo',
-    situacao: 'sem_rota',
-    funcao: 'Sem rota de rede a partir do servidor — função coberta pelo Senado',
-    prova: 'Timeout em todas as rotas testadas',
-    url: 'https://www.camara.leg.br',
-  },
-  {
-    id: 'confaz',
-    nome: 'CONFAZ',
-    orgao: 'Conselho Nacional de Política Fazendária',
-    tipo: 'Catálogo',
-    situacao: 'sem_rota',
-    funcao: 'Sem rota de rede — convênios ICMS lidos por referência indireta',
-    prova: 'Timeout na conexão',
-    url: 'https://www.confaz.fazenda.gov.br',
-  },
-  {
-    id: 'lexml',
-    nome: 'LexML',
-    orgao: 'Rede de Informação Legislativa e Jurídica',
-    tipo: 'Catálogo',
-    situacao: 'nao_usar',
-    funcao: 'API legada sem conteúdo útil — responde 200 com página fixa',
-    prova: 'Sempre 9.049 bytes, zero registros',
-    url: 'http://www.lexml.gov.br',
-  },
-]
-
-const TIPOS = [
-  { tipo: 'Texto integral', n: 3, func: 'Ler a lei na íntegra' },
-  { tipo: 'Catálogo', n: 2, func: 'Descobrir o que é novo' },
-  { tipo: 'Publicação', n: 1, func: 'Provar a vigência do ato' },
-  { tipo: 'Portal', n: 1, func: 'Orientações e obrigações' },
-  { tipo: 'Tabela', n: 1, func: 'Detectar mudança de tabela' },
-]
-
-const HISTORICO = [
-  {
-    data: '28/10/2026',
-    hora: '22:34',
-    resultado: 'sem novidades',
-    detalhe: '9/9 fontes ok · 0 mudanças · catálogo de 1.002 itens idêntico',
-    tom: 'ok' as const,
-  },
-  {
-    data: '28/10/2026',
-    hora: '21:09',
-    resultado: 'reorganização',
-    detalhe: 'Fontes de 7 para 9 · cobertura 5/5 · Planalto removido das citações',
-    tom: 'info' as const,
-  },
-  {
-    data: '28/10/2026',
-    hora: '11:00',
-    resultado: '1 mudança',
-    detalhe: 'ENCAT posterga NTs da reforma · agregador de 114 para 115 bases',
-    tom: 'info' as const,
-  },
-]
-
-const CORES: Record<Situacao, { badge: string; borda: string; icone: typeof CheckCircle2 }> = {
-  ativa: {
-    badge: 'bg-emerald-50 text-emerald-800 border-emerald-300',
-    borda: 'border-l-emerald-500',
-    icone: CheckCircle2,
-  },
-  bloqueada: {
-    badge: 'bg-amber-50 text-amber-800 border-amber-300',
-    borda: 'border-l-amber-500',
-    icone: AlertTriangle,
-  },
-  sem_rota: {
-    badge: 'bg-slate-100 text-slate-600 border-slate-300',
-    borda: 'border-l-slate-400',
-    icone: AlertOctagon,
-  },
-  nao_usar: {
-    badge: 'bg-rose-50 text-rose-800 border-rose-300',
-    borda: 'border-l-rose-400',
-    icone: XCircle,
-  },
+const BORDA_SITUACAO: Record<SituacaoNorma, string> = {
+  vigente: 'border-l-emerald-500',
+  alterada: 'border-l-amber-500',
+  revogada: 'border-l-rose-500',
 }
 
-const ROTULO: Record<Situacao, string> = {
-  ativa: 'Ativa',
-  bloqueada: 'Bloqueada',
-  sem_rota: 'Sem rota',
-  nao_usar: 'Não usar',
+const CORES_TIPO: Record<TipoNorma, string> = {
+  'Emenda Constitucional': 'bg-indigo-100 text-indigo-800',
+  'Lei Complementar': 'bg-sky-100 text-sky-800',
+  Decreto: 'bg-purple-100 text-purple-800',
+  'Portaria Conjunta': 'bg-amber-100 text-amber-800',
+  'Ato Conjunto': 'bg-emerald-100 text-emerald-800',
+  Resolução: 'bg-blue-100 text-blue-800',
+}
+
+const ICONE_GRUPO: Record<Conexao['grupo'], typeof Table2> = {
+  tabela: Table2,
+  secao: Layers,
+  simulador: Activity,
+  fonte: Database,
+}
+
+const ROTULO_GRUPO: Record<Conexao['grupo'], string> = {
+  tabela: 'Tabelas e células',
+  secao: 'Seções do sistema',
+  simulador: 'Simulador',
+  fonte: 'Fontes',
+}
+
+function norm(s: string) {
+  return (s || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+}
+
+function dataBR(iso: string) {
+  const [a, m, d] = iso.split('-')
+  return `${d}/${m}/${a}`
 }
 
 export function SectionMonitorLegislativo() {
-  const [filtro, setFiltro] = useState<Situacao | 'todas'>('todas')
+  const [busca, setBusca] = useState('')
+  const [tipo, setTipo] = useState<TipoNorma | 'todos'>('todos')
+  const [situacao, setSituacao] = useState<SituacaoNorma | 'todas'>('todas')
+  const [soPendentes, setSoPendentes] = useState(false)
+  const [aberta, setAberta] = useState<string | null>(null)
 
-  const visiveis = FONTES.filter((f) => filtro === 'todas' || f.situacao === filtro)
-  const ativas = FONTES.filter((f) => f.situacao === 'ativa').length
+  const filtrados = useMemo(() => {
+    const t = norm(busca.trim())
+    return CRONOLOGIA.filter((i) => {
+      if (tipo !== 'todos' && i.tipo !== tipo) return false
+      if (situacao !== 'todas' && i.situacao !== situacao) return false
+      if (soPendentes && i.incorporada) return false
+      if (!t) return true
+      const alvo = norm(`${i.codigo} ${i.titulo} ${i.objeto} ${i.secao || ''} ${i.nota || ''}`)
+      return t.split(/\s+/).every((p) => alvo.includes(p))
+    })
+  }, [busca, tipo, situacao, soPendentes])
+
+  const porAnoFiltrado = useMemo(() => {
+    return filtrados.reduce<Record<string, ItemCronologia[]>>((acc, i) => {
+      const ano = i.data.slice(0, 4)
+      ;(acc[ano] = acc[ano] || []).push(i)
+      return acc
+    }, {})
+  }, [filtrados])
+
+  const anosVisiveis = Object.keys(porAnoFiltrado).sort((a, b) => Number(b) - Number(a))
+  const conexoesPorGrupo = CONEXOES.reduce<Record<string, Conexao[]>>((acc, c) => {
+    ;(acc[c.grupo] = acc[c.grupo] || []).push(c)
+    return acc
+  }, {})
+
+  const tipos: (TipoNorma | 'todos')[] = [
+    'todos',
+    'Emenda Constitucional',
+    'Lei Complementar',
+    'Decreto',
+    'Resolução',
+    'Portaria Conjunta',
+    'Ato Conjunto',
+  ]
 
   return (
     <section id="monitor-legislativo" className="scroll-mt-24">
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 md:p-8 shadow-sm space-y-5">
-        {/* Cabeçalho */}
+      <div className="rounded-2xl border border-slate-200 bg-white p-6 md:p-8 shadow-sm space-y-6">
+        {/* ─────────────── Cabeçalho ─────────────── */}
         <div>
           <div className="flex items-center gap-2">
-            <span className="flex items-center justify-center w-7 h-7 rounded-md bg-panorama-navy text-panorama-gold-light font-bold text-xs ring-1 ring-panorama-gold/50">
+            <span className="flex items-center justify-center w-7 h-7 rounded-md bg-panorama-navy text-panorama-gold-light ring-1 ring-panorama-gold/50">
               <Eye className="w-3.5 h-3.5" />
             </span>
             <p className="text-xs font-bold uppercase tracking-wider text-panorama-gold-dark">
@@ -252,209 +160,436 @@ export function SectionMonitorLegislativo() {
             </p>
           </div>
           <h2 className="text-xl md:text-2xl font-bold text-slate-900 mt-1">
-            Monitor Legislativo — o que o sistema vigia, e como prova
+            Monitor Legislativo — controle da legislação e das tabelas da reforma
           </h2>
           <p className="text-sm text-slate-500 mt-1 leading-relaxed">
-            Cada linha abaixo é uma fonte que a rotina semanal consulta de verdade. O painel não é
-            decorativo: mostra a situação <b>medida</b> de cada fonte, o que ela entrega e a prova
-            dessa entrega. Fonte que não responde aparece aqui como não responde — e o sistema
-            continua funcionando porque toda função de consulta tem mais de uma fonte ativa.
+            Este painel é o encarregado de manter e controlar a legislação da reforma tributária do
+            consumo. Reúne a <b>linha do tempo completa</b> em ordem cronológica, o{' '}
+            <b>atalho para cada lei</b>, as <b>conexões</b> entre a norma e as tabelas que dela
+            dependem, e o<b> controle de acesso</b> a essas alterações.
           </p>
         </div>
 
-        {/* KPIs */}
+        {/* ─────────────── KPIs ─────────────── */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="rounded-xl border border-blue-200 bg-blue-50/60 p-3.5">
+            <div className="flex items-center gap-1.5 text-blue-700 text-[11px] font-bold uppercase tracking-wide">
+              <ListTree className="w-3.5 h-3.5" />
+              Normas na linha do tempo
+            </div>
+            <p className="text-2xl font-bold text-blue-900 mt-1">{TOTAL}</p>
+            <p className="text-[11px] text-blue-700/80">{ANOS.length} anos cobertos</p>
+          </div>
           <div className="rounded-xl border border-emerald-200 bg-emerald-50/60 p-3.5">
             <div className="flex items-center gap-1.5 text-emerald-700 text-[11px] font-bold uppercase tracking-wide">
               <CheckCircle2 className="w-3.5 h-3.5" />
-              Fontes ativas
+              No Panorama
             </div>
-            <p className="text-2xl font-bold text-emerald-900 mt-1">{ativas}</p>
-            <p className="text-[11px] text-emerald-700/80">de 16 catalogadas</p>
-          </div>
-          <div className="rounded-xl border border-blue-200 bg-blue-50/60 p-3.5">
-            <div className="flex items-center gap-1.5 text-blue-700 text-[11px] font-bold uppercase tracking-wide">
-              <ShieldCheck className="w-3.5 h-3.5" />
-              Cobertura
-            </div>
-            <p className="text-2xl font-bold text-blue-900 mt-1">5/5</p>
-            <p className="text-[11px] text-blue-700/80">toda função tem fonte</p>
+            <p className="text-2xl font-bold text-emerald-900 mt-1">{INCORPORADAS}</p>
+            <p className="text-[11px] text-emerald-700/80">
+              {PENDENTES} fora, por não tratarem de IBS/CBS
+            </p>
           </div>
           <div className="rounded-xl border border-violet-200 bg-violet-50/60 p-3.5">
             <div className="flex items-center gap-1.5 text-violet-700 text-[11px] font-bold uppercase tracking-wide">
-              <Database className="w-3.5 h-3.5" />
-              Texto da LC 214
+              <Link2 className="w-3.5 h-3.5" />
+              Conexões mapeadas
             </div>
-            <p className="text-2xl font-bold text-violet-900 mt-1">544</p>
-            <p className="text-[11px] text-violet-700/80">artigos · 661 mil caracteres</p>
+            <p className="text-2xl font-bold text-violet-900 mt-1">{CONEXOES.length}</p>
+            <p className="text-[11px] text-violet-700/80">tabelas, seções, simulador e fontes</p>
           </div>
           <div className="rounded-xl border border-panorama-gold/40 bg-panorama-gold/10 p-3.5">
             <div className="flex items-center gap-1.5 text-panorama-gold-dark text-[11px] font-bold uppercase tracking-wide">
               <Clock className="w-3.5 h-3.5" />
-              Próxima varredura
+              Ato mais recente
             </div>
-            <p className="text-2xl font-bold text-panorama-navy mt-1">04/11</p>
-            <p className="text-[11px] text-amber-800/80">quarta-feira, 11:00</p>
+            <p className="text-lg font-bold text-panorama-navy mt-1">{ULTIMA.codigo}</p>
+            <p className="text-[11px] text-amber-800/80">{dataBR(ULTIMA.data)}</p>
           </div>
         </div>
 
-        {/* Cobertura por função */}
-        <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4">
-          <div className="flex items-center gap-1.5 mb-2.5">
-            <FileSearch className="w-4 h-4 text-panorama-gold-dark" />
+        {/* ─────────────── Painel de controle: atalhos às leis ─────────────── */}
+        <div className="rounded-xl border border-panorama-gold/40 bg-gradient-to-br from-panorama-gold/10 to-amber-50/60 p-4">
+          <div className="flex items-center gap-1.5 mb-3">
+            <GitBranch className="w-4 h-4 text-panorama-gold-dark" />
             <h3 className="text-sm font-bold text-slate-900">
-              Cobertura por função — a garantia de que a busca não quebra
+              Painel de controle — atalho para cada lei da reforma
             </h3>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
-            {TIPOS.map((t) => (
-              <div key={t.tipo} className="rounded-lg bg-white border border-slate-200 px-3 py-2.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-bold text-slate-800">{t.tipo}</span>
-                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">
-                    {t.n}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+            {CRONOLOGIA.filter((i) => i.papel === 'estrutura' || i.papel === 'regulamento').map(
+              (i) => (
+                <a
+                  key={i.codigo}
+                  href={i.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group rounded-lg bg-white border border-slate-200 hover:border-panorama-gold px-3 py-2.5 transition-colors"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-bold text-panorama-navy">{i.codigo}</span>
+                    <ExternalLink className="w-3 h-3 text-slate-400 group-hover:text-panorama-gold-dark shrink-0" />
+                  </div>
+                  <p className="text-[11px] text-slate-600 mt-0.5 leading-tight line-clamp-2">
+                    {i.objeto}
+                  </p>
+                  <span className="inline-block mt-1 text-[10px] font-mono text-slate-400">
+                    {dataBR(i.data)}
                   </span>
+                </a>
+              ),
+            )}
+          </div>
+          <p className="text-[11px] text-slate-500 mt-2.5">
+            Cada atalho abre o texto integral na fonte que responde — normas.leg.br para lei e
+            decreto, DOU para ato publicado, CGIBS para resolução.
+          </p>
+        </div>
+
+        {/* ─────────────── Conexões: os pinos do sistema ─────────────── */}
+        <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4">
+          <div className="flex items-center gap-1.5 mb-1">
+            <Link2 className="w-4 h-4 text-panorama-gold-dark" />
+            <h3 className="text-sm font-bold text-slate-900">
+              Conexões — onde esta legislação encosta no resto do sistema
+            </h3>
+          </div>
+          <p className="text-[11px] text-slate-500 mb-3">
+            Cada pino liga a norma ao dado que depende dela. É por aqui que uma alteração de lei se
+            propaga para as tabelas e para o simulador.
+          </p>
+          <div className="space-y-3">
+            {(Object.keys(conexoesPorGrupo) as Conexao['grupo'][]).map((g) => {
+              const Icone = ICONE_GRUPO[g]
+              return (
+                <div key={g}>
+                  <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400 mb-1.5 flex items-center gap-1">
+                    <Icone className="w-3 h-3" />
+                    {ROTULO_GRUPO[g]}
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {conexoesPorGrupo[g].map((c) => (
+                      <a
+                        key={c.id}
+                        href={c.alvo}
+                        {...(c.externo ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                        className="group flex items-start gap-2 rounded-lg bg-white border border-slate-200 hover:border-panorama-gold px-3 py-2 transition-colors"
+                      >
+                        <ArrowRight className="w-3.5 h-3.5 text-panorama-gold-dark shrink-0 mt-0.5 group-hover:translate-x-0.5 transition-transform" />
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="text-[11px] font-bold text-slate-800">{c.rotulo}</span>
+                            {c.volume && (
+                              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
+                                {c.volume}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[10px] text-slate-500 leading-tight mt-0.5">
+                            {c.descricao}
+                          </p>
+                        </div>
+                      </a>
+                    ))}
+                  </div>
                 </div>
-                <p className="text-[10px] text-slate-500 mt-0.5 leading-tight">{t.func}</p>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
 
-        {/* Filtros */}
-        <div className="flex flex-wrap items-center gap-1.5">
-          <span className="text-[11px] font-bold text-slate-700 mr-1">Situação:</span>
-          {(['todas', 'ativa', 'bloqueada', 'sem_rota', 'nao_usar'] as const).map((s) => (
+        {/* ─────────────── Filtros da linha do tempo ─────────────── */}
+        <div className="border-t border-slate-100 pt-4 space-y-2.5">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-[11px] font-bold text-slate-700 flex items-center gap-1 mr-1">
+              <Search className="w-3 h-3 text-slate-500" />
+              Tipo:
+            </span>
+            {tipos.map((t) => (
+              <button
+                key={t}
+                onClick={() => setTipo(t)}
+                className={`text-[11px] px-2.5 py-1 rounded font-bold transition-colors border cursor-pointer ${
+                  tipo === t
+                    ? 'bg-panorama-navy text-panorama-gold-light border-panorama-navy'
+                    : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'
+                }`}
+              >
+                {t === 'todos' ? `Todos (${TOTAL})` : t}
+              </button>
+            ))}
+          </div>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-[11px] font-bold text-slate-700 mr-1">Situação:</span>
+            {(['todas', 'vigente', 'alterada', 'revogada'] as const).map((s) => (
+              <button
+                key={s}
+                onClick={() => setSituacao(s)}
+                className={`text-[11px] px-2.5 py-1 rounded font-bold transition-colors border cursor-pointer ${
+                  situacao === s
+                    ? 'bg-panorama-navy text-panorama-gold-light border-panorama-navy'
+                    : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'
+                }`}
+              >
+                {s === 'todas'
+                  ? 'Todas'
+                  : `${s.charAt(0).toUpperCase()}${s.slice(1)} (${
+                      CRONOLOGIA.filter((i) => i.situacao === s).length
+                    })`}
+              </button>
+            ))}
             <button
-              key={s}
-              onClick={() => setFiltro(s)}
-              className={`text-[11px] px-2.5 py-1 rounded font-bold transition-colors border cursor-pointer ${
-                filtro === s
-                  ? 'bg-panorama-navy text-panorama-gold-light border-panorama-navy'
+              onClick={() => setSoPendentes((v) => !v)}
+              className={`text-[11px] px-2.5 py-1 rounded font-bold transition-colors border cursor-pointer ml-1 ${
+                soPendentes
+                  ? 'bg-rose-700 text-white border-rose-700'
                   : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'
               }`}
             >
-              {s === 'todas'
-                ? `Todas (${FONTES.length})`
-                : `${ROTULO[s]} (${FONTES.filter((f) => f.situacao === s).length})`}
+              Só fora do Panorama ({PENDENTES})
             </button>
+          </div>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+            <input
+              type="text"
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+              placeholder="Buscar por norma, objeto ou seção (ex.: combustível, MEI, ITCMD, art. 172)…"
+              className="w-full pl-9 pr-8 py-2 rounded-lg border border-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-panorama-gold/50"
+            />
+            {busca && (
+              <button
+                onClick={() => setBusca('')}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
+                aria-label="Limpar busca"
+              >
+                <XCircle className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* ─────────────── Linha do tempo ─────────────── */}
+        <div className="space-y-4">
+          {anosVisiveis.length === 0 && (
+            <p className="text-sm text-slate-500 py-6 text-center">
+              Nenhuma norma encontrada com esses filtros.
+            </p>
+          )}
+          {anosVisiveis.map((ano) => (
+            <div key={ano}>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="flex items-center justify-center w-6 h-6 rounded bg-panorama-navy text-panorama-gold-light text-[11px] font-bold">
+                  {ano}
+                </span>
+                <span className="text-[11px] font-bold text-slate-500">
+                  {porAnoFiltrado[ano].length} ato{porAnoFiltrado[ano].length > 1 ? 's' : ''}
+                </span>
+                <div className="flex-1 h-px bg-slate-200" />
+              </div>
+              <div className="space-y-1.5">
+                {porAnoFiltrado[ano].map((i) => {
+                  const isOpen = aberta === i.codigo
+                  return (
+                    <div
+                      key={i.codigo}
+                      className={`rounded-lg border border-slate-200 bg-white border-l-4 ${
+                        BORDA_SITUACAO[i.situacao]
+                      } overflow-hidden`}
+                    >
+                      <button
+                        onClick={() => setAberta(isOpen ? null : i.codigo)}
+                        className="w-full text-left px-3 py-2.5 hover:bg-slate-50/70 transition-colors cursor-pointer"
+                      >
+                        <div className="flex items-start gap-2 flex-wrap">
+                          <span className="text-[10px] font-mono text-slate-500 shrink-0 pt-0.5 w-20">
+                            {dataBR(i.data)}
+                          </span>
+                          <span
+                            className={`text-[9px] font-bold px-1.5 py-0.5 rounded shrink-0 ${
+                              CORES_TIPO[i.tipo]
+                            }`}
+                          >
+                            {i.tipo}
+                          </span>
+                          <span className="text-xs font-bold text-slate-900">{i.codigo}</span>
+                          {i.incorporada ? (
+                            <span className="inline-flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 shrink-0">
+                              <CheckCircle2 className="w-2.5 h-2.5" />
+                              no Panorama
+                            </span>
+                          ) : (
+                            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 shrink-0">
+                              fora
+                            </span>
+                          )}
+                          <span
+                            className={`text-[9px] font-bold px-1.5 py-0.5 rounded border shrink-0 ${
+                              CORES_SITUACAO[i.situacao]
+                            }`}
+                          >
+                            {i.situacao}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-600 mt-1 leading-snug pl-0 sm:pl-20">
+                          {i.objeto}
+                        </p>
+                      </button>
+
+                      {isOpen && (
+                        <div className="px-3 pb-3 pt-1 border-t border-slate-100 bg-slate-50/50 space-y-2">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
+                            <div>
+                              <span className="text-slate-400 font-bold uppercase text-[9px]">
+                                Título
+                              </span>
+                              <p className="text-slate-800">{i.titulo}</p>
+                            </div>
+                            <div>
+                              <span className="text-slate-400 font-bold uppercase text-[9px]">
+                                Data de assinatura
+                              </span>
+                              <p className="text-slate-800 font-mono">
+                                {dataBR(i.data)}
+                                {i.publicacao && i.publicacao !== i.data && (
+                                  <span className="text-slate-500">
+                                    {' '}
+                                    · publicado em {dataBR(i.publicacao)}
+                                  </span>
+                                )}
+                              </p>
+                            </div>
+                            {i.secao && (
+                              <div>
+                                <span className="text-slate-400 font-bold uppercase text-[9px]">
+                                  Onde aparece
+                                </span>
+                                <p className="text-slate-800">{i.secao}</p>
+                              </div>
+                            )}
+                            {i.urn && (
+                              <div className="sm:col-span-2">
+                                <span className="text-slate-400 font-bold uppercase text-[9px]">
+                                  URN oficial (LexML)
+                                </span>
+                                <p className="text-slate-700 font-mono text-[10px] break-all">
+                                  {i.urn}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                          {i.nota && (
+                            <div className="rounded border-l-2 border-panorama-gold bg-white px-2.5 py-1.5 text-[11px] text-slate-700">
+                              <b className="text-panorama-gold-dark">Conferência:</b> {i.nota}
+                            </div>
+                          )}
+                          <a
+                            href={i.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-[11px] font-bold text-panorama-gold-dark hover:text-panorama-navy hover:underline"
+                          >
+                            Abrir o texto oficial
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
           ))}
         </div>
 
-        {/* Tabela de fontes */}
-        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-xs">
-          <table className="w-full text-left border-collapse text-xs sm:text-sm">
-            <thead>
-              <tr className="bg-panorama-navy text-white border-b-2 border-panorama-gold font-semibold">
-                <th className="py-3 px-3 w-20">Situação</th>
-                <th className="py-3 px-3 w-48">Fonte / órgão</th>
-                <th className="py-3 px-3 w-28">Tipo</th>
-                <th className="py-3 px-4">Para que serve</th>
-                <th className="py-3 px-3 w-56">Prova da última leitura</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {visiveis.map((f) => {
-                const c = CORES[f.situacao]
-                const Icone = c.icone
-                return (
-                  <tr
-                    key={f.id}
-                    className={`hover:bg-slate-50/70 transition-colors border-l-4 ${c.borda}`}
-                  >
-                    <td className="py-3 px-3 align-top">
-                      <span
-                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold border ${c.badge}`}
-                      >
-                        <Icone className="w-3 h-3" />
-                        {ROTULO[f.situacao]}
-                      </span>
-                    </td>
-                    <td className="py-3 px-3 align-top">
-                      <a
-                        href={f.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="font-bold text-panorama-gold-dark hover:text-panorama-navy hover:underline inline-flex items-center gap-1"
-                      >
-                        {f.nome}
-                        <ExternalLink className="w-3 h-3" />
-                      </a>
-                      <span className="block text-[10px] text-slate-500 mt-0.5">{f.orgao}</span>
-                    </td>
-                    <td className="py-3 px-3 align-top text-slate-600 text-xs">{f.tipo}</td>
-                    <td className="py-3 px-4 align-top text-slate-700 leading-relaxed">
-                      {f.funcao}
-                    </td>
-                    <td className="py-3 px-3 align-top text-[11px] text-slate-600 font-mono">
-                      {f.prova}
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Histórico de varreduras */}
-        <div className="rounded-xl border border-slate-200 bg-white p-4">
-          <div className="flex items-center gap-1.5 mb-3">
-            <History className="w-4 h-4 text-panorama-gold-dark" />
-            <h3 className="text-sm font-bold text-slate-900">Últimas varreduras</h3>
+        {/* ─────────────── Controle de acesso ─────────────── */}
+        <div className="rounded-xl border border-indigo-200 bg-indigo-50/50 p-4">
+          <div className="flex items-center gap-1.5 mb-2">
+            <Lock className="w-4 h-4 text-indigo-700" />
+            <h3 className="text-sm font-bold text-slate-900">Controle de acesso às alterações</h3>
           </div>
-          <div className="space-y-2">
-            {HISTORICO.map((h, i) => (
-              <div
-                key={i}
-                className="flex items-start gap-3 rounded-lg border border-slate-100 bg-slate-50/50 px-3 py-2"
-              >
-                <div className="shrink-0 text-[11px] font-mono text-slate-500 pt-0.5">
-                  {h.data}
-                  <span className="block text-slate-400">{h.hora}</span>
-                </div>
-                <div className="min-w-0">
-                  <span
-                    className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold ${
-                      h.tom === 'ok'
-                        ? 'bg-emerald-100 text-emerald-800'
-                        : 'bg-blue-100 text-blue-800'
-                    }`}
-                  >
-                    {h.resultado}
+          <p className="text-[11px] text-slate-600 mb-3 leading-relaxed">
+            A legislação é dado público e pode ser lida por qualquer pessoa. O que o acesso controla
+            é a <b>alteração</b> — quem pode incluir norma, editar registro ou apagar item, e fica
+            registrado quem fez o quê e quando.
+          </p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            {[
+              {
+                n: 'N1',
+                nome: 'Ver',
+                desc: 'Ler a legislação e a linha do tempo',
+                borda: 'border-blue-200',
+                selo: 'bg-blue-100 text-blue-800',
+              },
+              {
+                n: 'N2',
+                nome: 'Criar',
+                desc: 'Incluir norma ou item novo',
+                borda: 'border-emerald-200',
+                selo: 'bg-emerald-100 text-emerald-800',
+              },
+              {
+                n: 'N3',
+                nome: 'Editar',
+                desc: 'Alterar dado já registrado',
+                borda: 'border-amber-200',
+                selo: 'bg-amber-100 text-amber-800',
+              },
+              {
+                n: 'N4',
+                nome: 'Apagar',
+                desc: 'Excluir e autorizar níveis',
+                borda: 'border-rose-200',
+                selo: 'bg-rose-100 text-rose-800',
+              },
+            ].map((n) => (
+              <div key={n.n} className={`rounded-lg bg-white border ${n.borda} px-3 py-2`}>
+                <div className="flex items-center gap-1.5">
+                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${n.selo}`}>
+                    {n.n}
                   </span>
-                  <p className="text-[11px] text-slate-600 mt-1 leading-relaxed">{h.detalhe}</p>
+                  <span className="text-[11px] font-bold text-slate-800">{n.nome}</span>
                 </div>
+                <p className="text-[10px] text-slate-500 mt-0.5 leading-tight">{n.desc}</p>
               </div>
             ))}
           </div>
+          <a
+            href="#controle-acesso"
+            className="inline-flex items-center gap-1 text-[11px] font-bold text-indigo-700 hover:underline mt-2.5"
+          >
+            Gerenciar usuários e níveis — Seção 16
+            <ArrowRight className="w-3 h-3" />
+          </a>
         </div>
 
-        {/* Nota de método */}
+        {/* ─────────────── Notas de método ─────────────── */}
         <div className="rounded-lg border-l-4 border-blue-600 bg-blue-50 p-4 text-sm text-blue-900">
           <div className="flex items-start gap-2">
             <Activity className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
             <div>
-              <b>Como este painel é alimentado.</b> Números e situações vêm do relatório da última
-              execução da rotina semanal (scripts/d3c20c92c899fa15), não de digitação manual. A
-              varredura roda toda <b>quarta-feira às 11:00</b> e confere cada fonte por assinatura
-              de conteúdo: no texto de lei, um hash SHA-256 de 661 mil caracteres detecta qualquer
-              alteração; nos catálogos, a lista de normas publicadas. Quando algo muda, o registro
-              entra automaticamente no Histórico de Atualizações (Seção 13) e o Panorama é
-              republicado.
+              <b>Como esta linha do tempo se mantém.</b> A varredura roda toda{' '}
+              <b>quarta-feira às 11:00</b>. Ela confere o catálogo de Leis Complementares do Senado,
+              o DOU e as resoluções do CGIBS, e compara o texto integral de cada lei por assinatura
+              de conteúdo — na LC 214, um hash de 661 mil caracteres detecta qualquer alteração. Ato
+              novo entra na linha do tempo; ato alterado muda de situação; e o registro do que mudou
+              vai para o Histórico (Seção 13).
             </div>
           </div>
         </div>
 
-        {/* Aviso honesto */}
         <div className="rounded-lg border-l-4 border-amber-500 bg-amber-50 p-4 text-sm text-amber-900">
           <div className="flex items-start gap-2">
             <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
             <div>
-              <b>Por que mostrar o que está bloqueado.</b> O Planalto, a Câmara e o CONFAZ não
-              respondem a este servidor — e isso está nesta tabela, não escondido. Um monitor que só
-              exibe o que funciona não serve para confiar. A diferença é que hoje cada uma dessas
-              ausências tem <b>substituto ativo</b>: o texto de lei vem do normas.leg.br, o ato
-              publicado vem do DOU, e o catálogo de norma nova vem dos Dados Abertos do Senado.
+              <b>Por que {PENDENTES} normas aparecem como “fora do Panorama”.</b> Dez Leis
+              Complementares de 2026 foram baixadas e lidas na íntegra. Nenhuma tem dispositivo de
+              IBS, CBS ou CGIBS — tratam de seguro rural, Fundo de Segurança Pública, desmembramento
+              de município. Ficam na linha do tempo porque são legislação federal do período, mas
+              marcadas como fora: incluí-las no corpo do Panorama daria a impressão de que alteram a
+              reforma, e elas não alteram.
             </div>
           </div>
         </div>
@@ -462,7 +597,8 @@ export function SectionMonitorLegislativo() {
         <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
           <RefreshCw className="w-3 h-3" />
           <span>
-            Situação medida em 28/10/2026 · próxima conferência automática em 04/11/2026, 11:00
+            Linha do tempo conferida em 28/10/2026 · próxima conferência automática em 04/11/2026,
+            11:00
           </span>
         </div>
       </div>
