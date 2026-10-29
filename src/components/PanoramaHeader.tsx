@@ -479,7 +479,7 @@ export function PanoramaHeader({
                 <ExternalLink className="w-3.5 h-3.5" />
               </a>
               <a
-                href="https://planalto.gov.br/ccivil_03/leis/lcp/lcp214.htm"
+                href="https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-between text-xs text-slate-600 bg-slate-100 p-2 rounded"
