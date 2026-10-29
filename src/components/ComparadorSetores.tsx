@@ -187,12 +187,14 @@ const SETORES: Setor[] = [
   },
 ]
 
-function BarraComparativa({ a, b }: { a: Setor; b: Setor }) {
+function BarraComparativa({ a, b, c }: { a: Setor; b: Setor; c: Setor }) {
   const fa = a.principal.fator
   const fb = b.principal.fator
+  const fc = c.principal.fator
   const max = REF_TOTAL
   const wA = fa === undefined ? 0 : Math.round(((REF_TOTAL * fa) / max) * 100)
   const wB = fb === undefined ? 0 : Math.round(((REF_TOTAL * fb) / max) * 100)
+  const wC = fc === undefined ? 0 : Math.round(((REF_TOTAL * fc) / max) * 100)
 
   return (
     <div className="rounded-xl border-2 border-slate-200 bg-white p-3.5">
@@ -204,9 +206,22 @@ function BarraComparativa({ a, b }: { a: Setor; b: Setor }) {
       </div>
 
       {[
-        { s: a, w: wA, f: fa, corBarra: 'bg-gradient-to-r from-amber-400 to-amber-600' },
-        { s: b, w: wB, f: fb, corBarra: 'bg-gradient-to-r from-indigo-400 to-indigo-600' },
-      ].map(({ s, w, f, corBarra }) => (
+        {
+          s: a,
+          w: wA,
+          f: fa,
+          corBarra: 'bg-gradient-to-r from-amber-400 to-amber-600',
+          letra: 'A',
+        },
+        {
+          s: b,
+          w: wB,
+          f: fb,
+          corBarra: 'bg-gradient-to-r from-indigo-400 to-indigo-600',
+          letra: 'B',
+        },
+        { s: c, w: wC, f: fc, corBarra: 'bg-gradient-to-r from-teal-400 to-teal-600', letra: 'C' },
+      ].map(({ s, w, f, corBarra, letra }) => (
         <div key={s.id} className="mb-2.5">
           <div className="flex items-baseline justify-between gap-2 mb-1">
             <span className="text-[11px] font-bold text-slate-800">
@@ -240,9 +255,11 @@ function BarraComparativa({ a, b }: { a: Setor; b: Setor }) {
 export function ComparadorSetores() {
   const [a, setA] = useState('imobiliario')
   const [b, setB] = useState('agro')
+  const [c, setC] = useState('financeiro')
 
   const setorA = SETORES.find((s) => s.id === a) ?? SETORES[0]
   const setorB = SETORES.find((s) => s.id === b) ?? SETORES[1]
+  const setorC = SETORES.find((s) => s.id === c) ?? SETORES[3]
 
   const select = (valor: string, onChange: (v: string) => void, rotulo: string) => (
     <label className="flex-1 min-w-[190px]">
@@ -335,25 +352,27 @@ export function ComparadorSetores() {
       <div className="rounded-xl border-2 border-slate-200 bg-white p-3.5">
         <div className="flex items-center gap-1.5 mb-2.5">
           <ArrowLeftRight className="w-4 h-4 text-panorama-gold-dark" />
-          <p className="text-[12px] font-bold text-slate-900">Comparar dois regimes</p>
-          <span className="text-[10px] text-slate-400 ml-auto">escolha os dois lados</span>
+          <p className="text-[12px] font-bold text-slate-900">Comparar até três regimes</p>
+          <span className="text-[10px] text-slate-400 ml-auto">escolha os regimes</span>
         </div>
         <div className="flex gap-2.5 flex-wrap">
           {select(a, setA, 'Setor A')}
           {select(b, setB, 'Setor B')}
+          {select(c, setC, 'Setor C')}
         </div>
-        {a === b && (
+        {(a === b || a === c || b === c) && (
           <p className="text-[10px] text-amber-900 bg-amber-50 border border-amber-200 rounded px-2 py-1.5 mt-2 leading-snug">
-            Os dois lados estão no mesmo regime. Escolha outro para ver a diferença.
+            Há setores repetidos na comparação. Escolha regimes diferentes para ver a diferença.
           </p>
         )}
       </div>
 
-      <BarraComparativa a={setorA} b={setorB} />
+      <BarraComparativa a={setorA} b={setorB} c={setorC} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <CardSetor s={setorA} />
         <CardSetor s={setorB} />
+        <CardSetor s={setorC} />
       </div>
 
       <div className="rounded-xl border-2 border-slate-200 bg-white p-3.5">
