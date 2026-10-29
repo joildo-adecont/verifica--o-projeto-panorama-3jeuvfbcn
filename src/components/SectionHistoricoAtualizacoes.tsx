@@ -4,7 +4,14 @@ import { History, ExternalLink, Database, MapPin, CalendarClock, Wrench, Scale }
  * Seção 13 — Histórico de Atualizações do Panorama, em DOIS BLOCOS:
  * 1) 🔧 Atualização do Sistema — mudanças no Panorama/Simulador (versões, layout, funcionalidades).
  * 2) ⚖️ Atualização da Legislação — atos normativos novos dos órgãos oficiais
- *    (Planalto, CGIBS, RFB etc.) e o que mudou no conteúdo por causa deles.
+ *    (normas.leg.br, DOU, CGIBS, RFB etc.) e o que mudou no conteúdo por causa deles.
+ *
+ * NOTA SOBRE AS CITAÇÕES HISTÓRICAS: os registros anteriores a 28/10/2026 citam o
+ * Planalto como fonte, porque era de lá que o texto era lido na época — o registro
+ * preserva o que de fato aconteceu. A partir de 28/10/2026 a fonte passou a ser o
+ * normas.leg.br (Senado/Congresso), que serve o texto integral sem bloqueio; os
+ * links de todos os registros já apontam para essa fonte. O Planalto segue
+ * inacessível a consulta automatizada (WAF por IP estrangeiro).
  * Alimentada pelo assistente a cada atualização (rotina semanal + sob demanda).
  *
  * POLÍTICA DE RETENÇÃO: mantém somente os registros dos últimos 30 dias.
@@ -212,7 +219,7 @@ const REGISTROS: Registro[] = [
     fontes: [
       {
         nome: 'Planalto — LC 214/2025 compilada (art. 87-B da LC 123 com selo de revogação)',
-        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
       },
       {
         nome: 'Planalto — LC 227/2026 (art. 181, IV, "a")',
@@ -242,7 +249,7 @@ const REGISTROS: Registro[] = [
       },
       {
         nome: 'Planalto — LC 214/2025 compilada (sem alteração)',
-        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
       },
       {
         nome: 'Planalto — LC 227/2026 (monitorada, sem alteração)',
@@ -290,7 +297,7 @@ const REGISTROS: Registro[] = [
     fontes: [
       {
         nome: 'LC 214/2025 compilada — Planalto (fonte oficial primária de referência)',
-        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
       },
     ],
     caminho:
@@ -307,7 +314,7 @@ const REGISTROS: Registro[] = [
     fontes: [
       {
         nome: 'LC 214/2025 compilada — Planalto (fonte oficial primária de referência)',
-        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
       },
     ],
     caminho:
@@ -324,7 +331,7 @@ const REGISTROS: Registro[] = [
     fontes: [
       {
         nome: 'LC 214/2025 compilada — Planalto (fonte oficial primária de referência)',
-        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
       },
     ],
     caminho:
@@ -341,7 +348,7 @@ const REGISTROS: Registro[] = [
     fontes: [
       {
         nome: 'LC 214/2025 compilada — Planalto (fonte oficial primária de referência)',
-        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
       },
     ],
     caminho:
@@ -358,7 +365,7 @@ const REGISTROS: Registro[] = [
     fontes: [
       {
         nome: 'LC 214/2025 compilada — Planalto (fonte oficial primária de referência)',
-        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
       },
     ],
     caminho:
@@ -375,7 +382,7 @@ const REGISTROS: Registro[] = [
     fontes: [
       {
         nome: 'LC 214/2025 compilada — Planalto (fonte oficial primária de referência)',
-        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
       },
     ],
     caminho:
@@ -392,7 +399,7 @@ const REGISTROS: Registro[] = [
     fontes: [
       {
         nome: 'LC 214/2025 compilada — Planalto (fonte oficial primária de referência)',
-        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
       },
     ],
     caminho:
@@ -409,7 +416,7 @@ const REGISTROS: Registro[] = [
     fontes: [
       {
         nome: 'LC 214/2025 compilada — Planalto (fonte oficial primária de referência)',
-        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
       },
     ],
     caminho:
@@ -426,7 +433,7 @@ const REGISTROS: Registro[] = [
     fontes: [
       {
         nome: 'LC 214/2025 compilada — Planalto (base legal do material transmitido)',
-        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
       },
     ],
     caminho:
@@ -442,7 +449,7 @@ const REGISTROS: Registro[] = [
     fontes: [
       {
         nome: 'LC 214/2025 compilada — Planalto (base legal das capitulações)',
-        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
       },
     ],
     caminho:
@@ -458,7 +465,7 @@ const REGISTROS: Registro[] = [
     fontes: [
       {
         nome: 'LC 214/2025 compilada — Planalto (base legal das capitulações)',
-        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
       },
     ],
     caminho:
@@ -474,7 +481,7 @@ const REGISTROS: Registro[] = [
     fontes: [
       {
         nome: 'LC 214/2025 compilada — Planalto (arts. 182-214, serviços financeiros)',
-        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
       },
     ],
     caminho:
@@ -490,7 +497,7 @@ const REGISTROS: Registro[] = [
     fontes: [
       {
         nome: 'LC 214/2025 compilada — Planalto (base legal das capitulações)',
-        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
       },
     ],
     caminho:
@@ -506,7 +513,7 @@ const REGISTROS: Registro[] = [
     fontes: [
       {
         nome: 'LC 214/2025 compilada — Planalto (base legal das capitulações)',
-        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
       },
     ],
     caminho:
@@ -522,7 +529,7 @@ const REGISTROS: Registro[] = [
     fontes: [
       {
         nome: 'LC 214/2025 compilada — Planalto (fonte legal de todos os simuladores)',
-        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
       },
     ],
     caminho:
@@ -538,7 +545,7 @@ const REGISTROS: Registro[] = [
     fontes: [
       {
         nome: 'LC 214/2025 compilada — Planalto (arts. 22 e 127)',
-        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
       },
     ],
     caminho:
@@ -555,7 +562,7 @@ const REGISTROS: Registro[] = [
     fontes: [
       {
         nome: 'LC 214/2025 compilada — Planalto (arts. 182-214)',
-        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
       },
     ],
     caminho: 'Panorama (62493) — SectionFinanceiros.tsx (aba 🧮 Simulador financeiro, 4 modos)',
@@ -571,7 +578,7 @@ const REGISTROS: Registro[] = [
     fontes: [
       {
         nome: 'LC 214/2025 compilada — Planalto (arts. 204-206)',
-        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
       },
     ],
     caminho: 'Panorama (62493) — SectionConsorcios.tsx (aba 🧮 Simulador de consórcios, 4 modos)',
@@ -587,7 +594,7 @@ const REGISTROS: Registro[] = [
     fontes: [
       {
         nome: 'LC 214/2025 compilada — Planalto (arts. 110, 137-138, 164-169, 271-272)',
-        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
       },
     ],
     caminho: 'Panorama (62493) — SectionAgronegocio.tsx (aba 🧮 Simulador do agro, 4 modos)',
@@ -603,7 +610,7 @@ const REGISTROS: Registro[] = [
     fontes: [
       {
         nome: 'LC 214/2025 compilada — Planalto (art. 251, §§1º, 2º e 5º)',
-        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
       },
       {
         nome: 'Decreto 12.955/2026 — art. 382, §1º, III (cumulatividade no ano corrente)',
@@ -627,7 +634,7 @@ const REGISTROS: Registro[] = [
     fontes: [
       {
         nome: 'LC 214/2025 compilada — Planalto (arts. 252–262, 257–260, 261 e 485)',
-        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
       },
       {
         nome: 'Redutor de ajuste — Barbieri Advogados (valor inicial e exemplo de cálculo)',
@@ -651,7 +658,7 @@ const REGISTROS: Registro[] = [
     fontes: [
       {
         nome: 'LC 214/2025 compilada — Planalto (arts. 41, 47 e 344–347)',
-        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
       },
       {
         nome: 'CGSN — notícia sobre opção pelo regime regular (Simples híbrido)',
@@ -671,7 +678,7 @@ const REGISTROS: Registro[] = [
     fontes: [
       {
         nome: 'LC 214/2025 compilada — Planalto (art. 41, §3º; art. 47, §9º)',
-        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
       },
       {
         nome: 'CGSN — notícia sobre opção pelo regime regular (Simples híbrido)',
@@ -699,7 +706,7 @@ const REGISTROS: Registro[] = [
     fontes: [
       {
         nome: 'LC 214/2025 compilada — Planalto',
-        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
       },
     ],
     caminho:
@@ -716,7 +723,7 @@ const REGISTROS: Registro[] = [
     fontes: [
       {
         nome: 'LC 214/2025 compilada — Planalto',
-        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
       },
     ],
     caminho:
@@ -733,7 +740,7 @@ const REGISTROS: Registro[] = [
     fontes: [
       {
         nome: 'LC 214/2025 compilada — Planalto',
-        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
       },
     ],
     caminho:
@@ -750,7 +757,7 @@ const REGISTROS: Registro[] = [
     fontes: [
       {
         nome: 'LC 214/2025 compilada — Planalto',
-        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
       },
     ],
     caminho: 'Panorama (62493) — SectionRegimesEspecificos.tsx (box de destaque)',
@@ -767,7 +774,7 @@ const REGISTROS: Registro[] = [
     fontes: [
       {
         nome: 'LC 214/2025 compilada — Planalto',
-        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
       },
     ],
     caminho:
@@ -784,7 +791,7 @@ const REGISTROS: Registro[] = [
     fontes: [
       {
         nome: 'LC 214/2025 compilada — Planalto',
-        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
       },
     ],
     caminho: 'Panorama (62493) — SectionAgronegocio.tsx (novo) + Index.tsx + PanoramaSideMenu.tsx',
@@ -800,7 +807,7 @@ const REGISTROS: Registro[] = [
     fontes: [
       {
         nome: 'LC 214/2025 compilada — Planalto',
-        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
       },
     ],
     caminho:
@@ -904,7 +911,7 @@ const REGISTROS: Registro[] = [
     fontes: [
       {
         nome: 'LC 214/2025 compilada — Planalto',
-        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
       },
       {
         nome: 'RIBS — Resolução CGIBS 6/2026 (PDF oficial)',
@@ -925,7 +932,7 @@ const REGISTROS: Registro[] = [
     fontes: [
       {
         nome: 'LC 214/2025 compilada — Planalto',
-        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
       },
       {
         nome: 'RIBS — Resolução CGIBS 6/2026 (PDF oficial)',
@@ -954,7 +961,7 @@ const REGISTROS: Registro[] = [
       },
       {
         nome: 'Decreto 12.955/2026 — Planalto',
-        url: 'https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2026/decreto/D12955.htm',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:decreto:2026-04-29;12955',
       },
     ],
     caminho: 'Panorama (62493) — src/data/anexosCatalogo.ts + SectionAnexos.tsx (seção 7)',
@@ -1043,7 +1050,7 @@ const REGISTROS: Registro[] = [
     fontes: [
       {
         nome: 'LC 214/2025 — Anexos I, II, III, IV, IX, XV e XVII (Planalto)',
-        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214.htm',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
       },
       {
         nome: 'RIBS — Resolução CGIBS 6/2026',
@@ -1051,7 +1058,7 @@ const REGISTROS: Registro[] = [
       },
       {
         nome: 'Decreto 12.955/2026 — Regulamento CBS, Anexo IV',
-        url: 'https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2026/decreto/D12955.htm',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:decreto:2026-04-29;12955',
       },
     ],
     caminho: 'Panorama (62493) — simulador.html + partes/sim-catalogo.js',
@@ -1080,7 +1087,7 @@ const REGISTROS: Registro[] = [
     fontes: [
       {
         nome: 'LC 214/2025 consolidada (Planalto)',
-        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214.htm',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
       },
       {
         nome: 'RIBS — Resolução CGIBS 6/2026 (cgibs.gov.br)',
@@ -1088,7 +1095,7 @@ const REGISTROS: Registro[] = [
       },
       {
         nome: 'Decreto 12.955/2026 (Planalto)',
-        url: 'https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2026/decreto/D12955.htm',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:decreto:2026-04-29;12955',
       },
     ],
     caminho: 'Panorama — seções 2/2A/2C/2D (parte-conteudo-1.html)',
@@ -1104,7 +1111,7 @@ const REGISTROS: Registro[] = [
     fontes: [
       {
         nome: 'Planalto — LC 214/2025 e LC 227/2026',
-        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214.htm',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
       },
       {
         nome: 'Receita Federal — orientações da Reforma Tributária do Consumo',
@@ -1187,11 +1194,11 @@ const REGISTROS: Registro[] = [
     fontes: [
       {
         nome: 'Planalto — LC 214/2025 compilada (selo de revogação no art. 87-B da LC 123)',
-        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
       },
       {
         nome: 'Planalto — LC 227/2026 (art. 181, IV, "a" — revogação)',
-        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp227.htm',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2026-01-13;227',
       },
       {
         nome: 'CGIBS — Resoluções (18/18, sem alteração)',
@@ -1216,11 +1223,11 @@ const REGISTROS: Registro[] = [
     fontes: [
       {
         nome: 'Planalto — LC 214/2025 compilada (com alterações da LC 227/2026)',
-        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
       },
       {
         nome: 'Planalto — LC 227/2026 (texto original)',
-        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp227.htm',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2026-01-13;227',
       },
     ],
     caminho:
@@ -1258,7 +1265,7 @@ const REGISTROS: Registro[] = [
     fontes: [
       {
         nome: 'Planalto — Decreto 12.955/2026',
-        url: 'https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2026/decreto/D12955.htm',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:decreto:2026-04-29;12955',
       },
     ],
     caminho: 'Panorama — seções 7/7A (anexos CBS), Simulador (fonte do catálogo)',

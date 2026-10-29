@@ -1,6 +1,6 @@
 /**
  * TABELA GERAL DOS ANEXOS — PARTE B (LC 214/2025, Decreto 12.955/2026 e RIBS III/IV/V).
- * Fonte: textos oficiais (Planalto, CGIBS) e catálogo do Simulador de Transição.
+ * Fonte: textos oficiais (normas.leg.br, DOU, CGIBS) e catálogo do Simulador de Transição.
  * CARGA SOB DEMANDA: importado via tabelaGeralDados.ts (ponte) só quando um anexo é aberto.
  */
 import type { LinhaTabelaGeral } from './tabelaGeralDadosA'

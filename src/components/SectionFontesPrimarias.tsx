@@ -719,7 +719,7 @@ export function SectionFontesPrimarias() {
           'RAT por CNAE (Anexo V do Dec. 3.048/1999) e Grau de Risco (NR-04, Anexo I)',
           'Ministério da Previdência Social / Ministério do Trabalho e Emprego',
           'Conferido em 05/10/2026',
-          'https://www.planalto.gov.br/ccivil_03/_ato2007-2010/2009/decreto/d6957.htm',
+          'https://normas.leg.br/?urn=urn:lex:br:federal:decreto:2009-09-09;6957',
         ],
         [
           'Tabela de Natureza Jurídica 2021 — Notas Explicativas',

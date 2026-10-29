@@ -1,7 +1,7 @@
 /**
  * Catálogo dos Anexos da Reforma Tributária — Seção 7 (Parcelas 1 e 2)
  * Fonte: texto oficial extraído — RIBS (Res. CGIBS 6/2026, PDF cgibs.gov.br),
- * LC 214/2025 compilada (Planalto) e Decreto 12.955/2026 (Planalto).
+ * LC 214/2025 compilada e Decreto 12.955/2026 — texto integral do normas.leg.br.
  * Parcela 2: extração ITEM A ITEM dos Anexos VIII (higiene) e XII (dispositivos
  * médicos zero) da LC 214 + itens dos Anexos II, III, VII, IX e XV + índice
  * de volumes de todos os anexos da LC 214.
@@ -259,7 +259,7 @@ export const ANEXOS: AnexoInfo[] = [
       },
     ],
     fonte: {
-      nome: 'LC 214/2025 — Planalto',
+      nome: 'LC 214/2025 — normas.leg.br',
       url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
     },
   },
@@ -346,8 +346,8 @@ export const ANEXOS: AnexoInfo[] = [
       },
     ],
     fonte: {
-      nome: 'LC 214/2025 — Planalto',
-      url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214.htm',
+      nome: 'LC 214/2025 — normas.leg.br',
+      url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
     },
   },
   {
@@ -371,8 +371,8 @@ export const ANEXOS: AnexoInfo[] = [
       },
     ],
     fonte: {
-      nome: 'LC 214/2025 — Planalto',
-      url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214.htm',
+      nome: 'LC 214/2025 — normas.leg.br',
+      url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
     },
   },
   {
@@ -395,8 +395,8 @@ export const ANEXOS: AnexoInfo[] = [
       },
     ],
     fonte: {
-      nome: 'LC 214/2025 — Planalto',
-      url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214.htm',
+      nome: 'LC 214/2025 — normas.leg.br',
+      url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
     },
   },
   {
@@ -420,8 +420,8 @@ export const ANEXOS: AnexoInfo[] = [
       },
     ],
     fonte: {
-      nome: 'LC 214/2025 — Planalto',
-      url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214.htm',
+      nome: 'LC 214/2025 — normas.leg.br',
+      url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
     },
   },
   {
@@ -512,8 +512,8 @@ export const ANEXOS: AnexoInfo[] = [
       },
     ],
     fonte: {
-      nome: 'LC 214/2025 — Planalto',
-      url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214.htm',
+      nome: 'LC 214/2025 — normas.leg.br',
+      url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
     },
   },
   {
@@ -551,8 +551,8 @@ export const ANEXOS: AnexoInfo[] = [
       },
     ],
     fonte: {
-      nome: 'LC 214/2025 — Planalto',
-      url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214.htm',
+      nome: 'LC 214/2025 — normas.leg.br',
+      url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
     },
   },
   {
@@ -728,8 +728,8 @@ export const ANEXOS: AnexoInfo[] = [
       },
     ],
     fonte: {
-      nome: 'LC 214/2025 — Planalto',
-      url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214.htm',
+      nome: 'LC 214/2025 — normas.leg.br',
+      url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
     },
   },
   {
@@ -754,8 +754,8 @@ export const ANEXOS: AnexoInfo[] = [
       },
     ],
     fonte: {
-      nome: 'LC 214/2025 — Planalto',
-      url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214.htm',
+      nome: 'LC 214/2025 — normas.leg.br',
+      url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
     },
   },
   {
@@ -780,8 +780,8 @@ export const ANEXOS: AnexoInfo[] = [
       },
     ],
     fonte: {
-      nome: 'LC 214/2025 — Planalto',
-      url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214.htm',
+      nome: 'LC 214/2025 — normas.leg.br',
+      url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
     },
   },
   {
@@ -863,8 +863,8 @@ export const ANEXOS: AnexoInfo[] = [
       },
     ],
     fonte: {
-      nome: 'LC 214/2025 — Planalto',
-      url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214.htm',
+      nome: 'LC 214/2025 — normas.leg.br',
+      url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
     },
   },
   {
@@ -924,8 +924,8 @@ export const ANEXOS: AnexoInfo[] = [
       },
     ],
     fonte: {
-      nome: 'LC 214/2025 — Planalto',
-      url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214.htm',
+      nome: 'LC 214/2025 — normas.leg.br',
+      url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
     },
   },
   {
@@ -940,8 +940,8 @@ export const ANEXOS: AnexoInfo[] = [
       'Registro de rastreabilidade: o Anexo XIV da LC 214 foi revogado pela Lei Complementar 227/2026. Mantido no índice para evitar lacuna de numeração e para documentar a alteração legislativa.',
     conexoes: [{ rotulo: 'Fontes oficiais — Seção 9', alvo: '#secao-9', tipo: 'secao' }],
     fonte: {
-      nome: 'LC 214/2025 — Planalto',
-      url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214.htm',
+      nome: 'LC 214/2025 — normas.leg.br',
+      url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
     },
   },
   {
@@ -986,8 +986,8 @@ export const ANEXOS: AnexoInfo[] = [
       },
     ],
     fonte: {
-      nome: 'LC 214/2025 — Planalto',
-      url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214.htm',
+      nome: 'LC 214/2025 — normas.leg.br',
+      url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
     },
   },
   {
@@ -1011,8 +1011,8 @@ export const ANEXOS: AnexoInfo[] = [
       },
     ],
     fonte: {
-      nome: 'LC 214/2025 — Planalto',
-      url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214.htm',
+      nome: 'LC 214/2025 — normas.leg.br',
+      url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
     },
   },
   {
@@ -1035,8 +1035,8 @@ export const ANEXOS: AnexoInfo[] = [
       },
     ],
     fonte: {
-      nome: 'LC 214/2025 — Planalto',
-      url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214.htm',
+      nome: 'LC 214/2025 — normas.leg.br',
+      url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
     },
   },
   {
@@ -1061,8 +1061,8 @@ export const ANEXOS: AnexoInfo[] = [
       },
     ],
     fonte: {
-      nome: 'LC 214/2025 — Planalto',
-      url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214.htm',
+      nome: 'LC 214/2025 — normas.leg.br',
+      url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
     },
   },
 
@@ -1105,7 +1105,7 @@ export const ANEXOS: AnexoInfo[] = [
       },
     ],
     fonte: {
-      nome: 'Decreto 12.955/2026 — Planalto',
+      nome: 'Decreto 12.955/2026 — normas.leg.br',
       url: 'https://normas.leg.br/?urn=urn:lex:br:federal:decreto:2026-04-29;12955',
     },
   },
@@ -1129,8 +1129,8 @@ export const ANEXOS: AnexoInfo[] = [
       },
     ],
     fonte: {
-      nome: 'Decreto 12.955/2026 — Planalto',
-      url: 'https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2026/decreto/D12955.htm',
+      nome: 'Decreto 12.955/2026 — normas.leg.br',
+      url: 'https://normas.leg.br/?urn=urn:lex:br:federal:decreto:2026-04-29;12955',
     },
   },
   {
@@ -1153,8 +1153,8 @@ export const ANEXOS: AnexoInfo[] = [
       },
     ],
     fonte: {
-      nome: 'Decreto 12.955/2026 — Planalto',
-      url: 'https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2026/decreto/D12955.htm',
+      nome: 'Decreto 12.955/2026 — normas.leg.br',
+      url: 'https://normas.leg.br/?urn=urn:lex:br:federal:decreto:2026-04-29;12955',
     },
   },
   {
@@ -1175,8 +1175,8 @@ export const ANEXOS: AnexoInfo[] = [
       },
     ],
     fonte: {
-      nome: 'Decreto 12.955/2026 — Planalto',
-      url: 'https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2026/decreto/D12955.htm',
+      nome: 'Decreto 12.955/2026 — normas.leg.br',
+      url: 'https://normas.leg.br/?urn=urn:lex:br:federal:decreto:2026-04-29;12955',
     },
   },
 ]
