@@ -60,6 +60,14 @@ export interface LinkNavegacao {
   borda: string
   /** uma linha explicando o que há ali — é o que faz o ícone ser intuitivo */
   descricao: string
+  /**
+   * Palavras que o usuário pode digitar e que NÃO aparecem no rótulo.
+   * Existe porque a busca é literal: quem procura "imóvel" precisa achar a seção
+   * cujo rótulo diz "Imobiliário"; quem procura "aluguel" precisa achar 6A;
+   * quem procura "carro" precisa achar a Tabela Geral. Sem esta lista, a busca
+   * devolve vazio para o sinônimo e o usuário conclui que o sistema não tem.
+   */
+  tags: string[]
 }
 
 export interface GrupoNavegacao {
@@ -87,6 +95,19 @@ const FUNDAMENTOS: LinkNavegacao[] = [
     bg: 'bg-indigo-50',
     borda: 'border-indigo-200',
     descricao: 'EC 132, LC 214/2025, LC 227/2026 e os regulamentos',
+    tags: [
+      'lei',
+      ' legislação',
+      ' legislacao',
+      ' ec 132',
+      ' lc 214',
+      ' lc 227',
+      ' decreto',
+      ' resolucao',
+      ' rib',
+      ' norma',
+      ' constituicao',
+    ],
   },
   {
     href: '#secao-2',
@@ -99,6 +120,17 @@ const FUNDAMENTOS: LinkNavegacao[] = [
     bg: 'bg-blue-50',
     borda: 'border-blue-200',
     descricao: 'Quando o tributo incide: fornecimento, pagamento, split payment',
+    tags: [
+      'incidencia',
+      ' split',
+      ' pagamento',
+      ' fato gerador',
+      ' quando incide',
+      ' base',
+      ' local',
+      ' destino',
+      ' operacao',
+    ],
   },
   {
     href: '#secao-3',
@@ -111,6 +143,18 @@ const FUNDAMENTOS: LinkNavegacao[] = [
     bg: 'bg-emerald-50',
     borda: 'border-emerald-200',
     descricao: 'Alimentos com alíquota zero e exemplos práticos',
+    tags: [
+      'alimento',
+      ' comida',
+      ' cesta',
+      ' zero',
+      ' feijao',
+      ' arroz',
+      ' carne',
+      ' leite',
+      ' supermercado',
+      ' mercado',
+    ],
   },
   {
     href: '#secao-4',
@@ -123,6 +167,16 @@ const FUNDAMENTOS: LinkNavegacao[] = [
     bg: 'bg-teal-50',
     borda: 'border-teal-200',
     descricao: 'O que não é tributado: livros, saúde pública, exportação',
+    tags: [
+      'imunidade',
+      ' isento',
+      ' nao tributa',
+      ' livro',
+      ' exportacao',
+      ' templo',
+      ' partido',
+      ' educacao pública',
+    ],
   },
   {
     href: '#secao-5',
@@ -135,6 +189,17 @@ const FUNDAMENTOS: LinkNavegacao[] = [
     bg: 'bg-amber-50',
     borda: 'border-amber-200',
     descricao: 'Reduções de 60% e 30%, diferimentos e regimes favorecidos',
+    tags: [
+      'reducao',
+      ' aliquota',
+      ' desconto',
+      ' 60',
+      ' 30',
+      ' diferimento',
+      ' isencao',
+      ' beneficio',
+      ' favorecido',
+    ],
   },
 ]
 
@@ -151,6 +216,7 @@ const SIMULACAO: LinkNavegacao[] = [
     bg: 'bg-orange-50',
     borda: 'border-orange-200',
     descricao: 'Mapa dos regimes que fogem da regra geral',
+    tags: ['regime', ' especifico', ' diferenciado', ' mapa', ' visao geral', ' setor'],
   },
   {
     href: '#regime-imobiliario',
@@ -163,6 +229,21 @@ const SIMULACAO: LinkNavegacao[] = [
     bg: 'bg-amber-50',
     borda: 'border-amber-200',
     descricao: 'Venda, locação, RET e redutores de ajuste',
+    tags: [
+      'imovel',
+      ' imobiliario',
+      ' aluguel',
+      ' locacao',
+      ' venda',
+      ' casa',
+      ' apartamento',
+      ' terreno',
+      ' lote',
+      ' ret',
+      ' construtora',
+      ' incorporacao',
+      ' inquilino',
+    ],
   },
   {
     href: '#agronegocio',
@@ -175,6 +256,18 @@ const SIMULACAO: LinkNavegacao[] = [
     bg: 'bg-emerald-50',
     borda: 'border-emerald-200',
     descricao: 'Produtor rural, insumos, créditos presumidos e cooperativas',
+    tags: [
+      'agro',
+      ' agropecuario',
+      ' fazenda',
+      ' produtor rural',
+      ' insumo',
+      ' soja',
+      ' boi',
+      ' cooperativa',
+      ' credito presumido',
+      ' trator',
+    ],
   },
   {
     href: '#consorcios',
@@ -187,6 +280,15 @@ const SIMULACAO: LinkNavegacao[] = [
     bg: 'bg-violet-50',
     borda: 'border-violet-200',
     descricao: 'Taxa de administração, carta de crédito e garantias',
+    tags: [
+      'consorcio',
+      ' carta de credito',
+      ' administradora',
+      ' grupo',
+      ' contemplacao',
+      ' garantia',
+      ' lance',
+    ],
   },
   {
     href: '#financeiros',
@@ -199,6 +301,21 @@ const SIMULACAO: LinkNavegacao[] = [
     bg: 'bg-violet-50',
     borda: 'border-violet-200',
     descricao: 'Empréstimos, tarifas, arranjos de pagamento e split',
+    tags: [
+      'banco',
+      ' financeiro',
+      ' emprestimo',
+      ' credito',
+      ' juros',
+      ' tarifa',
+      ' banco',
+      ' seguro',
+      ' leasing',
+      ' factoring',
+      ' split',
+      ' cartao',
+      ' adquirante',
+    ],
   },
   {
     href: '#simples',
@@ -211,6 +328,17 @@ const SIMULACAO: LinkNavegacao[] = [
     bg: 'bg-blue-50',
     borda: 'border-blue-200',
     descricao: 'IBS e CBS no DAS, sublimites e comparação de regimes',
+    tags: [
+      'simples',
+      ' mei',
+      ' microempresa',
+      ' pequena empresa',
+      ' das',
+      ' rbt12',
+      ' faixa',
+      ' optante',
+      ' cnpj',
+    ],
   },
   {
     href: '#profissionais-plataformas',
@@ -223,6 +351,20 @@ const SIMULACAO: LinkNavegacao[] = [
     bg: 'bg-indigo-50',
     borda: 'border-indigo-200',
     descricao: '18 profissões regulamentadas e responsabilidade das plataformas',
+    tags: [
+      'profissao',
+      ' profissional',
+      ' advogado',
+      ' contador',
+      ' medico',
+      ' engenheiro',
+      ' dentista',
+      ' plataforma',
+      ' app',
+      ' marketplaces',
+      ' uber',
+      ' ifood',
+    ],
   },
 ]
 
@@ -239,6 +381,7 @@ const TABELAS: LinkNavegacao[] = [
     bg: 'bg-rose-50',
     borda: 'border-rose-200',
     descricao: 'Catálogo analítico dos 28 anexos, com base legal',
+    tags: ['anexo', ' catalogo', ' lista', ' rib', ' decreto', ' pdf', ' base legal'],
   },
   {
     href: '#tabela-geral',
@@ -251,6 +394,19 @@ const TABELAS: LinkNavegacao[] = [
     bg: 'bg-rose-100',
     borda: 'border-rose-300',
     descricao: '1.053 itens com alíquota e dispositivo de origem',
+    tags: [
+      'tabela',
+      ' item',
+      ' ncm',
+      ' nbs',
+      ' codigo',
+      ' produto',
+      ' lista completa',
+      ' 1053',
+      ' aliquota por produto',
+      ' carro',
+      ' celular',
+    ],
   },
   {
     href: '#secao-8',
@@ -263,6 +419,19 @@ const TABELAS: LinkNavegacao[] = [
     bg: 'bg-cyan-50',
     borda: 'border-cyan-200',
     descricao: 'Fases da transição e simulador ano a ano',
+    tags: [
+      'cronograma',
+      ' calendario',
+      ' transicao',
+      ' ano',
+      ' 2026',
+      ' 2027',
+      ' 2028',
+      ' 2029',
+      ' 2030',
+      ' 2033',
+      ' fase',
+    ],
   },
 ]
 
@@ -279,6 +448,7 @@ const FONTES: LinkNavegacao[] = [
     bg: 'bg-violet-50',
     borda: 'border-violet-200',
     descricao: 'Hierarquia das fontes e rotina de conferência',
+    tags: ['fonte', ' atualizacao', ' governanca', ' hierarquia', ' procedencia'],
   },
   {
     href: '#fontes-primarias',
@@ -291,6 +461,7 @@ const FONTES: LinkNavegacao[] = [
     bg: 'bg-fuchsia-50',
     borda: 'border-fuchsia-200',
     descricao: 'As 115 bases oficiais, com órgão e ato de origem',
+    tags: ['fonte', ' base', ' oficial', ' orgao', ' 115', ' indice', ' receita federal', ' cgibs'],
   },
   {
     href: '#monitor-legislativo',
@@ -303,6 +474,15 @@ const FONTES: LinkNavegacao[] = [
     bg: 'bg-emerald-50',
     borda: 'border-emerald-300',
     descricao: 'Linha do tempo das normas, agente de fontes e alertas',
+    tags: [
+      'monitor',
+      ' vigilancia',
+      ' linha do tempo',
+      ' alerta',
+      ' mudanca',
+      ' agente',
+      ' fiscalizacao',
+    ],
   },
 ]
 
@@ -319,6 +499,7 @@ const SISTEMA: LinkNavegacao[] = [
     bg: 'bg-lime-50',
     borda: 'border-lime-200',
     descricao: 'O que mudou no sistema e na legislação, com data e fonte',
+    tags: ['historico', ' mudanca', ' registro', ' versao', ' o que mudou', ' novidade', ' log'],
   },
   {
     href: '#central-entrega',
@@ -331,6 +512,17 @@ const SISTEMA: LinkNavegacao[] = [
     bg: 'bg-rose-50',
     borda: 'border-rose-200',
     descricao: 'Imprimir, salvar em PDF ou enviar ao cliente',
+    tags: [
+      'entregar',
+      ' imprimir',
+      ' pdf',
+      ' enviar',
+      ' whatsapp',
+      ' email',
+      ' cliente',
+      ' relatorio',
+      ' material',
+    ],
   },
   {
     href: '#assistentes-seguranca',
@@ -343,6 +535,7 @@ const SISTEMA: LinkNavegacao[] = [
     bg: 'bg-indigo-50',
     borda: 'border-indigo-200',
     descricao: 'Os seis agentes do sistema e as travas de segurança',
+    tags: ['assistente', ' agente', ' seguranca', ' alerta', ' politica', ' governanca', ' ia'],
   },
   {
     href: '#controle-acesso',
@@ -355,6 +548,16 @@ const SISTEMA: LinkNavegacao[] = [
     bg: 'bg-amber-50',
     borda: 'border-amber-300',
     descricao: 'Quem pode ver, criar, editar e apagar',
+    tags: [
+      'acesso',
+      ' nivel',
+      ' permissao',
+      ' usuario',
+      ' senha',
+      ' bloqueio',
+      ' crud',
+      ' autorizacao',
+    ],
   },
   {
     href: '#responsividade-celulares',
@@ -367,6 +570,7 @@ const SISTEMA: LinkNavegacao[] = [
     bg: 'bg-cyan-50',
     borda: 'border-cyan-300',
     descricao: 'Como o sistema se comporta no telefone',
+    tags: ['celular', ' mobile', ' telefone', ' responsivo', ' tela pequena', ' app'],
   },
 ]
 
@@ -383,6 +587,22 @@ const INDICADORES: LinkNavegacao[] = [
     bg: 'bg-amber-100',
     borda: 'border-amber-400',
     descricao: 'Alíquotas, tabelas, fontes e normas em uma tela',
+    tags: [
+      'indicador',
+      ' painel',
+      ' dashboard',
+      ' numero',
+      ' grafico',
+      ' kpi',
+      ' metrica',
+      ' comparar',
+      ' custo',
+      ' erro',
+      ' cliente',
+      ' resumo',
+      ' visao geral',
+      ' acompanhamento',
+    ],
   },
 ]
 

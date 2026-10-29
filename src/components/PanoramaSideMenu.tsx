@@ -25,6 +25,7 @@ const GRUPOS_UI = GRUPOS.map((g) => ({
     cor: n.cor,
     bg: n.bg,
     borda: n.borda,
+    tags: n.tags,
   })),
 }))
 
@@ -49,7 +50,10 @@ export function PanoramaSideMenu() {
   const gruposVisiveis = GRUPOS_UI.map((g) => {
     if (!filtrando) return { ...g, visiveis: g.itens }
     const t = norm(filtro)
-    const doGrupo = g.itens.filter((i) => norm(`${i.label} ${i.numero}`).includes(t))
+    // filtro por rótulo, número e sinônimos (mesmas tags do painel inicial)
+    const doGrupo = g.itens.filter((i) =>
+      norm(`${i.label} ${i.numero} ${(i.tags || []).join(' ')}`).includes(t),
+    )
     const grupoCasa = norm(g.nome).includes(t) || norm(g.proposito).includes(t)
     return { ...g, visiveis: grupoCasa && !doGrupo.length ? g.itens : doGrupo }
   }).filter((g) => g.visiveis.length > 0)

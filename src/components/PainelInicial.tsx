@@ -204,9 +204,14 @@ export function PainelInicial() {
 
   const itensDoGrupo = (g: (typeof GRUPOS)[number]) => {
     if (!termo) return g.itens
-    return g.itens.filter((i) =>
-      norm(`${i.label} ${i.curto} ${i.descricao} ${i.numero}`).includes(termo),
-    )
+    // busca por TODAS as palavras digitadas (E lógico), em rótulo, número,
+    // descrição e nas tags de sinônimo — quem digita "aluguel" acha 6A,
+    // quem digita "carro" acha a Tabela Geral
+    const palavras = termo.split(/\s+/).filter(Boolean)
+    return g.itens.filter((i) => {
+      const alvo = norm(`${i.label} ${i.curto} ${i.descricao} ${i.numero} ${i.tags.join(' ')}`)
+      return palavras.every((p) => alvo.includes(p))
+    })
   }
 
   const contagemPorGrupo = GRUPOS.reduce<Record<string, number>>((acc, g) => {
