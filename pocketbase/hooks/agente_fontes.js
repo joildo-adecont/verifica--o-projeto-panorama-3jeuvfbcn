@@ -48,6 +48,16 @@ routerAdd('POST', '/backend/v1/agente-fontes/notificar', (e) => {
   var execucao = body.execucao || ''
   var resumo = body.resumo || ''
   var destinatario = body.destinatario || 'joildo@adecont.com.br'
+  // cópias vêm do cadastro (agente_config), não do corpo: quem manda no cadastro
+  // manda no envio, e o chamador não pode acrescentar destinatário por conta
+  // própria. O corpo pode sobrescrever só com 'destinatario'.
+  var copias = []
+  try {
+    var cfgRec = $app.findRecordById('agente_config', 'config')
+    destinatario = cfgRec.getString('destinatario_principal') || destinatario
+    var arrCopias = cfgRec.get('destinatarios_copia')
+    if (arrCopias && arrCopias.length) copias = arrCopias
+  } catch (_) {}
   var forcar = body.forcar === true
   var modo = body.modo || (mudancas.length ? 'alerta' : 'resumo')
 
@@ -232,7 +242,15 @@ routerAdd('POST', '/backend/v1/agente-fontes/notificar', (e) => {
     mailer.send(
       new MailerMessage({
         from: { address: 'nao-responda@adecont.com.br', name: 'ADECONT — Agente de Fontes' },
-        to: [{ address: destinatario }],
+        to: (function () {
+          var lista = [{ address: destinatario }]
+          for (var cx = 0; cx < copias.length; cx++) {
+            var em = (copias[cx].email || '').toLowerCase()
+            if (!em || em === destinatario.toLowerCase()) continue
+            lista.push({ address: copias[cx].email })
+          }
+          return lista
+        })(),
         subject: assunto,
         html: html,
       }),
@@ -257,7 +275,9 @@ routerAdd('POST', '/backend/v1/agente-fontes/notificar', (e) => {
         mudancas.length +
         ' mudança(s), ' +
         fontes.length +
-        ' fonte(s))',
+        ' fonte(s), ' +
+        (1 + copias.length) +
+        ' destinatário(s))',
     )
     rec.set('nivel_minimo', '1')
     rec.set('ator_email', 'agente-fontes@sistema')
@@ -273,8 +293,185 @@ routerAdd('POST', '/backend/v1/agente-fontes/notificar', (e) => {
     enviado: enviado,
     modo: alerta ? 'alerta' : 'resumo',
     destinatario: destinatario,
+    copias: copias.length,
     erro: erro,
   })
+})
+
+/**
+ * GET /backend/v1/agente-fontes/destinatarios
+ * Devolve os destinatários atuais e os candidatos do cadastro.
+ *
+ * Candidatos vêm de duas fontes, cada um com a origem marcada:
+ *   simul_clientes  — clientes cadastrados no Simulador (origem 'cliente')
+ *   acesso_usuarios — usuários com acesso ao sistema (origem 'usuario')
+ * Assim o e-mail escolhido é sempre o do cadastro, e quem sai do cadastro
+ * desaparece da lista de candidatos naturalmente.
+ */
+routerAdd('GET', '/backend/v1/agente-fontes/destinatarios', (e) => {
+  var esperado = $secrets.get('AGENTE_FONTES_TOKEN') || ''
+  var recebido = e.request.header.get('X-Painel-Token') || ''
+  if (esperado && recebido !== esperado) {
+    return e.json(403, { ok: false, erro: 'token inválido' })
+  }
+
+  // config atual
+  var principal = 'joildo@adecont.com.br'
+  var copia = []
+  var resumo = true
+  try {
+    var cfg = $app.findRecordById('agente_config', 'config')
+    principal = cfg.getString('destinatario_principal') || principal
+    var arr = cfg.get('destinatarios_copia')
+    if (arr && arr.length) copia = arr
+    resumo = cfg.getBool('enviar_resumo_semanal')
+  } catch (_) {}
+
+  // candidatos: clientes do Simulador
+  var clientes = []
+  try {
+    var c1 = $app.findRecordsByFilter('simul_clientes', 'is_active = true', 'nome', 500, 0)
+    for (var i = 0; i < c1.length; i++) {
+      var r = c1[i]
+      var em = r.getString('email')
+      if (!em) continue
+      clientes.push({
+        email: em,
+        nome: r.getString('nome') || em,
+        empresa: r.getString('empresa') || '',
+        origem: 'cliente',
+      })
+    }
+  } catch (errCli) {
+    console.log('[agente-fontes] clientes: ' + errCli)
+  }
+
+  // candidatos: usuários do sistema
+  var usuarios = []
+  try {
+    var c2 = $app.findRecordsByFilter('acesso_usuarios', 'is_active = true', 'nome', 500, 0)
+    for (var j = 0; j < c2.length; j++) {
+      var u = c2[j]
+      var eu = u.getString('email')
+      if (!eu) continue
+      usuarios.push({
+        email: eu,
+        nome: u.getString('nome') || eu,
+        nivel: u.getString('nivel') || '',
+        origem: 'usuario',
+      })
+    }
+  } catch (errUsr) {
+    console.log('[agente-fontes] usuarios: ' + errUsr)
+  }
+
+  return e.json(200, {
+    ok: true,
+    principal: principal,
+    copia: copia,
+    resumo_semanal: resumo,
+    candidatos_clientes: clientes,
+    candidatos_usuarios: usuarios,
+  })
+})
+
+/**
+ * POST /backend/v1/agente-fontes/destinatarios
+ * Salva a lista de cópias. Body: { copia: [{email, nome, origem}], principal?, resumo_semanal? }
+ *
+ * Valida o e-mail contra o cadastro: só aceita cópia que exista em
+ * simul_clientes ou em acesso_usuarios. Isso impede que um e-mail digitado por
+ * engano passe a receber alertas internos do sistema.
+ */
+routerAdd('POST', '/backend/v1/agente-fontes/destinatarios', (e) => {
+  var esperado = $secrets.get('AGENTE_FONTES_TOKEN') || ''
+  var recebido = e.request.header.get('X-Painel-Token') || ''
+  if (esperado && recebido !== esperado) {
+    return e.json(403, { ok: false, erro: 'token inválido' })
+  }
+
+  var body = {}
+  try {
+    body = e.requestInfo().body || {}
+  } catch (_) {
+    body = {}
+  }
+
+  var pedido = body.copia || []
+  if (!Array.isArray(pedido)) pedido = []
+
+  // monta o conjunto de e-mails válidos do cadastro
+  var validos = {}
+  try {
+    var c1 = $app.findRecordsByFilter('simul_clientes', 'is_active = true', 'nome', 500, 0)
+    for (var i = 0; i < c1.length; i++) {
+      var em = (c1[i].getString('email') || '').toLowerCase()
+      if (em) validos[em] = { nome: c1[i].getString('nome'), origem: 'cliente' }
+    }
+  } catch (_) {}
+  try {
+    var c2 = $app.findRecordsByFilter('acesso_usuarios', 'is_active = true', 'nome', 500, 0)
+    for (var j = 0; j < c2.length; j++) {
+      var eu = (c2[j].getString('email') || '').toLowerCase()
+      if (eu && !validos[eu]) validos[eu] = { nome: c2[j].getString('nome'), origem: 'usuario' }
+    }
+  } catch (_) {}
+
+  var aceitos = []
+  var recusados = []
+  for (var k = 0; k < pedido.length; k++) {
+    var item = pedido[k] || {}
+    var email = String(item.email || '').trim()
+    var chave = email.toLowerCase()
+    if (!chave) continue
+    if (!validos[chave]) {
+      recusados.push({ email: email, motivo: 'não consta no cadastro de clientes nem de usuários' })
+      continue
+    }
+    // evita duplicidade
+    var jaTem = false
+    for (var a = 0; a < aceitos.length; a++) {
+      if (aceitos[a].email.toLowerCase() === chave) {
+        jaTem = true
+        break
+      }
+    }
+    if (jaTem) continue
+    aceitos.push({
+      email: email,
+      nome: validos[chave].nome || email,
+      origem: validos[chave].origem,
+    })
+  }
+
+  // grava
+  var principal = body.principal || 'joildo@adecont.com.br'
+  var resumo = body.resumo_semanal
+  try {
+    var cfg = $app.findRecordById('agente_config', 'config')
+    cfg.set('destinatarios_copia', aceitos)
+    if (body.principal) cfg.set('destinatario_principal', principal)
+    if (resumo === true || resumo === false) cfg.set('enviar_resumo_semanal', resumo)
+    cfg.set('atualizado_por', body.ator || 'painel')
+    $app.save(cfg)
+  } catch (saveErr) {
+    return e.json(500, { ok: false, erro: 'falha ao salvar: ' + saveErr })
+  }
+
+  // auditoria
+  try {
+    var col = $app.findCollectionByNameOrId('acesso_comandos')
+    var rec = new Record(col)
+    rec.set('comando', 'EDITAR')
+    rec.set('descricao', 'Destinatários do agente: ' + aceitos.length + ' cópia(s)')
+    rec.set('nivel_minimo', '4')
+    rec.set('ator_email', body.ator || 'painel')
+    rec.set('resultado', 'OK')
+    rec.set('detalhe', JSON.stringify(aceitos).slice(0, 900))
+    $app.save(rec)
+  } catch (_) {}
+
+  return e.json(200, { ok: true, aceitos: aceitos, recusados: recusados, principal: principal })
 })
 
 /**
