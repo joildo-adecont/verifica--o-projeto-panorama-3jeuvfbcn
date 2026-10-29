@@ -1,7 +1,14 @@
 import { useState } from 'react'
-import { AlertTriangle, FileDown, Layers, Filter } from 'lucide-react'
+import { AlertTriangle, FileDown, Layers, Filter, Eye, ExternalLink, BookOpen } from 'lucide-react'
 import type { TaxNormItem } from '@/types/panorama'
 import { getOfficialDocProxyUrl } from '@/services/panorama'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog'
 
 interface SectionNormsProps {
   norms: TaxNormItem[]
@@ -11,6 +18,7 @@ interface SectionNormsProps {
 export function SectionNorms({ norms, loading }: SectionNormsProps) {
   const [selectedIncidenceFilter, setSelectedIncidenceFilter] = useState<string>('TODOS')
   const [selectedTypeFilter, setSelectedTypeFilter] = useState<string>('TODOS')
+  const [normaModal, setNormaModal] = useState<TaxNormItem | null>(null)
 
   const incidenceOptions = [
     'TODOS',
@@ -231,31 +239,52 @@ export function SectionNorms({ norms, loading }: SectionNormsProps) {
                     {/* Coluna 2: Código da Norma e Ação de Download Mediado */}
                     <td className="py-3 px-4 align-top">
                       <div className="space-y-1.5">
-                        <a
-                          href={proxyDownloadUrl}
-                          download={downloadFilename}
-                          className="group inline-flex items-center gap-1.5 font-bold text-panorama-gold-dark hover:text-panorama-navy transition-colors cursor-pointer"
-                          title={`Baixar documento oficial: ${norm.code} (download mediado via domínio próprio Panorama ADECONT)`}
-                        >
-                          <span className="group-hover:underline underline-offset-2">
-                            {norm.code}
-                          </span>
-                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200 group-hover:bg-blue-100 transition-colors">
-                            <FileDown className="w-3 h-3 text-blue-600 shrink-0" />
-                            <span>{isPdf ? 'PDF' : 'DOC'}</span>
-                          </span>
-                        </a>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <button
+                            type="button"
+                            onClick={() => setNormaModal(norm)}
+                            className="group inline-flex items-center gap-1 font-bold text-panorama-gold-dark hover:text-panorama-navy transition-colors cursor-pointer text-left"
+                            title={`Ver atalho do monitor legislativo e detalhes: ${norm.code}`}
+                          >
+                            <span className="group-hover:underline underline-offset-2">
+                              {norm.code}
+                            </span>
+                          </button>
 
-                        <div className="flex items-center gap-1 text-[10px] text-emerald-700 font-medium">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                          {/* Badge de atalho do Monitor Legislativo com ícone Eye */}
+                          <a
+                            href="#monitor-legislativo"
+                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-300 hover:bg-emerald-100 transition-colors shrink-0"
+                            title={`Atalho do Monitor Legislativo para ${norm.code} (Seção 12A)`}
+                          >
+                            <Eye className="w-3 h-3 text-emerald-700 shrink-0" />
+                            <span>Atalho Monitor</span>
+                            <ExternalLink className="w-2.5 h-2.5 text-emerald-600 shrink-0" />
+                          </a>
+                        </div>
+
+                        {/* Download mediado e atalhos auxiliares */}
+                        <div className="flex items-center gap-2 text-[10px] flex-wrap">
                           <a
                             href={proxyDownloadUrl}
                             download={downloadFilename}
-                            className="hover:underline"
-                            title="Download oficial com mediação e garantia ADECONT"
+                            className="inline-flex items-center gap-1 text-blue-700 hover:text-blue-900 hover:underline font-medium"
+                            title="Download mediado via domínio próprio Panorama ADECONT"
                           >
-                            {isPdf ? 'PDF oficial mediado' : 'Texto oficial mediado'}
+                            <FileDown className="w-3 h-3 text-blue-600 shrink-0" />
+                            <span>
+                              {isPdf ? 'Download mediado (PDF)' : 'Download mediado (DOC)'}
+                            </span>
                           </a>
+
+                          <button
+                            type="button"
+                            onClick={() => setNormaModal(norm)}
+                            className="text-slate-400 hover:text-slate-700 hover:underline cursor-pointer"
+                            title="Ver detalhes e atalhos"
+                          >
+                            • Detalhes
+                          </button>
                         </div>
 
                         {norm.dou_date && (
@@ -305,6 +334,119 @@ export function SectionNorms({ norms, loading }: SectionNormsProps) {
           68/2024). A referência correta é <strong>LC 214, de 16/01/2025</strong>.
         </div>
       </div>
+
+      {/* Modal de Detalhes da Norma e Atalhos do Monitor Legislativo */}
+      <Dialog open={!!normaModal} onOpenChange={(open) => !open && setNormaModal(null)}>
+        <DialogContent className="max-w-2xl bg-white p-6 rounded-2xl border border-slate-200 shadow-xl">
+          {normaModal &&
+            (() => {
+              const mType = resolveNormType(normaModal)
+              const isPdf = normaModal.link_url && normaModal.link_url.endsWith('.pdf')
+              const proxyDownloadUrl = getOfficialDocProxyUrl(normaModal.code || normaModal.id)
+              const downloadFilename = isPdf
+                ? `${normaModal.code.replace(/[^a-zA-Z0-9]/g, '-')}.pdf`
+                : `${normaModal.code.replace(/[^a-zA-Z0-9]/g, '-')}.html`
+
+              return (
+                <div className="space-y-4">
+                  <DialogHeader className="border-b border-slate-100 pb-3">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span
+                        className={`px-2 py-0.5 rounded text-[10px] font-bold border ${getTypeBadgeStyle(mType)}`}
+                      >
+                        {mType}
+                      </span>
+                      <span
+                        className={`px-2 py-0.5 rounded text-[10px] font-semibold border ${getBadgeStyle(normaModal.status_incidence)}`}
+                      >
+                        {normaModal.status_incidence}
+                      </span>
+                      {normaModal.origin && (
+                        <span className="text-[11px] text-slate-500 font-mono">
+                          {normaModal.origin}
+                        </span>
+                      )}
+                    </div>
+                    <DialogTitle className="text-lg sm:text-xl font-bold text-slate-900 mt-2">
+                      {normaModal.code} — {normaModal.title}
+                    </DialogTitle>
+                    <DialogDescription className="text-xs text-slate-500">
+                      Data do ato: {normaModal.date}{' '}
+                      {normaModal.dou_date ? `· Publicado no DOU em ${normaModal.dou_date}` : ''}
+                    </DialogDescription>
+                  </DialogHeader>
+
+                  {/* Badges de Documento e Atalhos do Monitor Legislativo */}
+                  <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2.5">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-600 block">
+                      Atalhos &amp; Acesso ao Documento
+                    </span>
+
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {/* Badge do documento com ícone do Monitor Legislativo */}
+                      <a
+                        href="#monitor-legislativo"
+                        onClick={() => setNormaModal(null)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-300 hover:bg-emerald-100 transition-colors shadow-2xs"
+                        title="Abrir linha do tempo e conexões no Monitor Legislativo (Seção 12A)"
+                      >
+                        <Eye className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
+                        <span>Atalho do Monitor Legislativo</span>
+                        <ExternalLink className="w-3 h-3 text-emerald-600 shrink-0" />
+                      </a>
+
+                      {/* Download mediado seguro mantido */}
+                      <a
+                        href={proxyDownloadUrl}
+                        download={downloadFilename}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 transition-colors shadow-2xs"
+                        title="Download mediado via servidor ADECONT (anti-bloqueio)"
+                      >
+                        <FileDown className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                        <span>Download mediado ({isPdf ? 'PDF' : 'DOC'})</span>
+                      </a>
+
+                      {normaModal.link_url && (
+                        <a
+                          href={normaModal.link_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white text-slate-700 border border-slate-300 hover:bg-slate-100 transition-colors shadow-2xs"
+                          title="Abrir página oficial na íntegra"
+                        >
+                          <BookOpen className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                          <span>Texto na Fonte</span>
+                          <ExternalLink className="w-3 h-3 text-slate-400 shrink-0" />
+                        </a>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Resumo da Norma */}
+                  <div className="space-y-1.5">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-600">
+                      Tema &amp; Capítulos Principais
+                    </h4>
+                    <div className="p-3.5 rounded-xl bg-white border border-slate-200 text-xs text-slate-700 leading-relaxed shadow-2xs">
+                      {normaModal.summary}
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+                    <span>Panorama da Reforma Tributária • ADECONT</span>
+                    <button
+                      type="button"
+                      onClick={() => setNormaModal(null)}
+                      className="px-3 py-1.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold cursor-pointer transition-colors"
+                    >
+                      Fechar
+                    </button>
+                  </div>
+                </div>
+              )
+            })()}
+        </DialogContent>
+      </Dialog>
     </section>
   )
 }
