@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { PanoramaHeader } from '@/components/PanoramaHeader'
 import { PanoramaHero } from '@/components/PanoramaHero'
+import { PainelInicial } from '@/components/PainelInicial'
 import { PanoramaSideMenu } from '@/components/PanoramaSideMenu'
 import { SectionNorms } from '@/components/SectionNorms'
 import { SectionFatoGerador } from '@/components/SectionFatoGerador'
@@ -79,7 +80,12 @@ export default function Index() {
           onManualRefresh={loadData}
         />
 
-        {/* 2. Hero Banner com status 2026, destaque IBS/CBS e métricas de transição */}
+        {/* 2. PAINEL INICIAL — onde ir, o que está acontecendo, se está atualizado */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-6 w-full">
+          <PainelInicial />
+        </div>
+
+        {/* 3. Hero Banner com status 2026, destaque IBS/CBS e métricas de transição */}
         <PanoramaHero />
 
         {/* Feedback de busca ativa */}
