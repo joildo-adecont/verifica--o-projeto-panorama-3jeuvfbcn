@@ -22,6 +22,7 @@ import {
   TOTAL_GRUPOS,
   TOTAL_ITENS,
   type GrupoNavegacao,
+  type LinkNavegacao,
 } from '@/components/navegacao'
 import { ALERTAS, FONTES_VIGIADAS, HOUVE_MUDANCA, TOTAL_ATIVAS } from '@/data/agenteFontes'
 import { LINHAS_POR_DISPOSITIVO, TOTAL_ALTA, TOTAL_LINHAS } from '@/data/vinculosLegislacao'
@@ -86,77 +87,38 @@ function norm(s: string) {
     .replace(/[\u0300-\u036f]/g, '')
 }
 
-/** Card grande de um grupo, com os itens dentro. */
-function CardGrupo({ grupo, filtro }: { grupo: GrupoNavegacao; filtro: string }) {
-  const cores = COR_GRUPO[grupo.id] ?? COR_GRUPO.sistema
-  const [aberto, setAberto] = useState(false)
-
-  const itens = useMemo(() => {
-    const t = norm(filtro.trim())
-    if (!t) return grupo.itens
-    return grupo.itens.filter((i) => norm(`${i.label} ${i.descricao} ${i.numero}`).includes(t))
-  }, [grupo.itens, filtro])
-
-  if (!itens.length) return null
-
+/** Card grande de um item dentro da aba ativa — ícone grande, tecla e descrição. */
+function CardItem({ item, corBarra }: { item: LinkNavegacao; corBarra: string }) {
   return (
-    <div
-      className={`rounded-2xl border-2 border-slate-200 bg-white transition-colors ${cores.card}`}
+    <a
+      href={item.href}
+      className="group relative overflow-hidden rounded-xl border-2 border-slate-200 bg-white p-3.5 hover:border-slate-400 hover:shadow-md transition-all"
     >
-      <button
-        onClick={() => setAberto((v) => !v)}
-        className="w-full text-left p-4 flex items-center gap-3 cursor-pointer"
-      >
+      <span className={`absolute left-0 top-0 bottom-0 w-1 ${corBarra}`} />
+      <div className="flex items-start gap-2.5 pl-1.5">
         <span
-          className={`flex items-center justify-center w-12 h-12 rounded-xl border-2 shrink-0 ${cores.icone}`}
+          className={`flex items-center justify-center w-11 h-11 rounded-xl border-2 shrink-0 ${item.bg} ${item.borda}`}
         >
-          <grupo.Icon className="w-6 h-6" />
+          <item.Icon className={`w-5 h-5 ${item.cor}`} />
         </span>
-        <span className="flex-1 min-w-0">
-          <span className="block text-base font-bold text-slate-900">{grupo.nome}</span>
-          <span className="block text-[11px] text-slate-500 leading-tight">{grupo.proposito}</span>
-        </span>
-        <span className="text-[10px] font-bold text-slate-500 bg-slate-100 rounded-full px-2 py-0.5 shrink-0">
-          {itens.length}
-        </span>
-        <ChevronRight
-          className={`w-4 h-4 shrink-0 transition-transform ${cores.seta} ${aberto ? 'rotate-90' : ''}`}
-        />
-      </button>
-
-      {(aberto || filtro.trim() !== '') && (
-        <div className="px-3 pb-3 space-y-1">
-          {itens.map((item) => (
-            <a
-              key={item.href + item.tecla}
-              href={item.href}
-              className="group flex items-center gap-2.5 rounded-lg border border-slate-200 bg-white px-2.5 py-2 hover:border-slate-400 hover:bg-slate-50 transition-colors"
-            >
-              <span
-                className={`flex items-center justify-center w-8 h-8 rounded-lg border shrink-0 ${item.bg} ${item.borda}`}
-              >
-                <item.Icon className={`w-4 h-4 ${item.cor}`} />
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="flex items-center gap-1.5">
-                  <span className="text-[10px] font-bold text-slate-400 font-mono">
-                    {item.numero}
-                  </span>
-                  <span className="text-xs font-bold text-slate-900 truncate">{item.label}</span>
-                </span>
-                <span className="block text-[10px] text-slate-500 leading-tight truncate">
-                  {item.descricao}
-                </span>
-              </span>
-              <kbd className="text-[9px] font-mono font-bold text-slate-400 bg-slate-100 border border-slate-200 rounded px-1 py-0.5 shrink-0">
-                {item.tecla.toUpperCase()}
-              </kbd>
-              <ArrowRight className="w-3 h-3 text-slate-300 group-hover:text-slate-600 shrink-0" />
-            </a>
-          ))}
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-1.5">
+            <span className="text-[10px] font-bold text-slate-400 font-mono">{item.numero}</span>
+            <span className="text-sm font-bold text-slate-900 leading-tight">{item.curto}</span>
+          </div>
+          <p className="text-[11px] text-slate-500 leading-snug mt-1">{item.descricao}</p>
         </div>
-      )}
-    </div>
+      </div>
+      <div className="flex items-center justify-between mt-2.5 pl-1.5">
+        <kbd className="text-[9px] font-mono font-bold text-slate-500 bg-slate-100 border border-slate-200 rounded px-1.5 py-0.5">
+          tecla {item.tecla.toUpperCase()}
+        </kbd>
+        <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-slate-400 group-hover:text-slate-800">
+          abrir
+          <ArrowRight className="w-2.5 h-2.5 group-hover:translate-x-0.5 transition-transform" />
+        </span>
+      </div>
+    </a>
   )
 }
 
@@ -188,6 +150,7 @@ function Kpi({
 
 export function PainelInicial() {
   const [filtro, setFiltro] = useState('')
+  const [abaAtiva, setAbaAtiva] = useState<string | null>(null)
 
   // ── dados medidos, das mesmas fontes que o resto do sistema ──
   const normasVigiadas = TOTAL_NORMAS
@@ -384,7 +347,7 @@ export function PainelInicial() {
           </div>
         </div>
 
-        {/* ── Os cinco grupos, com ícones grandes ── */}
+        {/* ── ABAS: cinco grupos, ícones grandes ── */}
         <div className="mt-5">
           <div className="flex items-center gap-2 mb-2.5">
             <span className="text-xs font-bold text-slate-900">Por onde navegar</span>
@@ -401,11 +364,68 @@ export function PainelInicial() {
               Nada encontrado para “{filtro}”. Tente outra palavra.
             </p>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2.5">
-              {gruposVisiveis.map((g) => (
-                <CardGrupo key={g.id} grupo={g} filtro={filtro} />
-              ))}
-            </div>
+            <>
+              {/* Barra de abas — ícone grande + nome */}
+              <div role="tablist" className="flex gap-1.5 overflow-x-auto pb-1.5 -mx-1 px-1">
+                {gruposVisiveis.map((g) => {
+                  const cores = COR_GRUPO[g.id] ?? COR_GRUPO.sistema
+                  const ativa = (abaAtiva ?? gruposVisiveis[0].id) === g.id
+                  return (
+                    <button
+                      key={g.id}
+                      role="tab"
+                      aria-selected={ativa}
+                      onClick={() => setAbaAtiva(g.id)}
+                      className={`flex items-center gap-2 rounded-t-xl border-2 border-b-0 px-3.5 py-2.5 shrink-0 transition-colors cursor-pointer ${
+                        ativa
+                          ? `bg-white border-slate-300 ${cores.seta}`
+                          : 'bg-slate-100/70 border-transparent text-slate-500 hover:bg-slate-100'
+                      }`}
+                    >
+                      <span
+                        className={`flex items-center justify-center w-9 h-9 rounded-lg border-2 shrink-0 ${cores.icone}`}
+                      >
+                        <g.Icon className="w-4.5 h-4.5" style={{ width: 18, height: 18 }} />
+                      </span>
+                      <span className="text-left">
+                        <span className="block text-[13px] font-bold leading-tight whitespace-nowrap">
+                          {g.nome}
+                        </span>
+                        <span className="block text-[10px] leading-tight whitespace-nowrap opacity-70">
+                          {g.itens.length} seções
+                        </span>
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+
+              {/* Conteúdo da aba ativa */}
+              {gruposVisiveis.map((g) => {
+                const cores = COR_GRUPO[g.id] ?? COR_GRUPO.sistema
+                const ativa = (abaAtiva ?? gruposVisiveis[0].id) === g.id
+                if (!ativa) return null
+                return (
+                  <div
+                    key={g.id}
+                    role="tabpanel"
+                    className="rounded-b-2xl rounded-tr-2xl border-2 border-slate-300 bg-white p-3.5"
+                  >
+                    <div className="flex items-center gap-2 mb-3">
+                      <g.Icon className={`w-4 h-4 ${g.cor}`} />
+                      <p className="text-[11px] text-slate-600">
+                        <b className="text-slate-900">{g.nome}</b> — {g.proposito}
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                      {g.itens.map((item) => (
+                        <CardItem key={item.href + item.tecla} item={item} corBarra={cores.barra} />
+                      ))}
+                    </div>
+                  </div>
+                )
+              })}
+            </>
           )}
         </div>
 
