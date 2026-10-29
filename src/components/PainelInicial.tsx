@@ -48,6 +48,12 @@ import { CBS_REF, IBS_REF, REF_TOTAL, ACIMA_DO_TETO, pct } from '@/data/aliquota
  */
 
 const COR_GRUPO: Record<string, { card: string; icone: string; seta: string; barra: string }> = {
+  indicadores: {
+    card: 'hover:border-amber-400 hover:bg-amber-50/40',
+    icone: 'bg-amber-100 text-amber-700 border-amber-300',
+    seta: 'text-amber-600',
+    barra: 'bg-amber-500',
+  },
   fundamentos: {
     card: 'hover:border-indigo-400 hover:bg-indigo-50/40',
     icone: 'bg-indigo-100 text-indigo-700 border-indigo-200',

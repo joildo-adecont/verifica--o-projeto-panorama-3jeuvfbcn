@@ -44,6 +44,7 @@ import {
   Radio,
   Settings2,
   LayoutDashboard,
+  Gauge,
 } from 'lucide-react'
 
 export interface LinkNavegacao {
@@ -369,8 +370,34 @@ const SISTEMA: LinkNavegacao[] = [
   },
 ]
 
+/* ───────────── GRUPO 0 — INDICADORES (acesso de topo) ───────────── */
+const INDICADORES: LinkNavegacao[] = [
+  {
+    href: '#indicadores',
+    label: 'Central de Indicadores',
+    curto: 'Indicadores',
+    tecla: 'd',
+    numero: '8A',
+    Icon: Gauge,
+    cor: 'text-amber-700',
+    bg: 'bg-amber-100',
+    borda: 'border-amber-400',
+    descricao: 'Alíquotas, tabelas, fontes e normas em uma tela',
+  },
+]
+
 /* ─────────────────────────── GRUPOS ─────────────────────────── */
 export const GRUPOS: GrupoNavegacao[] = [
+  {
+    id: 'indicadores',
+    nome: 'Indicadores',
+    proposito: 'Bater o olho e entender o sistema',
+    Icon: Gauge,
+    cor: 'text-amber-700',
+    bg: 'bg-amber-100',
+    borda: 'border-amber-400',
+    itens: INDICADORES,
+  },
   {
     id: 'fundamentos',
     nome: 'Fundamentos',

@@ -18,6 +18,7 @@ import { SectionProfissionaisPlataformas } from '@/components/SectionProfissiona
 import { SectionAnexos } from '@/components/SectionAnexos'
 import { SectionTabelaGeral } from '@/components/SectionTabelaGeral'
 import { SectionCronograma } from '@/components/SectionCronograma'
+import { SectionIndicadores } from '@/components/SectionIndicadores'
 import { SectionFontes } from '@/components/SectionFontes'
 import { SectionFontesAgregador } from '@/components/SectionFontesAgregador'
 import { SectionFontesPrimarias } from '@/components/SectionFontesPrimarias'
@@ -154,6 +155,9 @@ export default function Index() {
 
           {/* Seção 8: Cronograma 2026–2033, simulador e pontos de atenção */}
           <SectionCronograma />
+
+          {/* Seção 8A: Central de Indicadores — alíquotas, tabelas, fontes e normas */}
+          <SectionIndicadores />
 
           {/* Seção 11: Agregadores — Buscador de Produtos e Atividades por 11 Tabelas de Classificações */}
           <SectionFontesAgregador />
