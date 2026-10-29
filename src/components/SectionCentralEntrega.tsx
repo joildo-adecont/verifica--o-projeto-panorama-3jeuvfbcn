@@ -12,6 +12,7 @@ import {
   Smartphone,
   QrCode,
   Download,
+  Gauge,
 } from 'lucide-react'
 import { ModalAtalhosInstalacao } from '@/components/ModalAtalhosInstalacao'
 import { ModalBaseClassificacoes } from '@/components/ModalBaseClassificacoes'
@@ -97,6 +98,15 @@ const ITENS: Item[] = [
     acoes: ['print', 'wa', 'mail', 'enviar'],
   },
   // ===== RELATÓRIOS =====
+  {
+    id: 'indicadores',
+    titulo: 'Central de Indicadores (Seção 8A)',
+    desc: 'Alíquotas com a evolução 2026-2033 e o teto de 26,5%, confiança do vínculo das 1.053 linhas, estado das 16 fontes, 23 normas por ano, comparador de dois setores e calculadora de custo do erro. Seis abas.',
+    categoria: 'relatorio',
+    tecla: 'D',
+    url: '/#indicadores',
+    acoes: ['print', 'wa', 'mail'],
+  },
   {
     id: 'rel-consolidado',
     titulo: 'Relatório consolidado de simulações',
@@ -422,9 +432,12 @@ export function SectionCentralEntrega() {
             <div className="flex items-start justify-between gap-2">
               <h4 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
                 {item.categoria === 'simulador' && <Calculator className="w-4 h-4 text-blue-600" />}
-                {item.categoria === 'relatorio' && (
-                  <FileText className="w-4 h-4 text-emerald-600" />
-                )}
+                {item.categoria === 'relatorio' &&
+                  (item.id === 'indicadores' ? (
+                    <Gauge className="w-4 h-4 text-emerald-600" />
+                  ) : (
+                    <FileText className="w-4 h-4 text-emerald-600" />
+                  ))}
                 {item.categoria === 'legislacao' && <Scale className="w-4 h-4 text-purple-600" />}
                 {item.categoria === 'topico' && <FileText className="w-4 h-4 text-amber-600" />}
                 {item.titulo}
