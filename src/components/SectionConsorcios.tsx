@@ -1211,12 +1211,12 @@ function SimuladorConsorcio() {
               de fontes oficiais):
             </strong>{' '}
             (1) a alíquota de referência da CBS 2027 depende de resolução do Senado (LC 214, art.
-            349) — hoje 8,8% é estimativa (8,8% − 0,1 p.p. do art. 347); (2) o IBS de 19,11% deriva
-            da referência total de {pct(REF_TOTAL)} (Res. CGIBS 14/2026) e será ajustado pelos
-            entes; (3) a dedução da intermediação (art. 204, §1º) e a identificação do adquirente
-            para o crédito (art. 206, §2º) dependem de regulamento (RIBS — Res. CGIBS 6/2026); (4)
-            novos atos do CGIBS e da RFB podem alterar leiautes de documento fiscal e a forma de
-            apuração. Qualquer mudança entra na Seção 13 — Histórico de Atualizações.
+            349) — a CBS é de 11,3% para 2027 (TCU, 28/10/2026); (2) o IBS de 18,70% deriva da
+            referência total de {pct(REF_TOTAL)} (Res. CGIBS 14/2026) e será ajustado pelos entes;
+            (3) a dedução da intermediação (art. 204, §1º) e a identificação do adquirente para o
+            crédito (art. 206, §2º) dependem de regulamento (RIBS — Res. CGIBS 6/2026); (4) novos
+            atos do CGIBS e da RFB podem alterar leiautes de documento fiscal e a forma de apuração.
+            Qualquer mudança entra na Seção 13 — Histórico de Atualizações.
           </div>
 
           <BotaoEnviarSimulacao termo="taxa de administração" />

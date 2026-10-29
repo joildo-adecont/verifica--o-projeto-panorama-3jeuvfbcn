@@ -1181,7 +1181,7 @@ function SimuladorFinanceiro() {
               de fontes oficiais):
             </strong>{' '}
             (1) alíquota de referência da CBS 2027 — resolução do Senado pendente (LC 214, art.
-            349); (2) IBS de 19,11% deriva da referência total de {pct(REF_TOTAL)} (Res. CGIBS
+            349); (2) IBS de 18,70% deriva da referência total de {pct(REF_TOTAL)} (Res. CGIBS
             14/2026) e será ajustado; (3) alíquotas do regime financeiro 2027-2033 seguem o art. 233
             e serão nacionalmente uniformes (art. 189); (4) forma de prestação das informações ao
             CGIBS/RFB (arts. 190-191) depende de regulamento (RIBS); (5) novos atos do CMN/Bacen/CVM

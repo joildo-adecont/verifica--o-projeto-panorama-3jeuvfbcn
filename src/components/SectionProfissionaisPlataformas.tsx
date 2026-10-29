@@ -392,31 +392,31 @@ const LINHA_TEMPO = [
   {
     ano: '2029',
     cbs: `{pct(CBS_REF)} (referência TCU)`,
-    ibs: '19,11% × 10% = 1,91%',
+    ibs: '18,70% × 10% = 1,87%',
     efetiva: '≈ 10,71% × 0,70 = 7,50%',
   },
   {
     ano: '2030',
     cbs: `{pct(CBS_REF)} (referência TCU)`,
-    ibs: '19,11% × 40% = 7,64%',
+    ibs: '18,70% × 40% = 7,48%',
     efetiva: '≈ 16,44% × 0,70 = 11,51%',
   },
   {
     ano: '2031',
     cbs: `{pct(CBS_REF)} (referência TCU)`,
-    ibs: '19,11% × 70% = 13,38%',
+    ibs: '18,70% × 70% = 13,09%',
     efetiva: '≈ 22,18% × 0,70 = 15,53%',
   },
   {
     ano: '2032',
     cbs: `{pct(CBS_REF)} (referência TCU)`,
-    ibs: '19,11% × 90% = 17,20%',
+    ibs: '18,70% × 90% = 16,83%',
     efetiva: '≈ 26,00% × 0,70 = 18,20%',
   },
   {
     ano: '2033',
     cbs: `{pct(CBS_REF)} (referência TCU)`,
-    ibs: '19,11% (pleno)',
+    ibs: '18,70% (pleno)',
     efetiva: `${pct(REF_TOTAL)} × 0,70 = 19,54%`,
   },
 ]
@@ -754,8 +754,8 @@ function SimuladorProfissionais() {
         <p className="text-[11px] text-slate-500 mt-1">
           Ano selecionado: <strong>{ano}</strong> — alíquota efetiva com redução:{' '}
           <strong>{aliAno.toFixed(2)}%</strong>. IBS 2029–2033: partilha 10-40-70-90-100% (arts.
-          295–296). CBS 2027: estimativa 8,8% (−0,1 p.p. do art. 347) — resolução do Senado pendente
-          (art. 349).
+          295–296). CBS 2027: 11,3% (TCU, 28/10/2026) — resolução do Senado até 15/12/2026 (art.
+          349).
         </p>
         <div className="mt-2 flex gap-1.5 flex-wrap">
           {LINHA_TEMPO.map((l) => (
@@ -1155,7 +1155,7 @@ function SimuladorPlataformas() {
           Pontos que dependem das próximas edições legislativas (monitorados na rotina semanal):
         </strong>{' '}
         (1) alíquota de referência da CBS 2027 — resolução do Senado (LC 214, art. 349); (2) IBS
-        19,11% — Res. CGIBS 14/2026; (3) forma e leiaute das informações da plataforma ao CGIBS/RFB
+        18,70% — Res. CGIBS 14/2026; (3) forma e leiaute das informações da plataforma ao CGIBS/RFB
         (§5º) e as regras do split payment (§6º) dependem de regulamento (RIBS — Res. CGIBS 6/2026);
         (4) critérios da opção de emitir documentos em nome do fornecedor e da substituição
         tributária (§§12-13, LC 227/2026) dependem de regulamento.{' '}

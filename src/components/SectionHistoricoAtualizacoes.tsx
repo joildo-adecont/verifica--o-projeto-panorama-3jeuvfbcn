@@ -43,6 +43,33 @@ function ehRecente(dataBR: string): boolean {
 }
 
 const REGISTROS: Registro[] = [
+  // ============ BLOCO: ATUALIZAÇÃO DA LEGISLAÇÃO ============
+  {
+    data: '29/10/2026',
+    hora: '19:10',
+    titulo: 'Alíquota de referência da CBS passa a 11,3% para 2027 — IBS mantido em 18,70%',
+    conteudo:
+      'O TCU aprovou em 28/10/2026, em sessão plenária extraordinária, o cálculo da alíquota de referência da CBS para 2027: 11,3468%, arredondado para 11,3% conforme o §14 do art. 349 da LC 214/2025. O Senado tem até 15/12/2026 para fixar por resolução; se não se manifestar, prevalece o cálculo do TCU e os 11,3% vigoram desde 1º de janeiro de 2027. Por decisão do CEO, o sistema passou a adotar 11,3% desde já nos simuladores e nas tabelas, mantendo o IBS em 18,70% (Resolução CGIBS 14/2026). A referência conjunta sai de 27,91% (que era 18,70% de IBS + 9,21% de CBS estimada por diferença) para 30,00%. Importante: 30,00% é a referência de regime pleno, base de cálculo dos redutores — não a alíquota que será cobrada em 2027, quando só a CBS incide e o IBS está em fase de teste com 0,1%. O valor 27,91% permanece registrado como marco histórico, e há aviso de que a soma ultrapassa o teto de 26,5% do art. 349.',
+    fontes: [
+      {
+        nome: 'TCU — alíquota de referência da CBS em 11,3% para 2027 (28/10/2026)',
+        url: 'https://portal.tcu.gov.br/imprensa/noticias/tcu-calcula-aliquota-de-referencia-de-113-para-novo-tributo-sobre-consumo',
+      },
+      {
+        nome: 'Agência Senado — TCU calcula alíquota da CBS em 11,3% para 2027',
+        url: 'https://www12.senado.leg.br/noticias/materias/2026/10/28/reforma-tributaria-tcu-calcula-aliquota-da-cbs-em-11-3-para-2027',
+      },
+      {
+        nome: 'DOU — Resolução CGIBS nº 14/2026 (referência do IBS: 18,70%)',
+        url: 'https://www.in.gov.br/web/dou/-/resolucao-cgibs-n-14-de-29-de-julho-de-2026-722519981',
+      },
+    ],
+    caminho:
+      'src/data/aliquotas.ts (novo — fonte única) + 7 simuladores (6A-6F) + Seção 8 (Cronograma) + Seção 7A (Tabela Geral)',
+    versao: 'v0.0.235 a v0.0.238',
+    bloco: 'legislacao',
+  },
+
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
     data: '29/10/2026',
