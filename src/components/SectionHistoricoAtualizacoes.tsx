@@ -46,6 +46,28 @@ const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
     data: '29/10/2026',
+    hora: '16:45',
+    titulo:
+      'Agente de Vigilância passa a avisar por e-mail — joildo@adecont.com.br recebe quando uma fonte muda',
+    conteudo:
+      'A pedido do CEO, o Agente de Vigilância das Fontes ganhou notificação por e-mail: sempre que a varredura detecta que uma das fontes de origem da legislação mudou, o aviso chega em joildo@adecont.com.br. O e-mail traz a fonte alterada, o que mudou, quantas linhas de tabela do Panorama são alcançadas, os anexos afetados com o dispositivo de cada um e as seções a revisar, com botão para abrir o Monitor. Duas regras de conduta: (1) sem mudança não sai e-mail — alerta sem motivo ensina a ignorar o alerta; (2) o hook não decide o que mudou, apenas notifica a lista já apurada pela varredura, para não inventar alerta. O envio usa o relay de e-mail do próprio Skip, com remetente nao-responda@adecont.com.br, e cada disparo fica registrado no log de auditoria do sistema. A rotina semanal passou a ter seis passos: o novo passo [6/6] envia o aviso depois de regenerar o estado do agente. Testado de ponta a ponta: varredura sem mudança não envia; mudança simulada na CGIBS gerou o e-mail com a fonte, o campo alterado e as três seções a revisar.',
+    fontes: [
+      {
+        nome: 'CGIBS — Resoluções',
+        url: 'https://cgibs.gov.br/resolucoes',
+      },
+      {
+        nome: 'Imprensa Nacional — Diário Oficial da União',
+        url: 'https://www.in.gov.br',
+      },
+    ],
+    caminho:
+      'pocketbase/hooks/agente_fontes.js (novo) + scripts/ligacao-item/notificar_fontes.py (novo) + scripts/1b8edc430ba4e07b/run.sh (passo 6/6)',
+    versao: 'v0.0.223',
+    bloco: 'sistema',
+  },
+  {
+    data: '29/10/2026',
     hora: '16:20',
     titulo:
       'Agente de Vigilância das Fontes no Monitor — avisa quando uma origem da legislação muda',
