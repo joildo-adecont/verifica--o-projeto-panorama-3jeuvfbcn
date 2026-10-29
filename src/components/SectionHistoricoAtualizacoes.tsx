@@ -1075,6 +1075,32 @@ const REGISTROS: Registro[] = [
 
   // ============ BLOCO: ATUALIZAÇÃO DA LEGISLAÇÃO (órgãos oficiais) ============
   {
+    data: '28/10/2026',
+    hora: '21:20',
+    titulo:
+      'LC 238/2026 incorporada ao Panorama — novo limite do MEI (R$ 140 mil), 2 empregados e remissão de dívidas',
+    conteudo:
+      'A Lei Complementar nº 238, de 21 de outubro de 2026 (DOU de 21/10/2026, edição extra A) foi incorporada à Seção 6E — Simples Nacional, em nova aba "LC 238/2026 — MEI e Simples". O que a lei muda: (1) limite de receita bruta anual do MEI sobe de R$ 81 mil para R$ 140.000,00 (art. 18-A, § 1º, da LC 123), com efeitos só em 1º/01/2028 (art. 10, I); (2) em 2027 o limite é de R$ 110.000,00 e o proporcional de início de atividade é R$ 9.166,67/mês (art. 2º); (3) o MEI passa a poder ter até 2 empregados (art. 18-C, caput); (4) remissão integral dos créditos da União até 13/10/2026 de responsabilidade de MEI (arts. 5º a 7º), com contrapartida de adimplência por 6 meses e desistência de ações; (5) compras públicas — licitação exclusiva para ME/EPP e possibilidade para MEI (art. 8º, alterando arts. 48 e 49 da LC 123). O que NÃO mudou: as alíquotas de IBS/CBS, o sublimite de R$ 3,6 milhões do art. 13-A e o teto de R$ 4,8 milhões. Atenção de planejamento: a eficácia da ampliação depende de a renúncia de receita constar da LOA de 2027 a 2029 (art. 3º, por força do art. 14 da LRF). No mesmo ato foram reestruturadas as fontes de verificação: o Planalto passou a ser inacessível a consulta automatizada (WAF por IP estrangeiro), e a rotina semanal migrou para DOU/Imprensa Nacional, Senado LEGIS, CGIBS e RFB — 7/7 fontes respondendo.',
+    fontes: [
+      {
+        nome: 'DOU — Lei Complementar nº 238, de 21/10/2026 (texto integral, edição extra A)',
+        url: 'https://www.in.gov.br/web/dou/-/lei-complementar-n-238-de-21-de-outubro-de-2026-739686316',
+      },
+      {
+        nome: 'Senado Federal — LEGIS (catálogo oficial de Leis Complementares)',
+        url: 'https://legis.senado.leg.br/',
+      },
+      {
+        nome: 'CGIBS — Resoluções (18/18, sem alteração nesta rodada)',
+        url: 'https://cgibs.gov.br/resolucoes',
+      },
+    ],
+    caminho:
+      'Panorama (62493) — src/components/SectionSimples.tsx (nova aba "LC 238/2026 — MEI e Simples" + nota de fonte atualizada) e src/components/SectionHistoricoAtualizacoes.tsx',
+    versao: '62493 v0.0.203',
+    bloco: 'legislacao',
+  },
+  {
     data: '19/10/2026',
     hora: '11:00',
     titulo:

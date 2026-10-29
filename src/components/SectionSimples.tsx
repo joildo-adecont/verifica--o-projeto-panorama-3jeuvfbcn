@@ -63,6 +63,60 @@ const REGRAS = [
   },
 ]
 
+/** LC 238/2026 (21/10/2026) — MEI, Simples Nacional e licitações.
+ *  Fonte: DOU de 21/10/2026, edição extra A (texto integral conferido em 28/10/2026). */
+const LC238 = [
+  {
+    titulo: 'Novo limite do MEI',
+    badge: 'R$ 140 mil',
+    detalhe:
+      'O limite de receita bruta anual do Microempreendedor Individual sobe de R$ 81.000,00 para R$ 140.000,00 (art. 18-A, § 1º, da LC 123, com a redação do art. 1º da LC 238/2026). Efeitos a partir de 1º/01/2028 (art. 10, I).',
+    base: 'LC 238/2026, arts. 1º e 10, I',
+  },
+  {
+    titulo: 'Limite do MEI em 2027 — regra de transição',
+    badge: 'R$ 110 mil',
+    detalhe:
+      'Para o ano-calendário de 2027 o limite é de R$ 110.000,00, e o limite proporcional de início de atividade é de R$ 9.166,67 por mês (art. 2º e parágrafo único).',
+    base: 'LC 238/2026, art. 2º',
+  },
+  {
+    titulo: 'MEI com 2 empregados',
+    badge: 'Até 2',
+    detalhe:
+      'O MEI passa a poder ter até 2 (dois) empregados que recebam exclusivamente 1 salário mínimo ou o piso da categoria (art. 18-C, caput, da LC 123, com a redação do art. 1º). Antes era 1 empregado.',
+    base: 'LC 238/2026, art. 1º',
+  },
+  {
+    titulo: 'Remissão de dívidas do MEI',
+    badge: 'Remissão',
+    detalhe:
+      'Remissão integral dos créditos da União (inscritos ou não em Dívida Ativa) até 13/10/2026, de responsabilidade de pessoas naturais enquadradas como MEI (art. 5º). Contrapartida: adimplência nos 6 meses seguintes (art. 5º, § 4º) e desistência de ações judiciais (art. 6º). Não gera restituição nem compensação (art. 5º, § 3º).',
+    base: 'LC 238/2026, arts. 5º a 7º e 9º',
+  },
+  {
+    titulo: 'Sublimite do Simples para IBS/CBS',
+    badge: 'R$ 3,6 mi',
+    detalhe:
+      'O sublimite de R$ 3,6 milhões/ano para recolhimento do IBS e da CBS no Simples (LC 123, art. 13-A, incluído pela LC 214) permanece — a LC 238/2026 não o alterou. O teto geral de opção segue em R$ 4,8 milhões.',
+    base: 'LC 123, art. 13-A; LC 214/2025, art. 343',
+  },
+  {
+    titulo: 'Compras públicas — MEI e pequeno porte',
+    badge: 'Licitação',
+    detalhe:
+      'Licitação exclusiva para ME/EPP nos itens até o valor do art. 75, I, da Lei 14.133/2021; e possibilidade de licitação exclusiva para MEI nos itens até a metade do valor do art. 75, II (art. 48, I e IV, e art. 49, III, da LC 123, com a redação do art. 8º).',
+    base: 'LC 238/2026, art. 8º',
+  },
+  {
+    titulo: 'Vigência e produção de efeitos',
+    badge: '2027–2028',
+    detalhe:
+      'Vigência na publicação (21/10/2026). Efeitos: limites do MEI (art. 18-A, §§ 1º e 2º) a partir de 1º/01/2028; demais dispositivos a partir de 1º/01/2027 (art. 10). A ampliação dos limites fica condicionada à renúncia de receita na LOA de 2027 a 2029 (art. 3º).',
+    base: 'LC 238/2026, arts. 3º e 10',
+  },
+]
+
 /** Prazos do regime híbrido — LC 123, art. 13, §10 (red. LC 227/2026); Res. CGSN 190/2026, arts. 40-C/40-D; Res. CGSN 186 e 194/2026 (janela especial 2026). */
 const HIBRIDO_PRAZOS = [
   {
@@ -791,7 +845,7 @@ function SimuladorHibrido() {
 }
 
 export function SectionSimples() {
-  const [tab, setTab] = useState<'transicao' | 'regras' | 'hibrido'>('transicao')
+  const [tab, setTab] = useState<'transicao' | 'regras' | 'hibrido' | 'lc238'>('transicao')
 
   return (
     <section id="simples" className="scroll-mt-24 space-y-5">
@@ -806,16 +860,16 @@ export function SectionSimples() {
         </div>
         <p className="text-xs sm:text-sm text-slate-600 mt-2 leading-relaxed">
           Regime do Simples Nacional (LC 123, art. 13-A; LC 214/2025, arts. 343–347 e 444; Res. CGSN
-          190–192/2026). Texto extraído da{' '}
+          190–192/2026; <strong>LC 238/2026</strong> — aba própria). Texto conferido no{' '}
           <a
-            href="https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm"
+            href="https://www.in.gov.br/consulta/-/buscar/dou?q=%22Lei%20Complementar%22&s=todos"
             target="_blank"
             rel="noopener noreferrer"
             className="underline font-semibold text-panorama-navy"
           >
-            LC 214 compilada do Planalto
+            Diário Oficial da União
           </a>{' '}
-          (conferido em 04/10/2026).
+          e no Senado Federal (atualizado em 28/10/2026).
         </p>
       </div>
 
@@ -829,6 +883,9 @@ export function SectionSimples() {
         </AbaButton>
         <AbaButton ativo={tab === 'hibrido'} onClick={() => setTab('hibrido')}>
           🧮 Simulação — regime híbrido
+        </AbaButton>
+        <AbaButton ativo={tab === 'lc238'} onClick={() => setTab('lc238')}>
+          🆕 LC 238/2026 — MEI e Simples
         </AbaButton>
       </div>
 
@@ -862,6 +919,38 @@ export function SectionSimples() {
               📆 Como e quando optar — forma e prazos (opção semestral, irretratável)
             </h4>
             <Tabela linhas={HIBRIDO_PRAZOS} />
+          </div>
+        </div>
+      )}
+
+      {tab === 'lc238' && (
+        <div className="space-y-3">
+          <div className="p-3.5 rounded-lg bg-panorama-gold/10 border border-panorama-gold/50 text-sm text-slate-800">
+            <strong>LC 238, de 21 de outubro de 2026.</strong> Altera a Lei do Simples Nacional (LC
+            123/2006) para elevar o limite de receita bruta e o número de empregados do MEI,
+            conceder remissão de créditos da União e ajustar as compras públicas. Não mexe nas
+            alíquotas de IBS e CBS nem no sublimite de R$ 3,6 milhões do art. 13-A — o que muda,
+            para o Simples, é o universo de quem pode ser MEI e a base de contribuintes do regime.
+          </div>
+          <Tabela linhas={LC238} />
+          <div className="p-3.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-xs sm:text-sm">
+            ⚠️ Ponto de atenção para o planejamento: o novo limite de R$ 140 mil do MEI só produz
+            efeitos em <strong>1º/01/2028</strong>; em 2027 vale R$ 110 mil (art. 2º). E a eficácia
+            da ampliação depende de a renúncia de receita constar da lei orçamentária de 2027 a 2029
+            (art. 3º, por força do art. 14 da LRF).
+          </div>
+          <div className="text-[11px] text-slate-500 leading-relaxed">
+            Texto extraído do{' '}
+            <a
+              href="https://www.in.gov.br/web/dou/-/lei-complementar-n-238-de-21-de-outubro-de-2026-739686316"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline font-semibold text-panorama-navy"
+            >
+              Diário Oficial da União de 21/10/2026 (edição extra A)
+            </a>{' '}
+            — conferido em 28/10/2026. O Planalto está com acesso bloqueado para consulta
+            automatizada; a publicação oficial no DOU é a fonte citada.
           </div>
         </div>
       )}
