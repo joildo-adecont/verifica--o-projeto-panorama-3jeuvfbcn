@@ -111,28 +111,17 @@ routerAdd('GET', '/backend/v1/painel-cliente', (e) => {
     if (st === 'RECEBIDO') agg.recebidos = agg.recebidos + 1
     if (st === 'FALHA') agg.falhas = agg.falhas + 1
 
-    // valor da operação: prioriza o campo novo; cai para o regex do payload
+    // Valor da operação: SOMENTE o campo explícito.
+    // Tentei antes extrair do payload_simulacao com regex e o resultado foi falso:
+    // o texto do resultado é uma tabela, e o padrão casava "VALOR\nCBS 4" virando
+    // R$ 18 para uma operação de R$ 10.000. Adivinhar número em texto formatado,
+    // para depois apresentar como diagnóstico do cliente, é exatamente o que este
+    // painel não deve fazer. Sem o campo, o valor é zero e o cliente fica sem dado.
     let valor = 0
     try {
       valor = Number(env.getFloat('valor_operacao') || 0)
     } catch (_) {
       valor = 0
-    }
-    if (!valor) {
-      let payload = ''
-      try {
-        payload = env.getString('payload_simulacao') || ''
-      } catch (_) {
-        payload = ''
-      }
-      const m = payload.match(
-        /valor[^0-9]{0,20}([0-9]{1,3}(?:\.[0-9]{3})*(?:,[0-9]{2})?|[0-9]+(?:[.,][0-9]+)?)/i,
-      )
-      if (m) {
-        const bruto = m[1].replace(/\./g, '').replace(',', '.')
-        const n = Number.parseFloat(bruto)
-        if (isFinite(n)) valor = n
-      }
     }
     if (valor > 0) agg.valorSimulado = agg.valorSimulado + valor
 

@@ -1018,6 +1018,12 @@
           agro: 'LC 214/2025, arts. 287 e seguintes (crédito presumido agropecuária).',
           credito_presumido: 'LC 214/2025, arts. 168-169 (créditos presumidos).',
         }
+        // valor e regime REAIS da simulação — é o que permite ao painel por cliente
+        // cruzar dado declarado com dado simulado, sem adivinhar nada
+        var vOper = parseFloat(document.getElementById('valor').value) || 0
+        var vAno = parseInt(document.getElementById('ano').value, 10) || 2028
+        var vReg = document.getElementById('regime').value || 'regular'
+
         var body = {
           cliente_id: clienteId,
           tema_resumo: document.getElementById('pe-tema').value,
@@ -1025,6 +1031,9 @@
           grupo: grupo,
           item_codigo: sel.codigo,
           item_nome: sel.nome,
+          valor_operacao: vOper,
+          regime_adotado: vReg,
+          ano_simulado: vAno,
           payload: {
             origem: 'simulador-geral',
             resultado: peUltimoResultado.slice(0, 1500),

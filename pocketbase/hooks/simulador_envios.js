@@ -249,6 +249,9 @@ routerAdd('POST', '/backend/v1/simul-enviar', (e) => {
   var grupo = body.grupo || 'regular'
   var itemCodigo = body.item_codigo || ''
   var itemNome = body.item_nome || ''
+  var valorOperacao = Number(body.valor_operacao || 0)
+  var regimeAdotado = body.regime_adotado || ''
+  var anoSimulado = Number(body.ano_simulado || 0)
   var payloadSim = JSON.stringify(body.payload || {})
 
   if (!capitulacao) capitulacao = capitulacaoPara(grupo)
@@ -355,6 +358,9 @@ routerAdd('POST', '/backend/v1/simul-enviar', (e) => {
     rec.set('payload_simulacao', payloadSim)
     rec.set('item_codigo', itemCodigo)
     rec.set('item_nome', itemNome)
+    if (valorOperacao > 0) rec.set('valor_operacao', valorOperacao)
+    if (regimeAdotado) rec.set('regime_adotado', regimeAdotado)
+    if (anoSimulado >= 2026 && anoSimulado <= 2033) rec.set('ano_simulado', anoSimulado)
     rec.set('token_recebimento', token)
     rec.set('destinatario_email', email)
     rec.set('email_ok', emailOk)
