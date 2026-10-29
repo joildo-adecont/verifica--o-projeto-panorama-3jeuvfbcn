@@ -260,7 +260,7 @@ export const ANEXOS: AnexoInfo[] = [
     ],
     fonte: {
       nome: 'LC 214/2025 — Planalto',
-      url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214.htm',
+      url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
     },
   },
   {
@@ -1106,7 +1106,7 @@ export const ANEXOS: AnexoInfo[] = [
     ],
     fonte: {
       nome: 'Decreto 12.955/2026 — Planalto',
-      url: 'https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2026/decreto/D12955.htm',
+      url: 'https://normas.leg.br/?urn=urn:lex:br:federal:decreto:2026-04-29;12955',
     },
   },
   {
@@ -1264,4 +1264,4 @@ export const SIM_TOTAL = 118
 
 /** Nota de verificação de fidelidade — Parcelas 1 e 2. */
 export const NOTA_VERIFICACAO =
-  'Parcela 1: os cinco anexos do RIBS conferidos contra o texto oficial do PDF da Resolução CGIBS 6/2026 (cgibs.gov.br). Parcela 2: anexos da LC 214 extraídos item a item da versão compilada do Planalto (lcp214compilado.htm) — Anexo VIII (7 itens), Anexo XII (17 itens), Anexo XIII (6 itens), Anexo XV (6 itens), Anexo VII (17 itens), Anexo II (9 itens), Anexo III (30 itens) e Anexo IX (35 itens); volumes dos demais anexos contados no texto oficial. Os códigos CST do IBS e o CBF NÃO constam dos anexos do RIBS (são atos técnicos conjuntos, IT 2025.002). O Anexo XIV da LC 214 está revogado pela LC 227/2026.'
+  'Parcela 1: os cinco anexos do RIBS conferidos contra o texto oficial do PDF da Resolução CGIBS 6/2026 (cgibs.gov.br). Parcela 2: anexos da LC 214 extraídos item a item do texto integral do normas.leg.br (Senado/Congresso) — Anexo VIII (7 itens), Anexo XII (17 itens), Anexo XIII (6 itens), Anexo XV (6 itens), Anexo VII (17 itens), Anexo II (9 itens), Anexo III (30 itens) e Anexo IX (35 itens); volumes dos demais anexos contados no texto oficial. Os códigos CST do IBS e o CBF NÃO constam dos anexos do RIBS (são atos técnicos conjuntos, IT 2025.002). O Anexo XIV da LC 214 está revogado pela LC 227/2026.'
