@@ -43,6 +43,20 @@ function ehRecente(dataBR: string): boolean {
 }
 
 const REGISTROS: Registro[] = [
+  // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
+  {
+    data: '29/10/2026',
+    hora: '19:45',
+    titulo:
+      'Painel inicial com abas e acompanhamento — navegação passou de 24 itens soltos para 5 grupos',
+    conteudo:
+      'A pedido do CEO, o Panorama ganhou uma tela inicial e a navegação foi reorganizada. Antes o sistema abria direto no hero e o visitante caía numa rolagem de 24 seções sem saber onde estava o quê; a lista do menu era plana, em ordem fora de sequência (a Seção 11 vinha antes da 9) e tinha uma duplicata — Fontes primárias aparecia duas vezes, uma dizendo 115 bases e outra 110, ambas com a mesma tecla w. Agora há um Painel de Acompanhamento como primeira tela, com quatro indicadores medidos (23 normas, 1.053 linhas de tabela, 8 de 16 fontes ativas, referência de 30,00%), dois gráficos de acompanhamento (linhas de tabela por diploma e normas por ano), busca que filtra os grupos em tempo real e cinco abas com ícones grandes: Fundamentos (5 seções), Simulação (7), Tabelas (3), Fontes e Monitor (3) e Sistema (5). Cada seção aparece como card com ícone grande, número, descrição de uma linha e a tecla de atalho. O menu lateral passou a mostrar os mesmos grupos, recolhíveis, mantendo todas as teclas como estavam. A duplicata foi eliminada. Todos os números do painel vêm das mesmas fontes do resto do sistema: nada é digitado na tela.',
+    fontes: [],
+    caminho:
+      'src/components/PainelInicial.tsx (novo) + src/components/navegacao.ts (grupos) + src/components/PanoramaSideMenu.tsx (agrupado) + src/pages/Index.tsx',
+    versao: 'v0.0.241 a v0.0.243',
+    bloco: 'sistema',
+  },
   // ============ BLOCO: ATUALIZAÇÃO DA LEGISLAÇÃO ============
   {
     data: '29/10/2026',
