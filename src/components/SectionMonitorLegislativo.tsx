@@ -38,6 +38,7 @@ import {
   type TipoNorma,
 } from '@/data/legislacaoCronologica'
 import { LINHAS_POR_DISPOSITIVO } from '@/data/vinculosLegislacao'
+import { AgenteFontes } from '@/components/AgenteFontes'
 
 /**
  * Seção 12A — MONITOR LEGISLATIVO
@@ -195,6 +196,9 @@ export function SectionMonitorLegislativo() {
             dependem, e o<b> controle de acesso</b> a essas alterações.
           </p>
         </div>
+
+        {/* ─────────────── Agente de vigilância das fontes ─────────────── */}
+        <AgenteFontes />
 
         {/* ─────────────── KPIs ─────────────── */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
