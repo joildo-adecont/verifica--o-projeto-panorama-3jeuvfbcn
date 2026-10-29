@@ -100,6 +100,7 @@ export function PainelCliente() {
       const t = window.localStorage.getItem(TOKEN_KEY) || ''
       setToken(t)
     } catch (_) {
+      // localStorage bloqueado (modo privado): segue sem token salvo
       setToken('')
     }
   }, [])
@@ -127,7 +128,7 @@ export function PainelCliente() {
       const json = (await r.json()) as Resposta
       setDados(json)
       setPedindotoken(false)
-    } catch (e) {
+    } catch {
       setErro('Não foi possível falar com o servidor. O backend pode estar reiniciando.')
     } finally {
       setCarregando(false)
@@ -151,7 +152,9 @@ export function PainelCliente() {
     setToken(t)
     try {
       window.localStorage.setItem(TOKEN_KEY, t)
-    } catch (_) {}
+    } catch (_) {
+      // não foi possível persistir; o token vale só nesta sessão
+    }
     carregar(t)
   }
 
