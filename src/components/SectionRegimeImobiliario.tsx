@@ -176,7 +176,7 @@ function BotaoEnviarSimulacao({ termo, label }: { termo?: string; label?: string
 }
 
 /** Seção 6A — Regime Imobiliário (LC 214/2025, arts. 252–261 e 485–488).
- *  Fontes extraídas do texto compilado do Planalto (conferido em 04/10/2026). */
+ *  Fontes extraídas do texto integral do normas.leg.br (conferido em 28/10/2026). */
 
 const OPERACOES = [
   {
@@ -943,12 +943,12 @@ export function SectionRegimeImobiliario() {
           Regime específico das operações com bens imóveis (LC 214/2025, arts. 252–261 e 485–488).
           Texto extraído da{' '}
           <a
-            href="https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm"
+            href="https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214"
             target="_blank"
             rel="noopener noreferrer"
             className="underline font-semibold text-panorama-navy"
           >
-            LC 214 compilada do Planalto
+            LC 214 compilada (normas.leg.br)
           </a>{' '}
           (conferido em 04/10/2026). Simulável no{' '}
           <a

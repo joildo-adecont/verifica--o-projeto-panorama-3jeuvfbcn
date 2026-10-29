@@ -1175,8 +1175,8 @@ export function SectionSimples() {
             >
               Diário Oficial da União de 21/10/2026 (edição extra A)
             </a>{' '}
-            — conferido em 28/10/2026. O Planalto está com acesso bloqueado para consulta
-            automatizada; a publicação oficial no DOU é a fonte citada.
+            — conferido em 28/10/2026 pelo normas.leg.br. O Planalto está com acesso bloqueado para
+            consulta automatizada; a publicação oficial no DOU é a fonte citada.
           </div>
         </div>
       )}

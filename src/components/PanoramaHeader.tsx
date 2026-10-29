@@ -114,7 +114,8 @@ export function PanoramaHeader({
       await loadSourceStatus()
       toast({
         title: 'Fontes verificadas com sucesso',
-        description: 'Os servidores do CGIBS, Receita Federal e Planalto foram consultados.',
+        description:
+          'Os servidores do CGIBS, do normas.leg.br (Senado) e da Receita Federal foram consultados.',
       })
       if (onManualRefresh) onManualRefresh()
     } catch (err) {
@@ -333,7 +334,7 @@ export function PanoramaHeader({
               <span>🧮 Simulador</span>
             </a>
             <a
-              href="https://planalto.gov.br/ccivil_03/leis/lcp/lcp214.htm"
+              href="https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 hover:text-blue-700 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-md transition-colors"
