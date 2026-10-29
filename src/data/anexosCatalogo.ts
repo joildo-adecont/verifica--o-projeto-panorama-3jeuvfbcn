@@ -197,8 +197,8 @@ export const ANEXOS: AnexoInfo[] = [
       },
     ],
     fonte: {
-      nome: 'LC 214/2025 — Planalto',
-      url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214.htm',
+      nome: 'LC 214/2025 — normas.leg.br',
+      url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
     },
   },
   {
@@ -1082,8 +1082,8 @@ export const ANEXOS: AnexoInfo[] = [
       { rotulo: 'Fontes: Buscador NCM (cClassTrib)', alvo: '#fontes-agregador', tipo: 'secao' },
     ],
     fonte: {
-      nome: 'Decreto 12.955/2026 — Planalto',
-      url: 'https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2026/decreto/D12955.htm',
+      nome: 'Decreto 12.955/2026 — normas.leg.br',
+      url: 'https://normas.leg.br/?urn=urn:lex:br:federal:decreto:2026-04-29;12955',
     },
   },
   {

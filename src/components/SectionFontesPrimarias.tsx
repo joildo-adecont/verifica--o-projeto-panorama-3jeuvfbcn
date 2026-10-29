@@ -83,13 +83,13 @@ export function SectionFontesPrimarias() {
           'Reforma Tributária — regimes por NCM (IBS/CBS e Imposto Seletivo)',
           'Presidência da República / Planalto',
           '1 de outubro de 2026',
-          'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214.htm',
+          'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
         ],
         [
           'Regulamento da CBS',
           'Presidência da República',
           '29 de abril de 2026',
-          'https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2026/decreto/D12955.htm',
+          'https://normas.leg.br/?urn=urn:lex:br:federal:decreto:2026-04-29;12955',
         ],
         [
           'Regulamento do IBS',
@@ -125,7 +125,7 @@ export function SectionFontesPrimarias() {
           'Alíquotas de PIS/COFINS por CST (regimes e monofásico)',
           'Presidência da República / Receita Federal',
           'Conferido em 20/10/2026',
-          'https://www.planalto.gov.br/ccivil_03/leis/',
+          'https://normas.leg.br/busca',
         ],
         [
           'Anexo II — Eventos da NFS-e e pedido de registro de evento',
@@ -143,7 +143,7 @@ export function SectionFontesPrimarias() {
           'Limite de receita e número de empregados do MEI',
           'Presidência da República (Planalto) — LC 123/2006, arts. 18-A e 18-C',
           'Dado oficial de 21/10/2026 (LC 238/2026: R$ 110 mil em 2027 e R$ 140 mil a partir de 2028)',
-          'https://www.planalto.gov.br/ccivil_03/leis/lcp/Lcp238.htm',
+          'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2026-10-21;238',
         ],
         [
           'Anexo Único da DIRBI — incentivos, renúncias, benefícios e imunidades de natureza tributária',
@@ -155,7 +155,7 @@ export function SectionFontesPrimarias() {
           'Anexos I a V do Simples Nacional (alíquotas e partilha)',
           'Presidência da República (Planalto)',
           'Conferido em 21/10/2026',
-          'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp123.htm',
+          'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2006-12-14;123',
         ],
         [
           'BP-e (modelo 63): regras de validação',
@@ -491,7 +491,7 @@ export function SectionFontesPrimarias() {
           'LC 116/2003 — Lista de serviços do ISS',
           'Presidência da República (Planalto)',
           '11 de julho de 2026',
-          'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp116.htm',
+          'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2003-07-31;116',
         ],
         [
           'Lista de Serviço Nacional (cTribNac) e regras de incidência do ISS',
