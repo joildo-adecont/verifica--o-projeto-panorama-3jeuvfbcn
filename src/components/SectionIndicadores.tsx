@@ -14,6 +14,8 @@ import {
   ShieldAlert,
   ShieldCheck,
   TrendingUp,
+  ArrowLeftRight,
+  BadgeAlert,
 } from 'lucide-react'
 import {
   ACIMA_DO_TETO,
@@ -53,6 +55,9 @@ import {
   TOTAL as TOTAL_NORMAS,
 } from '@/data/legislacaoCronologica'
 import { ANEXOS, SIM_TOTAL } from '@/data/anexosCatalogo'
+import { ComparadorSetores } from '@/components/ComparadorSetores'
+import { CustoDoErro } from '@/components/CustoDoErro'
+import { BotaoExportarPDF } from '@/components/BotaoExportarPDF'
 
 /**
  * CENTRAL DE INDICADORES — Seção 8A
@@ -79,13 +84,15 @@ import { ANEXOS, SIM_TOTAL } from '@/data/anexosCatalogo'
  *   Normas   — a linha do tempo por ano e por tipo de ato
  */
 
-type Aba = 'aliquotas' | 'tabelas' | 'fontes' | 'normas'
+type Aba = 'aliquotas' | 'tabelas' | 'fontes' | 'normas' | 'comparar' | 'erro'
 
 const ABAS: { id: Aba; nome: string; Icon: React.ComponentType<{ className?: string }> }[] = [
   { id: 'aliquotas', nome: 'Alíquotas', Icon: Percent },
   { id: 'tabelas', nome: 'Tabelas', Icon: Layers },
   { id: 'fontes', nome: 'Fontes', Icon: Radio },
   { id: 'normas', nome: 'Normas', Icon: Scale },
+  { id: 'comparar', nome: 'Comparar setores', Icon: ArrowLeftRight },
+  { id: 'erro', nome: 'Custo do erro', Icon: BadgeAlert },
 ]
 
 /* ─────────────────────── séries calculadas ─────────────────────── */
@@ -1110,9 +1117,12 @@ export function SectionIndicadores() {
               </h3>
               <p className="text-[11px] text-slate-300 mt-1 leading-relaxed max-w-3xl">
                 Alíquotas, tabelas, fontes e normas — com gráfico, moldura e a procedência ao lado
-                de cada valor. Quatro abas, porque uma rolagem única de gráficos não é leitura
-                rápida.
+                de cada valor. Seis abas: leitura dos números, comparação entre setores e o custo de
+                estar no regime errado.
               </p>
+            </div>
+            <div className="shrink-0 self-start mt-1">
+              <BotaoExportarPDF alvo="indicadores" />
             </div>
           </div>
 
@@ -1146,6 +1156,8 @@ export function SectionIndicadores() {
             {aba === 'tabelas' && <AbaTabelas />}
             {aba === 'fontes' && <AbaFontes />}
             {aba === 'normas' && <AbaNormas />}
+            {aba === 'comparar' && <ComparadorSetores />}
+            {aba === 'erro' && <CustoDoErro />}
           </div>
 
           {/* rodapé de capitulação */}
