@@ -25,6 +25,7 @@ import {
   Printer,
   KeyRound,
   MonitorSmartphone,
+  Eye,
 } from 'lucide-react'
 
 export interface LinkNavegacao {
@@ -190,14 +191,24 @@ export const NAVEGACAO: LinkNavegacao[] = [
     borda: 'border-cyan-200',
   },
   {
-    href: '#fontes-agregador',
-    label: 'Agregadores (Buscador)',
-    tecla: 'q',
-    numero: '11',
-    Icon: Globe2,
-    cor: 'text-sky-600',
-    bg: 'bg-sky-50',
-    borda: 'border-sky-200',
+    href: '#fontes-primarias',
+    label: 'Fontes primárias (115 bases)',
+    tecla: 'w',
+    numero: '12',
+    Icon: ListChecks,
+    cor: 'text-fuchsia-600',
+    bg: 'bg-fuchsia-50',
+    borda: 'border-fuchsia-200',
+  },
+  {
+    href: '#monitor-legislativo',
+    label: 'Monitor Legislativo',
+    tecla: 'v',
+    numero: '12A',
+    Icon: Eye,
+    cor: 'text-emerald-700',
+    bg: 'bg-emerald-50',
+    borda: 'border-emerald-300',
   },
   {
     href: '#secao-9',

@@ -20,6 +20,7 @@ import { SectionCronograma } from '@/components/SectionCronograma'
 import { SectionFontes } from '@/components/SectionFontes'
 import { SectionFontesAgregador } from '@/components/SectionFontesAgregador'
 import { SectionFontesPrimarias } from '@/components/SectionFontesPrimarias'
+import { SectionMonitorLegislativo } from '@/components/SectionMonitorLegislativo'
 import { SectionCentralEntrega } from '@/components/SectionCentralEntrega'
 import { SectionAssistentesSeguranca } from '@/components/SectionAssistentesSeguranca'
 import { SectionControleAcesso } from '@/components/SectionControleAcesso'
@@ -154,8 +155,11 @@ export default function Index() {
           {/* Seção 9: Fontes oficiais, governança de atualização e formulário de contato */}
           <SectionFontes />
 
-          {/* Seção 12: Índice das fontes oficiais primárias — 110 bases */}
+          {/* Seção 12: Índice das fontes oficiais primárias — 115 bases */}
           <SectionFontesPrimarias />
+
+          {/* Seção 12A: Monitor Legislativo — situação medida de cada fonte vigiada */}
+          <SectionMonitorLegislativo />
 
           {/* Seção 14: Central de Entrega — impressão e envio ao cliente */}
           <SectionCentralEntrega />
