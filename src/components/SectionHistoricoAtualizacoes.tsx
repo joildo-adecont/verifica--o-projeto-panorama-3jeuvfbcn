@@ -46,6 +46,20 @@ const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
     data: '29/10/2026',
+    hora: '20:30',
+    titulo:
+      'Comparador de três setores e painel de custo do erro por cliente — com dois dados que faltavam na base',
+    conteudo:
+      'Quarta etapa: o CEO autorizou todas as sugestões. (1) COMPARADOR DE TRÊS SETORES: a aba Comparar setores passou de dois para três regimes simultâneos, com seletor próprio para cada lado, barra comparativa de três cores (âmbar, índigo e verde-azulado) e os três cards de detalhe lado a lado. (2) PAINEL POR CLIENTE: nova aba que cruza o que o cliente declarou no cadastro com o que foi efetivamente simulado e enviado a ele, devolvendo por cliente o regime, a alíquota efetiva, o tributo mensal e o benefício que o regime já concede, com projeção de 12 meses. (3) DOIS DADOS QUE FALTAVAM: ao construir o painel, a verificação na base mostrou que nem simul_clientes nem simul_envios guardavam regime tributário nem receita. A migration 0071 acrescentou regime_tributario, receita_mensal, atividade e uf ao cadastro, e valor_operacao, regime_adotado e ano_simulado a cada envio — todos opcionais, para não quebrar os registros existentes. O simulador passou a gravar esses três campos no envio, e o hook simul-enviar passou a persisti-los. (4) UMA ADIVINHAÇÃO QUE FOI REMOVIDA: a primeira versão do endpoint tentava extrair o valor da operação do texto do resultado com expressão regular; o teste mostrou que o padrão casava a tabela e devolvia R$ 18 para uma operação de R$ 10.000. O trecho foi removido — sem o campo explícito, o valor fica zero e o cliente entra como pendência. (5) ENDPOINT NOVO: GET /backend/v1/painel-cliente, autenticado por token X-Painel-Token, que devolve resumo geral e a lista de clientes ordenada por benefício, separando quem tem dados de quem não tem, com o motivo declarado. Validação em produção: sem token responde 401; com token devolve 1 cliente medido, alíquota 21,00%, tributo R$ 21.000, benefício R$ 9.000 por mês e R$ 108.000 em 12 meses.',
+    fontes: [],
+    caminho:
+      'src/components/PainelCliente.tsx (novo) + src/components/ComparadorSetores.tsx + src/components/SectionIndicadores.tsx + pocketbase/migrations/0071_campos_analise_cliente.js (novo) + pocketbase/hooks/painel_cliente.js (novo) + pocketbase/hooks/simulador_envios.js + public/simulador.html',
+    versao: 'v0.0.250 a v0.0.253',
+    bloco: 'sistema',
+  },
+  // ============ BLOCO: ATUALIZAÇÃO DA LEGISLAÇÃO ============
+  {
+    data: '29/10/2026',
     hora: '20:35',
     titulo:
       'Central de Indicadores ganha comparador de setores, calculadora de custo do erro e exportação em PDF',
