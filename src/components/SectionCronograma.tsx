@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Calendar, AlertCircle, ArrowRight, Calculator, CheckCircle2 } from 'lucide-react'
+import { CBS_REF, IBS_REF, REF_TOTAL } from '@/data/aliquotas'
 
 export function SectionCronograma() {
   const [calcYear, setCalcYear] = useState<number>(2026)
@@ -19,7 +20,7 @@ export function SectionCronograma() {
       ano: '2027',
       fase: 'Virada federal',
       ibs: '0,1%',
-      cbs: 'Plena (ref. −0,1 p.p.)',
+      cbs: 'Plena (11,3% — TCU 2027)',
       tributosAtuais: 'PIS/Cofins extintos; IPI zero (exceto ZFM); IS inicia',
       current: false,
     },
@@ -66,8 +67,8 @@ export function SectionCronograma() {
     {
       ano: '2033',
       fase: 'Regime pleno',
-      ibs: 'Plena (≈17,7%)',
-      cbs: 'Plena (≈8,8%)',
+      ibs: 'Plena (18,70%)',
+      cbs: 'Plena (11,3%)',
       tributosAtuais: 'ICMS/ISS extintos',
       current: false,
     },
@@ -164,15 +165,22 @@ export function SectionCronograma() {
   ]
 
   // Simulador rápido
+  // Série da transição, lida da fonte única (src/data/aliquotas.ts):
+  // CBS 11,3% a partir de 2027 (TCU 28/10/2026); IBS 0,1% em teste (2027-28) e
+  // 10/40/70/90/100% da referência de 18,70% nos anos seguintes (art. 344).
   const getSimulationRates = (year: number) => {
     if (year === 2026) return { ibs: 0.1, cbs: 0.9, icmsIssFactor: 1.0, pisCofinsActive: true }
-    if (year === 2027) return { ibs: 0.1, cbs: 8.7, icmsIssFactor: 1.0, pisCofinsActive: false }
-    if (year === 2028) return { ibs: 0.1, cbs: 8.8, icmsIssFactor: 1.0, pisCofinsActive: false }
-    if (year === 2029) return { ibs: 1.77, cbs: 8.8, icmsIssFactor: 0.9, pisCofinsActive: false }
-    if (year === 2030) return { ibs: 3.54, cbs: 8.8, icmsIssFactor: 0.8, pisCofinsActive: false }
-    if (year === 2031) return { ibs: 5.31, cbs: 8.8, icmsIssFactor: 0.7, pisCofinsActive: false }
-    if (year === 2032) return { ibs: 7.08, cbs: 8.8, icmsIssFactor: 0.6, pisCofinsActive: false }
-    return { ibs: 17.7, cbs: 8.8, icmsIssFactor: 0.0, pisCofinsActive: false }
+    if (year === 2027) return { ibs: 0.1, cbs: CBS_REF, icmsIssFactor: 1.0, pisCofinsActive: false }
+    if (year === 2028) return { ibs: 0.1, cbs: CBS_REF, icmsIssFactor: 1.0, pisCofinsActive: false }
+    if (year === 2029)
+      return { ibs: IBS_REF * 0.1, cbs: CBS_REF, icmsIssFactor: 0.9, pisCofinsActive: false }
+    if (year === 2030)
+      return { ibs: IBS_REF * 0.4, cbs: CBS_REF, icmsIssFactor: 0.8, pisCofinsActive: false }
+    if (year === 2031)
+      return { ibs: IBS_REF * 0.7, cbs: CBS_REF, icmsIssFactor: 0.7, pisCofinsActive: false }
+    if (year === 2032)
+      return { ibs: IBS_REF * 0.9, cbs: CBS_REF, icmsIssFactor: 0.6, pisCofinsActive: false }
+    return { ibs: IBS_REF, cbs: CBS_REF, icmsIssFactor: 0.0, pisCofinsActive: false }
   }
 
   const rates = getSimulationRates(calcYear)
