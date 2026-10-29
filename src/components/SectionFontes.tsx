@@ -142,21 +142,21 @@ export function SectionFontes() {
   const fontes = [
     {
       orgao: 'Planalto',
-      fonte: 'planalto.gov.br/ccivil_03/leis/lcp/lcp214.htm',
+      fonte: 'normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
       conteudo: 'Texto integral da LC 214/2025',
-      url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214.htm',
+      url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
     },
     {
       orgao: 'Planalto',
-      fonte: 'planalto.gov.br/ccivil_03/leis/lcp/lcp227.htm',
+      fonte: 'normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2026-01-13;227',
       conteudo: 'LC 227/2026 (CGIBS, ITCMD)',
-      url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp227.htm',
+      url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2026-01-13;227',
     },
     {
       orgao: 'Planalto',
       fonte: 'Decreto 12.955/2026',
       conteudo: 'Regulamento da CBS + anexos',
-      url: 'https://www.planalto.gov.br',
+      url: 'https://normas.leg.br',
     },
     {
       orgao: 'CGIBS',

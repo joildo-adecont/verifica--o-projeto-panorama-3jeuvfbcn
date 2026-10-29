@@ -39,6 +39,53 @@ const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
     data: '28/10/2026',
+    hora: '22:30',
+    titulo:
+      'Busca de legislação reorganizada: texto integral passa a vir do normas.leg.br (Senado/Congresso) e do DOU — o Planalto sai das citações',
+    conteudo:
+      'O Planalto bloqueia o acesso automatizado por WAF de IP estrangeiro (HTTP 200 com 814 bytes de "Acesso Negado"), o que impedia o próprio sistema de conferir o que citava. Varredura de 48 candidatos e 30 testes de profundidade identificou a rota oficial que funciona: o portal normas.leg.br, do Senado e do Congresso Nacional, serve o texto integral compilado pela API pública, sem autenticação. Validado na LC 214/2025 — 544 artigos e 661.175 caracteres, do art. 1º ao 544. Foram criados três instrumentos: (1) registro central de fontes, que classifica cada fonte como ativa, bloqueada, sem rota ou inutilizável, com a prova de que todo tipo de consulta tem ao menos uma fonte ativa; (2) cliente de consulta unificada, que localiza a norma pela sigla/número/ano, resolve a URN e baixa o texto, sempre com procedência; (3) reescrita das citações do Planalto para a fonte que responde, incluindo a correção de origem nos registros de normas. O verificador semanal passou de 7 para 9 fontes, todas operacionais, e ganhou detecção de alteração de lei por hash do texto integral. A URN do padrão LexML usa a data de assinatura, não a de publicação — a LC 214 é 2025-01-16, e não 2025-08-04.',
+    fontes: [
+      {
+        nome: 'normas.leg.br — LC 214/2025 compilada (texto integral)',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
+      },
+      {
+        nome: 'Senado Federal — Dados Abertos (legislação)',
+        url: 'https://legis.senado.leg.br/dadosabertos/legislacao/40180341',
+      },
+      {
+        nome: 'Diário Oficial da União — Imprensa Nacional',
+        url: 'https://www.in.gov.br/consulta',
+      },
+    ],
+    caminho:
+      'scripts/fontes_oficiais/registro_fontes.py, legis.py, normas_leg.py, reeescrever_fontes.py; verificador scripts/d3c20c92c899fa15/checar_fontes.py',
+    versao: 'v0.0.206',
+    bloco: 'sistema',
+  },
+  {
+    data: '28/10/2026',
+    hora: '22:10',
+    titulo:
+      'Dois decretos incorporados com texto integral do DOU: 13.133/2026 (alíquotas da CBS dos combustíveis) e 13.140/2026 (nanoempreendedor e MEI)',
+    conteudo:
+      'Decreto 13.133/2026 delega ao Ministro da Fazenda a competência para divulgar as alíquotas da CBS incidentes sobre combustíveis (art. 174, III, "b", da LC 214), alcançando as alíquotas a partir de 2027 e os reajustes anuais. Nomeia os oito combustíveis alcançados e altera o Decreto 12.955/2026 (arts. 471 e 476), revogando o art. 477: as alíquotas da CBS sobre biocombustíveis ficam entre 40% e 90% da alíquota do fóssil de comparação. Decreto 13.140/2026 dispensa o nanoempreendedor de inscrição no CNPJ e de emissão de documento fiscal eletrônico no âmbito da União, com efeitos no IBS apenas a partir de 1º/01/2029 e após manifestação do CGIBS, e autoriza a DASN-SIMEI como documento fiscal do MEI nas vendas a consumidor final. Ambos com texto integral conferido na Imprensa Nacional.',
+    fontes: [
+      {
+        nome: 'DOU — Decreto nº 13.133, de 9 de outubro de 2026',
+        url: 'https://www.in.gov.br/web/dou/-/decreto-n-13.133-de-9-de-outubro-de-2026-737756208',
+      },
+      {
+        nome: 'DOU — Decreto nº 13.140, de 21 de outubro de 2026',
+        url: 'https://www.in.gov.br/web/dou/-/decreto-n-13.140-de-21-de-outubro-de-2026-739686339',
+      },
+    ],
+    caminho: 'Seção 1 (Arcabouço normativo) — migration 0069',
+    versao: 'v0.0.206',
+    bloco: 'legislacao',
+  },
+  {
+    data: '28/10/2026',
     hora: '11:00',
     titulo:
       'Revisão semanal — ENCAT posterga produção das NTs da reforma (NF-e 16/11, CT-e 14/12); agregador chega a 115 bases (nova: Emissor Nacional da NFS-e do Simples)',
@@ -806,7 +853,7 @@ const REGISTROS: Registro[] = [
       },
       {
         nome: 'Decreto 12.955/2026 — Planalto',
-        url: 'https://www.in.gov.br/web/dou/-/decreto-n-12.955-de-29-de-abril-de-2026',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:decreto:2026-04-29;12955',
       },
     ],
     caminho:
