@@ -89,6 +89,10 @@ export function DestinatariosAgente() {
       setResumoSemanal(d.resumo_semanal !== false)
       setClientes(d.candidatos_clientes || [])
       setUsuarios(d.candidatos_usuarios || [])
+      // Leitura bem-sucedida fecha a caixa do token. Sem esta linha, quem digita
+      // o token uma vez fica preso na tela do token para sempre: ela só abre,
+      // nunca fecha.
+      setMostrarToken(false)
     } catch (e) {
       setMsg({ tipo: 'erro', texto: `não consegui falar com o servidor: ${e}` })
     } finally {

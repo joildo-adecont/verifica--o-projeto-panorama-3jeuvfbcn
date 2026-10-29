@@ -32,9 +32,9 @@
     "README.md"
   ],
   "deployment": {
-    "lastDevBuildRef": "f3378a5",
-    "lastProdBuildRef": "f3378a5",
-    "publishedAt": "2026-10-29T20:10:06.012Z",
-    "lastPublishedRef": "f3378a5"
+    "lastDevBuildRef": "ccfccad",
+    "lastProdBuildRef": "ccfccad",
+    "publishedAt": "2026-10-29T20:13:28.514Z",
+    "lastPublishedRef": "ccfccad"
   }
 }
