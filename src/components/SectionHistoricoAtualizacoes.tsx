@@ -46,6 +46,20 @@ const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
     data: '29/10/2026',
+    hora: '20:52',
+    titulo:
+      'A busca deixou de correr a tela: as abas ficaram fixas e o resultado aparece dentro da aba',
+    conteudo:
+      'A pedido do CEO: o conteúdo deve ficar diretamente nas abas, sem a tela correr no momento da busca. Eram duas causas somadas. A primeira: o filtro removia grupos da lista de abas, e como a aba ativa era calculada como a primeira visível, cada tecla trocava a aba debaixo do usuário e a altura do painel variava. A segunda: o CSS global usa rolagem suave, então qualquer mudança de altura disparava uma animação de scroll. Correção: as seis abas passaram a ficar sempre no lugar, e a busca filtra os cards DENTRO da aba aberta — cada aba mostra quantos resultados tem (ex.: Simulação 1 de 7) e a aba sem resultado fica esmaecida, mas continua clicável. A aba ativa nunca mais muda sozinha. O painel ganhou altura mínima para não pular entre abas, e o campo de busca guarda a posição da página e a restaura no quadro seguinte, de modo que digitar não move a tela. Aproveitei para corrigir um defeito que apareceu no teste: a busca era literal, e quem digitava imóvel não encontrava a seção Imobiliário — parecia que o sistema não tinha o assunto. Cada uma das 24 seções ganhou uma lista de sinônimos informais, então aluguel acha 6A, carro acha a Tabela Geral e advogado acha Profissionais. Medição em produção: a posição da página ficou em 545 antes e depois de digitar, a altura ficou estável em 871, e a busca por aluguel devolveu 1 de 7 na aba Simulação abrindo o card 6A Imobiliário.',
+    fontes: [],
+    caminho:
+      'src/components/PainelInicial.tsx + src/components/navegacao.ts (tags de sinônimo) + src/components/PanoramaSideMenu.tsx',
+    versao: 'v0.0.257 a v0.0.259',
+    bloco: 'sistema',
+  },
+  // ============ BLOCO: ATUALIZAÇÃO DA LEGISLAÇÃO ============
+  {
+    data: '29/10/2026',
     hora: '20:40',
     titulo: 'Cadastro de cliente pela tela agora alimenta o painel Por cliente',
     conteudo:
