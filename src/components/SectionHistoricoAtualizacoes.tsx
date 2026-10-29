@@ -89,7 +89,7 @@ const REGISTROS: Registro[] = [
       },
       {
         nome: 'Planalto — LC 238/2026 (limites do MEI)',
-        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/Lcp238.htm',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2026-10-21;238',
       },
       {
         nome: 'CGIBS — Resoluções (18/18, sem mudança)',
@@ -118,7 +118,7 @@ const REGISTROS: Registro[] = [
       },
       {
         nome: 'Planalto — LC 214/2025 compilada (sem alteração)',
-        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/Lcp214compilado.htm',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
       },
     ],
     caminho:
@@ -144,7 +144,7 @@ const REGISTROS: Registro[] = [
       },
       {
         nome: 'Planalto — LC 214/2025 compilada (sem alteração desde 12/10)',
-        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214compilado.htm',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
       },
       {
         nome: 'Buscador NCM — fontes (cClassTrib v1.70 implantada; Calculadora V0059)',
@@ -169,7 +169,7 @@ const REGISTROS: Registro[] = [
       },
       {
         nome: 'Planalto — LC 227/2026 (art. 181, IV, "a")',
-        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp227.htm',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2026-01-13;227',
       },
       {
         nome: 'Buscador NCM — fontes (re-conferência de 12/10/2026)',
@@ -199,7 +199,7 @@ const REGISTROS: Registro[] = [
       },
       {
         nome: 'Planalto — LC 227/2026 (monitorada, sem alteração)',
-        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp227.htm',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2026-01-13;227',
       },
       {
         nome: 'RFB — Reforma Tributária (sem novo ato)',
@@ -802,11 +802,11 @@ const REGISTROS: Registro[] = [
       },
       {
         nome: 'LC 214/2025 — Planalto',
-        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214.htm',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
       },
       {
         nome: 'Decreto 12.955/2026 — Planalto',
-        url: 'https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2026/decreto/D12955.htm',
+        url: 'https://www.in.gov.br/web/dou/-/decreto-n-12.955-de-29-de-abril-de-2026',
       },
     ],
     caminho:
@@ -903,7 +903,7 @@ const REGISTROS: Registro[] = [
       },
       {
         nome: 'LC 214/2025 — Planalto',
-        url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214.htm',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
       },
       {
         nome: 'Decreto 12.955/2026 — Planalto',
