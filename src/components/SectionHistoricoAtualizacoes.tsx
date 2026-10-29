@@ -46,6 +46,20 @@ const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
     data: '29/10/2026',
+    hora: '20:10',
+    titulo:
+      'Central de Indicadores (Seção 8A) — todos os números do sistema em uma tela, com 4 abas',
+    conteudo:
+      'Segunda etapa do pedido do CEO: evolução de alíquotas, gráficos, painéis e molduras, centralizados em um ícone separado dentro do seu próprio grupo. Os números do sistema estavam espalhados — a referência de alíquota nos simuladores, a contagem de linhas na Tabela Geral, as fontes no Monitor, as normas no Histórico — e quem queria bater o olho e entender tinha de visitar cinco seções. A Seção 8A reúne tudo em quatro abas. ALÍQUOTAS: gráfico de barras empilhadas com a evolução ano a ano de 2026 a 2033 (1,0% em 2026; 11,4% em 2027-2028, quando só a CBS é cobrada; degraus de 13,2% a 30,0% com a entrada do IBS a partir de 2029), com a linha do teto de 26,5% do art. 349 marcada em vermelho e a fase de cada ano rotulada; tabela dos seis redutores com a alíquota efetiva sobre a referência; série histórica do que mudou (27,91% para 30,00%) e a procedência de cada número com o que ainda está pendente. TABELAS: rosca de confiança do vínculo (954 confirmadas, 66 parciais, 33 sem vínculo), linhas por diploma (RIBS 855, LC 214 198), anexos por instrumento (28) e três leituras que evitam erro. FONTES: estado das 16 fontes vigiadas, as 23 normas por situação, incorporadas versus fora do Panorama. NORMAS: produção normativa por ano, por tipo de ato e por função na reforma, com as cinco mais recentes. Nada é digitado na tela: todo número vem de src/data e, quando um dado falta, a tela diz o que não foi medido em vez de estimar. A aba Normas explica por que 2024 aparece vazio — naquele ano a reforma tramitou no Congresso e nenhum ato foi publicado.',
+    fontes: [],
+    caminho:
+      'src/components/SectionIndicadores.tsx (novo) + src/components/navegacao.ts (grupo Indicadores) + src/pages/Index.tsx',
+    versao: 'v0.0.245 a v0.0.246',
+    bloco: 'sistema',
+  },
+  // ============ BLOCO: ATUALIZAÇÃO DA LEGISLAÇÃO ============
+  {
+    data: '29/10/2026',
     hora: '19:45',
     titulo:
       'Painel inicial com abas e acompanhamento — navegação passou de 24 itens soltos para 5 grupos',

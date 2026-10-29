@@ -992,6 +992,14 @@ function AbaNormas() {
           O volume cresce porque a reforma saiu da Constituição para a lei complementar e, depois,
           para os regulamentos — cada camada acrescenta atos.
         </p>
+        {porAno.length < 4 && (
+          <p className="text-[10px] text-amber-900 bg-amber-50 border border-amber-200 rounded px-2 py-1.5 mt-1.5 leading-snug">
+            <b>Por que 2024 está vazio:</b> não é falha de medição. Em 2024 a reforma tramitou no
+            Congresso (PLP 68/2024) e nenhum ato foi publicado — a lei complementar só saiu em
+            janeiro de 2025. O gráfico mostra anos com ato publicado, não anos com trabalho
+            legislativo.
+          </p>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
