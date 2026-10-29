@@ -244,7 +244,7 @@ export function PainelInicial() {
               </h2>
               <p className="text-xs text-slate-500 mt-0.5 max-w-2xl leading-relaxed">
                 Onde você quer ir, o que está acontecendo na legislação e se a informação está
-                atualizada. Cinco grupos, {TOTAL_ITENS} seções, {TOTAL_GRUPOS} caminhos.
+                atualizada. {TOTAL_ITENS} seções organizadas em {TOTAL_GRUPOS} grupos temáticos.
               </p>
             </div>
           </div>
