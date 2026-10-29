@@ -46,6 +46,19 @@ const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
     data: '29/10/2026',
+    hora: '20:40',
+    titulo: 'Cadastro de cliente pela tela agora alimenta o painel Por cliente',
+    conteudo:
+      'Quinta etapa, fechando o ciclo: o formulário de digitação manual em Cadastro & Envios ganhou o bloco Perfil para análise (opcional), com filete dourado, contendo regime tributário (9 opções), receita mensal em reais, atividade (10 opções) e UF. Sem esses campos o cliente aparece como pendência no painel Por cliente da Central de Indicadores — o painel não estima. A lista de clientes cadastrados ganhou a coluna Perfil, com selo verde quando o cadastro está completo (regime + receita) e selo âmbar de aviso quando falta regime ou receita. O endpoint de importação (simul-importar) passou a aceitar e persistir os quatro campos, tanto na criação quanto na atualização — na atualização, só grava quando vierem preenchidos, para uma importação parcial não apagar o que já estava. Nota visível no formulário: Simples e MEI não entram no cálculo do painel, porque a alíquota deles depende da faixa de RBT12. Teste de ponta a ponta em produção: cliente criado pela tela com regime regular e receita R$ 150.000 gravou os quatro campos, o painel Por cliente o reconheceu (alíquota 30,00%, tributo R$ 45.000, benefício R$ 0 — correto, pois regime regular não tem redução), e o registro de teste foi removido da base depois da validação.',
+    fontes: [],
+    caminho:
+      'public/envios.html + public/panorama-reforma/envios.html (2 cópias) + pocketbase/hooks/simulador_envios.js (importar)',
+    versao: 'v0.0.255',
+    bloco: 'sistema',
+  },
+  // ============ BLOCO: ATUALIZAÇÃO DA LEGISLAÇÃO ============
+  {
+    data: '29/10/2026',
     hora: '20:30',
     titulo:
       'Comparador de três setores e painel de custo do erro por cliente — com dois dados que faltavam na base',
