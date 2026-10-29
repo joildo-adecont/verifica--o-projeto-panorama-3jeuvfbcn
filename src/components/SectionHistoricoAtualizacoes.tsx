@@ -46,6 +46,31 @@ const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
     data: '29/10/2026',
+    hora: '16:50',
+    titulo: 'Resumo semanal por e-mail — o CEO recebe a confirmação mesmo quando nada mudou',
+    conteudo:
+      'A pedido do CEO, o Agente de Vigilância das Fontes passou a enviar dois tipos de mensagem. O alerta (faixa vermelha) já existia: dispara quando uma fonte de origem da legislação muda, com o que mudou e as seções a revisar. O resumo semanal (faixa verde) é novo: chega toda quarta-feira após a varredura dizendo que as fontes foram conferidas e nenhuma mudou, com a lista das fontes e o órgão de cada uma. A razão: silêncio não prova que o sistema funcionou — um aviso que nunca chega é indistinguível de um sistema parado, e o CEO quis a prova de execução. O resumo traz as 9 fontes ativas conferidas, o resumo medido da varredura e um parágrafo explicando o mecanismo: cada fonte guarda o hash do texto da varredura anterior, e quando o hash diverge o aviso deixa de ser resumo e passa a ser alerta. Ambos os modos ficam registrados na auditoria do sistema (RESUMO_FONTES e ALERTA_FONTES), com data, hora e resultado.',
+    fontes: [
+      {
+        nome: 'CGIBS — Resoluções',
+        url: 'https://cgibs.gov.br/resolucoes',
+      },
+      {
+        nome: 'normas.leg.br — texto integral (Senado/Congresso)',
+        url: 'https://normas.leg.br',
+      },
+      {
+        nome: 'Imprensa Nacional — Diário Oficial da União',
+        url: 'https://www.in.gov.br',
+      },
+    ],
+    caminho:
+      'pocketbase/hooks/agente_fontes.js (modo resumo) + scripts/ligacao-item/notificar_fontes.py (modo resumo) + run.sh passo 6/6',
+    versao: 'v0.0.225',
+    bloco: 'sistema',
+  },
+  {
+    data: '29/10/2026',
     hora: '16:45',
     titulo:
       'Agente de Vigilância passa a avisar por e-mail — joildo@adecont.com.br recebe quando uma fonte muda',
