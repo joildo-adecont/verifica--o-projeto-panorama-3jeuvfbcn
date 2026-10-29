@@ -255,7 +255,7 @@ function BarraComparativa({ a, b, c }: { a: Setor; b: Setor; c: Setor }) {
 export function ComparadorSetores() {
   const [a, setA] = useState('imobiliario')
   const [b, setB] = useState('agro')
-  const [c, setC] = useState('financeiro')
+  const [c, setC] = useState('financeiros')
 
   const setorA = SETORES.find((s) => s.id === a) ?? SETORES[0]
   const setorB = SETORES.find((s) => s.id === b) ?? SETORES[1]
