@@ -27,6 +27,9 @@ import {
  * inventado, ele é recusado com o motivo.
  */
 
+// O backend é o mesmo que o resto do app usa (SectionControleAcesso, Simulador).
+// Testado no navegador: responde 200 e devolve a lista. A origem do site NÃO
+// serve como atalho — lá '/backend/v1' cai no SPA e devolve HTML.
 const BACKEND = 'https://verificacao-projeto-panorama-18549.shrd00.internal.goskip.dev'
 const TOKEN_KEY = 'adecont_agente_token'
 
@@ -93,10 +96,13 @@ export function DestinatariosAgente() {
     }
   }
 
+  // Recarrega sempre que o token mudar. A primeira carga acontece com o token
+  // já gravado neste navegador; se não houver, o painel pede o token em vez de
+  // mostrar uma lista vazia como se não houvesse candidatos.
   useEffect(() => {
     carregar(tk)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [tk])
 
   function salvarToken() {
     try {
