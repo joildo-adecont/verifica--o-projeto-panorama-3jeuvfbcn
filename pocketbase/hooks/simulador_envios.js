@@ -116,6 +116,16 @@ routerAdd('POST', '/backend/v1/simul-importar', (e) => {
       existing.set('empresa', c.empresa || existing.getString('empresa'))
       existing.set('documento', c.documento || existing.getString('documento'))
       if (c.canal_preferido) existing.set('canal_preferido', c.canal_preferido)
+      if (c.observacoes !== undefined) existing.set('observacoes', c.observacoes || '')
+      // campos de análise: só grava quando vierem preenchidos, para não apagar
+      // o que já estava no cadastro numa atualização parcial
+      if (c.regime_tributario) existing.set('regime_tributario', c.regime_tributario)
+      if (c.atividade) existing.set('atividade', c.atividade)
+      if (c.uf) existing.set('uf', String(c.uf).toUpperCase())
+      if (c.receita_mensal !== undefined && c.receita_mensal !== null && c.receita_mensal !== '') {
+        var rmUp = Number(String(c.receita_mensal).replace(/\./g, '').replace(',', '.'))
+        if (isFinite(rmUp) && rmUp >= 0) existing.set('receita_mensal', rmUp)
+      }
       existing.set('is_active', true)
       $app.save(existing)
       atualizados++
@@ -130,6 +140,17 @@ routerAdd('POST', '/backend/v1/simul-importar', (e) => {
         rec.set('canal_preferido', c.canal_preferido || 'email')
         rec.set('is_active', true)
         rec.set('observacoes', c.observacoes || '')
+        if (c.regime_tributario) rec.set('regime_tributario', c.regime_tributario)
+        if (c.atividade) rec.set('atividade', c.atividade)
+        if (c.uf) rec.set('uf', String(c.uf).toUpperCase())
+        if (
+          c.receita_mensal !== undefined &&
+          c.receita_mensal !== null &&
+          c.receita_mensal !== ''
+        ) {
+          var rmNew = Number(String(c.receita_mensal).replace(/\./g, '').replace(',', '.'))
+          if (isFinite(rmNew) && rmNew >= 0) rec.set('receita_mensal', rmNew)
+        }
         $app.save(rec)
         inseridos++
       } catch (err2) {

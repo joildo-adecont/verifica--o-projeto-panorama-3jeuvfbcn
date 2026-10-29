@@ -278,6 +278,74 @@
             </select>
           </div>
         </div>
+        <div
+          style="
+            margin-top: 12px;
+            padding: 10px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-left: 3px solid #c5a059;
+            border-radius: 6px;
+          "
+        >
+          <p style="margin: 0 0 8px; font-size: 12px; font-weight: 700; color: #0b1528">
+            📊 Perfil para análise (opcional)
+          </p>
+          <p style="margin: 0 0 10px; font-size: 11px; color: #64748b; line-height: 1.4">
+            Estes campos alimentam o painel <b>Por cliente</b> da Central de Indicadores, que mostra
+            quanto o regime tributário já reduz de carga. Sem eles, o cliente aparece como pendência
+            — o painel não estima.
+          </p>
+          <div class="row">
+            <div>
+              <label>Regime tributário</label>
+              <select id="c_regime">
+                <option value="">— não informado —</option>
+                <option value="regular">Regime regular</option>
+                <option value="simples">Simples Nacional</option>
+                <option value="mei">MEI</option>
+                <option value="imobiliario">Imobiliário</option>
+                <option value="agro">Agronegócio</option>
+                <option value="consorcios">Consórcios</option>
+                <option value="financeiro">Serviços financeiros</option>
+                <option value="profissional">Profissão regulamentada</option>
+              </select>
+            </div>
+            <div>
+              <label>Receita mensal (R$)</label>
+              <input id="c_receita" placeholder="ex.: 100000" inputmode="numeric" />
+            </div>
+            <div>
+              <label>Atividade</label>
+              <select id="c_atividade">
+                <option value="">— não informado —</option>
+                <option value="comercio">Comércio</option>
+                <option value="industria">Indústria</option>
+                <option value="servicos">Serviços</option>
+                <option value="imobiliario">Imobiliário</option>
+                <option value="agropecuaria">Agropecuária</option>
+                <option value="financeiro">Financeiro</option>
+                <option value="construcao">Construção</option>
+                <option value="saude">Saúde</option>
+                <option value="educacao">Educação</option>
+                <option value="tecnologia">Tecnologia</option>
+                <option value="outro">Outro</option>
+              </select>
+            </div>
+          </div>
+          <div class="row" style="margin-top: 8px">
+            <div>
+              <label>UF</label>
+              <input id="c_uf" placeholder="RS" maxlength="2" style="text-transform: uppercase" />
+            </div>
+            <div style="display: flex; align-items: flex-end">
+              <span style="font-size: 10.5px; color: #94a3b8; line-height: 1.3">
+                Simples e MEI não entram no cálculo do painel — a alíquota deles depende da faixa de
+                RBT12.
+              </span>
+            </div>
+          </div>
+        </div>
         <div style="margin-top: 10px">
           <label>Observações</label
           ><input id="c_obs" placeholder="Observações internas (opcional)" />
@@ -297,6 +365,7 @@
                 <th>E-mail</th>
                 <th>Empresa</th>
                 <th>WhatsApp</th>
+                <th>Perfil</th>
                 <th></th>
               </tr>
             </thead>
@@ -773,6 +842,10 @@
           documento: document.getElementById('c_doc').value.trim(),
           canal_preferido: document.getElementById('c_canal').value,
           observacoes: document.getElementById('c_obs').value.trim(),
+          regime_tributario: document.getElementById('c_regime').value,
+          receita_mensal: document.getElementById('c_receita').value.trim(),
+          atividade: document.getElementById('c_atividade').value,
+          uf: document.getElementById('c_uf').value.trim().toUpperCase(),
         }
         if (!c.nome || !c.email) {
           msg('cadMsg', 'Informe nome e e-mail.', false)
@@ -793,9 +866,49 @@
           })
       }
       function limparCad() {
-        ;['c_nome', 'c_email', 'c_wa', 'c_empresa', 'c_doc', 'c_obs'].forEach(function (i) {
-          document.getElementById(i).value = ''
-        })
+        ;['c_nome', 'c_email', 'c_wa', 'c_empresa', 'c_doc', 'c_obs', 'c_receita', 'c_uf'].forEach(
+          function (i) {
+            document.getElementById(i).value = ''
+          },
+        )
+        document.getElementById('c_regime').value = ''
+        document.getElementById('c_atividade').value = ''
+      }
+      // mostra, na lista, se o cadastro já tem o perfil de análise
+      function perfilBadge(c) {
+        var rot = {
+          regular: 'Regular',
+          simples: 'Simples',
+          mei: 'MEI',
+          imobiliario: 'Imobiliário',
+          agro: 'Agro',
+          consorcios: 'Consórcios',
+          financeiro: 'Financeiro',
+          profissional: 'Profissional',
+        }
+        if (!c.regime_tributario) {
+          return '<span style="font-size:10px;color:#b45309;background:#fef3c7;border:1px solid #fcd34d;border-radius:4px;padding:1px 5px">⚠ sem regime</span>'
+        }
+        var r = rot[c.regime_tributario] || c.regime_tributario
+        var rec = c.receita_mensal
+          ? 'R$ ' + Number(c.receita_mensal).toLocaleString('pt-BR')
+          : 'sem receita'
+        var cor = c.receita_mensal ? '#065f46' : '#b45309'
+        var bgc = c.receita_mensal ? '#d1fae5' : '#fef3c7'
+        var bd = c.receita_mensal ? '#6ee7b7' : '#fcd34d'
+        return (
+          '<span style="font-size:10px;color:' +
+          cor +
+          ';background:' +
+          bgc +
+          ';border:1px solid ' +
+          bd +
+          ';border-radius:4px;padding:1px 5px">' +
+          r +
+          ' · ' +
+          rec +
+          '</span>'
+        )
       }
       function carregarClientes() {
         pb('/api/collections/simul_clientes/records?perPage=500&sort=nome')
@@ -813,6 +926,9 @@
                 (c.empresa || '—') +
                 '</td><td>' +
                 (c.whatsapp || '—') +
+                '</td>' +
+                '<td>' +
+                perfilBadge(c) +
                 '</td>' +
                 '<td><button class="btn btn-verm" style="padding:3px 8px;font-size:.68rem" onclick="excluirCliente(\'' +
                 c.id +
