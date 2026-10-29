@@ -596,7 +596,7 @@ function SimuladorImobiliario() {
           <KpiA
             titulo="Alíquota de referência"
             valor={aliCheia.toFixed(2) + '%'}
-            sub="CBS 8,8% (estimativa) + IBS 19,11%"
+            sub="CBS 11,3% (TCU 2027) + IBS 18,70%"
           />
           <KpiA
             titulo="Redução do art. 261"
@@ -900,12 +900,12 @@ function SimuladorImobiliario() {
 
       <div className="p-3.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-xs sm:text-sm">
         ⚠️ A alíquota de referência da CBS 2027 ainda depende de resolução do Senado (LC 214, art.
-        349). A CBS de 8,8% é estimativa de mercado (8,8% − 0,1 p.p. do art. 347) e o IBS de 19,11%
-        deriva da referência total de ${pct(REF_TOTAL)} (Res. CGIBS 14/2026). O redutor de ajuste
-        dos imóveis detidos em 31/12/2026 usa custo de aquisição corrigido ou, por opção, o valor de
-        referência (art. 258, I) — aqui simulado pelo custo + IPCA informado. O limite de R$ 240 mil
-        (art. 251, §5º) e os redutores sociais são atualizados mensalmente pelo IPCA desde
-        16/01/2025 — informe o IPCA acumulado para o valor vigente.
+        349). A CBS é de 11,3% para 2027 (TCU, 28/10/2026) e o IBS de 18,70% deriva da referência
+        total de ${pct(REF_TOTAL)} (Res. CGIBS 14/2026). O redutor de ajuste dos imóveis detidos em
+        31/12/2026 usa custo de aquisição corrigido ou, por opção, o valor de referência (art. 258,
+        I) — aqui simulado pelo custo + IPCA informado. O limite de R$ 240 mil (art. 251, §5º) e os
+        redutores sociais são atualizados mensalmente pelo IPCA desde 16/01/2025 — informe o IPCA
+        acumulado para o valor vigente.
       </div>
 
       <BotaoEnviarSimulacao termo="venda de imóvel residencial novo" />

@@ -960,7 +960,7 @@ function SimuladorHibrido() {
       </div>
       <div className="p-3.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-xs sm:text-sm">
         ⚠️ A alíquota de referência da CBS 2027 ainda depende de resolução do Senado (LC 214, art.
-        349). O valor {cbsRef.toFixed(1)}% é estimativa de mercado (8,8% − 0,1 p.p. do art. 347) e é
+        349). O valor {cbsRef.toFixed(1)}% é a referência da CBS para 2027 (TCU, 28/10/2026) e é
         editável acima. Os percentuais de partilha seguem os Anexos XVIII–XXII da LC 214 (tabelas
         2027–2028).
       </div>

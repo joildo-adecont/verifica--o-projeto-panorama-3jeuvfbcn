@@ -1329,11 +1329,10 @@ function SimuladorAgro() {
 
       <div className="p-3.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-xs sm:text-sm">
         ⚠️ A alíquota de referência da CBS 2027 ainda depende de resolução do Senado (LC 214, art.
-        349); a CBS de 8,8% é estimativa de mercado (8,8% − 0,1 p.p. do art. 347) e o IBS de 19,11%
-        deriva da referência total de {pct(REF_TOTAL)} (Res. CGIBS 14/2026). O limite de R$ 3,6
-        milhões é atualizado anualmente pelo IPCA (art. 167). Os percentuais dos créditos presumidos
-        serão divulgados anualmente (arts. 168–169) — o valor de {percentual.toFixed(0)}% aqui é
-        editável e didático.
+        349); a CBS é de 11,3% para 2027 (TCU, 28/10/2026) e o IBS de 18,70% deriva da referência
+        total de {pct(REF_TOTAL)} (Res. CGIBS 14/2026). O limite de R$ 3,6 milhões é atualizado
+        anualmente pelo IPCA (art. 167). Os percentuais dos créditos presumidos serão divulgados
+        anualmente (arts. 168–169) — o valor de {percentual.toFixed(0)}% aqui é editável e didático.
       </div>
 
       <BotaoEnviarSimulacao termo="produtos agropecuários" />
