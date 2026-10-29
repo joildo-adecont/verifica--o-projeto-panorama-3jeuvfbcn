@@ -53,7 +53,7 @@ routerAdd('POST', '/backend/v1/agente-fontes/notificar', (e) => {
   // própria. O corpo pode sobrescrever só com 'destinatario'.
   var copias = []
   try {
-    var cfgRec = $app.findRecordById('agente_config', 'config')
+    var cfgRec = $app.findRecordById('agente_config', 'agentecfg000001')
     destinatario = cfgRec.getString('destinatario_principal') || destinatario
     var arrCopias = cfgRec.get('destinatarios_copia')
     if (arrCopias && arrCopias.length) copias = arrCopias
@@ -320,7 +320,7 @@ routerAdd('GET', '/backend/v1/agente-fontes/destinatarios', (e) => {
   var copia = []
   var resumo = true
   try {
-    var cfg = $app.findRecordById('agente_config', 'config')
+    var cfg = $app.findRecordById('agente_config', 'agentecfg000001')
     principal = cfg.getString('destinatario_principal') || principal
     var arr = cfg.get('destinatarios_copia')
     if (arr && arr.length) copia = arr
@@ -448,7 +448,7 @@ routerAdd('POST', '/backend/v1/agente-fontes/destinatarios', (e) => {
   var principal = body.principal || 'joildo@adecont.com.br'
   var resumo = body.resumo_semanal
   try {
-    var cfg = $app.findRecordById('agente_config', 'config')
+    var cfg = $app.findRecordById('agente_config', 'agentecfg000001')
     cfg.set('destinatarios_copia', aceitos)
     if (body.principal) cfg.set('destinatario_principal', principal)
     if (resumo === true || resumo === false) cfg.set('enviar_resumo_semanal', resumo)

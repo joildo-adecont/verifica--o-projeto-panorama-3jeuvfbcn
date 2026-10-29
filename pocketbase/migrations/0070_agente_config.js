@@ -30,7 +30,9 @@ migrate(
 
     // registro único com o estado inicial: diretor recebe tudo
     const rec = new Record(col)
-    rec.id = 'config'
+    // id fixo: 15+ caracteres é exigência do PocketBase. 'agente_config_01'
+    // mantém o registro único sem depender de busca por filtro.
+    rec.id = 'agentecfg000001'
     rec.set('destinatario_principal', 'joildo@adecont.com.br')
     rec.set('destinatarios_copia', [])
     rec.set('enviar_resumo_semanal', true)
