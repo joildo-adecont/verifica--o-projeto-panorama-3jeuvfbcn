@@ -17,21 +17,21 @@
  * dentro dos callbacks do router. Por isso tudo é inline em cada handler.
  */
 
-routerAdd('POST', '/backend/v1/agente-fontes/notificar', (c) => {
+routerAdd('POST', '/backend/v1/agente-fontes/notificar', (e) => {
   // ── autenticação inline (mesmo padrão do painel do Simulador) ──
   var esperado = $secrets.get('AGENTE_FONTES_TOKEN') || ''
   if (!esperado) {
-    return c.json(503, { ok: false, erro: 'AGENTE_FONTES_TOKEN não configurado' })
+    return e.json(503, { ok: false, erro: 'AGENTE_FONTES_TOKEN não configurado' })
   }
-  var recebido = c.request().header.get('X-Painel-Token') || ''
+  var recebido = e.request.header.get('X-Painel-Token') || ''
   if (recebido !== esperado) {
-    return c.json(403, { ok: false, erro: 'token inválido' })
+    return e.json(403, { ok: false, erro: 'token inválido' })
   }
 
   // ── corpo ──
   var body = {}
   try {
-    body = $apis.requestInfo(c).data || {}
+    body = e.requestInfo().body || {}
   } catch (_) {
     body = {}
   }
@@ -43,7 +43,7 @@ routerAdd('POST', '/backend/v1/agente-fontes/notificar', (c) => {
   var forcar = body.forcar === true
 
   if (!mudancas.length && !forcar) {
-    return c.json(200, { ok: true, enviado: false, motivo: 'nenhuma mudança — nada a notificar' })
+    return e.json(200, { ok: true, enviado: false, motivo: 'nenhuma mudança — nada a notificar' })
   }
 
   var baseUrl = body.baseUrl || 'https://verificacao-projeto-panorama-18549.goskip.app'
@@ -181,7 +181,7 @@ routerAdd('POST', '/backend/v1/agente-fontes/notificar', (c) => {
     console.log('[agente-fontes] log falhou: ' + logErr)
   }
 
-  return c.json(200, { ok: true, enviado: enviado, destinatario: destinatario, erro: erro })
+  return e.json(200, { ok: true, enviado: enviado, destinatario: destinatario, erro: erro })
 })
 
 /**
@@ -189,13 +189,13 @@ routerAdd('POST', '/backend/v1/agente-fontes/notificar', (c) => {
  * Diz se o canal de e-mail está configurado, para o painel poder avisar antes
  * de alguém contar com uma notificação que não vai chegar.
  */
-routerAdd('GET', '/backend/v1/agente-fontes/status', (c) => {
+routerAdd('GET', '/backend/v1/agente-fontes/status', (e) => {
   var esperado = $secrets.get('AGENTE_FONTES_TOKEN') || ''
-  var recebido = c.request().header.get('X-Painel-Token') || ''
+  var recebido = e.request.header.get('X-Painel-Token') || ''
   if (esperado && recebido !== esperado) {
-    return c.json(403, { ok: false, erro: 'token inválido' })
+    return e.json(403, { ok: false, erro: 'token inválido' })
   }
-  return c.json(200, {
+  return e.json(200, {
     ok: true,
     tokenConfigurado: !!esperado,
     destinatarioPadrao: 'joildo@adecont.com.br',
