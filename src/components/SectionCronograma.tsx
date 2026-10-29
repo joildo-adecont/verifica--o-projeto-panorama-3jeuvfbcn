@@ -123,7 +123,7 @@ export function SectionCronograma() {
       num: 1,
       ponto: 'Alíquotas de referência de 2033',
       porque:
-        'São estimativas (IBSLab ≈17,7% IBS; ≈8,8% CBS) até a fixação legal pelo Senado/lei ordinária',
+        'CBS de 11,3% fixada pelo TCU em 28/10/2026 para 2027 (Senado tem até 15/12/2026); IBS de 18,70% é a referência da Res. CGIBS 14/2026, com alíquotas próprias dos entes a partir de 2029',
     },
     {
       num: 2,
@@ -400,8 +400,8 @@ export function SectionCronograma() {
                   <td className="py-3 px-4 align-top text-slate-700 leading-relaxed">
                     {item.num === 1 ? (
                       <span>
-                        São <strong>estimativas</strong> (IBSLab ≈17,7% IBS; ≈8,8% CBS) até a
-                        fixação legal pelo Senado/lei ordinária
+                        <strong>CBS 11,3%</strong> (TCU, 28/10/2026, para 2027) e{' '}
+                        <strong>IBS 18,70%</strong> (Res. CGIBS 14/2026, referência de regime pleno)
                       </span>
                     ) : item.num === 2 ? (
                       <span>
