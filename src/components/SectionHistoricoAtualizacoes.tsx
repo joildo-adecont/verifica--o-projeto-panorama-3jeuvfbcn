@@ -1076,6 +1076,36 @@ const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DA LEGISLAÇÃO (órgãos oficiais) ============
   {
     data: '28/10/2026',
+    hora: '21:35',
+    titulo:
+      'Três atos de outubro/2026 incorporados — LC 235 (combustíveis), LC 237 (datacenter e LRF) e ATC RFB/CGIBS nº 9 (GTI) + Portaria MF/CGIBS nº 14',
+    conteudo:
+      'Os quatro atos que a varredura do DOU revelou foram incorporados ao Panorama, com texto integral lido na Imprensa Nacional. (1) LC 235/2026 (27/08, DOU 28/08): renúncias de receita em 2026 para mitigar o choque do mercado internacional de energia — redução de alíquotas federais de diesel, biodiesel, gasolina, etanol e querosene de aviação, com proteção obrigatória à diferenciação do biocombustível (etanol a zero se a gasolina cair 30%+); excepcionaliza minerais críticos, fertilizantes e Copa Feminina 2027; altera a LC 214/2025 nos arts. 82, § 11, e 174, § 12; autoriza crédito fiscal a fertilizantes até 2031 (R$ 1 bi/ano). (2) LC 237/2026 (15/09): inclui datacenter, financiamento a pessoas com câncer e com deficiência e desoneração de IRPJ/CSLL de resseguradoras nas exceções às regras de benefício tributário; desobriga Municípios com até 65 mil habitantes de comprovar tributos para transferências voluntárias. (3) ATC RFB/CGIBS nº 9 (20/10, DOU 26/10): organiza os trabalhos conjuntos entre RFB e DIREX, instituindo os Grupos de Trabalho Interinstitucionais (GTI), com vigência até 31/03/2027 — é a engrenagem que produzirá os atos técnicos da operação do IBS. (4) Portaria Conjunta MF/CGIBS nº 14 (02/10, DOU 05/10): aprova a metodologia de cálculo da carga tributária que fixará as alíquotas do IBS e da CBS sobre combustíveis — uniformes no território nacional, específicas por unidade de medida e diferenciadas por produto, com aplicação à CBS em 2027 e ao IBS em 2029. Todos foram para a Seção 6E (abas próprias) e para a Seção 1 (arcabouço normativo, ordens 18 a 21 da coleção tax_norms, via migration 0068).',
+    fontes: [
+      {
+        nome: 'DOU — Lei Complementar nº 235, de 27/08/2026 (texto integral)',
+        url: 'https://www.in.gov.br/web/dou/-/lei-complementar-n-235-de-27-de-agosto-de-2026-728568253',
+      },
+      {
+        nome: 'DOU — Lei Complementar nº 237, de 15/09/2026 (texto integral)',
+        url: 'https://www.in.gov.br/web/dou/-/lei-complementar-n-237-de-15-de-setembro-de-2026-731891987',
+      },
+      {
+        nome: 'DOU — Ato Técnico Conjunto RFB/CGIBS nº 9, de 20/10/2026',
+        url: 'https://www.in.gov.br/web/dou/-/ato-tecnico-conjunto-rfb/cgibs-n-9-de-20-de-outubro-de-2026-740391670',
+      },
+      {
+        nome: 'DOU — Portaria Conjunta MF/CGIBS nº 14, de 02/10/2026',
+        url: 'https://www.in.gov.br/web/dou/-/portaria-conjunta-mf/cgibs-n-14-de-2-de-outubro-de-2026-736295196',
+      },
+    ],
+    caminho:
+      'Panorama (62493) — src/components/SectionSimples.tsx (3 novas abas: LC 235/2026, ATC 9 e Portaria 14) + pocketbase/migrations/0068_add_atos_out2026.js (Seções 1 e 6) + SectionHistoricoAtualizacoes.tsx',
+    versao: '62493 v0.0.204',
+    bloco: 'legislacao',
+  },
+  {
+    data: '28/10/2026',
     hora: '21:20',
     titulo:
       'LC 238/2026 incorporada ao Panorama — novo limite do MEI (R$ 140 mil), 2 empregados e remissão de dívidas',

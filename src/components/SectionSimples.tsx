@@ -63,6 +63,139 @@ const REGRAS = [
   },
 ]
 
+/** LC 235/2026 (27/08/2026) — renúncias de receita, combustíveis e exceções à LRF.
+ *  Fonte: DOU de 28/08/2026 (texto integral conferido em 28/10/2026). */
+const LC235 = [
+  {
+    titulo: 'Renúncias de receita em 2026 — caráter extraordinário',
+    badge: '2026',
+    detalhe:
+      'Em caráter extraordinário, no exercício de 2026, não se aplicam o art. 14-A da LRF, o art. 5º da LC 224/2025 e os arts. 29 e 140 a 149 da LDO de 2026 aos benefícios tributários da Política Nacional de Minerais Críticos e Estratégicos, do Programa de Desenvolvimento da Indústria de Fertilizantes e da Copa do Mundo Feminina FIFA 2027 no Brasil.',
+    base: 'LC 235/2026, art. 1º',
+  },
+  {
+    titulo: 'Compensação do choque energético',
+    badge: 'Combustíveis',
+    detalhe:
+      'As renúncias de receita de atos do Executivo federal que mitiguem o choque do mercado internacional de energia (conflito no Oriente Médio) podem ser compensadas pelo aumento extraordinário de receita da União decorrente do próprio choque — hipótese em que se considera atendido o art. 14 da LRF. Abrange redução de alíquotas federais na importação, produção e comercialização de óleo diesel rodoviário, biodiesel, gasolina e correntes, etanol e querosene de aviação.',
+    base: 'LC 235/2026, art. 2º, caput e §§ 1º e 2º',
+  },
+  {
+    titulo: 'Proteção ao biocombustível',
+    badge: 'Etanol',
+    detalhe:
+      'Qualquer redução tributária sobre combustível fóssil — inclusive por subvenção — deve obrigatoriamente preservar a diferenciação competitiva do biocombustível equivalente, nos mesmos percentuais e valores por unidade de medida praticados antes do conflito (art. 225, § 1º, VIII, da CF). Se a tributação federal da gasolina cair 30% ou mais, as alíquotas do etanol vão obrigatoriamente a zero.',
+    base: 'LC 235/2026, art. 2º, §§ 3º e 4º',
+  },
+  {
+    titulo: 'O que conta como aumento extraordinário de receita',
+    badge: 'Conceito',
+    detalhe:
+      'É a receita primária projetada que não foi estimada na LOA de 2026 e não está comprometida com renúncias já adotadas. Aplica-se a royalties e participação especial de petróleo e gás, receita do art. 45 da Lei 12.351/2010, receitas tributárias do setor de óleo e gás e dividendos da União de empresas do setor.',
+    base: 'LC 235/2026, art. 3º, I a IV',
+  },
+  {
+    titulo: 'Créditos de PIS/Cofins das produtoras de etanol',
+    badge: 'R$ 750 mi',
+    detalhe:
+      'As produtoras de etanol podem usar saldos credores de PIS/Pasep e Cofins apurados até a publicação da lei para compensar débitos próprios de tributos federais, limitado ao montante global de R$ 750.000.000,00 no ano de 2026.',
+    base: 'LC 235/2026, art. 5º e § 1º',
+  },
+  {
+    titulo: 'Alterações na LC 214/2025',
+    badge: 'LC 214',
+    detalhe:
+      'Dois dispositivos mudam: o art. 82, § 11, I (receita de exportação superior a 30% nos 3 anos anteriores à aquisição) e o art. 174, § 12 — para os combustíveis do art. 172 que tiveram alíquota reduzida entre março e junho de 2026, a carga tributária direta é apurada com as alíquotas vigentes em fevereiro de 2026 nos meses em que houve redução.',
+    base: 'LC 235/2026, art. 6º (alterando LC 214/2025, arts. 82, § 11, e 174, § 12)',
+  },
+  {
+    titulo: 'Crédito fiscal para fertilizantes',
+    badge: 'Até 2031',
+    detalhe:
+      'A União fica autorizada a conceder crédito fiscal a projetos de produção nacional de fertilizantes e matérias-primas (sintética, mineral e orgânica), remineralizadores, bioinsumos e biofertilizantes até 31/12/2031, com limite global de R$ 1 bilhão por ano entre 2027 e 2031.',
+    base: 'LC 235/2026, art. 7º e § 1º',
+  },
+]
+
+/** Atos de outubro/2026 que alcançam o Simples indiretamente.
+ *  Fontes: DOU (texto integral conferido em 28/10/2026). */
+const ATC9_2026 = [
+  {
+    titulo: 'O que é o Ato Técnico Conjunto RFB/CGIBS nº 9',
+    badge: 'Cooperação',
+    detalhe:
+      'Disciplina a organização e o funcionamento dos trabalhos de cooperação entre a Receita Federal (RFB) e a Diretoria Executiva do CGIBS (DIREX) para implementar a reforma do consumo. Institui os Grupos de Trabalho Interinstitucionais (GTI) e as Coordenações Normativa e Operacional. Base constitucional: arts. 156-A e 156-B, § 7º, da CF; art. 27 da LC 227/2026.',
+    base: 'ATC RFB/CGIBS nº 9/2026, arts. 1º e 2º',
+  },
+  {
+    titulo: 'O que os GTI fazem',
+    badge: 'GTI',
+    detalhe:
+      'São instâncias técnicas de cooperação que estabelecem estratégias para a gestão do IBS, promovem atuação integrada entre RFB e DIREX, propõem e executam os atos técnicos conjuntos da Resolução CGIBS nº 17/2026 e avaliam soluções integradas para operacionalizar a reforma — inclusive reaproveitando infraestrutura e soluções tecnológicas existentes.',
+    base: 'ATC RFB/CGIBS nº 9/2026, art. 2º, I a IV',
+  },
+  {
+    titulo: 'Princípios da cooperação',
+    badge: 'Princípios',
+    detalhe:
+      'Atuação autônoma e independente entre RFB e DIREX, sem subordinação nem preponderância; autonomia plena dos entes federados; compartilhamento de dados fiscais, cadastrais e tributários (arts. 59 e 62 da LC 214/2025); e intercâmbio de modelos, códigos e padrões para garantir a autonomia de fornecedores e a portabilidade dos sistemas.',
+    base: 'ATC RFB/CGIBS nº 9/2026, art. 3º, I a IV',
+  },
+  {
+    titulo: 'Vigência e sigilo',
+    badge: 'Até 31/03/2027',
+    detalhe:
+      'Vigora da publicação (26/10/2026) até 31 de março de 2027. A participação nos GTI é serviço público relevante e não remunerada, e os membros devem guardar sigilo das informações obtidas nos trabalhos e das deliberações.',
+    base: 'ATC RFB/CGIBS nº 9/2026, arts. 14, 15 e 17',
+  },
+  {
+    titulo: 'Por que importa para o contribuinte do Simples',
+    badge: 'Efeito prático',
+    detalhe:
+      'É a estrutura que decide, na prática, como as obrigações acessórias do IBS/CBS (documento fiscal, apuração, compartilhamento de dados) chegam ao contribuinte — inclusive ao optante do Simples. Não altera alíquotas nem cria obrigação nova por si só; define quem escreve e executa os atos técnicos.',
+    base: 'ATC RFB/CGIBS nº 9/2026; Resolução CGIBS nº 17/2026',
+  },
+]
+
+/** Portaria Conjunta MF/CGIBS nº 14, de 02/10/2026 — metodologia das alíquotas dos combustíveis. */
+const PC14_2026 = [
+  {
+    titulo: 'O que a Portaria aprova',
+    badge: 'Metodologia',
+    detalhe:
+      'Aprova a metodologia de cálculo da carga tributária para fixar as alíquotas do IBS e da CBS incidentes sobre os combustíveis do regime específico do art. 172 da LC 214/2025 (e art. 259 dos Regulamentos). Aplica-se à CBS a partir de 2027 e ao IBS a partir de 2029, além dos reajustes anuais.',
+    base: 'Portaria Conjunta MF/CGIBS nº 14/2026, art. 1º',
+  },
+  {
+    titulo: 'Como as alíquotas são fixadas',
+    badge: 'Específicas',
+    detalhe:
+      'Alíquotas uniformes em todo o território nacional, específicas por unidade de medida (R$ por litro, por exemplo) e diferenciadas por produto. Para combustíveis líquidos vendidos por volume, o volume é convertido a 20 °C. Não é alíquota percentual (ad valorem): é valor fixo por unidade.',
+    base: 'Portaria Conjunta MF/CGIBS nº 14/2026, art. 1º, §§ 1º e 2º',
+  },
+  {
+    titulo: 'Carga direta e carga indireta',
+    badge: 'Cálculo',
+    detalhe:
+      'A carga de referência da CBS soma Cofins, Cofins-Importação, PIS/Pasep e PIS/Pasep-Importação; a do IBS é o ICMS (inclusive monofásico com alíquota específica). A carga indireta alcança os tributos sobre insumos, serviços e bens de capital não recuperados como crédito — incluindo IPI e IOF sobre seguro na CBS, e ICMS/ISS na do IBS.',
+    base: 'Portaria Conjunta MF/CGIBS nº 14/2026, art. 2º, I a IV',
+  },
+  {
+    titulo: 'Combustíveis alcançados',
+    badge: 'Gasolina a etanol',
+    detalhe:
+      'A metodologia vale para os combustíveis listados no art. 172 da LC 214/2025 — gasolina, etanol, diesel e biodiesel entre eles — e usa o Preço Médio Ponderado a Consumidor Final (PMPF) como referência de preço.',
+    base: 'Portaria Conjunta MF/CGIBS nº 14/2026, arts. 1º e 2º, VI',
+  },
+  {
+    titulo: 'Efeito para quem revende combustível no Simples',
+    badge: 'Atenção',
+    detalhe:
+      'O regime específico dos combustíveis é uniforme e fixado por unidade de medida — o que importa ao posto optante do Simples é que a alíquota do IBS/CBS sobre o combustível não seguirá a alíquota efetiva do seu anexo, e sim o valor específico nacional. Confirme o enquadramento com a contabilidade antes de simular.',
+    base: 'LC 214/2025, art. 172; Portaria Conjunta MF/CGIBS nº 14/2026',
+  },
+]
+
 /** LC 238/2026 (21/10/2026) — MEI, Simples Nacional e licitações.
  *  Fonte: DOU de 21/10/2026, edição extra A (texto integral conferido em 28/10/2026). */
 const LC238 = [
@@ -845,7 +978,9 @@ function SimuladorHibrido() {
 }
 
 export function SectionSimples() {
-  const [tab, setTab] = useState<'transicao' | 'regras' | 'hibrido' | 'lc238'>('transicao')
+  const [tab, setTab] = useState<
+    'transicao' | 'regras' | 'hibrido' | 'lc238' | 'lc235' | 'atc9' | 'pc14'
+  >('transicao')
 
   return (
     <section id="simples" className="scroll-mt-24 space-y-5">
@@ -887,6 +1022,15 @@ export function SectionSimples() {
         <AbaButton ativo={tab === 'lc238'} onClick={() => setTab('lc238')}>
           🆕 LC 238/2026 — MEI e Simples
         </AbaButton>
+        <AbaButton ativo={tab === 'lc235'} onClick={() => setTab('lc235')}>
+          ⛽ LC 235/2026 — Combustíveis
+        </AbaButton>
+        <AbaButton ativo={tab === 'atc9'} onClick={() => setTab('atc9')}>
+          🤝 ATC RFB/CGIBS 9
+        </AbaButton>
+        <AbaButton ativo={tab === 'pc14'} onClick={() => setTab('pc14')}>
+          ⛽ Portaria MF/CGIBS 14
+        </AbaButton>
       </div>
 
       {tab === 'transicao' && (
@@ -919,6 +1063,88 @@ export function SectionSimples() {
               📆 Como e quando optar — forma e prazos (opção semestral, irretratável)
             </h4>
             <Tabela linhas={HIBRIDO_PRAZOS} />
+          </div>
+        </div>
+      )}
+
+      {tab === 'lc235' && (
+        <div className="space-y-3">
+          <div className="p-3.5 rounded-lg bg-panorama-gold/10 border border-panorama-gold/50 text-sm text-slate-800">
+            <strong>LC 235, de 27 de agosto de 2026.</strong> Responde ao choque no mercado
+            internacional de energia decorrente do conflito no Oriente Médio: autoriza, em caráter
+            extraordinário, renúncias de receita em 2026 sobre combustíveis e excepcionaliza
+            benefícios tributários de minerais críticos, fertilizantes e da Copa do Mundo Feminina
+            de 2027. Também altera dois dispositivos da LC 214/2025 que afetam o cálculo das
+            alíquotas dos combustíveis.
+          </div>
+          <Tabela linhas={LC235} />
+          <div className="p-3.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-xs sm:text-sm">
+            ⚠️ O ponto que mais interessa ao setor: a redução tributária sobre combustível fóssil
+            deve obrigatoriamente preservar a diferenciação competitiva do biocombustível
+            equivalente. E, se a tributação federal da gasolina cair 30% ou mais em relação ao
+            período anterior ao conflito, as alíquotas do etanol vão obrigatoriamente a zero.
+          </div>
+          <div className="text-[11px] text-slate-500 leading-relaxed">
+            Texto extraído do{' '}
+            <a
+              href="https://www.in.gov.br/web/dou/-/lei-complementar-n-235-de-27-de-agosto-de-2026-728568253"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline font-semibold text-panorama-navy"
+            >
+              Diário Oficial da União de 28/08/2026
+            </a>{' '}
+            — conferido em 28/10/2026.
+          </div>
+        </div>
+      )}
+
+      {tab === 'atc9' && (
+        <div className="space-y-3">
+          <div className="p-3.5 rounded-lg bg-panorama-gold/10 border border-panorama-gold/50 text-sm text-slate-800">
+            <strong>Ato Técnico Conjunto RFB/CGIBS nº 9, de 20 de outubro de 2026</strong>{' '}
+            (publicado no DOU em 26/10/2026). É o ato que organiza <em>quem</em> constrói a operação
+            do IBS: institui os Grupos de Trabalho Interinstitucionais entre a Receita Federal e a
+            Diretoria Executiva do CGIBS. Não muda alíquota nem cria obrigação — define a engrenagem
+            que produzirá os atos técnicos.
+          </div>
+          <Tabela linhas={ATC9_2026} />
+          <div className="text-[11px] text-slate-500 leading-relaxed">
+            Texto extraído do{' '}
+            <a
+              href="https://www.in.gov.br/web/dou/-/ato-tecnico-conjunto-rfb/cgibs-n-9-de-20-de-outubro-de-2026-740391670"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline font-semibold text-panorama-navy"
+            >
+              Diário Oficial da União de 26/10/2026
+            </a>{' '}
+            — conferido em 28/10/2026.
+          </div>
+        </div>
+      )}
+
+      {tab === 'pc14' && (
+        <div className="space-y-3">
+          <div className="p-3.5 rounded-lg bg-panorama-gold/10 border border-panorama-gold/50 text-sm text-slate-800">
+            <strong>Portaria Conjunta MF/CGIBS nº 14, de 2 de outubro de 2026.</strong> Aprova a
+            metodologia de cálculo da carga tributária que vai fixar as alíquotas do IBS e da CBS
+            sobre os combustíveis. É a norma que transforma a regra do art. 172 da LC 214/2025 em
+            número: diz exatamente quais tributos entram na conta e como se chega ao valor por
+            litro.
+          </div>
+          <Tabela linhas={PC14_2026} />
+          <div className="text-[11px] text-slate-500 leading-relaxed">
+            Texto extraído do{' '}
+            <a
+              href="https://www.in.gov.br/web/dou/-/portaria-conjunta-mf/cgibs-n-14-de-2-de-outubro-de-2026-736295196"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline font-semibold text-panorama-navy"
+            >
+              Diário Oficial da União de 05/10/2026
+            </a>{' '}
+            — conferido em 28/10/2026.
           </div>
         </div>
       )}
