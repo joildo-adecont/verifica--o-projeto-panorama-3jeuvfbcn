@@ -181,7 +181,7 @@ export function PanoramaHeader({
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm">
       {/* Top Banner / Status Bar */}
-      <div className="bg-panorama-navy text-slate-100 text-xs py-1.5 px-4 sm:px-6 border-b border-panorama-gold/30">
+      <div className="bg-panorama-navy text-slate-100 text-[11px] py-1 px-4 sm:px-6 border-b border-panorama-gold/30">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <span
@@ -231,7 +231,7 @@ export function PanoramaHeader({
       </div>
 
       {/* Main Header */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-1.5">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 md:gap-4">
             {/* Logo oficial da ADECONT Assessoria Administrativa, Contábil */}
@@ -244,16 +244,16 @@ export function PanoramaHeader({
                 <AdecontLogo
                   variant="color"
                   showTagline={true}
-                  className="h-11 sm:h-13 md:h-14 w-auto max-w-[190px] sm:max-w-[230px] md:max-w-[250px]"
+                  className="h-8 sm:h-9 md:h-10 w-auto max-w-[150px] sm:max-w-[180px] md:max-w-[200px]"
                 />
               </div>
             </a>
 
-            <div className="hidden sm:block h-10 w-px bg-slate-200" />
+            <div className="hidden sm:block h-8 w-px bg-slate-200" />
 
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-base sm:text-lg md:text-xl font-bold tracking-tight text-slate-900 leading-tight">
+                <h1 className="text-sm sm:text-base md:text-lg font-bold tracking-tight text-slate-900 leading-tight">
                   Panorama da Reforma Tributária
                 </h1>
                 <Badge
@@ -263,7 +263,7 @@ export function PanoramaHeader({
                   IBS / CBS / IS
                 </Badge>
               </div>
-              <p className="text-[11px] sm:text-xs text-slate-500 truncate max-w-md">
+              <p className="hidden xl:block text-[10px] text-slate-500 truncate max-w-md leading-tight">
                 Guia Estruturado • LC 214/2025, LC 227/2026, Dec. 12.955 & Res. CGIBS 6/2026
               </p>
             </div>
@@ -358,7 +358,7 @@ export function PanoramaHeader({
           {/* Mobile hamburger */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="lg:hidden p-2 text-slate-600 hover:text-slate-900 focus:outline-none"
+            className="lg:hidden p-1.5 text-slate-600 hover:text-slate-900 focus:outline-none"
             aria-label="Menu"
           >
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -366,7 +366,7 @@ export function PanoramaHeader({
         </div>
 
         {/* Mobile Search — normas + produtos/serviços */}
-        <div className="mt-2.5 lg:hidden">
+        <div className="mt-1.5 lg:hidden">
           <div className="relative">
             <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
             <input
@@ -417,7 +417,7 @@ export function PanoramaHeader({
         </div>
 
         {/* Navigation Bar Links — fonte maior, ícones coloridos e teclas de atalho */}
-        <nav className="mt-3 pt-2.5 border-t border-slate-100 hidden lg:flex items-center justify-between text-[13px] font-semibold text-slate-700 overflow-x-auto scrollbar-none gap-2">
+        <nav className="mt-3 pt-2.5 border-t border-slate-100 hidden items-center justify-between text-[13px] font-semibold text-slate-700 overflow-x-auto scrollbar-none gap-2">
           {NAV_LINKS.map((link) => {
             const { Icon } = link
             return (
