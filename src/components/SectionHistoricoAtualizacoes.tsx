@@ -46,6 +46,18 @@ const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
     data: '29/10/2026',
+    hora: '21:15',
+    titulo: 'A busca passou a abrir a aba do assunto e a prender o resultado dentro dela',
+    conteudo:
+      'Segundo ajuste pedido pelo CEO sobre a busca: o conteúdo deve ficar dentro da própria aba correspondente, e a busca não pode correr a tela. Antes, filtrar mantinha a aba em que o usuário estava — quem procurava aluguel com Indicadores aberto via "0 de 1" e precisava clicar em Simulação para achar o card. Agora a busca calcula qual aba tem resultado e ABRE essa aba automaticamente: o conteúdo é levado para o ícone do assunto e fica preso lá. Enquanto há busca, o resultado aparece com um selo verde "resultado de X preso nesta aba", para não haver dúvida de onde ele está. Se o usuário clicar em outra aba de próprio punho, o clique manda — mas o filtro é zerado ao trocar de aba, para nunca haver card fora de contexto. A aba sem resultado informa em qual aba o resultado está, em vez de só dizer que está vazio. Trocar de aba também não move mais a página: o clique guarda a posição e a restaura no quadro seguinte. Medição em produção: busca por aluguel com a aba Indicadores aberta fez a aba Simulação abrir sozinha, mostrou 1 card (6A Imobiliário), exibiu o selo de resultado preso e manteve a posição da página em zero.',
+    fontes: [],
+    caminho: 'src/components/PainelInicial.tsx',
+    versao: 'v0.0.261',
+    bloco: 'sistema',
+  },
+  // ============ BLOCO: ATUALIZAÇÃO DA LEGISLAÇÃO ============
+  {
+    data: '29/10/2026',
     hora: '20:52',
     titulo:
       'A busca deixou de correr a tela: as abas ficaram fixas e o resultado aparece dentro da aba',
