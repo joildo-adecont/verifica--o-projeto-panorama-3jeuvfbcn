@@ -46,6 +46,20 @@ const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
     data: '29/10/2026',
+    hora: '21:30',
+    titulo:
+      'Seção 9A — Cadastro de Clientes & Envios entrou no menu lateral, com identificação completa e comparativo atual × reforma',
+    conteudo:
+      'A pedido do CEO: criar no menu lateral o ícone de cadastro de clientes e envios, com campos de identificação completa para importação e digitação, e com comparativos e cálculos para simular a reforma contra a situação atual. O cadastro existia apenas na página envios.html, fora do Panorama. Agora há a Seção 9A no grupo Sistema, tecla K, com quatro abas. CLIENTES: lista filtrável com nome fantasia, contato, documento, regime, receita, carga atual e UF, com selo verde completo ou âmbar faltando. NOVO CADASTRO: formulário com identificação completa (tipo pessoa, contato, razão social, nome fantasia, CPF/CNPJ, CNAE, segmento, atividade, município, UF, CEP, telefone, WhatsApp, funcionários) e o bloco Situação atual (regime hoje, receita mensal, carga tributária atual em porcentagem e dez tributos marcáveis). IMPORTAR: área para colar planilha do Excel, Sheets ou CSV, com reconhecimento automático de separador, pré-visualização das primeiras 50 linhas e importação que deduplica por e-mail. COMPARATIVO: tabela com receita, carga de hoje em porcentagem e em reais, alíquota e tributo na reforma, e a diferença em reais, com seta vermelha quando sobe e verde quando cai. A migration 0072 acrescentou os onze campos novos ao cadastro, todos opcionais para não quebrar registro existente, e o endpoint simul-importar passou a aceitar e persistir todos eles, na criação e na atualização, gravando apenas o que vier preenchido. Decisão central: a carga tributária de hoje é INFORMADA pelo contador, nunca deduzida pelo sistema. Onde falta, a tabela mostra n/i em vez de assumir um percentual — comparar a reforma com premissa inventada seria pior do que não comparar. Validação em produção: os onze campos existem na base, a seção abre com as quatro abas, o cliente Adecont aparece com receita de R$ 100.000, alíquota de 21,00 por cento e tributo de R$ 21.000 na reforma, e a coluna de hoje exibe n/i corretamente porque a carga não foi informada.',
+    fontes: [],
+    caminho:
+      'src/components/SectionCadastroEnvios.tsx (novo) + src/components/navegacao.ts (tecla K) + src/pages/Index.tsx + pocketbase/migrations/0072_identificacao_completa.js (novo) + pocketbase/hooks/simulador_envios.js',
+    versao: 'v0.0.263',
+    bloco: 'sistema',
+  },
+  // ============ BLOCO: ATUALIZAÇÃO DA LEGISLAÇÃO ============
+  {
+    data: '29/10/2026',
     hora: '21:15',
     titulo: 'A busca passou a abrir a aba do assunto e a prender o resultado dentro dela',
     conteudo:
