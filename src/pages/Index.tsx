@@ -5,7 +5,6 @@ import { PainelInicial } from '@/components/PainelInicial'
 import { PanoramaSideMenu } from '@/components/PanoramaSideMenu'
 import { SumarioFlutuante } from '@/components/SumarioFlutuante'
 import { PainelAtalhos } from '@/components/PainelAtalhos'
-import { PanoramaFooter } from '@/components/PanoramaFooter'
 import { ID_INICIO, resolverRota, vizinhas } from '@/lib/rotas'
 import { NAVEGACAO } from '@/components/navegacao'
 import { fetchTaxNorms } from '@/services/panorama'
@@ -41,6 +40,16 @@ import type { TaxNormItem } from '@/types/panorama'
  * Agora o documento tem altura fixa (`h-screen overflow-hidden`) e só o miolo da
  * aba rola (`flex-1 overflow-y-auto`). Resultado: header, menu e trilha ficam
  * parados; a rolagem que existir é do conteúdo daquela aba, dentro da própria aba.
+ *
+ * ── RODAPÉ INSTITUCIONAL REMOVIDO (29/10/2026) ──
+ * A pedido do CEO: "pode retirar de todos os ícones esse informativo final".
+ * O PanoramaFooter (bloco ADECONT institucional, coordenação técnica, estrutura
+ * normativa, aviso legal, copyright e "voltar ao topo") era renderizado UMA vez
+ * aqui no Index e, como o Index é a moldura de todas as abas, aparecia repetido
+ * ao pé de cada uma das 26 seções. Não é conteúdo de aba nenhuma: era rodapé da
+ * página única antiga, que deixou de fazer sentido quando a navegação virou abas.
+ * O componente continua no projeto (PanoramaFooter.tsx) caso seja reaproveitado
+ * numa página institucional própria; aqui ele sai do fluxo.
  */
 
 export default function Index() {
@@ -265,8 +274,6 @@ export default function Index() {
                 )}
               </div>
             </div>
-
-            <PanoramaFooter />
           </div>
         </main>
       </div>
