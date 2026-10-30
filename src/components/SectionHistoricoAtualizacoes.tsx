@@ -46,6 +46,19 @@ const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
     data: '29/10/2026',
+    hora: '22:05',
+    titulo: 'Navegação por abas: cada aba abre o seu conteúdo, sem rolagem entre assuntos',
+    conteudo:
+      'A pedido do CEO: colocar em cada aba o seu conteúdo, sem necessidade de rolagem de tela. Antes, as 24 seções ficavam empilhadas numa página única e clicar no menu significava rolar até a âncora, com o conteúdo anterior ainda ocupando a tela. Agora cada item do menu TROCA a aba: só a aba ativa é montada no DOM, e a anterior é desmontada. Medido em produção: uma seção no DOM por aba (antes eram 24), documento sem rolagem (scrollHeight igual a clientHeight em 27 rotas testadas) e a rolagem que existe é do miolo da aba, dentro dela. A moldura ficou fixa: header, menu lateral e trilha de navegação não saem da tela. O hash passou a ser a fonte de verdade da rota, o que preserva os 8 links internos que já existiam href tabela-geral, monitor-legislativo e secao-1, mantém o botão Voltar do navegador funcionando e deixa a aba compartilhável por link. O menu lateral deixou de usar scrollIntoView e passou a navegar por hash, e o item ativo passou a ser lido do hash em vez de deduzido pela posição de rolagem, o que elimina o destaque errado quando duas seções apareciam juntas. Acrescentados: trilha Início, Seção, nome da aba, botões Anterior e Próxima no pé do conteúdo, e o cabeçalho foi compactado de 191 para 104 pixels, elevando a área útil da aba de 65 para 79 por cento da tela. Arquivos: src/lib/rotas.tsx novo com o mapa aba para componente derivado de navegacao.ts, src/pages/Index.tsx reescrito como roteador, PanoramaSideMenu e PanoramaHeader migrados para navegação por hash. Cuidado registrado: âncoras internas como contato continuam válidas por um mapa DENTRO_DE_UMA_ABA, que abre a aba que as contém.',
+    fontes: [],
+    caminho:
+      'src/lib/rotas.tsx (novo) + src/pages/Index.tsx (roteador) + src/components/PanoramaSideMenu.tsx + src/components/PanoramaHeader.tsx',
+    versao: 'v0.0.266-268',
+    bloco: 'sistema',
+  },
+  // ============ BLOCO: ATUALIZAÇÃO DA LEGISLAÇÃO ============
+  {
+    data: '29/10/2026',
     hora: '21:30',
     titulo:
       'Seção 9A — Cadastro de Clientes & Envios entrou no menu lateral, com identificação completa e comparativo atual × reforma',
