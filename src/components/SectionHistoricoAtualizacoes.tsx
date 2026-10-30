@@ -46,6 +46,20 @@ const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
     data: '29/10/2026',
+    hora: '22:25',
+    titulo:
+      'Rodapé institucional de volta, agora só na primeira página; e Seção 11 recuperada no menu',
+    conteudo:
+      'A pedido do CEO: deixar o rodapé somente na primeira página. O PanoramaFooter volta ao Index, mas condicionado à rota: renderiza apenas no Início, que é a porta de entrada e o lugar onde a assinatura institucional faz sentido, e não existe nas 26 abas de conteúdo, nem no DOM. A condição usada é a ausência de rota e não uma comparação de texto com inicio, porque a rota vazia é justamente a barra de endereço recém-aberta, que é a primeira página. Junto com o rodapé saiu também a barra Anterior e Próxima do Início: ali ela mostrava Anterior Painel inicial, um botão que levava a lugar nenhum, porque o Início é o painel. Corrigido ainda o botão Voltar ao topo: ele chamava window.scrollTo, mas desde a mudança de navegação quem rola é o miolo da aba, então o botão parecia funcionar e não fazia nada. Agora rola o miolo quando ele existe e usa a janela só como reserva; medido em produção, 822 pixels de rolagem voltaram a zero. DEFEITO ENCONTRADO E CORRIGIDO NO CAMINHO: a Seção 11, Fontes de referência e agregadores, existia no Index e era renderizada na página empilhada, mas NUNCA teve item de menu; chegava-se a ela apenas rolando. Quando a navegação virou abas, só rolar deixou de existir e a seção ficou inalcançável, porque o hash fontes-agregador não tinha componente no roteador e caía no Início. Ela ganhou item próprio no grupo Fontes e Monitor, número 11, tecla O, com sinônimos de busca para agregador, buscador, NCM, NBS e classificação. Agora o menu tem 27 itens para 26 seções mais o Início, com zero tecla duplicada e nenhum componente fora do menu. Validado em produção: 26 abas sem rodapé, Início com rodapé, e a Seção 11 abrindo pelo menu pelo hash e pela busca.',
+    fontes: [],
+    caminho:
+      'src/pages/Index.tsx (rodapé condicionado e barra de navegação restrita às abas) + src/components/PanoramaFooter.tsx (voltar ao topo) + src/components/navegacao.ts (Seção 11, tecla O)',
+    versao: 'v0.0.272-274',
+    bloco: 'sistema',
+  },
+  // ============ BLOCO: ATUALIZAÇÃO DA LEGISLAÇÃO ============
+  {
+    data: '29/10/2026',
     hora: '22:15',
     titulo: 'Rodapé institucional removido de todas as abas',
     conteudo:
