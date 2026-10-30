@@ -2,8 +2,18 @@ import { ArrowUp, Building2, ShieldCheck, Tag } from 'lucide-react'
 import { AdecontLogo } from '@/components/AdecontLogo'
 
 export function PanoramaFooter() {
+  /**
+   * "Voltar ao topo" precisa acertar QUEM rola.
+   *
+   * Desde 29/10/2026 o documento não rola mais: a rolagem vive no miolo da aba
+   * (`#miolo-aba`, com `overflow-y-auto`). Um `window.scrollTo` aqui seria um
+   * botão que não faz nada — o pior tipo de defeito, porque parece funcionar.
+   * Rola o miolo quando ele existe e cai na janela só como reserva.
+   */
   const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    const miolo = document.getElementById('miolo-aba')
+    if (miolo) miolo.scrollTo({ top: 0, behavior: 'smooth' })
+    else window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   return (

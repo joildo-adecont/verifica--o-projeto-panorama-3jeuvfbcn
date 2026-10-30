@@ -5,6 +5,7 @@ import { PainelInicial } from '@/components/PainelInicial'
 import { PanoramaSideMenu } from '@/components/PanoramaSideMenu'
 import { SumarioFlutuante } from '@/components/SumarioFlutuante'
 import { PainelAtalhos } from '@/components/PainelAtalhos'
+import { PanoramaFooter } from '@/components/PanoramaFooter'
 import { ID_INICIO, resolverRota, vizinhas } from '@/lib/rotas'
 import { NAVEGACAO } from '@/components/navegacao'
 import { fetchTaxNorms } from '@/services/panorama'
@@ -41,15 +42,22 @@ import type { TaxNormItem } from '@/types/panorama'
  * aba rola (`flex-1 overflow-y-auto`). Resultado: header, menu e trilha ficam
  * parados; a rolagem que existir é do conteúdo daquela aba, dentro da própria aba.
  *
- * ── RODAPÉ INSTITUCIONAL REMOVIDO (29/10/2026) ──
- * A pedido do CEO: "pode retirar de todos os ícones esse informativo final".
- * O PanoramaFooter (bloco ADECONT institucional, coordenação técnica, estrutura
- * normativa, aviso legal, copyright e "voltar ao topo") era renderizado UMA vez
- * aqui no Index e, como o Index é a moldura de todas as abas, aparecia repetido
- * ao pé de cada uma das 26 seções. Não é conteúdo de aba nenhuma: era rodapé da
- * página única antiga, que deixou de fazer sentido quando a navegação virou abas.
- * O componente continua no projeto (PanoramaFooter.tsx) caso seja reaproveitado
- * numa página institucional própria; aqui ele sai do fluxo.
+ * ── RODAPÉ INSTITUCIONAL: SÓ NA PRIMEIRA PÁGINA (29/10/2026) ──
+ * Primeiro pedido: "pode retirar de todos os ícones esse informativo final".
+ * O PanoramaFooter (assinatura ADECONT, coordenação técnica, estrutura normativa,
+ * aviso legal, copyright, "voltar ao topo") era renderizado UMA vez aqui no Index
+ * e, como o Index é a moldura de todas as abas, aparecia repetido ao pé das 26.
+ * Foi removido por inteiro.
+ *
+ * Segundo pedido, no mesmo dia: "pode deixar o rodapé somente na primeira página".
+ * Ele volta, mas CONDICIONADO À ROTA: renderiza apenas no Início, que é a porta de
+ * entrada do sistema e o lugar onde a assinatura institucional faz sentido. Em
+ * qualquer aba de conteúdo (seções 1 a 17) ele não existe — nem no DOM.
+ *
+ * A condição é `!rota`, e não uma comparação de string com "inicio": `resolverRota`
+ * devolve null exatamente quando o hash é vazio ou é #inicio, então o Início é o
+ * único estado sem rota. Comparar string deixaria o rodapé de fora de um link
+ * vazio (barra de endereço recém-aberta), que é justamente a primeira página.
  */
 
 export default function Index() {
@@ -274,6 +282,13 @@ export default function Index() {
                 )}
               </div>
             </div>
+
+            {/*
+            Rodapé institucional SÓ na primeira página. `rota` é null apenas no
+            Início (#inicio ou hash vazio) — em qualquer aba de conteúdo ele não
+            é montado, então não ocupa espaço nem entra no DOM.
+          */}
+            {!rota && <PanoramaFooter />}
           </div>
         </main>
       </div>
