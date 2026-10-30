@@ -166,8 +166,12 @@ export function PanoramaHeader({
       if (item) {
         e.preventDefault()
         setMobileMenuOpen(false)
-        const el = document.getElementById(item.href.replace('#', ''))
-        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        // o hash é a rota da aba: o Index troca o conteúdo, não há mais o que rolar
+        if (window.location.hash === item.href) {
+          window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior })
+        } else {
+          window.location.hash = item.href
+        }
       }
     }
     window.addEventListener('keydown', onKey)
@@ -344,7 +348,7 @@ export function PanoramaHeader({
               <ExternalLink className="w-3 h-3 text-slate-400" />
             </a>
             <a
-              href="#contato"
+              href="#secao-9"
               className="inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-panorama-navy hover:bg-panorama-navy-light px-3 py-1.5 rounded-md shadow-sm transition-colors border border-panorama-gold/40"
             >
               <span>Consultar Especialista</span>
@@ -488,7 +492,7 @@ export function PanoramaHeader({
                 <ExternalLink className="w-3.5 h-3.5" />
               </a>
               <a
-                href="#contato"
+                href="#secao-9"
                 onClick={() => setMobileMenuOpen(false)}
                 className="text-center text-xs font-bold text-white bg-blue-600 p-2 rounded"
               >

@@ -1,45 +1,49 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import { ChevronLeft, ChevronRight, Home as HomeIcon } from 'lucide-react'
 import { PanoramaHeader } from '@/components/PanoramaHeader'
-import { PanoramaHero } from '@/components/PanoramaHero'
 import { PainelInicial } from '@/components/PainelInicial'
 import { PanoramaSideMenu } from '@/components/PanoramaSideMenu'
-import { SectionNorms } from '@/components/SectionNorms'
-import { SectionFatoGerador } from '@/components/SectionFatoGerador'
-import { SectionCestaBasica } from '@/components/SectionCestaBasica'
-import { SectionImunidades } from '@/components/SectionImunidades'
-import { SectionIsencoesAlíquotas } from '@/components/SectionIsencoesAliquots'
-import { SectionRegimesEspecificos } from '@/components/SectionRegimesEspecificos'
-import { SectionRegimeImobiliario } from '@/components/SectionRegimeImobiliario'
-import { SectionAgronegocio } from '@/components/SectionAgronegocio'
-import { SectionConsorcios } from '@/components/SectionConsorcios'
-import { SectionFinanceiros } from '@/components/SectionFinanceiros'
-import { SectionSimples } from '@/components/SectionSimples'
-import { SectionProfissionaisPlataformas } from '@/components/SectionProfissionaisPlataformas'
-import { SectionAnexos } from '@/components/SectionAnexos'
-import { SectionTabelaGeral } from '@/components/SectionTabelaGeral'
-import { SectionCronograma } from '@/components/SectionCronograma'
-import { SectionIndicadores } from '@/components/SectionIndicadores'
-import { SectionCadastroEnvios } from '@/components/SectionCadastroEnvios'
-import { SectionFontes } from '@/components/SectionFontes'
-import { SectionFontesAgregador } from '@/components/SectionFontesAgregador'
-import { SectionFontesPrimarias } from '@/components/SectionFontesPrimarias'
-import { SectionMonitorLegislativo } from '@/components/SectionMonitorLegislativo'
-import { SectionCentralEntrega } from '@/components/SectionCentralEntrega'
-import { SectionAssistentesSeguranca } from '@/components/SectionAssistentesSeguranca'
-import { SectionControleAcesso } from '@/components/SectionControleAcesso'
-import { SectionResponsividade } from '@/components/SectionResponsividade'
-import { SectionHistoricoAtualizacoes } from '@/components/SectionHistoricoAtualizacoes'
 import { SumarioFlutuante } from '@/components/SumarioFlutuante'
 import { PainelAtalhos } from '@/components/PainelAtalhos'
 import { PanoramaFooter } from '@/components/PanoramaFooter'
+import { ID_INICIO, resolverRota, vizinhas } from '@/lib/rotas'
+import { NAVEGACAO } from '@/components/navegacao'
 import { fetchTaxNorms } from '@/services/panorama'
 import type { TaxNormItem } from '@/types/panorama'
-import { Search } from 'lucide-react'
+
+/**
+ * PÁGINA ÚNICA → UMA ABA POR VEZ (29/10/2026)
+ *
+ * ── O QUE MUDOU ──
+ * Antes este arquivo renderizava as 24 seções EMPILHADAS: uma página de rolagem
+ * interminável, onde "ir para" era rolar até a âncora e o conteúdo anterior
+ * continuava ocupando a tela. O CEO pediu: "coloque em cada aba o seu conteúdo,
+ * não necessitando de rolagem de tela".
+ *
+ * Agora só a aba ativa é montada. Trocar de aba desmonta a anterior — não há mais
+ * 24 seções no DOM nem rolagem entre assuntos. O que sobra de rolagem é a do
+ * conteúdo daquela aba específica, e nada além dele.
+ *
+ * ── POR QUE O HASH MANDA ──
+ * Os links internos já espalhados pelo sistema (`href="#tabela-geral"` dentro da
+ * Central de Indicadores, do Monitor e do painel inicial) continuam valendo sem
+ * tocar em nenhum deles, o botão Voltar do navegador funciona, e a aba aberta é
+ * compartilhável por link.
+ *
+ * ── O QUE FICA FORA DAS ABAS ──
+ * Header (busca e status) e menu lateral continuam fixos, como moldura. O painel
+ * inicial é uma aba também — a rota "Início", que não é seção de conteúdo.
+ */
 
 export default function Index() {
   const [norms, setNorms] = useState<TaxNormItem[]>([])
   const [loading, setLoading] = useState<boolean>(true)
   const [searchTerm, setSearchTerm] = useState<string>('')
+
+  /** Rota atual lida do hash. Vazio = Início (painel de acompanhamento). */
+  const [hash, setHash] = useState<string>(() =>
+    typeof window === 'undefined' ? '' : window.location.hash,
+  )
 
   const loadData = async () => {
     setLoading(true)
@@ -55,7 +59,37 @@ export default function Index() {
     loadData()
   }, [])
 
-  // Filtragem global pelo termo de busca digitado no header
+  /**
+   * O hash é a fonte de verdade da aba. Escutamos `hashchange` em vez de guardar
+   * estado paralelo: assim um link interno, o botão Voltar e o menu lateral
+   * convergem para o mesmo lugar.
+   */
+  useEffect(() => {
+    const onHash = () => {
+      setHash(window.location.hash)
+      // aba nova sempre começa no topo do conteúdo — sem herdar a rolagem da anterior
+      window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior })
+    }
+    onHash()
+    window.addEventListener('hashchange', onHash)
+    return () => window.removeEventListener('hashchange', onHash)
+  }, [])
+
+  const navegar = useCallback((id: string) => {
+    const destino = id === ID_INICIO ? '#inicio' : `#${id}`
+    if (window.location.hash === destino) {
+      window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior })
+      return
+    }
+    window.location.hash = destino
+  }, [])
+
+  const rota = resolverRota(hash)
+  const idAtual = rota?.id ?? ID_INICIO
+  const itemNav = rota ? NAVEGACAO.find((n) => n.href === `#${rota.id}`) : null
+  const { anterior, proxima } = rota ? vizinhas(rota.id) : { anterior: null, proxima: null }
+
+  // busca do header continua filtrando as normas da Seção 1
   const filteredNorms = norms.filter((n) => {
     if (!searchTerm) return true
     const term = searchTerm.toLowerCase()
@@ -69,129 +103,158 @@ export default function Index() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 selection:bg-blue-600 selection:text-white flex flex-col font-sans">
-      {/* Menu lateral fixo de acesso rápido (teclas 1-9, Q, W, H) */}
       <PanoramaSideMenu />
-
       <SumarioFlutuante />
       <PainelAtalhos />
+
       <div className="lg:pl-60 flex flex-col min-h-screen">
-        {/* 1. Header fixo com status de atualização, botões automáticos e busca */}
         <PanoramaHeader
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
           onManualRefresh={loadData}
         />
 
-        {/* 2. PAINEL INICIAL — onde ir, o que está acontecendo, se está atualizado */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-6 w-full">
-          <PainelInicial />
-        </div>
-
-        {/* 3. Hero Banner com status 2026, destaque IBS/CBS e métricas de transição */}
-        <PanoramaHero />
-
-        {/* Feedback de busca ativa */}
-        {searchTerm && (
-          <div className="bg-blue-50 border-b border-blue-200 py-2.5 px-4 sm:px-6">
-            <div className="max-w-7xl mx-auto flex items-center justify-between text-xs text-blue-900">
-              <div className="flex items-center gap-2">
-                <Search className="w-3.5 h-3.5 text-blue-600" />
-                <span>
-                  Filtrando visualização por: <strong>&quot;{searchTerm}&quot;</strong>
-                </span>
-              </div>
+        {/* Trilha: onde estou, e como voltar — substitui a rolagem como orientação */}
+        {rota && (
+          <div className="w-full border-b border-slate-200 bg-white">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 py-1.5 flex items-center gap-1.5 flex-wrap">
               <button
-                onClick={() => setSearchTerm('')}
-                className="text-blue-700 hover:underline font-bold"
+                onClick={() => navegar(ID_INICIO)}
+                className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-500 hover:text-panorama-navy cursor-pointer"
               >
-                Limpar busca
+                <HomeIcon className="w-3 h-3" />
+                Início
+              </button>
+              <ChevronRight className="w-3 h-3 text-slate-300" />
+              {itemNav?.numero && (
+                <>
+                  <span className="text-[11px] font-bold text-slate-400">
+                    Seção {itemNav.numero}
+                  </span>
+                  <ChevronRight className="w-3 h-3 text-slate-300" />
+                </>
+              )}
+              <span className="text-[11px] font-bold text-panorama-navy">{rota.titulo}</span>
+              {itemNav?.tecla && (
+                <kbd className="ml-1 px-1 rounded bg-slate-100 text-[9px] font-mono text-slate-400">
+                  {itemNav.tecla.toUpperCase()}
+                </kbd>
+              )}
+              <button
+                onClick={() => navegar(ID_INICIO)}
+                className="ml-auto text-[10px] font-bold text-slate-400 hover:text-panorama-navy cursor-pointer"
+              >
+                ← voltar ao painel
               </button>
             </div>
           </div>
         )}
 
-        {/* Conteúdo principal com as 13 seções */}
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 md:py-12 space-y-16 flex-1 w-full">
-          {/* Seção 1: Arcabouço normativo */}
-          <SectionNorms norms={filteredNorms} loading={loading} />
+        {/* Feedback de busca ativa — só na aba de Normas, onde ela filtra de fato */}
+        {searchTerm && idAtual === 'secao-1' && (
+          <div className="bg-blue-50 border-b border-blue-200 py-2 px-4 sm:px-6">
+            <div className="max-w-7xl mx-auto flex items-center justify-between text-[11px] text-blue-900">
+              <span>
+                Filtrando normas por: <strong>&quot;{searchTerm}&quot;</strong> —{' '}
+                {filteredNorms.length} de {norms.length}
+              </span>
+              <button
+                onClick={() => setSearchTerm('')}
+                className="text-blue-700 hover:underline font-bold"
+              >
+                Limpar
+              </button>
+            </div>
+          </div>
+        )}
 
-          {/* Seção 2: Fato gerador, fornecimento e incidência */}
-          <SectionFatoGerador />
-
-          {/* Seção 3: Cesta Básica Nacional e exemplos */}
-          <SectionCestaBasica />
-
-          {/* Seção 4: Imunidades, não incidências e não tributações */}
-          <SectionImunidades />
-
-          {/* Seção 5: Isenções, diferimentos e reduções de alíquota */}
-          <SectionIsencoesAlíquotas />
-
-          {/* Seção 6: Regimes específicos e diferenciados */}
-          <SectionRegimesEspecificos />
-
-          {/* Seção 6A: Regime imobiliário — venda, locação, redutores e RET */}
-          <SectionRegimeImobiliario />
-
-          {/* Seção 6B: Regime do agronegócio — produtor rural, créditos presumidos e cooperativas */}
-          <SectionAgronegocio />
-
-          {/* Seção 6C: Consórcios */}
-          <SectionConsorcios />
-
-          {/* Seção 6D: Serviços financeiros */}
-          <SectionFinanceiros />
-
-          {/* Seção 6E: Simples Nacional */}
-          <SectionSimples />
-
-          {/* Seção 6F: Profissionais regulamentados e plataformas digitais */}
-          <SectionProfissionaisPlataformas />
-
-          {/* Seção 7: Anexos da reforma tributária */}
-          <SectionAnexos />
-
-          {/* Seção 7A: Tabela Geral dos Anexos — itens e alíquotas por anexo */}
-          <SectionTabelaGeral />
-
-          {/* Seção 8: Cronograma 2026–2033, simulador e pontos de atenção */}
-          <SectionCronograma />
-
-          {/* Seção 8A: Central de Indicadores — alíquotas, tabelas, fontes e normas */}
-          <SectionIndicadores />
-
-          {/* Seção 9A: Cadastro de Clientes & Envios — identificação e comparativo */}
-          <SectionCadastroEnvios />
-
-          {/* Seção 11: Agregadores — Buscador de Produtos e Atividades por 11 Tabelas de Classificações */}
-          <SectionFontesAgregador />
-
-          {/* Seção 9: Fontes oficiais, governança de atualização e formulário de contato */}
-          <SectionFontes />
-
-          {/* Seção 12: Índice das fontes oficiais primárias — 115 bases */}
-          <SectionFontesPrimarias />
-
-          {/* Seção 12A: Monitor Legislativo — situação medida de cada fonte vigiada */}
-          <SectionMonitorLegislativo />
-
-          {/* Seção 14: Central de Entrega — impressão e envio ao cliente */}
-          <SectionCentralEntrega />
-
-          {/* Seção 15: Central de Assistentes & Segurança */}
-          <SectionAssistentesSeguranca />
-
-          {/* Seção 16: Níveis de Acesso (CRUD) & Autorizações de Uso */}
-          <SectionControleAcesso />
-
-          {/* Seção 17: Responsividade em Celulares */}
-          <SectionResponsividade />
-
-          {/* Seção 13: Histórico de Atualizações — registro cronológico */}
-          <SectionHistoricoAtualizacoes />
+        {/*
+          CONTEÚDO — UMA ABA POR VEZ.
+          Só a aba ativa é montada. Sem `hidden` nas outras: montar as 24 e esconder
+          manteria o custo de render e o risco de rolagem residual, que é exatamente
+          o que o pedido elimina.
+        */}
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 py-5 flex-1 w-full">
+          {rota ? (
+            <div key={rota.id}>
+              <rota.Componente norms={filteredNorms} loading={loading} />
+            </div>
+          ) : (
+            <div>
+              <PainelInicial />
+            </div>
+          )}
         </main>
 
-        {/* Footer consolidado */}
+        {/* Navegação entre abas, no pé do conteúdo — sem precisar voltar ao menu */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full pb-6">
+          <div className="flex items-stretch gap-2 border-t border-slate-200 pt-3">
+            {anterior ? (
+              <button
+                onClick={() => navegar(anterior.id)}
+                className="flex-1 flex items-center gap-2 rounded-xl border-2 border-slate-200 bg-white px-3 py-2 text-left hover:border-panorama-gold hover:bg-panorama-gold/5 transition-colors cursor-pointer"
+              >
+                <ChevronLeft className="w-4 h-4 text-slate-400 shrink-0" />
+                <span className="min-w-0">
+                  <span className="block text-[9px] font-bold uppercase tracking-wide text-slate-400">
+                    Anterior
+                  </span>
+                  <span className="block text-[11.5px] font-bold text-slate-700 truncate">
+                    {anterior.titulo}
+                  </span>
+                </span>
+              </button>
+            ) : (
+              <button
+                onClick={() => navegar(ID_INICIO)}
+                className="flex-1 flex items-center gap-2 rounded-xl border-2 border-slate-200 bg-white px-3 py-2 text-left hover:border-panorama-gold hover:bg-panorama-gold/5 transition-colors cursor-pointer"
+              >
+                <HomeIcon className="w-4 h-4 text-slate-400 shrink-0" />
+                <span className="min-w-0">
+                  <span className="block text-[9px] font-bold uppercase tracking-wide text-slate-400">
+                    Anterior
+                  </span>
+                  <span className="block text-[11.5px] font-bold text-slate-700 truncate">
+                    Painel inicial
+                  </span>
+                </span>
+              </button>
+            )}
+
+            {proxima ? (
+              <button
+                onClick={() => navegar(proxima.id)}
+                className="flex-1 flex items-center gap-2 justify-end rounded-xl border-2 border-slate-200 bg-white px-3 py-2 text-right hover:border-panorama-gold hover:bg-panorama-gold/5 transition-colors cursor-pointer"
+              >
+                <span className="min-w-0">
+                  <span className="block text-[9px] font-bold uppercase tracking-wide text-slate-400">
+                    Próxima
+                  </span>
+                  <span className="block text-[11.5px] font-bold text-slate-700 truncate">
+                    {proxima.titulo}
+                  </span>
+                </span>
+                <ChevronRight className="w-4 h-4 text-slate-400 shrink-0" />
+              </button>
+            ) : (
+              <button
+                onClick={() => navegar(ID_INICIO)}
+                className="flex-1 flex items-center gap-2 justify-end rounded-xl border-2 border-slate-200 bg-white px-3 py-2 text-right hover:border-panorama-gold hover:bg-panorama-gold/5 transition-colors cursor-pointer"
+              >
+                <span className="min-w-0">
+                  <span className="block text-[9px] font-bold uppercase tracking-wide text-slate-400">
+                    Fim da lista
+                  </span>
+                  <span className="block text-[11.5px] font-bold text-slate-700 truncate">
+                    Voltar ao painel
+                  </span>
+                </span>
+                <HomeIcon className="w-4 h-4 text-slate-400 shrink-0" />
+              </button>
+            )}
+          </div>
+        </div>
+
         <PanoramaFooter />
       </div>
     </div>

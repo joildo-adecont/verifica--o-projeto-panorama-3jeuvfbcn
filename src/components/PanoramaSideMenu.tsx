@@ -3,7 +3,20 @@ import { X, Search, ChevronRight, ChevronDown } from 'lucide-react'
 import { GRUPOS, HOME } from '@/components/navegacao'
 
 /**
- * MENU LATERAL — agora AGRUPADO
+ * MENU LATERAL — agora NAVEGA ENTRE ABAS (29/10/2026)
+ *
+ * Mudança ligada ao pedido "cada aba com o seu conteúdo, sem rolagem de tela".
+ *
+ * Antes: clicar no menu fazia `scrollIntoView` até a âncora de uma seção que já
+ * estava renderizada logo abaixo das outras 23. A página era uma pilha; o menu
+ * era um atalho de rolagem.
+ *
+ * Agora: clicar TROCA A ABA. O hash muda, o Index desmonta a aba anterior e monta
+ * a nova. Não existe mais conteúdo alheio na tela, e o item ativo é lido do hash
+ * em vez de ser deduzido pela posição de rolagem — o que também elimina o
+ * "destaque errado" que aparecia quando duas seções ficavam visíveis ao mesmo tempo.
+ *
+ * MENU LATERAL — AGRUPADO
  *
  * Antes: 24 itens em lista plana, com uma duplicata ("Fontes primárias" duas
  * vezes, uma dizendo 115 e outra 110 bases). Numa coluna estreita, 24 linhas do
@@ -31,8 +44,15 @@ const GRUPOS_UI = GRUPOS.map((g) => ({
 
 const TODOS = GRUPOS_UI.flatMap((g) => g.itens)
 
-// Mapeia âncora → id real da seção no DOM (as seções usam ids sem "#")
-const alvo = (id: string) => document.getElementById(id.replace('#', ''))
+// Não há mais seção "no DOM" para rolar: o hash é a rota da aba.
+const irPara = (id: string) => {
+  const destino = id || '#inicio'
+  if (window.location.hash === destino) {
+    window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior })
+  } else {
+    window.location.hash = destino
+  }
+}
 
 export function PanoramaSideMenu() {
   const [aberto, setAberto] = useState(false)
@@ -79,34 +99,24 @@ export function PanoramaSideMenu() {
       if (item) {
         e.preventDefault()
         setAberto(false)
-        const el = alvo(item.id)
-        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        irPara(item.id)
       }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
-  // Destaca a seção visível durante a rolagem
+  // Item ativo = a aba aberta, lida do hash. Não depende mais de rolagem.
   useEffect(() => {
-    const ids = TODOS.map((i) => i.id.replace('#', ''))
-    const onScroll = () => {
-      let atual = ''
-      for (const id of ids) {
-        const el = document.getElementById(id)
-        if (el && el.getBoundingClientRect().top < 160) atual = id
-      }
-      setAtivo(atual)
-    }
-    onScroll()
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
+    const ler = () => setAtivo((window.location.hash || '#inicio').replace('#', ''))
+    ler()
+    window.addEventListener('hashchange', ler)
+    return () => window.removeEventListener('hashchange', ler)
   }, [])
 
   const ir = (item: { id: string }) => {
     setAberto(false)
-    const el = alvo(item.id)
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    irPara(item.id)
   }
 
   const conteudo = (
@@ -218,9 +228,12 @@ export function PanoramaSideMenu() {
 
       <div className="px-3 py-2 border-t border-slate-200 text-[10px] text-slate-400 flex items-center justify-between">
         <span>Panorama · ADECONT</span>
-        <a href="#inicio" className="hover:text-slate-700 font-bold">
-          ↑ topo
-        </a>
+        <button
+          onClick={() => ir({ id: '#inicio' })}
+          className="hover:text-slate-700 font-bold cursor-pointer"
+        >
+          ⌂ início
+        </button>
       </div>
     </div>
   )
