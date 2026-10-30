@@ -46,6 +46,18 @@ const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
     data: '29/10/2026',
+    hora: '22:15',
+    titulo: 'Rodapé institucional removido de todas as abas',
+    conteudo:
+      'A pedido do CEO: retirar de todos os ícones o informativo final. O bloco PanoramaFooter, com a assinatura ADECONT Assessoria Administrativa Contábil, a publicação técnica especializada IBS CBS IS, o botão Voltar ao topo, o Institucional ADECONT, a Coordenação Técnica, a Estrutura Normativa, o Aviso Legal e Direitos, o copyright e a linha de revisão, era renderizado UMA única vez dentro do Index. Como o Index é a moldura de todas as abas desde a mudança de navegação, o rodapé aparecia repetido ao pé de cada uma das 26 seções, o que dava a impressão de existir 26 rodapés. Ele não é conteúdo de aba nenhuma: era o rodapé da página única antiga e perdeu a função quando a navegação passou a ser por abas. Removido do Index junto com o seu import, sem alterar nenhuma seção. O componente PanoramaFooter.tsx continua no projeto, para o caso de ser reaproveitado numa página institucional própria. Validado em produção nas 27 abas: nenhuma das oito frases do rodapé aparece em nenhuma delas, não há elemento footer no DOM, e o fim de cada aba agora é o próprio conteúdo seguido dos botões Anterior e Próxima.',
+    fontes: [],
+    caminho: 'src/pages/Index.tsx (rodapé e import removidos)',
+    versao: 'v0.0.270',
+    bloco: 'sistema',
+  },
+  // ============ BLOCO: ATUALIZAÇÃO DA LEGISLAÇÃO ============
+  {
+    data: '29/10/2026',
     hora: '22:05',
     titulo: 'Navegação por abas: cada aba abre o seu conteúdo, sem rolagem entre assuntos',
     conteudo:
