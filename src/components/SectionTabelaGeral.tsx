@@ -9,6 +9,7 @@ import {
   CircleAlert,
   CircleCheck,
 } from 'lucide-react'
+import { REF_TOTAL, pct } from '@/data/aliquotas'
 import type { LinhaTabelaGeral } from '@/data/tabelaGeralDados'
 import { confiancaDaLinha, resumoBloco, type Confianca } from '@/data/vinculosLegislacao'
 
@@ -108,7 +109,8 @@ const RESUMO: BlocoResumo[] = [
     titulo: 'Serviços de educação (redução 60%)',
     baseLegal: 'LC 214, art. 129',
     tratamento: 'Redução 60%',
-    aliquota: '≈11,2% efetiva',
+    // 40% da referencia (reducao de 60%) — antes 27,91% dava ~11,2%; com 30,00% da ~12,0%
+    aliquota: `≈${pct(REF_TOTAL * 0.4)} efetiva`,
     totalItens: 9,
     grupoSim: 'reducao60',
     resumo: 'Educação em geral — redução de 60% das alíquotas.',
@@ -120,7 +122,8 @@ const RESUMO: BlocoResumo[] = [
     titulo: 'Serviços de saúde (redução 60%)',
     baseLegal: 'LC 214, art. 130',
     tratamento: 'Redução 60%',
-    aliquota: '≈11,2% efetiva',
+    // 40% da referencia (reducao de 60%) — antes 27,91% dava ~11,2%; com 30,00% da ~12,0%
+    aliquota: `≈${pct(REF_TOTAL * 0.4)} efetiva`,
     totalItens: 30,
     grupoSim: 'reducao60',
     resumo: 'Serviços de saúde — redução de 60%.',
@@ -132,7 +135,8 @@ const RESUMO: BlocoResumo[] = [
     titulo: 'Dispositivos médicos (redução 60%)',
     baseLegal: 'LC 214, arts. 131 e 144',
     tratamento: 'Redução 60%',
-    aliquota: '≈11,2% efetiva',
+    // 40% da referencia (reducao de 60%) — antes 27,91% dava ~11,2%; com 30,00% da ~12,0%
+    aliquota: `≈${pct(REF_TOTAL * 0.4)} efetiva`,
     totalItens: 11,
     grupoSim: 'dispositivos60',
     resumo: 'Dispositivos médicos — redução 60%; alíquota zero para órgãos públicos e CEBAS-SUS.',
@@ -144,7 +148,7 @@ const RESUMO: BlocoResumo[] = [
     titulo: 'Insumos agropecuários e aquícolas (redução 60%)',
     baseLegal: 'LC 214, art. 138',
     tratamento: 'Redução 60%',
-    aliquota: '≈11,2% efetiva + diferimento',
+    aliquota: `≈${pct(REF_TOTAL * 0.4)} efetiva + diferimento`,
     totalItens: 34,
     grupoSim: 'insumos_agro',
     resumo: 'Insumos agropecuários — redução 60% com diferimento do crédito.',
@@ -156,7 +160,8 @@ const RESUMO: BlocoResumo[] = [
     titulo: 'Dispositivos de acessibilidade (redução 60%)',
     baseLegal: 'LC 214, art. 132',
     tratamento: 'Redução 60%',
-    aliquota: '≈11,2% efetiva',
+    // 40% da referencia (reducao de 60%) — antes 27,91% dava ~11,2%; com 30,00% da ~12,0%
+    aliquota: `≈${pct(REF_TOTAL * 0.4)} efetiva`,
     totalItens: 0,
     grupoSim: null,
     resumo:
@@ -181,7 +186,8 @@ const RESUMO: BlocoResumo[] = [
     titulo: 'Alimentos para consumo humano (redução 60%)',
     baseLegal: 'LC 214, art. 135',
     tratamento: 'Redução 60%',
-    aliquota: '≈11,2% efetiva',
+    // 40% da referencia (reducao de 60%) — antes 27,91% dava ~11,2%; com 30,00% da ~12,0%
+    aliquota: `≈${pct(REF_TOTAL * 0.4)} efetiva`,
     totalItens: 17,
     grupoSim: 'reducao60',
     resumo: 'Alimentos que ficam fora da cesta zero mas com redução de 60%.',
@@ -193,7 +199,8 @@ const RESUMO: BlocoResumo[] = [
     titulo: 'Higiene e limpeza (baixa renda — redução 60%)',
     baseLegal: 'LC 214, art. 136',
     tratamento: 'Redução 60%',
-    aliquota: '≈11,2% efetiva',
+    // 40% da referencia (reducao de 60%) — antes 27,91% dava ~11,2%; com 30,00% da ~12,0%
+    aliquota: `≈${pct(REF_TOTAL * 0.4)} efetiva`,
     totalItens: 7,
     grupoSim: 'reducao60',
     resumo:
@@ -206,7 +213,8 @@ const RESUMO: BlocoResumo[] = [
     titulo: 'Produções artísticas, culturais e audiovisuais (redução 60%)',
     baseLegal: 'LC 214, art. 139',
     tratamento: 'Redução 60%',
-    aliquota: '≈11,2% efetiva',
+    // 40% da referencia (reducao de 60%) — antes 27,91% dava ~11,2%; com 30,00% da ~12,0%
+    aliquota: `≈${pct(REF_TOTAL * 0.4)} efetiva`,
     totalItens: 0,
     grupoSim: null,
     resumo: 'Produções nacionais do setor cultural — redução 60% (lista NBS no texto oficial).',
@@ -218,7 +226,8 @@ const RESUMO: BlocoResumo[] = [
     titulo: 'Soberania e segurança nacional/cibernética (redução 60%)',
     baseLegal: 'LC 214, art. 142',
     tratamento: 'Redução 60%',
-    aliquota: '≈11,2% efetiva',
+    // 40% da referencia (reducao de 60%) — antes 27,91% dava ~11,2%; com 30,00% da ~12,0%
+    aliquota: `≈${pct(REF_TOTAL * 0.4)} efetiva`,
     totalItens: 0,
     grupoSim: null,
     resumo: 'Defesa cibernética e segurança — redução 60% (itens 1.4 e 1.5 vetados na origem).',
@@ -797,9 +806,9 @@ export function SectionTabelaGeral() {
       <div className="p-3.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-xs sm:text-sm leading-relaxed">
         <strong>Verificação de fidelidade:</strong> as linhas vêm da extração item a item dos textos
         oficiais (RIBS, LC 214/2025 e Decreto 12.955/2026) e do catálogo do Simulador de Transição.
-        Alíquotas efetivas usam a referência de 27,91% (Res. CGIBS 14/2026) — estimativas até a
-        fixação legal. As tabelas entram na rotina semanal de fontes oficiais, com registro no
-        Histórico de Atualizações (Seção 13).
+        Alíquotas efetivas usam a referência de 30,00% — CBS 11,3% (TCU, 28/10/2026, válida a partir
+        de 01/01/2027) + IBS 18,70% (Res. CGIBS 14/2026). As tabelas entram na rotina semanal de
+        fontes oficiais, com registro no Histórico de Atualizações (Seção 13).
       </div>
     </section>
   )
