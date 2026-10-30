@@ -214,74 +214,82 @@ export default function Index() {
               </div>
             )}
 
-            {/* Navegação entre abas, no pé do conteúdo — sem precisar voltar ao menu */}
-            <div className="mt-6">
-              <div className="flex items-stretch gap-2 border-t border-slate-200 pt-3">
-                {anterior ? (
-                  <button
-                    onClick={() => navegar(anterior.id)}
-                    className="flex-1 flex items-center gap-2 rounded-xl border-2 border-slate-200 bg-white px-3 py-2 text-left hover:border-panorama-gold hover:bg-panorama-gold/5 transition-colors cursor-pointer"
-                  >
-                    <ChevronLeft className="w-4 h-4 text-slate-400 shrink-0" />
-                    <span className="min-w-0">
-                      <span className="block text-[9px] font-bold uppercase tracking-wide text-slate-400">
-                        Anterior
+            {/*
+            Navegação entre abas, no pé do conteúdo — sem precisar voltar ao menu.
+            SÓ dentro de uma aba de conteúdo: no Início, "Anterior: Painel inicial"
+            seria um botão que leva a lugar nenhum, porque o Início É o painel.
+            A condição acompanha a do rodapé — as duas são a mesma pergunta:
+            "estou numa seção, ou na porta de entrada?".
+          */}
+            {rota && (
+              <div className="mt-6">
+                <div className="flex items-stretch gap-2 border-t border-slate-200 pt-3">
+                  {anterior ? (
+                    <button
+                      onClick={() => navegar(anterior.id)}
+                      className="flex-1 flex items-center gap-2 rounded-xl border-2 border-slate-200 bg-white px-3 py-2 text-left hover:border-panorama-gold hover:bg-panorama-gold/5 transition-colors cursor-pointer"
+                    >
+                      <ChevronLeft className="w-4 h-4 text-slate-400 shrink-0" />
+                      <span className="min-w-0">
+                        <span className="block text-[9px] font-bold uppercase tracking-wide text-slate-400">
+                          Anterior
+                        </span>
+                        <span className="block text-[11.5px] font-bold text-slate-700 truncate">
+                          {anterior.titulo}
+                        </span>
                       </span>
-                      <span className="block text-[11.5px] font-bold text-slate-700 truncate">
-                        {anterior.titulo}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => navegar(ID_INICIO)}
+                      className="flex-1 flex items-center gap-2 rounded-xl border-2 border-slate-200 bg-white px-3 py-2 text-left hover:border-panorama-gold hover:bg-panorama-gold/5 transition-colors cursor-pointer"
+                    >
+                      <HomeIcon className="w-4 h-4 text-slate-400 shrink-0" />
+                      <span className="min-w-0">
+                        <span className="block text-[9px] font-bold uppercase tracking-wide text-slate-400">
+                          Anterior
+                        </span>
+                        <span className="block text-[11.5px] font-bold text-slate-700 truncate">
+                          Painel inicial
+                        </span>
                       </span>
-                    </span>
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => navegar(ID_INICIO)}
-                    className="flex-1 flex items-center gap-2 rounded-xl border-2 border-slate-200 bg-white px-3 py-2 text-left hover:border-panorama-gold hover:bg-panorama-gold/5 transition-colors cursor-pointer"
-                  >
-                    <HomeIcon className="w-4 h-4 text-slate-400 shrink-0" />
-                    <span className="min-w-0">
-                      <span className="block text-[9px] font-bold uppercase tracking-wide text-slate-400">
-                        Anterior
-                      </span>
-                      <span className="block text-[11.5px] font-bold text-slate-700 truncate">
-                        Painel inicial
-                      </span>
-                    </span>
-                  </button>
-                )}
+                    </button>
+                  )}
 
-                {proxima ? (
-                  <button
-                    onClick={() => navegar(proxima.id)}
-                    className="flex-1 flex items-center gap-2 justify-end rounded-xl border-2 border-slate-200 bg-white px-3 py-2 text-right hover:border-panorama-gold hover:bg-panorama-gold/5 transition-colors cursor-pointer"
-                  >
-                    <span className="min-w-0">
-                      <span className="block text-[9px] font-bold uppercase tracking-wide text-slate-400">
-                        Próxima
+                  {proxima ? (
+                    <button
+                      onClick={() => navegar(proxima.id)}
+                      className="flex-1 flex items-center gap-2 justify-end rounded-xl border-2 border-slate-200 bg-white px-3 py-2 text-right hover:border-panorama-gold hover:bg-panorama-gold/5 transition-colors cursor-pointer"
+                    >
+                      <span className="min-w-0">
+                        <span className="block text-[9px] font-bold uppercase tracking-wide text-slate-400">
+                          Próxima
+                        </span>
+                        <span className="block text-[11.5px] font-bold text-slate-700 truncate">
+                          {proxima.titulo}
+                        </span>
                       </span>
-                      <span className="block text-[11.5px] font-bold text-slate-700 truncate">
-                        {proxima.titulo}
+                      <ChevronRight className="w-4 h-4 text-slate-400 shrink-0" />
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => navegar(ID_INICIO)}
+                      className="flex-1 flex items-center gap-2 justify-end rounded-xl border-2 border-slate-200 bg-white px-3 py-2 text-right hover:border-panorama-gold hover:bg-panorama-gold/5 transition-colors cursor-pointer"
+                    >
+                      <span className="min-w-0">
+                        <span className="block text-[9px] font-bold uppercase tracking-wide text-slate-400">
+                          Fim da lista
+                        </span>
+                        <span className="block text-[11.5px] font-bold text-slate-700 truncate">
+                          Voltar ao painel
+                        </span>
                       </span>
-                    </span>
-                    <ChevronRight className="w-4 h-4 text-slate-400 shrink-0" />
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => navegar(ID_INICIO)}
-                    className="flex-1 flex items-center gap-2 justify-end rounded-xl border-2 border-slate-200 bg-white px-3 py-2 text-right hover:border-panorama-gold hover:bg-panorama-gold/5 transition-colors cursor-pointer"
-                  >
-                    <span className="min-w-0">
-                      <span className="block text-[9px] font-bold uppercase tracking-wide text-slate-400">
-                        Fim da lista
-                      </span>
-                      <span className="block text-[11.5px] font-bold text-slate-700 truncate">
-                        Voltar ao painel
-                      </span>
-                    </span>
-                    <HomeIcon className="w-4 h-4 text-slate-400 shrink-0" />
-                  </button>
-                )}
+                      <HomeIcon className="w-4 h-4 text-slate-400 shrink-0" />
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
 
             {/*
             Rodapé institucional SÓ na primeira página. `rota` é null apenas no
