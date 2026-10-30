@@ -122,6 +122,33 @@ routerAdd('POST', '/backend/v1/simul-importar', (e) => {
       if (c.regime_tributario) existing.set('regime_tributario', c.regime_tributario)
       if (c.atividade) existing.set('atividade', c.atividade)
       if (c.uf) existing.set('uf', String(c.uf).toUpperCase())
+      // identificação completa + situação atual (migration 0072) — mesma regra:
+      // só grava quando vier preenchido, para importação parcial não apagar
+      if (c.tipo_pessoa) existing.set('tipo_pessoa', c.tipo_pessoa)
+      if (c.razao_social) existing.set('razao_social', c.razao_social)
+      if (c.nome_fantasia) existing.set('nome_fantasia', c.nome_fantasia)
+      if (c.cep) existing.set('cep', c.cep)
+      if (c.municipio) existing.set('municipio', c.municipio)
+      if (c.cnae) existing.set('cnae', c.cnae)
+      if (c.segmento) existing.set('segmento', c.segmento)
+      if (c.telefone) existing.set('telefone', c.telefone)
+      if (
+        c.num_funcionarios !== undefined &&
+        c.num_funcionarios !== null &&
+        c.num_funcionarios !== ''
+      ) {
+        var nf = Number(c.num_funcionarios)
+        if (isFinite(nf) && nf >= 0) existing.set('num_funcionarios', nf)
+      }
+      if (
+        c.carga_atual_pct !== undefined &&
+        c.carga_atual_pct !== null &&
+        c.carga_atual_pct !== ''
+      ) {
+        var cap = Number(String(c.carga_atual_pct).replace(',', '.'))
+        if (isFinite(cap) && cap >= 0 && cap <= 100) existing.set('carga_atual_pct', cap)
+      }
+      if (Array.isArray(c.tributos_atuais)) existing.set('tributos_atuais', c.tributos_atuais)
       if (c.receita_mensal !== undefined && c.receita_mensal !== null && c.receita_mensal !== '') {
         var rmUp = Number(String(c.receita_mensal).replace(/\./g, '').replace(',', '.'))
         if (isFinite(rmUp) && rmUp >= 0) existing.set('receita_mensal', rmUp)
@@ -143,6 +170,31 @@ routerAdd('POST', '/backend/v1/simul-importar', (e) => {
         if (c.regime_tributario) rec.set('regime_tributario', c.regime_tributario)
         if (c.atividade) rec.set('atividade', c.atividade)
         if (c.uf) rec.set('uf', String(c.uf).toUpperCase())
+        if (c.tipo_pessoa) rec.set('tipo_pessoa', c.tipo_pessoa)
+        if (c.razao_social) rec.set('razao_social', c.razao_social)
+        if (c.nome_fantasia) rec.set('nome_fantasia', c.nome_fantasia)
+        if (c.cep) rec.set('cep', c.cep)
+        if (c.municipio) rec.set('municipio', c.municipio)
+        if (c.cnae) rec.set('cnae', c.cnae)
+        if (c.segmento) rec.set('segmento', c.segmento)
+        if (c.telefone) rec.set('telefone', c.telefone)
+        if (
+          c.num_funcionarios !== undefined &&
+          c.num_funcionarios !== null &&
+          c.num_funcionarios !== ''
+        ) {
+          var nfN = Number(c.num_funcionarios)
+          if (isFinite(nfN) && nfN >= 0) rec.set('num_funcionarios', nfN)
+        }
+        if (
+          c.carga_atual_pct !== undefined &&
+          c.carga_atual_pct !== null &&
+          c.carga_atual_pct !== ''
+        ) {
+          var capN = Number(String(c.carga_atual_pct).replace(',', '.'))
+          if (isFinite(capN) && capN >= 0 && capN <= 100) rec.set('carga_atual_pct', capN)
+        }
+        if (Array.isArray(c.tributos_atuais)) rec.set('tributos_atuais', c.tributos_atuais)
         if (
           c.receita_mensal !== undefined &&
           c.receita_mensal !== null &&

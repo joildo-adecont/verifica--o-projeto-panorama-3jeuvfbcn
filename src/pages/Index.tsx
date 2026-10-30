@@ -19,6 +19,7 @@ import { SectionAnexos } from '@/components/SectionAnexos'
 import { SectionTabelaGeral } from '@/components/SectionTabelaGeral'
 import { SectionCronograma } from '@/components/SectionCronograma'
 import { SectionIndicadores } from '@/components/SectionIndicadores'
+import { SectionCadastroEnvios } from '@/components/SectionCadastroEnvios'
 import { SectionFontes } from '@/components/SectionFontes'
 import { SectionFontesAgregador } from '@/components/SectionFontesAgregador'
 import { SectionFontesPrimarias } from '@/components/SectionFontesPrimarias'
@@ -158,6 +159,9 @@ export default function Index() {
 
           {/* Seção 8A: Central de Indicadores — alíquotas, tabelas, fontes e normas */}
           <SectionIndicadores />
+
+          {/* Seção 9A: Cadastro de Clientes & Envios — identificação e comparativo */}
+          <SectionCadastroEnvios />
 
           {/* Seção 11: Agregadores — Buscador de Produtos e Atividades por 11 Tabelas de Classificações */}
           <SectionFontesAgregador />

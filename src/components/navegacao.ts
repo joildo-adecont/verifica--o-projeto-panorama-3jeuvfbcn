@@ -45,6 +45,7 @@ import {
   Settings2,
   LayoutDashboard,
   Gauge,
+  Building2,
 } from 'lucide-react'
 
 export interface LinkNavegacao {
@@ -488,6 +489,34 @@ const FONTES: LinkNavegacao[] = [
 
 /* ────────────────────────────── GRUPO 5 ────────────────────────────── */
 const SISTEMA: LinkNavegacao[] = [
+  {
+    href: '#cadastro-envios',
+    label: 'Cadastro de Clientes & Envios',
+    curto: 'Cadastro',
+    tecla: 'k',
+    numero: '9A',
+    Icon: Building2,
+    cor: 'text-sky-700',
+    bg: 'bg-sky-50',
+    borda: 'border-sky-300',
+    descricao: 'Identificação completa, importação e comparativo com a reforma',
+    tags: [
+      'cadastro',
+      'cliente',
+      'clientes',
+      'envio',
+      'envios',
+      'importar',
+      'importacao',
+      'planilha',
+      'crm',
+      'contato',
+      'comparativo',
+      'receita',
+      'carga',
+      'tributos',
+    ],
+  },
   {
     href: '#historico-atualizacoes',
     label: 'Histórico de Atualizações',

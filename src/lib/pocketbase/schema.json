@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-29T23:28:18.398Z",
+  "generatedAt": "2026-10-30T00:30:34.444Z",
   "collections": [
     {
       "name": "users",
@@ -29,14 +29,19 @@
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": ["onCreate"]
+          "autodateTriggers": [
+            "onCreate"
+          ]
         },
         {
           "name": "updated",
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": ["onCreate", "onUpdate"]
+          "autodateTriggers": [
+            "onCreate",
+            "onUpdate"
+          ]
         }
       ],
       "indexes": [
@@ -84,17 +89,24 @@
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": ["onCreate"]
+          "autodateTriggers": [
+            "onCreate"
+          ]
         },
         {
           "name": "updated",
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": ["onCreate", "onUpdate"]
+          "autodateTriggers": [
+            "onCreate",
+            "onUpdate"
+          ]
         }
       ],
-      "indexes": ["CREATE INDEX idx_gallery_order ON gallery (order)"]
+      "indexes": [
+        "CREATE INDEX idx_gallery_order ON gallery (order)"
+      ]
     },
     {
       "name": "neighborhood",
@@ -148,17 +160,24 @@
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": ["onCreate"]
+          "autodateTriggers": [
+            "onCreate"
+          ]
         },
         {
           "name": "updated",
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": ["onCreate", "onUpdate"]
+          "autodateTriggers": [
+            "onCreate",
+            "onUpdate"
+          ]
         }
       ],
-      "indexes": ["CREATE INDEX idx_neighborhood_order ON neighborhood (order)"]
+      "indexes": [
+        "CREATE INDEX idx_neighborhood_order ON neighborhood (order)"
+      ]
     },
     {
       "name": "floorplans",
@@ -218,17 +237,24 @@
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": ["onCreate"]
+          "autodateTriggers": [
+            "onCreate"
+          ]
         },
         {
           "name": "updated",
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": ["onCreate", "onUpdate"]
+          "autodateTriggers": [
+            "onCreate",
+            "onUpdate"
+          ]
         }
       ],
-      "indexes": ["CREATE INDEX idx_floorplans_order ON floorplans (order)"]
+      "indexes": [
+        "CREATE INDEX idx_floorplans_order ON floorplans (order)"
+      ]
     },
     {
       "name": "inquiries",
@@ -270,14 +296,19 @@
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": ["onCreate"]
+          "autodateTriggers": [
+            "onCreate"
+          ]
         },
         {
           "name": "updated",
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": ["onCreate", "onUpdate"]
+          "autodateTriggers": [
+            "onCreate",
+            "onUpdate"
+          ]
         }
       ],
       "indexes": []
@@ -346,14 +377,19 @@
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": ["onCreate"]
+          "autodateTriggers": [
+            "onCreate"
+          ]
         },
         {
           "name": "updated",
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": ["onCreate", "onUpdate"]
+          "autodateTriggers": [
+            "onCreate",
+            "onUpdate"
+          ]
         },
         {
           "name": "norm_type",
@@ -368,7 +404,9 @@
           "system": false
         }
       ],
-      "indexes": ["CREATE INDEX idx_tax_norms_order ON tax_norms (order)"]
+      "indexes": [
+        "CREATE INDEX idx_tax_norms_order ON tax_norms (order)"
+      ]
     },
     {
       "name": "tax_topics",
@@ -428,14 +466,19 @@
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": ["onCreate"]
+          "autodateTriggers": [
+            "onCreate"
+          ]
         },
         {
           "name": "updated",
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": ["onCreate", "onUpdate"]
+          "autodateTriggers": [
+            "onCreate",
+            "onUpdate"
+          ]
         }
       ],
       "indexes": [
@@ -513,14 +556,19 @@
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": ["onCreate"]
+          "autodateTriggers": [
+            "onCreate"
+          ]
         },
         {
           "name": "updated",
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": ["onCreate", "onUpdate"]
+          "autodateTriggers": [
+            "onCreate",
+            "onUpdate"
+          ]
         }
       ],
       "indexes": [
@@ -574,17 +622,24 @@
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": ["onCreate"]
+          "autodateTriggers": [
+            "onCreate"
+          ]
         },
         {
           "name": "updated",
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": ["onCreate", "onUpdate"]
+          "autodateTriggers": [
+            "onCreate",
+            "onUpdate"
+          ]
         }
       ],
-      "indexes": ["CREATE INDEX idx_content_reviews_date ON content_reviews (review_date DESC)"]
+      "indexes": [
+        "CREATE INDEX idx_content_reviews_date ON content_reviews (review_date DESC)"
+      ]
     },
     {
       "name": "simul_clientes",
@@ -632,7 +687,10 @@
           "type": "select",
           "required": false,
           "system": false,
-          "selectValues": ["email", "whatsapp"]
+          "selectValues": [
+            "email",
+            "whatsapp"
+          ]
         },
         {
           "name": "is_active",
@@ -693,6 +751,103 @@
           "type": "text",
           "required": false,
           "system": false
+        },
+        {
+          "name": "tipo_pessoa",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": [
+            "PJ",
+            "PF"
+          ]
+        },
+        {
+          "name": "razao_social",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "nome_fantasia",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "cep",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "municipio",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "cnae",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "segmento",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": [
+            "comercio",
+            "industria",
+            "servicos",
+            "construcao",
+            "agropecuaria",
+            "imobiliario",
+            "financeiro",
+            "saude",
+            "educacao",
+            "tecnologia",
+            "transporte",
+            "energia",
+            "outro"
+          ]
+        },
+        {
+          "name": "num_funcionarios",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "telefone",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "carga_atual_pct",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "tributos_atuais",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": [
+            "pis",
+            "cofins",
+            "icms",
+            "iss",
+            "ipi",
+            "irpj",
+            "csll",
+            "cpp",
+            "simples_das",
+            "is"
+          ]
         }
       ],
       "indexes": []
@@ -732,7 +887,11 @@
           "type": "select",
           "required": false,
           "system": false,
-          "selectValues": ["ENVIADO", "RECEBIDO", "FALHA"]
+          "selectValues": [
+            "ENVIADO",
+            "RECEBIDO",
+            "FALHA"
+          ]
         },
         {
           "name": "tema_resumo",
@@ -781,7 +940,9 @@
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": ["onCreate"]
+          "autodateTriggers": [
+            "onCreate"
+          ]
         },
         {
           "name": "recebido_em",
@@ -844,7 +1005,12 @@
           "type": "select",
           "required": false,
           "system": false,
-          "selectValues": ["1", "2", "3", "4"]
+          "selectValues": [
+            "1",
+            "2",
+            "3",
+            "4"
+          ]
         },
         {
           "name": "is_active",
@@ -869,7 +1035,10 @@
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": ["onCreate", "onUpdate"]
+          "autodateTriggers": [
+            "onCreate",
+            "onUpdate"
+          ]
         }
       ],
       "indexes": []
@@ -902,7 +1071,12 @@
           "type": "select",
           "required": false,
           "system": false,
-          "selectValues": ["1", "2", "3", "4"]
+          "selectValues": [
+            "1",
+            "2",
+            "3",
+            "4"
+          ]
         },
         {
           "name": "ator_email",
@@ -927,7 +1101,9 @@
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": ["onCreate"]
+          "autodateTriggers": [
+            "onCreate"
+          ]
         }
       ],
       "indexes": []
@@ -1028,7 +1204,12 @@
           "type": "select",
           "required": true,
           "system": false,
-          "selectValues": ["todos", "android", "iphone", "computador"]
+          "selectValues": [
+            "todos",
+            "android",
+            "iphone",
+            "computador"
+          ]
         },
         {
           "name": "url",
@@ -1065,14 +1246,19 @@
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": ["onCreate"]
+          "autodateTriggers": [
+            "onCreate"
+          ]
         },
         {
           "name": "updated",
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": ["onCreate", "onUpdate"]
+          "autodateTriggers": [
+            "onCreate",
+            "onUpdate"
+          ]
         }
       ],
       "indexes": []
@@ -1154,14 +1340,19 @@
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": ["onCreate"]
+          "autodateTriggers": [
+            "onCreate"
+          ]
         },
         {
           "name": "updated",
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": ["onCreate", "onUpdate"]
+          "autodateTriggers": [
+            "onCreate",
+            "onUpdate"
+          ]
         }
       ],
       "indexes": [
@@ -1210,7 +1401,10 @@
           "type": "autodate",
           "required": false,
           "system": false,
-          "autodateTriggers": ["onCreate", "onUpdate"]
+          "autodateTriggers": [
+            "onCreate",
+            "onUpdate"
+          ]
         }
       ],
       "indexes": []
