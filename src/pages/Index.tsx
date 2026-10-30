@@ -33,6 +33,14 @@ import type { TaxNormItem } from '@/types/panorama'
  * ── O QUE FICA FORA DAS ABAS ──
  * Header (busca e status) e menu lateral continuam fixos, como moldura. O painel
  * inicial é uma aba também — a rota "Início", que não é seção de conteúdo.
+ *
+ * ── SEGUNDA CAMADA: A PÁGINA NÃO ROLA, A ABA ROLA (29/10/2026) ──
+ * Tirar as seções empilhadas resolveu a rolagem ENTRE assuntos, mas o conteúdo de
+ * uma aba longa ainda empurrava a página inteira: o header e o menu saíam de vista
+ * e a barra de rolagem era do documento, não do assunto.
+ * Agora o documento tem altura fixa (`h-screen overflow-hidden`) e só o miolo da
+ * aba rola (`flex-1 overflow-y-auto`). Resultado: header, menu e trilha ficam
+ * parados; a rolagem que existir é do conteúdo daquela aba, dentro da própria aba.
  */
 
 export default function Index() {
@@ -102,21 +110,24 @@ export default function Index() {
   })
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 selection:bg-blue-600 selection:text-white flex flex-col font-sans">
+    <div className="h-screen overflow-hidden bg-slate-50 text-slate-900 selection:bg-blue-600 selection:text-white flex font-sans">
       <PanoramaSideMenu />
       <SumarioFlutuante />
       <PainelAtalhos />
 
-      <div className="lg:pl-60 flex flex-col min-h-screen">
-        <PanoramaHeader
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          onManualRefresh={loadData}
-        />
+      {/* coluna da direita: header e trilha fixos, miolo da aba rolando */}
+      <div className="lg:pl-60 flex flex-col h-screen min-h-0 flex-1">
+        <div className="shrink-0">
+          <PanoramaHeader
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            onManualRefresh={loadData}
+          />
+        </div>
 
         {/* Trilha: onde estou, e como voltar — substitui a rolagem como orientação */}
         {rota && (
-          <div className="w-full border-b border-slate-200 bg-white">
+          <div className="w-full border-b border-slate-200 bg-white shrink-0">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 py-1.5 flex items-center gap-1.5 flex-wrap">
               <button
                 onClick={() => navegar(ID_INICIO)}
@@ -152,7 +163,7 @@ export default function Index() {
 
         {/* Feedback de busca ativa — só na aba de Normas, onde ela filtra de fato */}
         {searchTerm && idAtual === 'secao-1' && (
-          <div className="bg-blue-50 border-b border-blue-200 py-2 px-4 sm:px-6">
+          <div className="bg-blue-50 border-b border-blue-200 py-2 px-4 sm:px-6 shrink-0">
             <div className="max-w-7xl mx-auto flex items-center justify-between text-[11px] text-blue-900">
               <span>
                 Filtrando normas por: <strong>&quot;{searchTerm}&quot;</strong> —{' '}
@@ -174,88 +185,90 @@ export default function Index() {
           manteria o custo de render e o risco de rolagem residual, que é exatamente
           o que o pedido elimina.
         */}
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 py-5 flex-1 w-full">
-          {rota ? (
-            <div key={rota.id}>
-              <rota.Componente norms={filteredNorms} loading={loading} />
-            </div>
-          ) : (
-            <div>
-              <PainelInicial />
-            </div>
-          )}
-        </main>
-
-        {/* Navegação entre abas, no pé do conteúdo — sem precisar voltar ao menu */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full pb-6">
-          <div className="flex items-stretch gap-2 border-t border-slate-200 pt-3">
-            {anterior ? (
-              <button
-                onClick={() => navegar(anterior.id)}
-                className="flex-1 flex items-center gap-2 rounded-xl border-2 border-slate-200 bg-white px-3 py-2 text-left hover:border-panorama-gold hover:bg-panorama-gold/5 transition-colors cursor-pointer"
-              >
-                <ChevronLeft className="w-4 h-4 text-slate-400 shrink-0" />
-                <span className="min-w-0">
-                  <span className="block text-[9px] font-bold uppercase tracking-wide text-slate-400">
-                    Anterior
-                  </span>
-                  <span className="block text-[11.5px] font-bold text-slate-700 truncate">
-                    {anterior.titulo}
-                  </span>
-                </span>
-              </button>
+        <main id="miolo-aba" className="flex-1 min-h-0 overflow-y-auto overscroll-contain w-full">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-5 w-full">
+            {rota ? (
+              <div key={rota.id}>
+                <rota.Componente norms={filteredNorms} loading={loading} />
+              </div>
             ) : (
-              <button
-                onClick={() => navegar(ID_INICIO)}
-                className="flex-1 flex items-center gap-2 rounded-xl border-2 border-slate-200 bg-white px-3 py-2 text-left hover:border-panorama-gold hover:bg-panorama-gold/5 transition-colors cursor-pointer"
-              >
-                <HomeIcon className="w-4 h-4 text-slate-400 shrink-0" />
-                <span className="min-w-0">
-                  <span className="block text-[9px] font-bold uppercase tracking-wide text-slate-400">
-                    Anterior
-                  </span>
-                  <span className="block text-[11.5px] font-bold text-slate-700 truncate">
-                    Painel inicial
-                  </span>
-                </span>
-              </button>
+              <div>
+                <PainelInicial />
+              </div>
             )}
 
-            {proxima ? (
-              <button
-                onClick={() => navegar(proxima.id)}
-                className="flex-1 flex items-center gap-2 justify-end rounded-xl border-2 border-slate-200 bg-white px-3 py-2 text-right hover:border-panorama-gold hover:bg-panorama-gold/5 transition-colors cursor-pointer"
-              >
-                <span className="min-w-0">
-                  <span className="block text-[9px] font-bold uppercase tracking-wide text-slate-400">
-                    Próxima
-                  </span>
-                  <span className="block text-[11.5px] font-bold text-slate-700 truncate">
-                    {proxima.titulo}
-                  </span>
-                </span>
-                <ChevronRight className="w-4 h-4 text-slate-400 shrink-0" />
-              </button>
-            ) : (
-              <button
-                onClick={() => navegar(ID_INICIO)}
-                className="flex-1 flex items-center gap-2 justify-end rounded-xl border-2 border-slate-200 bg-white px-3 py-2 text-right hover:border-panorama-gold hover:bg-panorama-gold/5 transition-colors cursor-pointer"
-              >
-                <span className="min-w-0">
-                  <span className="block text-[9px] font-bold uppercase tracking-wide text-slate-400">
-                    Fim da lista
-                  </span>
-                  <span className="block text-[11.5px] font-bold text-slate-700 truncate">
-                    Voltar ao painel
-                  </span>
-                </span>
-                <HomeIcon className="w-4 h-4 text-slate-400 shrink-0" />
-              </button>
-            )}
+            {/* Navegação entre abas, no pé do conteúdo — sem precisar voltar ao menu */}
+            <div className="mt-6">
+              <div className="flex items-stretch gap-2 border-t border-slate-200 pt-3">
+                {anterior ? (
+                  <button
+                    onClick={() => navegar(anterior.id)}
+                    className="flex-1 flex items-center gap-2 rounded-xl border-2 border-slate-200 bg-white px-3 py-2 text-left hover:border-panorama-gold hover:bg-panorama-gold/5 transition-colors cursor-pointer"
+                  >
+                    <ChevronLeft className="w-4 h-4 text-slate-400 shrink-0" />
+                    <span className="min-w-0">
+                      <span className="block text-[9px] font-bold uppercase tracking-wide text-slate-400">
+                        Anterior
+                      </span>
+                      <span className="block text-[11.5px] font-bold text-slate-700 truncate">
+                        {anterior.titulo}
+                      </span>
+                    </span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => navegar(ID_INICIO)}
+                    className="flex-1 flex items-center gap-2 rounded-xl border-2 border-slate-200 bg-white px-3 py-2 text-left hover:border-panorama-gold hover:bg-panorama-gold/5 transition-colors cursor-pointer"
+                  >
+                    <HomeIcon className="w-4 h-4 text-slate-400 shrink-0" />
+                    <span className="min-w-0">
+                      <span className="block text-[9px] font-bold uppercase tracking-wide text-slate-400">
+                        Anterior
+                      </span>
+                      <span className="block text-[11.5px] font-bold text-slate-700 truncate">
+                        Painel inicial
+                      </span>
+                    </span>
+                  </button>
+                )}
+
+                {proxima ? (
+                  <button
+                    onClick={() => navegar(proxima.id)}
+                    className="flex-1 flex items-center gap-2 justify-end rounded-xl border-2 border-slate-200 bg-white px-3 py-2 text-right hover:border-panorama-gold hover:bg-panorama-gold/5 transition-colors cursor-pointer"
+                  >
+                    <span className="min-w-0">
+                      <span className="block text-[9px] font-bold uppercase tracking-wide text-slate-400">
+                        Próxima
+                      </span>
+                      <span className="block text-[11.5px] font-bold text-slate-700 truncate">
+                        {proxima.titulo}
+                      </span>
+                    </span>
+                    <ChevronRight className="w-4 h-4 text-slate-400 shrink-0" />
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => navegar(ID_INICIO)}
+                    className="flex-1 flex items-center gap-2 justify-end rounded-xl border-2 border-slate-200 bg-white px-3 py-2 text-right hover:border-panorama-gold hover:bg-panorama-gold/5 transition-colors cursor-pointer"
+                  >
+                    <span className="min-w-0">
+                      <span className="block text-[9px] font-bold uppercase tracking-wide text-slate-400">
+                        Fim da lista
+                      </span>
+                      <span className="block text-[11.5px] font-bold text-slate-700 truncate">
+                        Voltar ao painel
+                      </span>
+                    </span>
+                    <HomeIcon className="w-4 h-4 text-slate-400 shrink-0" />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <PanoramaFooter />
           </div>
-        </div>
-
-        <PanoramaFooter />
+        </main>
       </div>
     </div>
   )
