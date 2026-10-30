@@ -46,6 +46,20 @@ const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
     data: '29/10/2026',
+    hora: '22:40',
+    titulo:
+      'CBS 11,3% propagada até o fim: valores efetivos que estavam fixos passaram a ser calculados',
+    conteudo:
+      'O CEO pediu para alterar as alíquotas do simulador da CBS para 11,3%. A alíquota de referência já estava em 11,3% desde 19:21 do mesmo dia, mas a varredura pedida revelou que nem todo valor DERIVADO dela acompanhava a mudança, porque estava escrito à mão. Dois casos corrigidos. PRIMEIRO, a Tabela Geral dos Anexos: os nove anexos com redução de 60% exibiam o texto fixo de aproximadamente 11,2 por cento efetiva, calculado sobre a referência antiga de 27,91%; passaram a calcular 40% da referência e agora mostram 12,00 por cento, que é o correto sobre 30,00%. SEGUNDO, a Seção 6F Profissionais: o simulador de profissões imprimia a conta 30,00 por cento vezes 0,70 igual a 19,54 por cento, misturando a referência nova com o resultado antigo no mesmo texto, e a tabela de grupos mostrava 11,16 por cento fixo; ambos passaram a calcular e exibem 21,00 por cento e 12,00 por cento. Nenhuma alíquota legal foi alterada: os valores de PIS e Cofins, RET imobiliário, faixas do Simples, alíquotas de teste de 2026 e a série de transição 2027 a 2033 são alíquotas próprias e continuam como estão. A série histórica da Central de Indicadores mantém 9,21 e 27,91 de propósito, porque registra a vigência de 31/07/2026 antes do TCU, ao lado da linha de 28/10/2026 com 11,30 e 30,00. Confirmado em produção: a referência exibida é 30,00 por cento, igual a CBS 11,30 por cento mais IBS 18,70 por cento; a Tabela Geral não tem mais nenhuma linha com 11,2 por cento; e as dez rotas de simulador foram varridas sem sobra de 27,91, 9,21, 19,54, 11,16, 13,96 ou 8,37, exceto a série histórica citada. Erro de processo reconhecido: na primeira tentativa os arquivos foram editados em cópia de trabalho e o original foi enviado ao Skip, então a publicação saiu sem a correção da Tabela Geral; detectado pelo teste em produção e republicado.',
+    fontes: [],
+    caminho:
+      'src/components/SectionTabelaGeral.tsx (9 valores efetivos) + src/components/SectionProfissionaisPlataformas.tsx (3 textos)',
+    versao: 'v0.0.276-277',
+    bloco: 'sistema',
+  },
+  // ============ BLOCO: ATUALIZAÇÃO DA LEGISLAÇÃO ============
+  {
+    data: '29/10/2026',
     hora: '22:25',
     titulo:
       'Rodapé institucional de volta, agora só na primeira página; e Seção 11 recuperada no menu',
