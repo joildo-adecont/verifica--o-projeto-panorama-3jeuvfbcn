@@ -221,8 +221,23 @@ export function PainelInicial() {
 
   const totalEncontrado = Object.values(contagemPorGrupo).reduce((s, n) => s + n, 0)
 
-  // a aba escolhida; se o usuário nunca escolheu, a primeira
-  const abaCorrente = abaAtiva ?? GRUPOS[0].id
+  /**
+   * A BUSCA LEVA O CONTEÚDO PARA A ABA DO ASSUNTO.
+   *
+   * Regra: enquanto há busca, a aba aberta é a do assunto encontrado — não a aba
+   * em que o usuário estava. Se ele procura "aluguel" com Indicadores aberto, o
+   * sistema abre Simulação e mostra o card 6A ali dentro. O conteúdo nunca sai da
+   * aba: fica preso no ícone correspondente.
+   *
+   * Se ele clicar numa aba de próprio punho, o clique manda (abaAtiva vence) —
+   * mas o filtro é zerado ao trocar de aba, justamente para não haverCard fora de
+   * contexto.
+   *
+   * Sem busca, a aba é a que ele escolheu ou a primeira.
+   */
+  const primeiraComResultado = GRUPOS.find((g) => (contagemPorGrupo[g.id] ?? 0) > 0)?.id
+  const abaAuto = termo ? (primeiraComResultado ?? GRUPOS[0].id) : GRUPOS[0].id
+  const abaCorrente = abaAtiva ?? abaAuto
   const grupoCorrente = GRUPOS.find((g) => g.id === abaCorrente) ?? GRUPOS[0]
   const itensCorrentes = itensDoGrupo(grupoCorrente)
 
@@ -260,14 +275,17 @@ export function PainelInicial() {
           <input
             value={filtro}
             onChange={(e) => {
-              // guarda a posição: digitar não pode fazer a tela correr
+              // guarda a posição: digitar não pode fazer a tela correr.
+              // zera a escolha manual para a busca abrir a aba do assunto.
               const y = window.scrollY
+              setAbaAtiva(null)
               setFiltro(e.target.value)
               window.requestAnimationFrame(() => window.scrollTo({ top: y, behavior: 'instant' }))
             }}
             onKeyDown={(e) => {
               if (e.key === 'Escape') {
                 const y = window.scrollY
+                setAbaAtiva(null)
                 setFiltro('')
                 window.requestAnimationFrame(() => window.scrollTo({ top: y, behavior: 'instant' }))
               }
@@ -277,7 +295,10 @@ export function PainelInicial() {
           />
           {filtro && (
             <button
-              onClick={() => setFiltro('')}
+              onClick={() => {
+                setAbaAtiva(null)
+                setFiltro('')
+              }}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 cursor-pointer"
               aria-label="Limpar"
             >
@@ -416,7 +437,14 @@ export function PainelInicial() {
                   key={g.id}
                   role="tab"
                   aria-selected={ativa}
-                  onClick={() => setAbaAtiva(g.id)}
+                  onClick={() => {
+                    // trocar de aba não move a página
+                    const y = window.scrollY
+                    setAbaAtiva(g.id)
+                    window.requestAnimationFrame(() =>
+                      window.scrollTo({ top: y, behavior: 'instant' }),
+                    )
+                  }}
                   className={`flex items-center gap-2 rounded-t-xl border-2 border-b-0 px-3.5 py-2.5 shrink-0 transition-colors cursor-pointer ${
                     ativa
                       ? `bg-white border-slate-300 ${cores.seta}`
@@ -448,11 +476,17 @@ export function PainelInicial() {
             role="tabpanel"
             className="rounded-b-2xl rounded-tr-2xl border-2 border-slate-300 bg-white p-3.5 min-h-[168px]"
           >
-            <div className="flex items-center gap-2 mb-3">
+            <div className="flex items-center gap-2 mb-3 flex-wrap">
               <grupoCorrente.Icon className={`w-4 h-4 ${grupoCorrente.cor}`} />
               <p className="text-[11px] text-slate-600">
                 <b className="text-slate-900">{grupoCorrente.nome}</b> — {grupoCorrente.proposito}
               </p>
+              {termo && itensCorrentes.length > 0 && (
+                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-full px-2 py-0.5">
+                  <Search className="w-2.5 h-2.5" />
+                  resultado de “{filtro}” preso nesta aba
+                </span>
+              )}
             </div>
 
             {itensCorrentes.length === 0 ? (
@@ -461,9 +495,14 @@ export function PainelInicial() {
                   Nenhuma seção de {grupoCorrente.nome} corresponde a “{filtro}”
                 </p>
                 <p className="text-[10.5px] text-slate-500 mt-1 leading-snug">
-                  As outras abas mostram acima quantos resultados têm. Escolha uma delas, ou{' '}
+                  {primeiraComResultado
+                    ? `O resultado está na aba ${GRUPOS.find((g) => g.id === primeiraComResultado)?.nome} — clique nela acima.`
+                    : 'Nenhuma aba tem resultado. '}
                   <button
-                    onClick={() => setFiltro('')}
+                    onClick={() => {
+                      setAbaAtiva(null)
+                      setFiltro('')
+                    }}
                     className="font-bold text-slate-700 underline cursor-pointer"
                   >
                     limpar a busca
