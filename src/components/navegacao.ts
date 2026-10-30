@@ -439,6 +439,40 @@ const TABELAS: LinkNavegacao[] = [
 /* ────────────────────────────── GRUPO 4 ────────────────────────────── */
 const FONTES: LinkNavegacao[] = [
   {
+    /*
+     * Seção 11 — acrescentada em 29/10/2026. Ela existia no Index (era renderizada
+     * entre a 9A e a 9, na página empilhada), mas NUNCA teve item de menu: chegava-se
+     * a ela apenas rolando. Quando a navegação virou abas, "só rolar" deixou de
+     * existir e a seção ficou INALCANÇÁVEL — o hash #fontes-agregador não tinha
+     * componente no roteador e caía no Início. Este item fecha esse buraco.
+     * Tecla 'o' (de "origem"/agregadores): livre e sem conflito com as demais.
+     */
+    href: '#fontes-agregador',
+    label: 'Fontes de referência (agregadores)',
+    curto: 'Agregadores',
+    tecla: 'o',
+    numero: '11',
+    Icon: Layers,
+    cor: 'text-fuchsia-700',
+    bg: 'bg-fuchsia-50',
+    borda: 'border-fuchsia-300',
+    descricao: 'Buscador NCM e agregadores — fonte secundária, com alerta',
+    tags: [
+      'agregador',
+      'agregadores',
+      'buscador',
+      'ncm',
+      'nbs',
+      'referencia',
+      'secundaria',
+      'catalogo',
+      'produto',
+      'classificacao',
+      'tabela',
+      'consulta',
+    ],
+  },
+  {
     href: '#secao-9',
     label: 'Fontes & Atualização',
     curto: 'Fontes',
