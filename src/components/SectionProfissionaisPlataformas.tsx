@@ -417,7 +417,7 @@ const LINHA_TEMPO = [
     ano: '2033',
     cbs: `{pct(CBS_REF)} (referência TCU)`,
     ibs: '18,70% (pleno)',
-    efetiva: `${pct(REF_TOTAL)} × 0,70 = 19,54%`,
+    efetiva: `${pct(REF_TOTAL)} × 0,70 = ${pct(REF_TOTAL * 0.7)}`,
   },
 ]
 
@@ -489,7 +489,7 @@ function SimuladorProfissionais() {
     <div className="space-y-5">
       <HeroSim
         titulo="Simulador de Profissões Regulamentadas"
-        sub={`Alíquotas reduzidas em 30% (efetiva = referência ${pct(REF_TOTAL)} × 0,70 = 19,54%) para as 18 profissões regulamentadas. PF: serviços vinculados à habilitação (§1º, I). PJ: requisitos cumulativos (§1º, II).`}
+        sub={`Alíquotas reduzidas em 30% (efetiva = referência ${pct(REF_TOTAL)} × 0,70 = ${pct(REF_TOTAL * 0.7)}) para as 18 profissões regulamentadas. PF: serviços vinculados à habilitação (§1º, I). PJ: requisitos cumulativos (§1º, II).`}
         teclas="Selecione a profissão e o ano — apuração imediata"
         capitulacao={`LEI LC 214/2025, art. 127 (caput e §§1º–3º) · RESOLUÇÃO CGIBS 14/2026 (ref. ${pct(REF_TOTAL)}) · ARTS. 343–347 e 295–296 (transição)`}
       />
@@ -911,7 +911,8 @@ function SimuladorPlataformas() {
     {
       grupo: 'Educação, saúde, dispositivos, medicamentos, alimentos (−60%)',
       fator: '40%',
-      ali: '11,16%',
+      // 40% da referência (redução de 60%): 27,91% dava 11,16%; com 30,00% dá 12,00%
+      ali: pct(REF_TOTAL * 0.4),
       base: 'LC 214, art. 128 e Anexos',
     },
     {
