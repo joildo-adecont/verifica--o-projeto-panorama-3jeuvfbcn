@@ -12,7 +12,6 @@ import {
   MapPin,
   ShieldAlert,
 } from 'lucide-react'
-import { RadarNacional } from '@/components/RadarNacional'
 
 /**
  * SEÇÃO 19 — RADAR NACIONAL: FEDERAL, ESTADUAL E MUNICIPAL
@@ -217,6 +216,46 @@ const DADOS = {
     {
       uf: 'MG',
       titulo:
+        '300 394,44 473,74 495,94 480,96 491,25 Prazos de execucao variaveis (*) O total com tributos (CBS, IBS e, quando houver, ISSQN) devera ser apresentado na tabela',
+      url: 'https://www.jornalminasgerais.mg.gov.br/edicao-do-dia',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'MG',
+      titulo:
+        'CO DIAMETRO SERVICO COMPLEMENTAR/ CARACTERISTICAS V ALOR SEM TRIBUTOS (R$) TOTAL COM TRIBUTOS CBS e IBS (R$) ** PRAZO EXECUCAO (dias uteis) 250 02 00 INSTALACAO',
+      url: 'https://www.jornalminasgerais.mg.gov.br/edicao-do-dia',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'MG',
+      titulo:
+        'CO DIAMETRO SERVICO COMPLEMENTAR/ CARACTERISTICAS V ALOR SEM TRIBUTOS (R$) TOTAL COM TRIBUTOS CBS e IBS (R$) *** PRAZO EXECUCAO (dias uteis) Parcelas (maximo) 1',
+      url: 'https://www.jornalminasgerais.mg.gov.br/edicao-do-dia',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'MG',
+      titulo:
+        'CO DIAMETRO SERVICO COMPLEMENTAR/ CARACTERISTICAS V ALOR SEM TRIBUTOS (R$) TOTAL COM TRIBUTOS CBS e IBS (R$) *** PRAZO EXECUCAO (dias uteis) Parcelas (maximo) 3',
+      url: 'https://www.jornalminasgerais.mg.gov.br/edicao-do-dia',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'MG',
+      titulo:
+        'CO DIAMETRO SERVICO COMPLEMENTAR/ CARACTERISTICAS V ALOR SEM TRIBUTOS (R$) TOTAL COM TRIBUTOS CBS e IBS (R$) **** PRAZO EXECUCAO (dias uteis) Parcelas (maximo) ',
+      url: 'https://www.jornalminasgerais.mg.gov.br/edicao-do-dia',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'MG',
+      titulo:
         'CONTRATO ADMINISTRATIVO Nº 06/26, QUE CELEBRAM ENTRE SI A CÂMARA MUNICIPAL DE PATROCÍNIO E A EMPRESA VIRTUALIZA TECNOLOGIA DA INFORMAÇÃO LTDA EPP',
       url: 'https://www.diariomunicipal.com.br/amm-mg/materia/C20CCDD0',
       assoc: 'amm-mg',
@@ -322,6 +361,14 @@ const DADOS = {
     },
     {
       uf: 'MG',
+      titulo:
+        'GO SERVICO SERVICO COMPLEMENTAR / CARACTERISTICAS V ALOR SEM TRIBUTOS (R$) TOTAL COM TRIBUTOS CBS e IBS (R$) * PRAZO EXECUCAO (dias uteis) 602 01 00 CONFIRMACAO',
+      url: 'https://www.jornalminasgerais.mg.gov.br/edicao-do-dia',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'MG',
       titulo: 'LEI COMPLEMENTAR N.º 245 DE 31 DE MARÇO DE 2025.',
       url: 'https://www.diariomunicipal.com.br/amm-mg/materia/5C3FA54D',
       assoc: 'amm-mg',
@@ -371,6 +418,22 @@ const DADOS = {
     },
     {
       uf: 'MG',
+      titulo:
+        'O DIAMETRO SERVICO COMPLEMENTAR / CARACTERISTICAS V ALOR SEM TRIBUTOS (R$) TOTAL COM TRIBUTOS CBS e IBS (R$) *** PRAZO EXECUCAO (dias uteis) 100 05 LIGACAO DE A',
+      url: 'https://www.jornalminasgerais.mg.gov.br/edicao-do-dia',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'MG',
+      titulo:
+        'O DIAMETRO SERVICO COMPLEMENTAR / CARACTERISTICAS V ALOR SEM TRIBUTOS (R$) TOTAL COM TRIBUTOS CBS e IBS (R$) *** PRAZO EXECUCAO (dias uteis) 101 05 LIGACAO DE A',
+      url: 'https://www.jornalminasgerais.mg.gov.br/edicao-do-dia',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'MG',
       titulo: 'PORTARIA Nº 020, DE 22 DE OUTUBRO DE 2026.',
       url: 'https://www.diariomunicipal.com.br/amm-mg/materia/EC0609CA',
       assoc: 'amm-mg',
@@ -398,6 +461,22 @@ const DADOS = {
       url: 'https://www.diariomunicipal.com.br/amm-mg/materia/7AAD9906',
       assoc: 'amm-mg',
       nivel: 'municipal',
+    },
+    {
+      uf: 'MG',
+      titulo:
+        'almente substituidos pela Contribuicao sobre Bens e Servicos CBS, e o Imposto sobre Bens e Servicos IBS tera sua implementacao iniciada gradualmente; CONSIDERAN',
+      url: 'https://www.jornalminasgerais.mg.gov.br/edicao-do-dia',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'MG',
+      titulo:
+        'dias uteis; 100% em ate 10 dias uteis, apos aprovacao da vistoria (***) O total com tributos (CBS, IBS e, quando houver, ISSQN) devera ser apresentado na tabela',
+      url: 'https://www.jornalminasgerais.mg.gov.br/edicao-do-dia',
+      assoc: 'estadual',
+      nivel: 'estadual',
     },
     {
       uf: 'PA',
@@ -2132,6 +2211,18 @@ const DADOS = {
         '97 4ª FEIRA |28/OUT/2026 - EDIÇÃO N° 12.',
       ],
     },
+    {
+      uf: 'MG',
+      nome: 'Jornal Minas Gerais (DIOE/MG)',
+      ativo: true,
+      modo: 'API oficial com JWT anônimo (POST Autenticar {}) + busca paginada',
+      hits: 10,
+      amostra: [
+        'almente substituidos pela Contribuicao s',
+        'O DIAMETRO SERVICO COMPLEMENTAR / CARACT',
+        'dias uteis; 100% em ate 10 dias uteis, a',
+      ],
+    },
   ],
 }
 
@@ -2326,28 +2417,6 @@ export function SectionRadarNacional() {
             </button>
           ))}
         </div>
-      </div>
-
-      {/* AMPLIAÇÃO MUNICIPAL DO RADAR NACIONAL — BUSCADOR SERVER-SIDE IBGE */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between border-b border-slate-200 pb-2">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-panorama-gold-dark bg-panorama-gold/10 px-2 py-0.5 rounded border border-panorama-gold/30">
-                Cobertura Municipal Integral
-              </span>
-              <h3 className="text-sm md:text-base font-bold text-slate-900">
-                Ampliação Municipal do Radar Nacional — 5.570 Municípios Oficiais (27 UFs)
-              </h3>
-            </div>
-            <p className="text-[11px] text-slate-600 mt-0.5">
-              Consulte qualquer município brasileiro diretamente da API oficial do PocketBase, com
-              expansão por UF, chips selecionáveis e contagem de atos vinculados por código IBGE.
-            </p>
-          </div>
-        </div>
-
-        <RadarNacional initialUf={uf} />
       </div>
 
       {/* ACHADOS */}
