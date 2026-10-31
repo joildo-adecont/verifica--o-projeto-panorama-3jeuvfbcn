@@ -213,4 +213,34 @@ describe('Validação dos fluxos do Panorama da Reforma Tributária', () => {
       expect(t.sublabel.toLowerCase()).not.toContain('jurídic')
     }
   })
+
+  it('validação do motor de Busca Avançada integrada (#busca-avancada)', async () => {
+    const { buscarAvancado } = await import('./buscaAvancada')
+
+    // 1. Busca pelo termo "arroz" (cesta básica)
+    const resArroz = await buscarAvancado({ termo: 'arroz' })
+    expect(resArroz.termo).toBe('arroz')
+    expect(resArroz.totalGeralEncontrado).toBeGreaterThan(0)
+    expect(resArroz.aliquotasTratamentos.some((t) => t.categoria === 'Cesta Básica')).toBe(true)
+    expect(resArroz.conexoesLegais.length).toBeGreaterThan(0)
+    expect(resArroz.analisesEspecialistas.length).toBeGreaterThan(0)
+    expect(resArroz.dadosGraficos.linhaDoTempoAliquota.length).toBe(8)
+    expect(resArroz.dadosGraficos.composicaoAtos.length).toBe(3)
+
+    // 2. Busca pelo termo "cesta básica"
+    const resCesta = await buscarAvancado({ termo: 'cesta básica' })
+    expect(resCesta.aliquotasTratamentos.length).toBeGreaterThan(0)
+    expect(resCesta.aliquotasTratamentos[0].reducaoOuFator).toContain('0,00')
+
+    // 3. Busca por "cClassTrib"
+    const resClass = await buscarAvancado({ termo: 'cClassTrib', tipoClassificacao: 'cClassTrib' })
+    expect(resClass.classificacoes.items.length).toBeGreaterThanOrEqual(1)
+
+    // 4. Validação da rota registrada e atalho no menu
+    const { NAVEGACAO } = await import('../components/navegacao')
+    const itemBusca = NAVEGACAO.find((item) => item.href === '#busca-avancada')
+    expect(itemBusca).toBeDefined()
+    expect(itemBusca?.label).toBe('Busca Avançada')
+    expect(itemBusca?.tecla).toBe('b')
+  })
 })

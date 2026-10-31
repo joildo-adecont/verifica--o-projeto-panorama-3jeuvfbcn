@@ -10,6 +10,8 @@ import { ArrowUp, Compass } from 'lucide-react'
 
 // Mesmos ids/labels do PanoramaSideMenu (fonte única de verdade visual)
 const SECOES: { id: string; label: string }[] = [
+  { id: 'busca-avancada', label: 'Busca Avançada' },
+  { id: 'indicadores', label: 'Central de Indicadores' },
   { id: 'secao-1', label: 'Normas' },
   { id: 'secao-2', label: 'Fato Gerador' },
   { id: 'secao-3', label: 'Cesta Básica' },

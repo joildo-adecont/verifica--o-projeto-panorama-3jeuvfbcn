@@ -48,6 +48,7 @@ import {
   Building2,
   Lock,
   Globe2,
+  Sparkles,
 } from 'lucide-react'
 
 export interface LinkNavegacao {
@@ -699,6 +700,40 @@ const SISTEMA: LinkNavegacao[] = [
 
 /* ───────────── GRUPO 0 — INDICADORES (acesso de topo) ───────────── */
 const INDICADORES: LinkNavegacao[] = [
+  {
+    href: '#busca-avancada',
+    label: 'Busca Avançada',
+    curto: 'Busca Avançada',
+    tecla: 'b',
+    numero: 'BUSCA',
+    Icon: Sparkles,
+    cor: 'text-amber-600',
+    bg: 'bg-gradient-to-br from-amber-50 to-blue-50',
+    borda: 'border-amber-300',
+    descricao: 'Pesquisa integrada em normas, atos, 15.240+ NCMs, regras, alíquotas e gráficos',
+    tags: [
+      'busca',
+      'pesquisa',
+      'avancada',
+      'busca avancada',
+      'pesquisar',
+      'ncm',
+      'cclasstrib',
+      'cst',
+      'atos',
+      'regras',
+      'aliquotas',
+      'tabelas',
+      'graficos',
+      'arroz',
+      'cesta basica',
+      'agronegocio',
+      'isencao',
+      'imunidade',
+      'produtos',
+      'servicos',
+    ],
+  },
   {
     href: '#indicadores',
     label: 'Central de Indicadores',
