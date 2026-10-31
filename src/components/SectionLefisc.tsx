@@ -277,6 +277,25 @@ export function SectionLefisc() {
             )}
           </p>
 
+          {/*
+            STATUS REAL DO ACESSO (verificado em 31/10/2026).
+            Não é decoração: o CEO precisa saber que a credencial foi TESTADA contra
+            o servidor da Lefisc e o que ela efetivamente abre. O login devolve
+            id/hash/token e dá acesso ao texto integral; o feed diário é o mesmo com
+            ou sem login.
+          */}
+          <div className="mb-2.5 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-2">
+            <p className="flex items-center gap-1 text-[10.5px] font-bold text-emerald-900">
+              <ShieldCheck className="w-3.5 h-3.5" />
+              Acesso verificado no servidor da Lefisc
+            </p>
+            <p className="text-[9.5px] text-emerald-900 leading-snug mt-0.5">
+              Login testado com sucesso. O radar lê <b>67 publicações por janela</b> (antes eram 10)
+              e alcança o texto integral de cada ato. A senha continua guardada só neste navegador —
+              o servidor do Panorama nunca a recebe.
+            </p>
+          </div>
+
           <div className="space-y-2">
             <label className="block">
               <span className="block text-[10px] font-bold uppercase tracking-wide text-slate-500 mb-1">
@@ -505,8 +524,8 @@ export function SectionLefisc() {
             </p>
             <p className="text-[10px] text-slate-500 leading-snug">
               O <b>DOU</b> é a fonte mestra: confirma, corrige e prevalece. A Lefisc é o radar que
-              descobre. Nada entra no sistema sem o Diário Oficial — roda todo dia às 08:00 e no
-              fechamento de quarta-feira.
+              descobre, lendo a <b>legislação diária federal</b> dia a dia. Nada entra no sistema
+              sem o Diário Oficial — roda todo dia às 08:00 e no fechamento de quarta-feira.
             </p>
           </div>
           <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[9.5px] font-bold text-slate-600 shrink-0">
