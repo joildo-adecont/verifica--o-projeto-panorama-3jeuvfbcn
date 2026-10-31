@@ -19,10 +19,17 @@ import {
   Hash,
   X,
   Compass,
+  AlertOctagon,
+  Shield,
+  Building2,
+  Users,
+  Flame,
+  BadgeCheck,
 } from 'lucide-react'
 import { AdecontLogo } from '@/components/AdecontLogo'
 import {
   buscarAvancado,
+  type AssuntoEspecialItem,
   type ResultadoBuscaAvancada,
   type ParametrosBuscaAvancada,
 } from '@/services/buscaAvancada'
@@ -32,30 +39,49 @@ import { GraficosBusca } from '@/components/GraficosBusca'
 import { toast } from '@/hooks/use-toast'
 
 const SUGESTOES_RAPIDAS = [
-  'arroz',
-  'cesta básica',
-  'agronegócio',
-  'alíquota',
-  'isenção',
-  'Zona Franca de Manaus',
-  'cClassTrib',
-  'educação',
-  'saúde',
+  'cigarro',
+  'álcool',
+  'Simples Nacional',
+  'lucro presumido',
+  'comitê gestor',
+  'entidades associativas',
+  'sindicatos',
   'combustíveis',
   'imunidade',
+  'cesta básica',
+  'Zona Franca de Manaus',
   'LC 214/2025',
-  'EC 132/2023',
+]
+
+const CATEGORIAS_ESPECIAIS_FILTRO = [
+  'TODAS',
+  'Imposto do Pecado',
+  'Comitê Gestor',
+  'Simples Nacional',
+  'ME e EPP',
+  'Regimes Societários',
+  'Entidades Associativas',
+  'Sindicatos',
+  'Regras Especiais',
+  'Imunidades por Produtos e Segmentos',
 ]
 
 export function SectionBuscaAvancada() {
-  const [termo, setTermo] = useState<string>('arroz')
+  const [termo, setTermo] = useState<string>('cigarro')
   const [tipoClassif, setTipoClassif] = useState<string>('TODOS')
   const [atosNivel, setAtosNivel] = useState<'todos' | 'federal' | 'estadual' | 'municipal'>(
     'todos',
   )
+  const [categoriaEspecial, setCategoriaEspecial] = useState<string>('TODAS')
   const [classifPage, setClassifPage] = useState<number>(1)
   const [abaAtiva, setAbaAtiva] = useState<
-    'tudo' | 'classificacoes' | 'atos' | 'aliquotas' | 'conexoes' | 'analises'
+    | 'tudo'
+    | 'assuntos-especiais'
+    | 'classificacoes'
+    | 'atos'
+    | 'aliquotas'
+    | 'conexoes'
+    | 'analises'
   >('tudo')
 
   const [resultado, setResultado] = useState<ResultadoBuscaAvancada | null>(null)
@@ -92,6 +118,7 @@ export function SectionBuscaAvancada() {
         termo,
         tipoClassificacao: tipoClassif,
         atosNivel,
+        categoriaEspecial,
         classifPage,
         classifPerPage: 25,
       })
@@ -100,7 +127,7 @@ export function SectionBuscaAvancada() {
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current)
     }
-  }, [termo, tipoClassif, atosNivel, classifPage])
+  }, [termo, tipoClassif, atosNivel, categoriaEspecial, classifPage])
 
   const handleBaixarDocumento = async (id: string, filename?: string) => {
     setBaixandoId(id)
@@ -248,6 +275,22 @@ export function SectionBuscaAvancada() {
               <option value="estadual">Estadual (Sefaz / Estados)</option>
               <option value="municipal">Municipal (Prefeituras / Diários)</option>
             </select>
+
+            <div className="flex items-center gap-1.5 text-xs text-amber-800 font-semibold ml-2">
+              <AlertOctagon className="w-3.5 h-3.5 text-amber-600" />
+              <span>Assuntos Especiais:</span>
+            </div>
+            <select
+              value={categoriaEspecial}
+              onChange={(e) => setCategoriaEspecial(e.target.value)}
+              className="text-xs bg-amber-50/70 border border-amber-300 rounded-lg px-2.5 py-1.5 text-amber-900 font-medium focus:outline-none focus:border-amber-600"
+            >
+              {CATEGORIAS_ESPECIAIS_FILTRO.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat === 'TODAS' ? 'Todos os 9 grupos especiais' : cat}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="flex items-center gap-2 text-xs text-slate-500 justify-end">
@@ -282,6 +325,21 @@ export function SectionBuscaAvancada() {
           >
             <Sparkles className="w-4 h-4 text-panorama-gold-dark" />
             Visão Geral Consolidada
+          </button>
+
+          <button
+            onClick={() => setAbaAtiva('assuntos-especiais')}
+            className={`px-4 py-2.5 rounded-t-lg transition-colors border-b-2 whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
+              abaAtiva === 'assuntos-especiais'
+                ? 'border-amber-600 text-amber-900 bg-amber-50/50 shadow-xs font-bold'
+                : 'border-transparent text-slate-500 hover:text-amber-800 hover:bg-amber-50/30'
+            }`}
+          >
+            <AlertOctagon className="w-4 h-4 text-amber-600" />
+            <span>Assuntos Especiais (fora da trib. geral)</span>
+            <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-amber-500 text-white">
+              {resultado?.assuntosEspeciais.total || 0}
+            </span>
           </button>
 
           <button
@@ -360,6 +418,182 @@ export function SectionBuscaAvancada() {
           </button>
         </nav>
       </div>
+
+      {/* BLOCO 0: ASSUNTOS ESPECIAIS — FORA DA TRIBUTAÇÃO GERAL (DESTAQUE MÁXIMO) */}
+      {(abaAtiva === 'tudo' || abaAtiva === 'assuntos-especiais') &&
+        resultado &&
+        resultado.assuntosEspeciais.items.length > 0 && (
+          <div className="bg-gradient-to-br from-amber-50/60 via-white to-orange-50/30 rounded-2xl border-2 border-amber-300 shadow-md p-5 sm:p-6 space-y-5 relative overflow-hidden">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b-2 border-amber-200 pb-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-amber-600 text-white shadow-xs">
+                    <AlertOctagon className="w-3.5 h-3.5" />
+                    Fora da Tributação Geral
+                  </span>
+                  <span className="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-amber-100 text-amber-900 border border-amber-300">
+                    {resultado.assuntosEspeciais.total} assunto(s) localizado(s)
+                  </span>
+                </div>
+                <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 flex items-center gap-2">
+                  <span>Assuntos Especiais da Reforma Tributária</span>
+                </h3>
+                <p className="text-xs text-slate-600 max-w-3xl leading-relaxed">
+                  Tratamentos que <strong>saem da tributação padrão do IVA Dual</strong>: alíquotas
+                  majoradas do Imposto do Pecado (cigarros, bebidas e veículos), governança e
+                  projeções do Comitê Gestor (CGIBS), regimes favorecidos do Simples Nacional e
+                  ME/EPP, transição societária (Lucro Presumido e Real), imunidades constitucionais
+                  (entidades associativas, sindicatos, livros e exportações) e regras específicas da
+                  LC 214/2025.
+                </p>
+              </div>
+
+              {/* Botões de filtro rápido por categoria */}
+              <div className="flex flex-wrap items-center gap-1.5 self-start sm:self-auto max-w-md justify-end">
+                {resultado.assuntosEspeciais.categoriasPresentes.map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setCategoriaEspecial(cat)}
+                    className="px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-white border border-amber-300 text-amber-900 hover:bg-amber-100 transition-colors cursor-pointer"
+                  >
+                    {cat}
+                  </button>
+                ))}
+                {categoriaEspecial !== 'TODAS' && (
+                  <button
+                    onClick={() => setCategoriaEspecial('TODAS')}
+                    className="px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-amber-200 text-amber-900 hover:bg-amber-300 transition-colors cursor-pointer"
+                  >
+                    Limpar filtro
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Grid dos Cards de Assuntos Especiais */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {resultado.assuntosEspeciais.items.map((esp: AssuntoEspecialItem) => (
+                <div
+                  key={esp.id}
+                  className="bg-white rounded-xl border-2 border-amber-200/90 p-5 shadow-sm hover:border-amber-400 hover:shadow-md transition-all flex flex-col justify-between space-y-4"
+                >
+                  <div className="space-y-2.5">
+                    {/* Header do Card */}
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-extrabold uppercase tracking-wide bg-amber-100 text-amber-900 border border-amber-300">
+                        <Flame className="w-3 h-3 text-amber-700" />
+                        {esp.categoria}
+                      </span>
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-orange-50 text-orange-800 border border-orange-200">
+                        {esp.badgeExcecao}
+                      </span>
+                    </div>
+
+                    <h4 className="text-base font-bold text-slate-900 leading-snug">
+                      {esp.titulo}
+                    </h4>
+
+                    <p className="text-xs font-medium text-slate-600 italic">{esp.subtitulo}</p>
+
+                    <p className="text-xs text-slate-700 leading-relaxed bg-slate-50/80 p-3 rounded-lg border border-slate-200">
+                      {esp.descricao}
+                    </p>
+
+                    {/* Destaque "O que muda" */}
+                    <div className="bg-amber-50/80 border-l-4 border-amber-500 p-2.5 rounded-r-lg text-xs space-y-1">
+                      <span className="font-bold text-amber-900 block text-[11px] uppercase tracking-wider">
+                        O que muda na Reforma Tributária:
+                      </span>
+                      <p className="text-amber-950 leading-relaxed text-[11.5px]">{esp.oQueMuda}</p>
+                    </div>
+
+                    {/* Alíquota / Efeito tributário */}
+                    <div className="flex items-center justify-between gap-2 text-xs pt-1">
+                      <span className="text-slate-500 font-medium">Tratamento / Alíquota:</span>
+                      <span className="font-bold font-mono text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                        {esp.aliquotaOuTratamento}
+                      </span>
+                    </div>
+
+                    {/* Conexões normativas com o banco */}
+                    <div className="pt-2 border-t border-slate-100 space-y-1.5">
+                      <span className="text-[11px] font-bold text-slate-700 flex items-center gap-1">
+                        <Compass className="w-3.5 h-3.5 text-blue-600" />
+                        Conexões Normativas (Banco de Atos & Leis):
+                      </span>
+                      <div className="space-y-1.5">
+                        {esp.conexoesNormativas.map((con, idx) => (
+                          <div
+                            key={idx}
+                            className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 p-2 rounded-lg bg-slate-50 border border-slate-200 text-xs"
+                          >
+                            <div className="space-y-0.5">
+                              <div className="font-bold text-slate-800 flex items-center gap-1.5">
+                                <span className="font-mono text-blue-700">{con.codigoNorma}</span>
+                                <span>· {con.dispositivo}</span>
+                              </div>
+                              <div className="text-[11px] text-slate-600">{con.titulo}</div>
+                              <div className="text-[10px] text-emerald-700 font-medium">
+                                Efeito: {con.efeitoOuTratamento}
+                              </div>
+                            </div>
+                            {con.linkProxyPdf && (
+                              <button
+                                onClick={() =>
+                                  handleBaixarDocumento(
+                                    con.codigoNorma,
+                                    `${con.codigoNorma.replace(/[^a-zA-Z0-9]/g, '-')}.pdf`,
+                                  )
+                                }
+                                disabled={baixandoId === con.codigoNorma}
+                                className="px-2 py-1 text-[11px] font-bold rounded bg-panorama-navy text-panorama-gold-light hover:bg-panorama-navy-light transition-colors flex items-center gap-1 shrink-0 cursor-pointer disabled:opacity-50"
+                                title="Download oficial intermediado pelo proxy backend (sem erro no Edge)"
+                              >
+                                <Download className="w-3 h-3" />
+                                {baixandoId === con.codigoNorma ? 'Baixando...' : 'PDF Proxy'}
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Rodapé do Card: Base legal e Fontes Oficiais com Selo */}
+                  <div className="pt-3 border-t border-slate-200/80 space-y-2">
+                    <div className="text-[11px] text-slate-600 flex items-start gap-1">
+                      <Scale className="w-3.5 h-3.5 text-slate-500 shrink-0 mt-0.5" />
+                      <span>
+                        <strong>Base Legal:</strong> {esp.baseLegal}
+                      </span>
+                    </div>
+
+                    <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-slate-100">
+                      <span className="text-[10.5px] text-slate-500 font-bold uppercase tracking-wider flex items-center gap-1">
+                        <BadgeCheck className="w-3.5 h-3.5 text-emerald-600" />
+                        Fontes Oficiais:
+                      </span>
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        {esp.fontesOficiais.map((fonte, idx) => (
+                          <a
+                            key={idx}
+                            href={fonte.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10.5px] font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 transition-colors"
+                          >
+                            <span>{fonte.orgao}</span>
+                            <ExternalLink className="w-2.5 h-2.5 text-slate-400" />
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
       {/* BLOCO 1: Classificações Oficiais (NCM, cClassTrib, CST, etc.) */}
       {(abaAtiva === 'tudo' || abaAtiva === 'classificacoes') && (

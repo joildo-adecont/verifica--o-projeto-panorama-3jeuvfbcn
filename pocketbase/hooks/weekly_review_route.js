@@ -67,6 +67,24 @@ routerAdd('POST', '/backend/v1/trigger-weekly-review', (e) => {
       url: 'https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/estatisticas/base-de-dados-bruta',
       order: 9,
     },
+    {
+      key: 'cgsn_simples',
+      name: 'Comitê Gestor do Simples Nacional (CGSN / ME e EPP)',
+      url: 'https://www.receita.fazenda.gov.br/simplesnacional',
+      order: 10,
+    },
+    {
+      key: 'suframa_zfm',
+      name: 'SUFRAMA (Zona Franca de Manaus e ALC)',
+      url: 'https://www.gov.br/suframa/pt-br',
+      order: 11,
+    },
+    {
+      key: 'senado_leg',
+      name: 'Senado Federal (Atos e Regras Especiais da Reforma)',
+      url: 'https://legis.senado.leg.br',
+      order: 12,
+    },
   ]
 
   const checkedSources = []
@@ -157,10 +175,10 @@ routerAdd('POST', '/backend/v1/trigger-weekly-review', (e) => {
     reviewRecord = new Record(colReviews)
 
     const notes =
-      'Verificação abrangente de atos normativos e tabelas de classificação da Reforma Tributária (NCM, cClassTrib, CST, cCredPres, CEST, MVA-ST, CFOP, NBS, CNAE 2.3, cBenef) nas fontes oficiais Planalto / CGIBS / Receita / DOU / CONFAZ / IBGE / SVRS.'
+      'Verificação abrangente de atos normativos, tabelas de classificação e fontes dos Assuntos Especiais fora da tributação geral (Imposto do Pecado, CGIBS, Simples Nacional, ME/EPP, Regimes Societários, Entidades Associativas, Sindicatos, Regras Especiais e Imunidades) nas fontes oficiais Planalto / CGIBS / Receita / DOU / CONFAZ / IBGE / SVRS / CGSN / SUFRAMA / Senado.'
 
     let summaryText =
-      'Todas as fontes oficiais de atos normativos e tabelas de classificação responderam ativas na verificação técnica.'
+      'Todas as fontes oficiais de atos normativos, classificações e assuntos especiais responderam ativas na verificação técnica.'
     if (overallStatus === 'warning') {
       summaryText = 'Verificação concluída com aviso em uma ou mais fontes oficiais.'
     } else if (overallStatus === 'attention') {

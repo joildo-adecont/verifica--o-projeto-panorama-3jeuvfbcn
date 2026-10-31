@@ -59,6 +59,24 @@ cronAdd('weekly_content_review', '0 11 * * 1', () => {
       url: 'https://www.gov.br/mdic/pt-br/assuntos/comercio-exterior/estatisticas/base-de-dados-bruta',
       order: 9,
     },
+    {
+      key: 'cgsn_simples',
+      name: 'Comitê Gestor do Simples Nacional (CGSN / ME e EPP)',
+      url: 'https://www.receita.fazenda.gov.br/simplesnacional',
+      order: 10,
+    },
+    {
+      key: 'suframa_zfm',
+      name: 'SUFRAMA (Zona Franca de Manaus e ALC)',
+      url: 'https://www.gov.br/suframa/pt-br',
+      order: 11,
+    },
+    {
+      key: 'senado_leg',
+      name: 'Senado Federal (Atos e Regras Especiais da Reforma)',
+      url: 'https://legis.senado.leg.br',
+      order: 12,
+    },
   ]
 
   const checkedSources = []
@@ -150,10 +168,10 @@ cronAdd('weekly_content_review', '0 11 * * 1', () => {
     const reviewRecord = new Record(colReviews)
 
     const notes =
-      'Verificação semanal abrangente de atos normativos e tabelas de classificação da Reforma Tributária (NCM, cClassTrib, CST, cCredPres, CEST, MVA-ST, CFOP, NBS, CNAE 2.3, cBenef) — Planalto / CGIBS / Receita Federal / DOU / CONFAZ / IBGE / SVRS.'
+      'Verificação semanal abrangente de atos normativos, classificações e fontes dos Assuntos Especiais fora da tributação geral (Imposto do Pecado, CGIBS, Simples Nacional, ME/EPP, Regimes Societários, Entidades Associativas, Sindicatos, Regras Especiais e Imunidades) — Planalto / CGIBS / RFB / DOU / CONFAZ / IBGE / SVRS / CGSN / SUFRAMA / Senado.'
 
     let summaryText =
-      'Todas as fontes oficiais de atos normativos e tabelas de classificação responderam ativas na verificação semanal. Arcabouço amplo mantido em conformidade.'
+      'Todas as fontes oficiais de atos normativos, tabelas e assuntos especiais responderam ativas na verificação semanal. Arcabouço amplo mantido em conformidade.'
     if (overallStatus === 'warning') {
       summaryText =
         'Verificação semanal concluída com aviso em uma ou mais fontes de atos normativos.'

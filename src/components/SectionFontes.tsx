@@ -182,6 +182,24 @@ export function SectionFontes() {
       conteudo: 'Tabela de alíquotas 2026–2033 (estimativas)',
       url: 'https://ibslab.com.br/ferramentas/aliquotas-ibs-cbs',
     },
+    {
+      orgao: 'CGSN',
+      fonte: 'gov.br/receitafederal/simplesnacional',
+      conteudo: 'Resoluções CGSN 190–192/2026 e atos ME/EPP do Simples na Reforma',
+      url: 'https://www.receita.fazenda.gov.br/simplesnacional',
+    },
+    {
+      orgao: 'SUFRAMA',
+      fonte: 'gov.br/suframa',
+      conteudo: 'Regras e crédito presumido da Zona Franca de Manaus e ALC',
+      url: 'https://www.gov.br/suframa/pt-br',
+    },
+    {
+      orgao: 'Senado Federal',
+      fonte: 'legis.senado.leg.br',
+      conteudo: 'Leis Complementares (LC 214, LC 227, LC 235, LC 238) e atos especiais',
+      url: 'https://legis.senado.leg.br',
+    },
   ]
 
   const rotinas = [

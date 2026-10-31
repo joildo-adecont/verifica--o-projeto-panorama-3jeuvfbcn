@@ -5,7 +5,14 @@ import { ANEXOS } from '@/data/anexosCatalogo'
 import { VINCULOS_POR_BLOCO } from '@/data/vinculosLegislacao'
 import { CBS_REF, IBS_REF, REF_TOTAL, HISTORICO_ALIQUOTAS, PROCEDENCIA } from '@/data/aliquotas'
 import { CRONOLOGIA } from '@/data/legislacaoCronologica'
+import {
+  ASSUNTOS_ESPECIAIS_CATALOGO,
+  type AssuntoEspecialItem,
+  type CategoriaAssuntoEspecial,
+} from '@/data/assuntosEspeciais'
 import type { ClassificationItem, TaxNormItem } from '@/types/panorama'
+
+export type { AssuntoEspecialItem, CategoriaAssuntoEspecial }
 
 export interface RadarAtoBuscaItem {
   id: string
@@ -78,12 +85,19 @@ export interface ParametrosBuscaAvancada {
   classifPage?: number
   classifPerPage?: number
   atosNivel?: 'todos' | 'federal' | 'estadual' | 'municipal'
+  categoriaEspecial?: string
 }
 
 export interface ResultadoBuscaAvancada {
   termo: string
   timestamp: string
   totalGeralEncontrado: number
+  // (0) Assuntos Especiais — fora da tributação geral (grupo de maior destaque)
+  assuntosEspeciais: {
+    items: AssuntoEspecialItem[]
+    total: number
+    categoriasPresentes: string[]
+  }
   // (a) Atos normativos e radar de atos
   normas: {
     items: TaxNormItem[]
@@ -358,6 +372,123 @@ export async function buscarAvancado(
   const classifPerPage = params.classifPerPage || 25
   const tipoClassif = params.tipoClassificacao || 'TODOS'
   const atosNivel = params.atosNivel || 'todos'
+  const filtroCategoriaEspecial = params.categoriaEspecial || 'TODAS'
+
+  // 0. Assuntos Especiais — fora da tributação geral
+  const assuntosEspeciaisFiltrados = ASSUNTOS_ESPECIAIS_CATALOGO.filter((item) => {
+    if (filtroCategoriaEspecial !== 'TODAS' && item.categoria !== filtroCategoriaEspecial) {
+      return false
+    }
+    if (!termoNorm) return true
+
+    const searchSpace = normalizar(
+      `${item.titulo} ${item.subtitulo} ${item.categoria} ${item.descricao} ${item.oQueMuda} ${item.baseLegal} ${item.aliquotaOuTratamento} ${item.termosChave.join(' ')} ${item.produtosOuSegmentosAfetados.join(' ')}`,
+    )
+
+    // Correspondência direta por inclusão ou por termo-chave exato
+    if (searchSpace.includes(termoNorm)) return true
+
+    // Correspondências semânticas e flexões comuns
+    if (
+      termoNorm === 'cigarro' ||
+      termoNorm === 'cigarros' ||
+      termoNorm === 'fumo' ||
+      termoNorm === 'tabaco'
+    ) {
+      return item.categoria === 'Imposto do Pecado'
+    }
+    if (
+      termoNorm === 'alcool' ||
+      termoNorm === 'alcoolicas' ||
+      termoNorm === 'cerveja' ||
+      termoNorm === 'bebida' ||
+      termoNorm === 'bebidas'
+    ) {
+      return item.categoria === 'Imposto do Pecado'
+    }
+    if (
+      termoNorm === 'simples' ||
+      termoNorm === 'simples nacional' ||
+      termoNorm === 'cgsn' ||
+      termoNorm === 'das'
+    ) {
+      return item.categoria === 'Simples Nacional' || item.categoria === 'ME e EPP'
+    }
+    if (
+      termoNorm === 'me' ||
+      termoNorm === 'epp' ||
+      termoNorm === 'microempresa' ||
+      termoNorm === 'mei'
+    ) {
+      return item.categoria === 'ME e EPP' || item.categoria === 'Simples Nacional'
+    }
+    if (
+      termoNorm === 'lucro presumido' ||
+      termoNorm === 'lucro real' ||
+      termoNorm === 'presumido' ||
+      termoNorm === 'real'
+    ) {
+      return item.categoria === 'Regimes Societários'
+    }
+    if (
+      termoNorm === 'entidades associativas' ||
+      termoNorm === 'associacao' ||
+      termoNorm === 'associacoes' ||
+      termoNorm === 'ong' ||
+      termoNorm === 'terceiro setor'
+    ) {
+      return item.categoria === 'Entidades Associativas'
+    }
+    if (
+      termoNorm === 'sindicato' ||
+      termoNorm === 'sindicatos' ||
+      termoNorm === 'sindical' ||
+      termoNorm === 'contribuicao sindical'
+    ) {
+      return item.categoria === 'Sindicatos'
+    }
+    if (
+      termoNorm === 'comite gestor' ||
+      termoNorm === 'comite gestor do ibs' ||
+      termoNorm === 'cgibs' ||
+      termoNorm === 'aliquota de referencia' ||
+      termoNorm === '26,5' ||
+      termoNorm === '26.5'
+    ) {
+      return item.categoria === 'Comitê Gestor'
+    }
+    if (
+      termoNorm === 'combustivel' ||
+      termoNorm === 'combustiveis' ||
+      termoNorm === 'gasolina' ||
+      termoNorm === 'diesel' ||
+      termoNorm === 'financeiro' ||
+      termoNorm === 'banco' ||
+      termoNorm === 'zfm' ||
+      termoNorm === 'zona franca'
+    ) {
+      return item.categoria === 'Regras Especiais'
+    }
+    if (
+      termoNorm === 'imunidade' ||
+      termoNorm === 'imunidades' ||
+      termoNorm === 'livro' ||
+      termoNorm === 'livros' ||
+      termoNorm === 'exportacao'
+    ) {
+      return (
+        item.categoria === 'Imunidades por Produtos e Segmentos' ||
+        item.categoria === 'Entidades Associativas' ||
+        item.categoria === 'Sindicatos'
+      )
+    }
+
+    return false
+  })
+
+  const categoriasPresentes = Array.from(
+    new Set(assuntosEspeciaisFiltrados.map((item) => item.categoria)),
+  )
 
   // 1. Classificações oficiais (NCM, cClassTrib, CST, CEST, cCredPres, etc.)
   const classifPromise = fetchClassifications({
@@ -597,6 +728,7 @@ export async function buscarAvancado(
   }))
 
   const totalGeral =
+    assuntosEspeciaisFiltrados.length +
     normasResult.length +
     radarAtosResult.length +
     classifResult.totalItems +
@@ -608,6 +740,11 @@ export async function buscarAvancado(
     termo: rawTerm,
     timestamp: new Date().toLocaleTimeString('pt-BR'),
     totalGeralEncontrado: totalGeral,
+    assuntosEspeciais: {
+      items: assuntosEspeciaisFiltrados,
+      total: assuntosEspeciaisFiltrados.length,
+      categoriasPresentes,
+    },
     normas: {
       items: normasResult,
       total: normasResult.length,
