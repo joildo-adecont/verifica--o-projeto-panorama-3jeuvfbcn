@@ -705,6 +705,166 @@ const DADOS = {
     {
       uf: 'PR',
       titulo:
+        '102 6ª FEIRA |23/OUT/2026 - EDIÇÃO N° 12.255 PODER EXECUTIVO ESTADUAL RESOLUÇÃO SEFA Nº 1016, DE 22 DE OUTUBRO DE 2026 Altera o Anexo V do Edital SEFA nº 01/202',
+      url: 'https://www.dioe.pr.gov.br/ver/17401',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'PR',
+      titulo:
+        '105 6ª FEIRA |23/OUT/2026 - EDIÇÃO N° 12.255 PODER EXECUTIVO ESTADUAL Curitiba, 21 de outubro de 2026. (Assinado Digitalmente) Nivaldo Ramos Diretor-Geral Secre',
+      url: 'https://www.dioe.pr.gov.br/ver/17401',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'PR',
+      titulo:
+        '120 2ª FEIRA |26/OUT/2026 - EDIÇÃO N° 12.256 PODER EXECUTIVO ESTADUAL SECRETARIA DE ESTADO DA FAZENDA RECEITA ESTADUAL DO PARANÁ CONTROLE DE AUTOS DE INFRAÇÃO C',
+      url: 'https://www.dioe.pr.gov.br/ver/17404',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'PR',
+      titulo:
+        '35 3ª FEIRA |27/OUT/2026 - EDIÇÃO N° 12.257 PODER EXECUTIVO ESTADUAL 3400 - 16/10/2026 - FERNANDA PAMELA MACHADO - (CCS) - CPF 085.XXX.XXX-47 - Rescindir, a ped',
+      url: 'https://www.dioe.pr.gov.br/ver/17408',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'PR',
+      titulo:
+        '36 3ª FEIRA |27/OUT/2026 - EDIÇÃO N° 12.257 PODER EXECUTIVO ESTADUAL 3451 - 23/10/2026 - WILMA APARECIDA SPINOSA - (CCA) - CPF 050. XXX.XXX-51 - Conceder, de ac',
+      url: 'https://www.dioe.pr.gov.br/ver/17408',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'PR',
+      titulo:
+        '37 6ª FEIRA |23/OUT/2026 - EDIÇÃO N° 12.255 PODER EXECUTIVO ESTADUAL Art. 3º Esta portaria passará a vigorar a partir da data da sua publicação. PUBLIQUE-SE, AN',
+      url: 'https://www.dioe.pr.gov.br/ver/17401',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'PR',
+      titulo:
+        '41 6ª FEIRA |23/OUT/2026 - EDIÇÃO N° 12.255 PODER EXECUTIVO ESTADUAL RESOLUÇÃO Nº 303/2026-SETI, DE 21 DE OUTUBRO DE 2026 Constitui comissão verificadora com vi',
+      url: 'https://www.dioe.pr.gov.br/ver/17401',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'PR',
+      titulo:
+        '45 6ª FEIRA |23/OUT/2026 - EDIÇÃO N° 12.255 PODER EXECUTIVO ESTADUAL aprovação no Estágio Probatório. TORNA PÚBLICO: O(s) Extrato(s) da(s) Portaria(s) R. emitid',
+      url: 'https://www.dioe.pr.gov.br/ver/17401',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'PR',
+      titulo:
+        '47 3ª FEIRA |27/OUT/2026 - EDIÇÃO N° 12.257 PODER EXECUTIVO ESTADUAL da Secretaria de Estado do Desenvolvimento Sustentável - SEDEST e do Instituto Água e Terra',
+      url: 'https://www.dioe.pr.gov.br/ver/17408',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'PR',
+      titulo:
+        '50 6ª FEIRA |23/OUT/2026 - EDIÇÃO N° 12.255 PODER EXECUTIVO ESTADUAL PORTARIA/GR N.° 354, de 21 de outubro de 2026 Autoriza o Prof. Antonio Stabelini Neto a par',
+      url: 'https://www.dioe.pr.gov.br/ver/17401',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'PR',
+      titulo:
+        '54 5º FEIRA |22/OUT/2026 - EDIÇÃO N° 12.254 PODER EXECUTIVO ESTADUAL SÚMULA DE CONCESSÃO DE RENOVAÇÃO DA LICENÇA POR ADESÃO E COMPROMISSO SÚMULA DE CONCESSÃO DE',
+      url: 'https://www.dioe.pr.gov.br/ver/17396',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'PR',
+      titulo:
+        '64 3ª FEIRA |27/OUT/2026 - EDIÇÃO N° 12.257 PODER EXECUTIVO ESTADUAL 31/12/2019, para o atendimento de crianças de 00 (zero) a 06 (seis) anos. § 3º Houve adequa',
+      url: 'https://www.dioe.pr.gov.br/ver/17408',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'PR',
+      titulo:
+        '65 3ª FEIRA |27/OUT/2026 - EDIÇÃO N° 12.257 PODER EXECUTIVO ESTADUAL Paraná e o funcionário Ediógenes Paes de Camargo, CPF N.º XXX.083.238-XX, LF 08, professor ',
+      url: 'https://www.dioe.pr.gov.br/ver/17408',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'PR',
+      titulo:
+        '66 2ª FEIRA |26/OUT/2026 - EDIÇÃO N° 12.256 PODER EXECUTIVO ESTADUAL execução de despesas tramitará no mesmo processo administrativo no qual se concedeu o adian',
+      url: 'https://www.dioe.pr.gov.br/ver/17404',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'PR',
+      titulo:
+        '66 5º FEIRA |22/OUT/2026 - EDIÇÃO N° 12.254 PODER EXECUTIVO ESTADUAL 38. Responder às solicitações da tutoria de formação no prazo máximo de 24 (vinte e quatro)',
+      url: 'https://www.dioe.pr.gov.br/ver/17396',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'PR',
+      titulo:
+        '68 2ª FEIRA |26/OUT/2026 - EDIÇÃO N° 12.256 PODER EXECUTIVO ESTADUAL Grossa; considerando o art. 4º da Lei n 9.663/91; TORNA PÚBLICO: O(s) Extrato(s) da(s) Port',
+      url: 'https://www.dioe.pr.gov.br/ver/17404',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'PR',
+      titulo:
+        '96 4ª FEIRA |28/OUT/2026 - EDIÇÃO N° 12.258 PODER EXECUTIVO ESTADUAL Art. 3º. Publique-se no Diário Oficial e no site oficial da Unespar. Campo Mourão, 26 de ou',
+      url: 'https://www.dioe.pr.gov.br/ver/17412',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'PR',
+      titulo:
+        '97 4ª FEIRA |28/OUT/2026 - EDIÇÃO N° 12.258 PODER EXECUTIVO ESTADUAL II. Assessoria: NOME N° CPF TITULAÇÃO LOCAL Denise Xavier Messias 775.XXX.XXX-53 Mestrado e',
+      url: 'https://www.dioe.pr.gov.br/ver/17412',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'PR',
+      titulo:
+        '98 4ª FEIRA |28/OUT/2026 - EDIÇÃO N° 12.258 PODER EXECUTIVO ESTADUAL Art. 2º Concede Ascensão de nível para a classe Adjunto B, em virtude da aprovação no Estág',
+      url: 'https://www.dioe.pr.gov.br/ver/17412',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'PR',
+      titulo:
+        '99 4ª FEIRA |28/OUT/2026 - EDIÇÃO N° 12.258 PODER EXECUTIVO ESTADUAL Ana Maria da Silva 03/11/2026 a 02/05/2027 Camila Schulz 24/11/2026 a 23/05/2027 Debora Ama',
+      url: 'https://www.dioe.pr.gov.br/ver/17412',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'PR',
+      titulo:
         'ATA DA AUDIÊNCIA PÚBLICA PROJETO DE LEI DO EXECUTIVO Nº 69/2026 LEI ORÇAMENTÁRIA ANUAL – LOA 2027',
       url: 'https://www.diariomunicipal.com.br/amp/materia/23655A87',
       assoc: 'amp',
@@ -1958,6 +2118,18 @@ const DADOS = {
       modo: 'API oficial (POST busca-materia, tipoBusca 2) + filtro de data no cliente',
       hits: 1,
       amostra: ['PORTARIA N° 3724 de 26/10/2026 A SECRETÁ'],
+    },
+    {
+      uf: 'PR',
+      nome: 'Diário Oficial do PR (DIOE)',
+      ativo: true,
+      modo: 'Elasticsearch aberto, busca textual + filtro de data no path',
+      hits: 20,
+      amostra: [
+        '99 4ª FEIRA |28/OUT/2026 - EDIÇÃO N° 12.',
+        '98 4ª FEIRA |28/OUT/2026 - EDIÇÃO N° 12.',
+        '97 4ª FEIRA |28/OUT/2026 - EDIÇÃO N° 12.',
+      ],
     },
   ],
 }
