@@ -46,6 +46,7 @@ import {
   LayoutDashboard,
   Gauge,
   Building2,
+  Lock,
 } from 'lucide-react'
 
 export interface LinkNavegacao {
@@ -438,6 +439,39 @@ const TABELAS: LinkNavegacao[] = [
 
 /* ────────────────────────────── GRUPO 4 ────────────────────────────── */
 const FONTES: LinkNavegacao[] = [
+  {
+    /*
+     * Seção 18 — Lefisc (31/10/2026). Portal de legislação fiscal por assinatura.
+     * Tecla 'j' (de "Jurídico"): livre — as letras usadas são 0-9, w, v, h, k, e,
+     * x, l, m, d, i, g, c, f, p, r, a, o, b. 'j' não colide com nenhuma.
+     * Fica no grupo Fontes porque é isso que ela é: uma fonte externa de consulta.
+     */
+    href: '#lefisc',
+    label: 'Acesso Lefisc',
+    curto: 'Lefisc',
+    tecla: 'j',
+    numero: '18',
+    Icon: Lock,
+    cor: 'text-indigo-700',
+    bg: 'bg-indigo-50',
+    borda: 'border-indigo-300',
+    descricao: 'Seu acesso ao portal de legislação fiscal, com senha guardada',
+    tags: [
+      'lefisc',
+      'lefisque',
+      'legislacao fiscal',
+      'portal',
+      'assinatura',
+      'senha',
+      'login',
+      'acesso',
+      'consulta',
+      'tabelas',
+      'calendario tributario',
+      'dou',
+      'compilada',
+    ],
+  },
   {
     /*
      * Seção 11 — acrescentada em 29/10/2026. Ela existia no Index (era renderizada

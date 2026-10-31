@@ -25,6 +25,7 @@ import { SectionAssistentesSeguranca } from '@/components/SectionAssistentesSegu
 import { SectionControleAcesso } from '@/components/SectionControleAcesso'
 import { SectionResponsividade } from '@/components/SectionResponsividade'
 import { SectionHistoricoAtualizacoes } from '@/components/SectionHistoricoAtualizacoes'
+import { SectionLefisc } from '@/components/SectionLefisc'
 import { NAVEGACAO } from '@/components/navegacao'
 import type { TaxNormItem } from '@/types/panorama'
 
@@ -104,6 +105,7 @@ const COMPONENTES: Record<string, ComponentType<PropsAba>> = {
   '#controle-acesso': SectionControleAcesso,
   '#responsividade-celulares': SectionResponsividade,
   '#historico-atualizacoes': SectionHistoricoAtualizacoes,
+  '#lefisc': SectionLefisc,
 }
 
 /**

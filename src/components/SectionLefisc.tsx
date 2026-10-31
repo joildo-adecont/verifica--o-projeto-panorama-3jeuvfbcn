@@ -1,0 +1,511 @@
+import { useEffect, useMemo, useState } from 'react'
+import {
+  ArrowRight,
+  BadgeAlert,
+  BookMarked,
+  CalendarDays,
+  Check,
+  Copy,
+  ExternalLink,
+  Eye,
+  EyeOff,
+  KeyRound,
+  Lock,
+  LogIn,
+  Search,
+  ShieldCheck,
+  Trash2,
+  Unlock,
+} from 'lucide-react'
+
+/**
+ * SEÇÃO 18 — ACESSO LEFISC
+ *
+ * ── O PEDIDO (CEO, 31/10/2026) ──
+ * "Crie um acesso a uma fonte chamada Lefisc, à qual vou te fornecer a minha senha
+ *  de acesso. Essa senha dará a possibilidade de busca em todas as tabelas e em
+ *  todas as legislações compiladas. Crie esse ícone de acesso chamado Lefisc."
+ *
+ * ── O QUE A LEFISC É ──
+ * Portal privado de legislação fiscal, contábil, tributária e trabalhista
+ * (lefisc.com.br), por assinatura. Reúne banco de legislação federal, estadual e
+ * municipal, tabelas práticas, calendário tributário e boletins diários do DOU.
+ * NÃO é fonte oficial do Estado — é agregador comercial, como o Buscador NCM.
+ * Por isso a tela a rotula como fonte SECUNDÁRIA de consulta e mantém ao lado o
+ * caminho das fontes primárias. Para citar em peça ou laudo, a referência é o ato
+ * publicado no órgão; a Lefisc serve para ACHAR rápido.
+ *
+ * ── COMO A SENHA É TRATADA (o ponto crítico) ──
+ * O sistema é estático: tudo o que for gravado no navegador fica no navegador.
+ * Então a senha da Lefisc NUNCA vai para o código, nem para o PocketBase, nem para
+ * o histórico do Git. Ela fica em `localStorage` desta máquina, sob uma chave
+ * própria, e o servidor da Lefisc é quem a valida — o Panorama apenas preenche o
+ * formulário de login por você.
+ *
+ * Limite honesto, dito na tela: quem tiver acesso físico a este computador e abrir
+ * o inspetor do navegador consegue ler a senha guardada. Para uma assinatura
+ * pessoal de uso interno, isso é aceitável; se um dia o sistema for multiusuário,
+ * a senha deve ir para o cofre do servidor (1Password/secret), não para o navegador.
+ *
+ * ── POR QUE O LOGIN É PRÉ-PREENCHIDO E NÃO AUTOMÁTICO ──
+ * Login automático exigiria enviar a senha a um domínio de terceiro a partir do
+ * nosso código, e não é possível garantir que o formulário da Lefisc não mude.
+ * O caminho seguro e estável: guardar aqui, copiar com um clique e abrir o portal
+ * já na página de pesquisa. O usuário cola e entra.
+ */
+
+const CHAVE_SENHA = 'adecont_lefisc_senha'
+const CHAVE_USUARIO = 'adecont_lefisc_usuario'
+
+/** Atalhos do portal, cada um com a finalidade escrita ao lado. */
+const ATALHOS = [
+  {
+    id: 'pesquisa',
+    nome: 'Pesquisa geral',
+    o_que: 'Busca única em todo o acervo — legislação, tabelas e boletins',
+    url: 'https://lefisc.com.br/',
+    Icon: Search,
+    destaque: true,
+  },
+  {
+    id: 'legislacao',
+    nome: 'Banco de Legislação',
+    o_que: 'Federal, estadual e municipal, compilada e atualizada',
+    url: 'https://lefisc.com.br/?vermais=federal',
+    Icon: BookMarked,
+  },
+  {
+    id: 'tabelas',
+    nome: 'Tabelas Práticas',
+    o_que: 'Alíquotas, correlação NCM, benefícios fiscais e CTM',
+    url: 'https://www.lefisc.com.br/regulamento/139/2649',
+    Icon: Check,
+  },
+  {
+    id: 'calendario',
+    nome: 'Calendário Tributário',
+    o_que: 'Vencimentos federais, estaduais e municipais',
+    url: 'https://www.lefisc.com.br/calendario/FED',
+    Icon: CalendarDays,
+  },
+  {
+    id: 'area',
+    nome: 'Área do assinante',
+    o_que: 'Entrada com usuário e senha da assinatura',
+    url: 'https://www.lefisc.com.br/cliente/home',
+    Icon: LogIn,
+    destaque: true,
+  },
+  {
+    id: 'dou',
+    nome: 'Legislação diária (DOU)',
+    o_que: 'Publicações do dia, já triadas por assunto',
+    url: 'https://lefisc.com.br/?vermais=federal',
+    Icon: CalendarDays,
+  },
+] as const
+
+/** Onde buscar dentro do Panorama quando a resposta precisa de fonte oficial. */
+const DENTRO_DO_PANORAMA = [
+  {
+    nome: 'Normas',
+    secao: 'secao-1',
+    o_que: 'LC 214, LC 227, EC 132 e decretos, com link do órgão',
+  },
+  {
+    nome: 'Tabela Geral dos Anexos',
+    secao: 'tabela-geral',
+    o_que: '1.053 itens com NCM/NBS e alíquota',
+  },
+  {
+    nome: 'Fontes primárias',
+    secao: 'fontes-primarias',
+    o_que: 'As 115 bases oficiais, com órgão e ato',
+  },
+  { nome: 'Monitor Legislativo', secao: 'monitor-legislativo', o_que: 'O que mudou e quando' },
+] as const
+
+type Estado = 'vazio' | 'salvo' | 'revelado'
+
+export function SectionLefisc() {
+  const [usuario, setUsuario] = useState('')
+  const [senha, setSenha] = useState('')
+  const [estado, setEstado] = useState<Estado>('vazio')
+  const [msg, setMsg] = useState<{ tipo: 'ok' | 'erro' | 'info'; txt: string } | null>(null)
+  const [busca, setBusca] = useState('')
+  const [confirmarApagar, setConfirmarApagar] = useState(false)
+
+  // lê o que já estiver guardado nesta máquina
+  useEffect(() => {
+    try {
+      const s = window.localStorage.getItem(CHAVE_SENHA) || ''
+      const u = window.localStorage.getItem(CHAVE_USUARIO) || ''
+      setUsuario(u)
+      setSenha(s)
+      setEstado(s ? 'salvo' : 'vazio')
+    } catch {
+      setEstado('vazio')
+    }
+  }, [])
+
+  const salvar = () => {
+    setMsg(null)
+    if (!senha.trim()) {
+      setMsg({ tipo: 'erro', txt: 'Informe a senha da Lefisc antes de guardar.' })
+      return
+    }
+    try {
+      window.localStorage.setItem(CHAVE_SENHA, senha.trim())
+      window.localStorage.setItem(CHAVE_USUARIO, usuario.trim())
+      setEstado('salvo')
+      setMsg({
+        tipo: 'ok',
+        txt: 'Acesso guardado neste navegador. A senha não sai daqui e não vai para o servidor.',
+      })
+    } catch {
+      setMsg({
+        tipo: 'erro',
+        txt: 'Este navegador bloqueou o armazenamento local (modo privado?). A senha não foi guardada.',
+      })
+    }
+  }
+
+  const apagar = () => {
+    try {
+      window.localStorage.removeItem(CHAVE_SENHA)
+      window.localStorage.removeItem(CHAVE_USUARIO)
+    } catch {
+      /* nada a fazer */
+    }
+    setSenha('')
+    setUsuario('')
+    setEstado('vazio')
+    setConfirmarApagar(false)
+    setMsg({ tipo: 'info', txt: 'Acesso removido deste navegador.' })
+  }
+
+  const copiarSenha = async () => {
+    setMsg(null)
+    try {
+      await navigator.clipboard.writeText(senha)
+      setMsg({ tipo: 'ok', txt: 'Senha copiada. Cole no campo de senha da Lefisc.' })
+    } catch {
+      setMsg({ tipo: 'erro', txt: 'O navegador não permitiu copiar. Use “Mostrar” e digite.' })
+    }
+  }
+
+  const atalhosFiltrados = useMemo(() => {
+    const t = busca
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+    if (!t) return ATALHOS
+    return ATALHOS.filter((a) =>
+      `${a.nome} ${a.o_que}`
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .includes(t),
+    )
+  }, [busca])
+
+  const temAcesso = estado !== 'vazio' && senha !== ''
+
+  return (
+    <section id="lefisc" className="scroll-mt-24 space-y-4">
+      {/* ───────── cabeçalho ───────── */}
+      <div className="rounded-2xl bg-panorama-navy text-white p-5 md:p-6 border-b-2 border-panorama-gold/60">
+        <div className="flex items-start gap-4 flex-wrap">
+          <span className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-panorama-gold/20 ring-1 ring-panorama-gold/50 text-panorama-gold-light shrink-0">
+            <Lock className="w-6 h-6" />
+          </span>
+          <div className="flex-1 min-w-[240px]">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="inline-flex items-center justify-center px-2 h-6 rounded-lg bg-panorama-gold text-panorama-navy font-bold text-[11px] ring-1 ring-panorama-gold-light/50">
+                18
+              </span>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-panorama-gold-light/80">
+                Fonte externa · acesso por assinatura
+              </span>
+            </div>
+            <h2 className="text-xl md:text-2xl font-bold mt-1 leading-tight">Acesso Lefisc</h2>
+            <p className="text-[12px] text-slate-300 mt-1 leading-relaxed max-w-3xl">
+              Portal de legislação fiscal, contábil e trabalhista por assinatura. Guarde aqui o seu
+              acesso e entre com um clique — o Panorama não envia a sua senha para lugar nenhum.
+            </p>
+          </div>
+          <a
+            href="https://lefisc.com.br/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-panorama-gold text-panorama-navy px-3.5 py-2 text-[12px] font-bold hover:bg-panorama-gold-light shrink-0"
+          >
+            Abrir Lefisc
+            <ExternalLink className="w-3.5 h-3.5" />
+          </a>
+        </div>
+      </div>
+
+      {/* ───────── aviso de natureza da fonte ───────── */}
+      <div className="rounded-xl border-2 border-amber-300 bg-amber-50 p-3 flex items-start gap-2.5">
+        <BadgeAlert className="w-4 h-4 text-amber-800 shrink-0 mt-0.5" />
+        <div>
+          <p className="text-[11.5px] font-bold text-amber-900">
+            Fonte secundária — use para localizar, não para citar
+          </p>
+          <p className="text-[10.5px] text-amber-900 leading-snug mt-0.5">
+            A Lefisc é um agregador comercial: organiza e compila atos oficiais, mas não é o órgão
+            que os publica. A referência citável continua sendo o ato no Diário Oficial ou no site
+            do órgão. Ao lado, os atalhos para as fontes primárias do próprio Panorama.
+          </p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* ───────── credenciais ───────── */}
+        <div className="rounded-2xl border-2 border-slate-200 bg-white p-4">
+          <p className="flex items-center gap-1.5 text-[12px] font-bold text-slate-900 mb-2.5">
+            <KeyRound className="w-4 h-4 text-panorama-gold-dark" />
+            Seu acesso
+            {temAcesso && (
+              <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-emerald-100 text-emerald-800 px-2 py-0.5 text-[9.5px] font-bold">
+                <ShieldCheck className="w-3 h-3" />
+                guardado nesta máquina
+              </span>
+            )}
+          </p>
+
+          <div className="space-y-2">
+            <label className="block">
+              <span className="block text-[10px] font-bold uppercase tracking-wide text-slate-500 mb-1">
+                Usuário / e-mail da assinatura (opcional)
+              </span>
+              <input
+                value={usuario}
+                onChange={(e) => setUsuario(e.target.value)}
+                placeholder="seu e-mail cadastrado na Lefisc"
+                autoComplete="off"
+                className="w-full rounded-lg border-2 border-slate-300 px-2.5 py-1.5 text-[12px] text-slate-900 focus:outline-none focus:border-panorama-gold"
+              />
+            </label>
+
+            <label className="block">
+              <span className="block text-[10px] font-bold uppercase tracking-wide text-slate-500 mb-1">
+                Senha da Lefisc
+              </span>
+              <div className="flex gap-1.5">
+                <input
+                  type={estado === 'revelado' ? 'text' : 'password'}
+                  value={senha}
+                  onChange={(e) => {
+                    setSenha(e.target.value)
+                    setEstado('vazio')
+                  }}
+                  placeholder="cole ou digite a sua senha"
+                  autoComplete="off"
+                  spellCheck={false}
+                  className="flex-1 rounded-lg border-2 border-slate-300 px-2.5 py-1.5 text-[12px] font-mono text-slate-900 focus:outline-none focus:border-panorama-gold"
+                />
+                <button
+                  onClick={() => setEstado(estado === 'revelado' ? 'salvo' : 'revelado')}
+                  title={estado === 'revelado' ? 'Ocultar senha' : 'Mostrar senha'}
+                  className="inline-flex items-center justify-center w-9 rounded-lg border-2 border-slate-300 text-slate-600 hover:bg-slate-50 cursor-pointer shrink-0"
+                >
+                  {estado === 'revelado' ? (
+                    <EyeOff className="w-3.5 h-3.5" />
+                  ) : (
+                    <Eye className="w-3.5 h-3.5" />
+                  )}
+                </button>
+              </div>
+            </label>
+          </div>
+
+          <div className="flex flex-wrap gap-1.5 mt-2.5">
+            <button
+              onClick={salvar}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-panorama-navy text-panorama-gold-light px-3 py-1.5 text-[11.5px] font-bold hover:bg-panorama-navy/90 cursor-pointer"
+            >
+              <Unlock className="w-3.5 h-3.5" />
+              {temAcesso ? 'Atualizar acesso' : 'Guardar acesso'}
+            </button>
+            {temAcesso && (
+              <button
+                onClick={copiarSenha}
+                className="inline-flex items-center gap-1.5 rounded-lg border-2 border-panorama-gold bg-panorama-gold/10 text-panorama-gold-dark px-3 py-1.5 text-[11.5px] font-bold hover:bg-panorama-gold/20 cursor-pointer"
+              >
+                <Copy className="w-3.5 h-3.5" />
+                Copiar senha
+              </button>
+            )}
+            {temAcesso && !confirmarApagar && (
+              <button
+                onClick={() => setConfirmarApagar(true)}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 text-slate-600 px-3 py-1.5 text-[11.5px] font-bold hover:bg-slate-50 cursor-pointer"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                Remover
+              </button>
+            )}
+            {confirmarApagar && (
+              <span className="inline-flex items-center gap-1.5 rounded-lg border-2 border-rose-300 bg-rose-50 px-2 py-1">
+                <span className="text-[10.5px] font-bold text-rose-900">Apagar o acesso?</span>
+                <button
+                  onClick={apagar}
+                  className="rounded bg-rose-700 text-white px-2 py-0.5 text-[10.5px] font-bold cursor-pointer"
+                >
+                  Sim
+                </button>
+                <button
+                  onClick={() => setConfirmarApagar(false)}
+                  className="rounded border border-rose-300 px-2 py-0.5 text-[10.5px] font-bold text-rose-800 cursor-pointer"
+                >
+                  Não
+                </button>
+              </span>
+            )}
+          </div>
+
+          {msg && (
+            <div
+              className={`mt-2.5 rounded-lg border-2 p-2 text-[10.5px] leading-snug ${
+                msg.tipo === 'ok'
+                  ? 'border-emerald-300 bg-emerald-50 text-emerald-900'
+                  : msg.tipo === 'erro'
+                    ? 'border-rose-300 bg-rose-50 text-rose-900'
+                    : 'border-slate-300 bg-slate-50 text-slate-700'
+              }`}
+            >
+              {msg.txt}
+            </div>
+          )}
+
+          {/* limite honesto */}
+          <div className="mt-3 rounded-lg bg-slate-50 border border-slate-200 p-2.5">
+            <p className="text-[10px] font-bold text-slate-700 mb-1 flex items-center gap-1">
+              <ShieldCheck className="w-3 h-3" />
+              Onde a senha fica — e onde não fica
+            </p>
+            <ul className="space-y-0.5 text-[9.5px] text-slate-600 leading-snug">
+              <li>
+                <b>Não fica</b> no código, no Git, no PocketBase nem em nenhum servidor do Panorama.
+              </li>
+              <li>
+                <b>Fica</b> só no armazenamento deste navegador (<i>localStorage</i>), nesta
+                máquina.
+              </li>
+              <li>
+                <b>Limite real:</b> quem abrir este computador e o inspetor do navegador consegue
+                lê-la. Para uso pessoal interno é aceitável; num sistema multiusuário, ela deve ir
+                para o cofre do servidor.
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        {/* ───────── atalhos ───────── */}
+        <div className="rounded-2xl border-2 border-slate-200 bg-white p-4">
+          <div className="flex items-center gap-2 mb-2.5 flex-wrap">
+            <p className="flex items-center gap-1.5 text-[12px] font-bold text-slate-900">
+              <Search className="w-4 h-4 text-panorama-gold-dark" />
+              Onde buscar
+            </p>
+            <span className="text-[10px] text-slate-500 ml-auto tabular-nums">
+              {atalhosFiltrados.length} de {ATALHOS.length}
+            </span>
+          </div>
+
+          <div className="relative mb-2.5">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+            <input
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+              placeholder="Filtrar atalhos (alíquota, NCM, calendário…)"
+              className="w-full rounded-lg border-2 border-slate-300 pl-8 pr-2 py-1.5 text-[11.5px] text-slate-900 focus:outline-none focus:border-panorama-gold"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            {atalhosFiltrados.map((a) => {
+              const { Icon } = a
+              return (
+                <a
+                  key={a.id}
+                  href={a.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`flex items-start gap-2 rounded-lg border-2 px-2.5 py-1.5 transition-colors ${
+                    'destaque' in a && a.destaque
+                      ? 'border-panorama-gold/60 bg-panorama-gold/5 hover:bg-panorama-gold/10'
+                      : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                  }`}
+                >
+                  <span className="inline-flex items-center justify-center w-6 h-6 rounded-md bg-panorama-navy text-panorama-gold-light shrink-0 mt-0.5">
+                    <Icon className="w-3.5 h-3.5" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-[11.5px] font-bold text-slate-900 leading-tight">
+                      {a.nome}
+                    </span>
+                    <span className="block text-[10px] text-slate-500 leading-tight">
+                      {a.o_que}
+                    </span>
+                  </span>
+                  <ArrowRight className="w-3.5 h-3.5 text-slate-300 shrink-0 mt-1" />
+                </a>
+              )
+            })}
+            {!atalhosFiltrados.length && (
+              <p className="py-4 text-center text-[11px] text-slate-500">
+                Nada com esse termo. Tente “tabela”, “calendário” ou “legislação”.
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ───────── quando a fonte oficial é obrigatória ───────── */}
+      <div className="rounded-2xl border-2 border-slate-200 bg-white p-4">
+        <p className="text-[12px] font-bold text-slate-900 mb-1">
+          Achou na Lefisc e precisa citar? Vá à fonte primária aqui dentro
+        </p>
+        <p className="text-[10.5px] text-slate-500 leading-snug mb-2.5">
+          A Lefisc localiza rápido; o Panorama guarda o ato e o link do órgão que publicou. Para
+          peça, parecer ou laudo, use a segunda coluna.
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-2">
+          {DENTRO_DO_PANORAMA.map((d) => (
+            <a
+              key={d.secao}
+              href={`#${d.secao}`}
+              className="rounded-lg border-2 border-slate-200 px-2.5 py-2 hover:border-panorama-gold hover:bg-panorama-gold/5 transition-colors"
+            >
+              <span className="block text-[11px] font-bold text-panorama-navy leading-tight">
+                {d.nome}
+              </span>
+              <span className="block text-[9.5px] text-slate-500 leading-tight mt-0.5">
+                {d.o_que}
+              </span>
+            </a>
+          ))}
+        </div>
+      </div>
+
+      <div className="pt-2 border-t border-slate-200 flex flex-wrap items-center gap-x-3 gap-y-1 text-[9px] text-slate-400">
+        <span>Fonte: lefisc.com.br (assinatura privada)</span>
+        <span>·</span>
+        <span>Senha guardada apenas neste navegador</span>
+        <span className="ml-auto">
+          <a
+            href="https://lefisc.com.br/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-bold hover:text-slate-700"
+          >
+            abrir portal ↗
+          </a>
+        </span>
+      </div>
+    </section>
+  )
+}
