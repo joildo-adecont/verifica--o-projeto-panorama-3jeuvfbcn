@@ -456,7 +456,7 @@ export function PainelInicial() {
                   <span
                     className={`flex items-center justify-center w-9 h-9 rounded-lg border-2 shrink-0 ${cores.icone}`}
                   >
-                    <g.Icon style={{ width: 18, height: 18 }} />
+                    <g.Icon className="w-[18px] h-[18px]" />
                   </span>
                   <span className="text-left">
                     <span className="block text-[13px] font-bold leading-tight whitespace-nowrap">

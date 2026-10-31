@@ -921,8 +921,8 @@ function SimuladorHibrido() {
         <p className="text-[11px] text-slate-500 mt-1">
           Partilha dos Anexos XVIII–XXII da LC 214 (IBS: 0,17% em 2027–28; 3,35%→13,40% em 2029–32;
           33,50% em 2033, faixas 3ª–5ª; 1ª–2ª ligeiramente maior). IBS do híbrido: art. 344 (0,1% em
-          2027–28; 0,3/0,6/0,9/1,2% em 2029–32) e pleno em 2033 (referência total {pct(REF_TOTAL)}{' '}
-          da Res. 14/2026 − CBS ref estimada). 6ª faixa: tratamento próprio.
+          2027–28; 0,3/0,6/0,9/1,2% em 2029–32) e pleno em 2033 (referência total{' '}
+          {pct(REF_TOTAL_ALIQ)} da Res. 14/2026 − CBS ref estimada). 6ª faixa: tratamento próprio.
         </p>
       </div>
 

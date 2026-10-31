@@ -808,6 +808,7 @@ export const HOME: LinkNavegacao = {
   bg: 'bg-slate-100',
   borda: 'border-slate-300',
   descricao: 'Painel de acompanhamento e atalhos',
+  tags: ['painel', 'início', 'dashboard'],
 }
 
 /** Total de seções de conteúdo — usado no painel inicial. */
