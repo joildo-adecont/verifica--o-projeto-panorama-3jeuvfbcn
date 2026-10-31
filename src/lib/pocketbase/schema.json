@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-30T00:30:34.444Z",
+  "generatedAt": "2026-10-31T18:56:29.327Z",
   "collections": [
     {
       "name": "users",
@@ -363,6 +363,18 @@
         },
         {
           "name": "origin",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "municipio",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "codigo_ibge",
           "type": "text",
           "required": false,
           "system": false
@@ -1308,6 +1320,122 @@
         }
       ],
       "indexes": []
+    },
+    {
+      "name": "radar_municipios",
+      "type": "base",
+      "apiRules": {
+        "list": "",
+        "view": "",
+        "create": null,
+        "update": null,
+        "delete": null
+      },
+      "fields": [
+        {
+          "name": "codigo_ibge",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "nome",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "uf",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX idx_radar_municipios_codigo_ibge ON radar_municipios (codigo_ibge)",
+        "CREATE INDEX idx_radar_municipios_uf ON radar_municipios (uf)"
+      ]
+    },
+    {
+      "name": "radar_atos",
+      "type": "base",
+      "apiRules": {
+        "list": "",
+        "view": "",
+        "create": null,
+        "update": null,
+        "delete": null
+      },
+      "fields": [
+        {
+          "name": "uf",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "municipio_nome",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "codigo_ibge",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "titulo",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "url",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "assoc",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": [
+        "CREATE INDEX idx_radar_atos_uf ON radar_atos (uf)",
+        "CREATE INDEX idx_radar_atos_ibge ON radar_atos (codigo_ibge)"
+      ]
     }
   ]
 }
