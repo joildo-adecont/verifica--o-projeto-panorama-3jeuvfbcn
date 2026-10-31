@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { RADAR_LEFISC } from '@/data/radarLefisc'
 import {
   ArrowRight,
   BadgeAlert,
@@ -16,6 +17,7 @@ import {
   ShieldCheck,
   Trash2,
   Unlock,
+  Radar,
 } from 'lucide-react'
 
 /**
@@ -489,6 +491,139 @@ export function SectionLefisc() {
             </a>
           ))}
         </div>
+      </div>
+
+      {/* ───────── radar: Lefisc × fontes oficiais ───────── */}
+      <div className="rounded-2xl border-2 border-slate-200 bg-white p-4">
+        <div className="flex items-start gap-2 flex-wrap mb-2">
+          <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-panorama-navy text-panorama-gold-light shrink-0">
+            <Radar className="w-4 h-4" />
+          </span>
+          <div className="flex-1 min-w-[200px]">
+            <p className="text-[12px] font-bold text-slate-900 leading-tight">
+              Radar diário: Lefisc × fontes oficiais
+            </p>
+            <p className="text-[10px] text-slate-500 leading-snug">
+              O que a Lefisc publica é conferido contra o Diário Oficial antes de entrar no sistema.
+              Roda todo dia às 08:00 e também no fechamento de quarta-feira.
+            </p>
+          </div>
+          <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[9.5px] font-bold text-slate-600 shrink-0">
+            última:{' '}
+            {new Date(RADAR_LEFISC.executadoEm).toLocaleString('pt-BR', {
+              day: '2-digit',
+              month: '2-digit',
+              hour: '2-digit',
+              minute: '2-digit',
+            })}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-3 gap-1.5 mb-2.5">
+          <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-2 py-1.5 text-center">
+            <p className="text-[16px] font-bold text-emerald-800 tabular-nums leading-none">
+              {RADAR_LEFISC.resumo.confirmados}
+            </p>
+            <p className="text-[9px] font-bold uppercase tracking-wide text-emerald-700 mt-0.5">
+              nas duas
+            </p>
+          </div>
+          <div className="rounded-lg border border-sky-200 bg-sky-50 px-2 py-1.5 text-center">
+            <p className="text-[16px] font-bold text-sky-800 tabular-nums leading-none">
+              {RADAR_LEFISC.resumo.soOficial}
+            </p>
+            <p className="text-[9px] font-bold uppercase tracking-wide text-sky-700 mt-0.5">
+              só oficial
+            </p>
+          </div>
+          <div className="rounded-lg border border-amber-200 bg-amber-50 px-2 py-1.5 text-center">
+            <p className="text-[16px] font-bold text-amber-800 tabular-nums leading-none">
+              {RADAR_LEFISC.resumo.soLefisc}
+            </p>
+            <p className="text-[9px] font-bold uppercase tracking-wide text-amber-700 mt-0.5">
+              só Lefisc
+            </p>
+          </div>
+        </div>
+
+        <p className="text-[9.5px] text-slate-500 leading-snug mb-2">
+          Fontes consultadas: Lefisc ({RADAR_LEFISC.fontes.lefisc.itens} atos recentes) · DOU dos
+          últimos {RADAR_LEFISC.janelaDouDias} dias ({RADAR_LEFISC.fontes.dou.itens} matérias).{' '}
+          {RADAR_LEFISC.resumo.foraDoEscopo} atos ficaram fora por não tratarem de IBS/CBS.
+        </p>
+
+        {RADAR_LEFISC.erros.length > 0 && (
+          <p className="text-[10px] text-rose-700 bg-rose-50 border border-rose-200 rounded px-2 py-1 mb-2">
+            Falha na coleta: {RADAR_LEFISC.erros.join(' · ')}
+          </p>
+        )}
+
+        <div className="space-y-1">
+          {RADAR_LEFISC.linhas.map((l, i) => {
+            const cor =
+              l.veredito === 'CONFIRMADO'
+                ? 'border-emerald-200 bg-emerald-50/50'
+                : l.veredito === 'SO_OFICIAL'
+                  ? 'border-sky-200 bg-sky-50/50'
+                  : 'border-amber-200 bg-amber-50/50'
+            const selo =
+              l.veredito === 'CONFIRMADO'
+                ? { txt: 'nas duas fontes', cls: 'bg-emerald-700 text-white' }
+                : l.veredito === 'SO_OFICIAL'
+                  ? { txt: 'só oficial', cls: 'bg-sky-700 text-white' }
+                  : { txt: 'aguarda DOU', cls: 'bg-amber-600 text-white' }
+            return (
+              <div key={i} className={`rounded-lg border px-2 py-1.5 ${cor}`}>
+                <div className="flex items-start gap-1.5">
+                  <span
+                    className={`rounded px-1 py-0.5 text-[8.5px] font-bold uppercase shrink-0 mt-0.5 ${selo.cls}`}
+                  >
+                    {selo.txt}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    {l.link ? (
+                      <a
+                        href={l.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block text-[10.5px] font-bold text-slate-900 leading-tight hover:underline"
+                      >
+                        {l.titulo}
+                      </a>
+                    ) : (
+                      <span className="block text-[10.5px] font-bold text-slate-900 leading-tight">
+                        {l.titulo}
+                      </span>
+                    )}
+                    <span className="block text-[9px] text-slate-500 leading-tight mt-0.5">
+                      {l.data ? `DOU ${l.data}` : ''}
+                      {l.secao ? ` · ${l.secao}` : ''}
+                      {l.veredito === 'SO_LEFISC' ? ' · não publicar até sair no DOU' : ''}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+          {!RADAR_LEFISC.linhas.length && (
+            <p className="py-3 text-center text-[10.5px] text-slate-500">
+              Nenhum ato de IBS/CBS novo no período — as fontes estão alinhadas.
+            </p>
+          )}
+        </div>
+
+        <p className="mt-2 text-[9px] text-slate-400 leading-snug">
+          Regra: item que só aparece na Lefisc <b>não entra</b> no Panorama. A Lefisc localiza; o
+          Diário Oficial confirma. Os atos confirmados são acrescentados à linha do tempo da{' '}
+          <a href="#secao-1" className="font-bold hover:text-slate-700">
+            Seção 1
+          </a>{' '}
+          e ao{' '}
+          <a href="#monitor-legislativo" className="font-bold hover:text-slate-700">
+            Monitor
+          </a>
+          .
+        </p>
       </div>
 
       <div className="pt-2 border-t border-slate-200 flex flex-wrap items-center gap-x-3 gap-y-1 text-[9px] text-slate-400">

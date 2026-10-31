@@ -100,6 +100,28 @@ export const CRONOLOGIA: ItemCronologia[] = [
     nota: 'Vigência até 31/03/2027. Inclui o GTI 10 — Combustíveis.',
   },
   {
+    /*
+     * ATO TÉCNICO CONJUNTO Nº 10 — incluído em 31/10/2026 pelo radar Lefisc × oficial.
+     * Foi o primeiro item a passar pelo comparador das duas fontes: a Lefisc já o
+     * listava como recente e o DOU o publicou em 29/10/2026 (DO1_EXTRA_C). Como as
+     * duas concordam em tipo, número, ano e objeto, entrou sem ressalva.
+     * Fonte oficial: DOU/Imprensa Nacional (link abaixo). Fonte de apoio: Lefisc
+     * (idBanco 237543).
+     */
+    codigo: 'ATC RFB/SUFIS/CGIBS 10/2026',
+    tipo: 'Ato Conjunto',
+    data: '2026-10-28',
+    publicacao: '2026-10-29',
+    titulo: 'Ato Técnico Conjunto RFB/SUFIS/CGIBS/DIRETORIA-EXECUTIVA nº 10',
+    objeto:
+      'Aprovação conjunta RFB e CGIBS da documentação técnica dos documentos fiscais que especifica',
+    url: 'https://www.in.gov.br/web/dou/-/ato-tecnico-conjunto-rfb/sufis/cgibs/diretoria-executiva-n-10-de-28-de-outubro-de-2026-741177669',
+    situacao: 'vigente',
+    papel: 'regulamento',
+    incorporada: false,
+    nota: 'Publicado no DOU de 29/10/2026 (DO1_EXTRA_C). Confirmado também na Lefisc (id 237543), que o lista entre as atualizações de legislação federal. Detalha a documentação técnica dos documentos fiscais do IBS/CBS — é o ato que operacionaliza campos e leiautes.',
+  },
+  {
     codigo: 'Decreto 13.133/2026',
     tipo: 'Decreto',
     data: '2026-10-09',
