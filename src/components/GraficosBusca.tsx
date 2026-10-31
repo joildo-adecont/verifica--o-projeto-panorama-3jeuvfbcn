@@ -27,12 +27,20 @@ interface GraficosBuscaProps {
     }>
     classificacoesPorTipo: Array<{ tipo: string; count: number }>
   }
+  dadosAnexos?: Array<{
+    numero: string
+    titulo: string
+    reducaoPct: number
+    rotulo: string
+    totalProdutos: number
+    baseLegal: string
+  }>
 }
 
-export function GraficosBusca({ termo, dadosGraficos }: GraficosBuscaProps) {
-  const [graficoAtivo, setGraficoAtivo] = useState<'transicao' | 'atos' | 'classificacoes'>(
-    'transicao',
-  )
+export function GraficosBusca({ termo, dadosGraficos, dadosAnexos }: GraficosBuscaProps) {
+  const [graficoAtivo, setGraficoAtivo] = useState<
+    'anexos' | 'transicao' | 'atos' | 'classificacoes'
+  >('anexos')
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
@@ -56,7 +64,19 @@ export function GraficosBusca({ termo, dadosGraficos }: GraficosBuscaProps) {
         </div>
 
         {/* Alternador de gráficos */}
-        <div className="inline-flex rounded-lg border border-slate-200 bg-slate-50 p-1 self-start sm:self-auto">
+        <div className="inline-flex rounded-lg border border-slate-200 bg-slate-50 p-1 self-start sm:self-auto flex-wrap gap-1">
+          {dadosAnexos && dadosAnexos.length > 0 && (
+            <button
+              onClick={() => setGraficoAtivo('anexos')}
+              className={`px-3 py-1 text-xs font-bold rounded-md transition-all cursor-pointer ${
+                graficoAtivo === 'anexos'
+                  ? 'bg-panorama-navy text-panorama-gold-light shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              Anexos & Reduções ({dadosAnexos.length})
+            </button>
+          )}
           <button
             onClick={() => setGraficoAtivo('transicao')}
             className={`px-3 py-1 text-xs font-bold rounded-md transition-all cursor-pointer ${
@@ -89,6 +109,153 @@ export function GraficosBusca({ termo, dadosGraficos }: GraficosBuscaProps) {
           </button>
         </div>
       </div>
+
+      {/* Gráfico 0: Reduções e Produtos por Anexo */}
+      {graficoAtivo === 'anexos' && dadosAnexos && dadosAnexos.length > 0 && (
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs text-slate-600">
+            <span className="font-semibold text-slate-800">
+              Percentual Oficial de Redução de Alíquota (%) e Total de Produtos/Serviços Catalogados
+              por Anexo
+            </span>
+            <span className="text-[11px] text-slate-400">LC 214/2025 Planalto</span>
+          </div>
+
+          <div className="h-72 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={dadosAnexos.map((a) => ({
+                  nome: a.numero.replace('Anexo ', 'Anx '),
+                  tituloCompleto: `${a.numero} — ${a.titulo}`,
+                  reducaoAbsoluta: Math.abs(a.reducaoPct),
+                  rotuloReal: a.rotulo,
+                  produtos: a.totalProdutos,
+                  fill:
+                    a.reducaoPct === -100
+                      ? '#059669' // emerald (zero)
+                      : a.reducaoPct === -60
+                        ? '#2563eb' // blue (-60%)
+                        : a.reducaoPct === -30
+                          ? '#d97706' // amber (-30%)
+                          : '#64748b', // slate
+                }))}
+                margin={{ top: 10, right: 15, left: -20, bottom: 25 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                <XAxis
+                  dataKey="nome"
+                  stroke="#475569"
+                  fontSize={10}
+                  tickLine={false}
+                  interval={0}
+                  angle={-25}
+                  textAnchor="end"
+                />
+                <YAxis stroke="#475569" fontSize={11} tickLine={false} unit="%" domain={[0, 100]} />
+                <Tooltip
+                  formatter={(val: unknown, name: unknown) => [
+                    name === 'reducaoAbsoluta' ? `${val}% de redução` : `${val} itens catalogados`,
+                    name === 'reducaoAbsoluta' ? 'Redução da Alíquota' : 'Produtos/Serviços',
+                  ]}
+                  labelFormatter={(label: unknown, payload: readonly any[]) => {
+                    const item = payload?.[0]?.payload
+                    return item?.tituloCompleto || `Anexo ${label}`
+                  }}
+                  contentStyle={{
+                    backgroundColor: '#0f172a',
+                    borderColor: '#334155',
+                    color: '#f8fafc',
+                    borderRadius: '8px',
+                    fontSize: '12px',
+                  }}
+                />
+                <Legend
+                  wrapperStyle={{ fontSize: '11px', paddingTop: '12px' }}
+                  formatter={(value: string) =>
+                    value === 'reducaoAbsoluta'
+                      ? 'Redução de Alíquota (%)'
+                      : 'Qtd. Produtos/Serviços Catalogados'
+                  }
+                />
+                <Bar dataKey="reducaoAbsoluta" name="reducaoAbsoluta" radius={[4, 4, 0, 0]}>
+                  {dadosAnexos.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={
+                        entry.reducaoPct === -100
+                          ? '#059669'
+                          : entry.reducaoPct === -60
+                            ? '#2563eb'
+                            : entry.reducaoPct === -30
+                              ? '#d97706'
+                              : '#64748b'
+                      }
+                    />
+                  ))}
+                </Bar>
+                <Bar dataKey="produtos" name="produtos" fill="#cbd5e1" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Tabela-resumo dos anexos */}
+          <div className="overflow-x-auto rounded-xl border border-slate-200">
+            <table className="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr className="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
+                  <th className="py-2 px-3">Anexo / Título</th>
+                  <th className="py-2 px-3 text-center">Redução de Alíquota</th>
+                  <th className="py-2 px-3 text-center">Alíquota Efetiva (Ref. 26,5%)</th>
+                  <th className="py-2 px-3 text-center">Produtos / Serviços</th>
+                  <th className="py-2 px-3">Base Legal (LC 214/2025)</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {dadosAnexos.map((item, idx) => (
+                  <tr key={idx} className="hover:bg-slate-50 transition-colors">
+                    <td className="py-2 px-3 font-semibold text-slate-800">
+                      <span className="font-mono font-bold text-panorama-navy mr-1.5">
+                        {item.numero}
+                      </span>
+                      <span>{item.titulo}</span>
+                    </td>
+                    <td className="py-2 px-3 text-center">
+                      <span
+                        className={`inline-block px-2 py-0.5 rounded text-[10.5px] font-bold ${
+                          item.reducaoPct === -100
+                            ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                            : item.reducaoPct === -60
+                              ? 'bg-blue-100 text-blue-800 border border-blue-300'
+                              : item.reducaoPct === -30
+                                ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                                : 'bg-slate-100 text-slate-700 border border-slate-300'
+                        }`}
+                      >
+                        {item.rotulo}
+                      </span>
+                    </td>
+                    <td className="py-2 px-3 text-center font-mono font-bold text-slate-700">
+                      {item.reducaoPct === -100
+                        ? '0,00%'
+                        : item.reducaoPct === -60
+                          ? '10,60%'
+                          : item.reducaoPct === -30
+                            ? '18,55%'
+                            : 'Específica / ad rem'}
+                    </td>
+                    <td className="py-2 px-3 text-center font-mono font-bold text-slate-900">
+                      {item.totalProdutos}
+                    </td>
+                    <td className="py-2 px-3 text-slate-600 text-[11px] font-mono">
+                      {item.baseLegal}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* Gráfico 1: Linha do Tempo das Alíquotas */}
       {graficoAtivo === 'transicao' && (

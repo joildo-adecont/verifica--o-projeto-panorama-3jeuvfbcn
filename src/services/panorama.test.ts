@@ -243,4 +243,54 @@ describe('Validação dos fluxos do Panorama da Reforma Tributária', () => {
     expect(itemBusca?.label).toBe('Busca Avançada')
     expect(itemBusca?.tecla).toBe('b')
   })
+
+  it('validação do catálogo e busca integrada dos Anexos da Reforma Tributária (LC 214/2025)', async () => {
+    const { ANEXOS_REFORMA_CATALOGO } = await import('../data/anexosReforma')
+    const { buscarAvancado } = await import('./buscaAvancada')
+
+    // Deve conter no mínimo 12 anexos/regimes específicos oficiais catalogados
+    expect(ANEXOS_REFORMA_CATALOGO.length).toBeGreaterThanOrEqual(12)
+
+    // Todos os anexos devem conter capitulação legal, percentual e fonte Planalto
+    for (const anexo of ANEXOS_REFORMA_CATALOGO) {
+      expect(anexo.id).toBeTruthy()
+      expect(anexo.numero).toBeTruthy()
+      expect(anexo.capitulacaoLegal).toContain('LC 214/2025')
+      expect(anexo.fonteOficial.nome.toLowerCase()).toContain('planalto')
+      expect(anexo.produtosServicos.length).toBeGreaterThan(0)
+    }
+
+    // 1. Busca por "insumo agropecuário"
+    const resInsumo = await buscarAvancado({ termo: 'insumo agropecuário' })
+    expect(resInsumo.anexosReforma.total).toBeGreaterThan(0)
+    const anexoInsumo = resInsumo.anexosReforma.items.find((a) => a.numero === 'Anexo IX')
+    expect(anexoInsumo).toBeDefined()
+    expect(anexoInsumo?.reducaoAliquotaPct).toBe(-60)
+    expect(anexoInsumo?.capitulacaoLegal).toContain('art. 138')
+
+    // 2. Busca por "medicina"
+    const resMed = await buscarAvancado({ termo: 'medicina' })
+    expect(resMed.anexosReforma.total).toBeGreaterThan(0)
+    expect(
+      resMed.anexosReforma.items.some(
+        (a) => a.numero === 'Anexo III' || a.numero === 'Anexo IV' || a.numero === 'Anexo XII',
+      ),
+    ).toBe(true)
+
+    // 3. Busca por "dispositivo médico"
+    const resDisp = await buscarAvancado({ termo: 'dispositivo médico' })
+    const anexoDisp = resDisp.anexosReforma.items.find((a) => a.numero === 'Anexo IV')
+    expect(anexoDisp).toBeDefined()
+    expect(anexoDisp?.capitulacaoLegal).toContain('arts. 131 e 144')
+
+    // 4. Busca por "cooperativa"
+    const resCoop = await buscarAvancado({ termo: 'cooperativa' })
+    const anexoCoop = resCoop.anexosReforma.items.find((a) => a.id === 'anexo-regime-cooperativas')
+    expect(anexoCoop).toBeDefined()
+    expect(anexoCoop?.capitulacaoLegal).toContain('arts. 271 e 272')
+    expect(anexoCoop?.reducaoAliquotaPct).toBe(-100)
+
+    // 5. Validação dos resumos de reduções para gráficos
+    expect(resInsumo.anexosReforma.resumoReducoes.length).toBe(resInsumo.anexosReforma.total)
+  })
 })

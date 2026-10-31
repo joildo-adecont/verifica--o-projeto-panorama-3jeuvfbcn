@@ -175,10 +175,10 @@ routerAdd('POST', '/backend/v1/trigger-weekly-review', (e) => {
     reviewRecord = new Record(colReviews)
 
     const notes =
-      'Verificação abrangente de atos normativos, tabelas de classificação e fontes dos Assuntos Especiais fora da tributação geral (Imposto do Pecado, CGIBS, Simples Nacional, ME/EPP, Regimes Societários, Entidades Associativas, Sindicatos, Regras Especiais e Imunidades) nas fontes oficiais Planalto / CGIBS / Receita / DOU / CONFAZ / IBGE / SVRS / CGSN / SUFRAMA / Senado.'
+      'Verificação abrangente de atos normativos, tabelas de classificação, Anexos da Reforma Tributária (LC 214/2025 e EC 132/2023 no Planalto) e fontes dos Assuntos Especiais fora da tributação geral (Cesta Básica Zero, Educação -60%, Saúde -60%, Dispositivos Médicos, Insumos Agro, Imposto do Pecado, CGIBS, Simples Nacional, Regimes Específicos e Imunidades) nas fontes oficiais Planalto / CGIBS / Receita / DOU / CONFAZ / IBGE / SVRS / CGSN / SUFRAMA / Senado.'
 
     let summaryText =
-      'Todas as fontes oficiais de atos normativos, classificações e assuntos especiais responderam ativas na verificação técnica.'
+      'Todas as fontes oficiais de atos normativos, classificações, Anexos da Reforma (LC 214/2025) e assuntos especiais responderam ativas na verificação técnica.'
     if (overallStatus === 'warning') {
       summaryText = 'Verificação concluída com aviso em uma ou mais fontes oficiais.'
     } else if (overallStatus === 'attention') {

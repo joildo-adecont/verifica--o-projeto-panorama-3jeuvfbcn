@@ -25,11 +25,13 @@ import {
   Users,
   Flame,
   BadgeCheck,
+  FileSpreadsheet,
 } from 'lucide-react'
 import { AdecontLogo } from '@/components/AdecontLogo'
 import {
   buscarAvancado,
   type AssuntoEspecialItem,
+  type AnexoReformaItem,
   type ResultadoBuscaAvancada,
   type ParametrosBuscaAvancada,
 } from '@/services/buscaAvancada'
@@ -39,18 +41,41 @@ import { GraficosBusca } from '@/components/GraficosBusca'
 import { toast } from '@/hooks/use-toast'
 
 const SUGESTOES_RAPIDAS = [
-  'cigarro',
-  'álcool',
-  'Simples Nacional',
-  'lucro presumido',
-  'comitê gestor',
-  'entidades associativas',
-  'sindicatos',
-  'combustíveis',
-  'imunidade',
+  'insumo agropecuário',
+  'medicina',
+  'dispositivo médico',
+  'arroz',
+  'cooperativa',
+  'serviço de educação',
   'cesta básica',
-  'Zona Franca de Manaus',
+  'combustíveis',
+  'Simples Nacional',
+  'imunidade',
+  'cigarro',
   'LC 214/2025',
+]
+
+const ANEXOS_FILTRO_RAPIDO = [
+  { id: 'TODOS', label: 'Todos os Anexos' },
+  { id: 'Anexo I', label: 'Anexo I (Cesta Básica 0%)' },
+  { id: 'Anexo II', label: 'Anexo II (Educação -60%)' },
+  { id: 'Anexo III', label: 'Anexo III (Saúde -60%)' },
+  { id: 'Anexo IV', label: 'Anexo IV (Dispositivos Médicos -60%)' },
+  { id: 'Anexo V', label: 'Anexo V (Acessibilidade -60%)' },
+  { id: 'Anexo VII', label: 'Anexo VII (Cesta Estendida -60%)' },
+  { id: 'Anexo VIII', label: 'Anexo VIII (Higiene/Limpeza -60%)' },
+  { id: 'Anexo IX', label: 'Anexo IX (Insumos Agro -60%)' },
+  { id: 'Anexo X', label: 'Anexo X (Cultura -60%)' },
+  { id: 'Anexo XII', label: 'Anexo XII (Médicos Zero 0%)' },
+  { id: 'Anexo XIII', label: 'Anexo XIII (Acessibilidade Zero 0%)' },
+  { id: 'Anexo XV', label: 'Anexo XV (Hortícolas/Ovos 0%)' },
+  { id: 'anexo-profissoes-30', label: 'Profissões Regulamentadas (-30%)' },
+  { id: 'anexo-regime-combustiveis', label: 'Combustíveis (Monofásico)' },
+  { id: 'anexo-regime-financeiros', label: 'Serviços Financeiros' },
+  { id: 'anexo-regime-cooperativas', label: 'Cooperativas (Ato Coop. 0%)' },
+  { id: 'anexo-regime-planos-saude', label: 'Planos de Saúde (Deduções)' },
+  { id: 'anexo-regime-intercambio', label: 'Intercâmbio / Turismo' },
+  { id: 'Anexo XVII', label: 'Anexo XVII (Imposto Seletivo)' },
 ]
 
 const CATEGORIAS_ESPECIAIS_FILTRO = [
@@ -73,9 +98,11 @@ export function SectionBuscaAvancada() {
     'todos',
   )
   const [categoriaEspecial, setCategoriaEspecial] = useState<string>('TODAS')
+  const [filtroAnexo, setFiltroAnexo] = useState<string>('TODOS')
   const [classifPage, setClassifPage] = useState<number>(1)
   const [abaAtiva, setAbaAtiva] = useState<
     | 'tudo'
+    | 'anexos-reforma'
     | 'assuntos-especiais'
     | 'classificacoes'
     | 'atos'
@@ -119,6 +146,7 @@ export function SectionBuscaAvancada() {
         tipoClassificacao: tipoClassif,
         atosNivel,
         categoriaEspecial,
+        filtroAnexo,
         classifPage,
         classifPerPage: 25,
       })
@@ -127,7 +155,7 @@ export function SectionBuscaAvancada() {
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current)
     }
-  }, [termo, tipoClassif, atosNivel, categoriaEspecial, classifPage])
+  }, [termo, tipoClassif, atosNivel, categoriaEspecial, filtroAnexo, classifPage])
 
   const handleBaixarDocumento = async (id: string, filename?: string) => {
     setBaixandoId(id)
@@ -291,6 +319,22 @@ export function SectionBuscaAvancada() {
                 </option>
               ))}
             </select>
+
+            <div className="flex items-center gap-1.5 text-xs text-blue-900 font-semibold ml-2">
+              <FileSpreadsheet className="w-3.5 h-3.5 text-blue-600" />
+              <span>Anexos da Reforma:</span>
+            </div>
+            <select
+              value={filtroAnexo}
+              onChange={(e) => setFiltroAnexo(e.target.value)}
+              className="text-xs bg-blue-50/70 border border-blue-300 rounded-lg px-2.5 py-1.5 text-blue-950 font-medium focus:outline-none focus:border-blue-600"
+            >
+              {ANEXOS_FILTRO_RAPIDO.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.label}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="flex items-center gap-2 text-xs text-slate-500 justify-end">
@@ -310,7 +354,13 @@ export function SectionBuscaAvancada() {
       </div>
 
       {/* Gráficos Correlatos */}
-      {resultado && <GraficosBusca termo={termo} dadosGraficos={resultado.dadosGraficos} />}
+      {resultado && (
+        <GraficosBusca
+          termo={termo}
+          dadosGraficos={resultado.dadosGraficos}
+          dadosAnexos={resultado.anexosReforma.resumoReducoes}
+        />
+      )}
 
       {/* Navegação em Abas dos Resultados Agrupados */}
       <div className="border-b border-slate-200">
@@ -325,6 +375,21 @@ export function SectionBuscaAvancada() {
           >
             <Sparkles className="w-4 h-4 text-panorama-gold-dark" />
             Visão Geral Consolidada
+          </button>
+
+          <button
+            onClick={() => setAbaAtiva('anexos-reforma')}
+            className={`px-4 py-2.5 rounded-t-lg transition-colors border-b-2 whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
+              abaAtiva === 'anexos-reforma'
+                ? 'border-blue-600 text-blue-900 bg-blue-50/50 shadow-xs font-bold'
+                : 'border-transparent text-slate-500 hover:text-blue-800 hover:bg-blue-50/30'
+            }`}
+          >
+            <FileSpreadsheet className="w-4 h-4 text-blue-600" />
+            <span>Anexos da Reforma (LC 214)</span>
+            <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-blue-600 text-white">
+              {resultado?.anexosReforma.total || 0}
+            </span>
           </button>
 
           <button
@@ -418,6 +483,235 @@ export function SectionBuscaAvancada() {
           </button>
         </nav>
       </div>
+
+      {/* BLOCO 0A: ANEXOS DA REFORMA TRIBUTÁRIA (LC 214/2025 E REGIMES ESPECÍFICOS) */}
+      {(abaAtiva === 'tudo' || abaAtiva === 'anexos-reforma') &&
+        resultado &&
+        resultado.anexosReforma.items.length > 0 && (
+          <div className="bg-gradient-to-br from-blue-50/70 via-white to-sky-50/40 rounded-2xl border-2 border-blue-300 shadow-md p-5 sm:p-6 space-y-5 relative overflow-hidden">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b-2 border-blue-200 pb-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-blue-700 text-white shadow-xs">
+                    <FileSpreadsheet className="w-3.5 h-3.5" />
+                    Anexos Oficiais da Reforma Tributária
+                  </span>
+                  <span className="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-blue-100 text-blue-900 border border-blue-300">
+                    {resultado.anexosReforma.total} anexo(s) localizado(s)
+                  </span>
+                </div>
+                <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 flex items-center gap-2">
+                  <span>Anexos da Lei Complementar 214/2025 & Regimes Específicos</span>
+                </h3>
+                <p className="text-xs text-slate-600 max-w-3xl leading-relaxed">
+                  Catálogo dos <strong>Anexos da LC 214/2025</strong> com produtos e serviços
+                  correlacionados, respectivas <strong>capitulações legais exatas</strong> (artigos,
+                  incisos e parágrafos do texto compilado oficial do Planalto), percentuais de{' '}
+                  <strong>redução de alíquotas (0%, -30%, -50%, -60% e -100%)</strong> e vínculos
+                  com os códigos oficiais vigentes no sistema (NCM, NBS, cClassTrib, cCredPres).
+                </p>
+              </div>
+
+              {/* Filtros rápidos de Anexo */}
+              <div className="flex flex-wrap items-center gap-1.5 self-start sm:self-auto max-w-md justify-end">
+                {resultado.anexosReforma.categoriasPresentes.map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => {
+                      const match = ANEXOS_FILTRO_RAPIDO.find((a) => a.label.includes(cat))
+                      if (match) setFiltroAnexo(match.id)
+                    }}
+                    className="px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-white border border-blue-300 text-blue-900 hover:bg-blue-100 transition-colors cursor-pointer"
+                  >
+                    {cat}
+                  </button>
+                ))}
+                {filtroAnexo !== 'TODOS' && (
+                  <button
+                    onClick={() => setFiltroAnexo('TODOS')}
+                    className="px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-blue-200 text-blue-950 hover:bg-blue-300 transition-colors cursor-pointer"
+                  >
+                    Limpar filtro de anexo
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Grid dos Cards de Anexos da Reforma */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {resultado.anexosReforma.items.map((anexo: AnexoReformaItem) => (
+                <div
+                  key={anexo.id}
+                  className="bg-white rounded-xl border-2 border-blue-200/90 p-5 shadow-sm hover:border-blue-400 hover:shadow-md transition-all flex flex-col justify-between space-y-4"
+                >
+                  <div className="space-y-3">
+                    {/* Header do Card de Anexo */}
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-extrabold uppercase tracking-wide bg-blue-900 text-white shadow-xs">
+                        <FileSpreadsheet className="w-3 h-3 text-blue-300" />
+                        {anexo.numero}
+                      </span>
+                      <span
+                        className={`px-2.5 py-0.5 rounded-md text-[11px] font-extrabold ${
+                          anexo.reducaoAliquotaPct === -100
+                            ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
+                            : anexo.reducaoAliquotaPct === -60
+                              ? 'bg-blue-100 text-blue-900 border border-blue-300'
+                              : anexo.reducaoAliquotaPct === -30
+                                ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                                : 'bg-slate-100 text-slate-800 border border-slate-300'
+                        }`}
+                      >
+                        {anexo.reducaoRotulo}
+                      </span>
+                    </div>
+
+                    <h4 className="text-base font-bold text-slate-900 leading-snug">
+                      {anexo.titulo}
+                    </h4>
+
+                    <p className="text-xs font-medium text-slate-600 italic">{anexo.subtitulo}</p>
+
+                    <p className="text-xs text-slate-700 leading-relaxed bg-slate-50/90 p-3 rounded-lg border border-slate-200">
+                      {anexo.resumo}
+                    </p>
+
+                    {/* Capitulação Legal Oficial do Planalto */}
+                    <div className="bg-sky-50/80 border-l-4 border-sky-600 p-2.5 rounded-r-lg text-xs space-y-1">
+                      <span className="font-bold text-sky-950 block text-[11px] uppercase tracking-wider flex items-center gap-1">
+                        <Scale className="w-3.5 h-3.5 text-sky-700" />
+                        Capitulação Legal (Texto Oficial do Planalto):
+                      </span>
+                      <p className="text-sky-900 font-mono font-semibold text-[11.5px] leading-relaxed">
+                        {anexo.capitulacaoLegal}
+                      </p>
+                      <div className="flex items-center gap-2 pt-0.5 text-[10.5px] text-sky-800">
+                        <span>Remissões diretas:</span>
+                        {anexo.artigosRemissao.map((art, idx) => (
+                          <span
+                            key={idx}
+                            className="bg-sky-200/70 text-sky-900 font-bold px-1.5 py-0.2 rounded"
+                          >
+                            {art}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Alíquota Efetiva e Base de Cálculo */}
+                    <div className="p-2.5 rounded-lg bg-emerald-50/70 border border-emerald-200 text-xs space-y-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-emerald-900 font-bold">
+                          Alíquota Efetiva de Referência (IBS 18,7% + CBS 11,3%):
+                        </span>
+                        <span className="font-mono font-extrabold text-emerald-800 bg-white px-2 py-0.5 rounded border border-emerald-300">
+                          {anexo.aliquotaEfetivaIbsCbs}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-emerald-950 leading-relaxed">
+                        {anexo.baseCalculoTexto}
+                      </p>
+                    </div>
+
+                    {/* Lista de Produtos / Serviços Catalogados com códigos oficiais */}
+                    <div className="pt-2 border-t border-slate-100 space-y-2">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-bold text-slate-800 flex items-center gap-1">
+                          <Layers className="w-3.5 h-3.5 text-amber-600" />
+                          Produtos e Serviços Relacionados ({anexo.produtosServicos.length} itens):
+                        </span>
+                        <span className="text-[10px] text-slate-500 font-mono">
+                          Vínculo: NCM / NBS / cClassTrib
+                        </span>
+                      </div>
+
+                      <div className="max-h-48 overflow-y-auto rounded-lg border border-slate-200 divide-y divide-slate-100 bg-white text-xs">
+                        {anexo.produtosServicos.map((prod, pIdx) => (
+                          <div
+                            key={pIdx}
+                            className="p-2 hover:bg-slate-50 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-1.5"
+                          >
+                            <div className="space-y-0.5">
+                              <span className="font-semibold text-slate-800">
+                                {prod.item}. {prod.descricao}
+                              </span>
+                              {prod.detalhes && (
+                                <p className="text-[11px] text-slate-500 italic">{prod.detalhes}</p>
+                              )}
+                            </div>
+                            {prod.codigo && (
+                              <span className="inline-flex items-center gap-1 font-mono text-[10.5px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200 shrink-0 self-start sm:self-auto">
+                                <span className="text-amber-700 font-semibold">
+                                  {prod.tipoCodigo}:
+                                </span>
+                                <span>{prod.codigo}</span>
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Tags de códigos oficiais cruzados com o banco */}
+                      <div className="flex items-center gap-1 flex-wrap pt-1">
+                        <span className="text-[10.5px] font-bold text-slate-500">
+                          Códigos no banco:
+                        </span>
+                        {anexo.codigosOficiaisRelacionados.map((cod, cIdx) => (
+                          <span
+                            key={cIdx}
+                            className="font-mono text-[10px] font-bold bg-slate-100 text-slate-700 px-1.5 py-0.2 rounded border border-slate-200"
+                          >
+                            {cod}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Rodapé do Card: Selo Oficial do Planalto e Download Mediado */}
+                  <div className="pt-3 border-t border-slate-200/80 space-y-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex items-center gap-1.5">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10.5px] font-bold bg-emerald-100 text-emerald-900 border border-emerald-300">
+                          <BadgeCheck className="w-3.5 h-3.5 text-emerald-600" />
+                          {anexo.fonteOficial.selo}
+                        </span>
+                        <a
+                          href={anexo.fonteOficial.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-600 hover:text-blue-700 hover:underline"
+                        >
+                          <span>Texto Planalto</span>
+                          <ExternalLink className="w-2.5 h-2.5 text-slate-400" />
+                        </a>
+                      </div>
+
+                      {anexo.documentoDownloadId && (
+                        <button
+                          onClick={() =>
+                            handleBaixarDocumento(
+                              anexo.documentoDownloadId!,
+                              'LC-214-2025-Planalto-Oficial.pdf',
+                            )
+                          }
+                          disabled={baixandoId === anexo.documentoDownloadId}
+                          className="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-panorama-navy text-panorama-gold-light hover:bg-panorama-navy-light transition-colors flex items-center gap-1.5 shrink-0 cursor-pointer disabled:opacity-50"
+                          title="Download do texto integral oficial mediado pelo proxy backend (/backend/v1/download-resolution)"
+                        >
+                          <Download className="w-3 h-3" />
+                          {baixandoId === anexo.documentoDownloadId
+                            ? 'Baixando...'
+                            : 'PDF Oficial (Proxy)'}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
       {/* BLOCO 0: ASSUNTOS ESPECIAIS — FORA DA TRIBUTAÇÃO GERAL (DESTAQUE MÁXIMO) */}
       {(abaAtiva === 'tudo' || abaAtiva === 'assuntos-especiais') &&

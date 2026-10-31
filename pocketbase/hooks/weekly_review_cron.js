@@ -168,10 +168,10 @@ cronAdd('weekly_content_review', '0 11 * * 1', () => {
     const reviewRecord = new Record(colReviews)
 
     const notes =
-      'Verificação semanal abrangente de atos normativos, classificações e fontes dos Assuntos Especiais fora da tributação geral (Imposto do Pecado, CGIBS, Simples Nacional, ME/EPP, Regimes Societários, Entidades Associativas, Sindicatos, Regras Especiais e Imunidades) — Planalto / CGIBS / RFB / DOU / CONFAZ / IBGE / SVRS / CGSN / SUFRAMA / Senado.'
+      'Verificação semanal abrangente de atos normativos, classificações, Anexos da Reforma Tributária (LC 214/2025 e EC 132/2023 no Planalto) e fontes dos Assuntos Especiais fora da tributação geral (Cesta Básica Zero, Educação -60%, Saúde -60%, Dispositivos Médicos, Insumos Agro, Imposto do Pecado, CGIBS, Simples Nacional, Regimes Específicos e Imunidades) — Planalto / CGIBS / RFB / DOU / CONFAZ / IBGE / SVRS / CGSN / SUFRAMA / Senado.'
 
     let summaryText =
-      'Todas as fontes oficiais de atos normativos, tabelas e assuntos especiais responderam ativas na verificação semanal. Arcabouço amplo mantido em conformidade.'
+      'Todas as fontes oficiais de atos normativos, tabelas, Anexos da Reforma (LC 214/2025) e assuntos especiais responderam ativas na verificação semanal. Arcabouço amplo mantido em conformidade.'
     if (overallStatus === 'warning') {
       summaryText =
         'Verificação semanal concluída com aviso em uma ou mais fontes de atos normativos.'

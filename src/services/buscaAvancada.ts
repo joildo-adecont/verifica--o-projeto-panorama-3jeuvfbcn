@@ -10,9 +10,11 @@ import {
   type AssuntoEspecialItem,
   type CategoriaAssuntoEspecial,
 } from '@/data/assuntosEspeciais'
+import { ANEXOS_REFORMA_CATALOGO, type AnexoReformaItem } from '@/data/anexosReforma'
 import type { ClassificationItem, TaxNormItem } from '@/types/panorama'
 
 export type { AssuntoEspecialItem, CategoriaAssuntoEspecial }
+export type { AnexoReformaItem }
 
 export interface RadarAtoBuscaItem {
   id: string
@@ -86,6 +88,7 @@ export interface ParametrosBuscaAvancada {
   classifPerPage?: number
   atosNivel?: 'todos' | 'federal' | 'estadual' | 'municipal'
   categoriaEspecial?: string
+  filtroAnexo?: string
 }
 
 export interface ResultadoBuscaAvancada {
@@ -97,6 +100,20 @@ export interface ResultadoBuscaAvancada {
     items: AssuntoEspecialItem[]
     total: number
     categoriasPresentes: string[]
+  }
+  // (0b) Anexos da Reforma Tributária (LC 214/2025 e regimes específicos com produtos, reduções e capitulações)
+  anexosReforma: {
+    items: AnexoReformaItem[]
+    total: number
+    categoriasPresentes: string[]
+    resumoReducoes: Array<{
+      numero: string
+      titulo: string
+      reducaoPct: number
+      rotulo: string
+      totalProdutos: number
+      baseLegal: string
+    }>
   }
   // (a) Atos normativos e radar de atos
   normas: {
@@ -373,6 +390,7 @@ export async function buscarAvancado(
   const tipoClassif = params.tipoClassificacao || 'TODOS'
   const atosNivel = params.atosNivel || 'todos'
   const filtroCategoriaEspecial = params.categoriaEspecial || 'TODAS'
+  const filtroAnexo = params.filtroAnexo || 'TODOS'
 
   // 0. Assuntos Especiais — fora da tributação geral
   const assuntosEspeciaisFiltrados = ASSUNTOS_ESPECIAIS_CATALOGO.filter((item) => {
@@ -489,6 +507,164 @@ export async function buscarAvancado(
   const categoriasPresentes = Array.from(
     new Set(assuntosEspeciaisFiltrados.map((item) => item.categoria)),
   )
+
+  // 0b. Anexos da Reforma Tributária (LC 214/2025, EC 132/2023, RIBS)
+  const anexosReformaFiltrados = ANEXOS_REFORMA_CATALOGO.filter((anexo) => {
+    if (filtroAnexo !== 'TODOS' && anexo.id !== filtroAnexo && anexo.numero !== filtroAnexo) {
+      return false
+    }
+    if (!termoNorm) return true
+
+    // Monta espaço de busca textual contendo título, capitulação, produtos, NCMs e tags
+    const produtosStr = anexo.produtosServicos
+      .map(
+        (p) =>
+          `${p.item} ${p.descricao} ${p.codigo || ''} ${p.tipoCodigo || ''} ${p.detalhes || ''}`,
+      )
+      .join(' ')
+    const searchSpace = normalizar(
+      `${anexo.numero} ${anexo.titulo} ${anexo.subtitulo} ${anexo.capitulacaoLegal} ${anexo.artigosRemissao.join(' ')} ${anexo.reducaoRotulo} ${anexo.aliquotaEfetivaIbsCbs} ${anexo.resumo} ${anexo.tags.join(' ')} ${anexo.categoria} ${produtosStr}`,
+    )
+
+    if (searchSpace.includes(termoNorm)) return true
+
+    // Sinônimos tributários e de produtos
+    if (
+      termoNorm === 'arroz' ||
+      termoNorm === 'feijao' ||
+      termoNorm === 'leite' ||
+      termoNorm === 'pao'
+    ) {
+      return anexo.numero === 'Anexo I'
+    }
+    if (
+      termoNorm === 'medicina' ||
+      termoNorm === 'medico' ||
+      termoNorm === 'hospital' ||
+      termoNorm === 'clinica' ||
+      termoNorm === 'saude'
+    ) {
+      return (
+        anexo.numero === 'Anexo III' ||
+        anexo.numero === 'Anexo IV' ||
+        anexo.numero === 'Anexo XII' ||
+        anexo.id.includes('saude')
+      )
+    }
+    if (
+      termoNorm === 'dispositivo medico' ||
+      termoNorm === 'dispositivo' ||
+      termoNorm === 'tomografo' ||
+      termoNorm === 'respirador' ||
+      termoNorm === 'marcapasso'
+    ) {
+      return anexo.numero === 'Anexo IV' || anexo.numero === 'Anexo XII'
+    }
+    if (
+      termoNorm === 'insumo' ||
+      termoNorm === 'insumo agropecuario' ||
+      termoNorm === 'fertilizante' ||
+      termoNorm === 'defensivo' ||
+      termoNorm === 'semente' ||
+      termoNorm === 'racao'
+    ) {
+      return anexo.numero === 'Anexo IX'
+    }
+    if (
+      termoNorm === 'educacao' ||
+      termoNorm === 'servico de educacao' ||
+      termoNorm === 'escola' ||
+      termoNorm === 'faculdade' ||
+      termoNorm === 'universidade'
+    ) {
+      return anexo.numero === 'Anexo II'
+    }
+    if (
+      termoNorm === 'acessibilidade' ||
+      termoNorm === 'pcd' ||
+      termoNorm === 'cadeirante' ||
+      termoNorm === 'cadeira de rodas'
+    ) {
+      return anexo.numero === 'Anexo V' || anexo.numero === 'Anexo XIII'
+    }
+    if (
+      termoNorm === 'cooperativa' ||
+      termoNorm === 'cooperativas' ||
+      termoNorm === 'sociedade cooperativa' ||
+      termoNorm === 'cooperado'
+    ) {
+      return anexo.id === 'anexo-regime-cooperativas'
+    }
+    if (
+      termoNorm === 'intercambio' ||
+      termoNorm === 'intercambio internacional' ||
+      termoNorm === 'estudante' ||
+      termoNorm === 'turismo'
+    ) {
+      return anexo.id === 'anexo-regime-intercambio'
+    }
+    if (
+      termoNorm === 'combustivel' ||
+      termoNorm === 'combustiveis' ||
+      termoNorm === 'gasolina' ||
+      termoNorm === 'diesel' ||
+      termoNorm === 'etanol' ||
+      termoNorm === 'glp' ||
+      termoNorm === 'mineral' ||
+      termoNorm === 'monofasico'
+    ) {
+      return anexo.id === 'anexo-regime-combustiveis'
+    }
+    if (
+      termoNorm === 'plano de saude' ||
+      termoNorm === 'planos de saude' ||
+      termoNorm === 'planos privados' ||
+      termoNorm === 'convenio'
+    ) {
+      return anexo.id === 'anexo-regime-planos-saude' || anexo.numero === 'Anexo III'
+    }
+    if (
+      termoNorm === 'cultura' ||
+      termoNorm === 'incentivo a cultura' ||
+      termoNorm === 'audiovisual' ||
+      termoNorm === 'teatro' ||
+      termoNorm === 'cinema'
+    ) {
+      return anexo.numero === 'Anexo X'
+    }
+    if (
+      termoNorm === 'profissao' ||
+      termoNorm === 'profissoes' ||
+      termoNorm === 'advogado' ||
+      termoNorm === 'contador' ||
+      termoNorm === 'engenheiro'
+    ) {
+      return anexo.id === 'anexo-profissoes-30'
+    }
+    if (
+      termoNorm === 'imposto seletivo' ||
+      termoNorm === 'seletivo' ||
+      termoNorm === 'cigarro' ||
+      termoNorm === 'cerveja'
+    ) {
+      return anexo.numero === 'Anexo XVII'
+    }
+
+    return false
+  })
+
+  const categoriasAnexosPresentes = Array.from(
+    new Set(anexosReformaFiltrados.map((item) => item.categoria)),
+  )
+
+  const resumoReducoes = anexosReformaFiltrados.map((a) => ({
+    numero: a.numero,
+    titulo: a.titulo,
+    reducaoPct: a.reducaoAliquotaPct,
+    rotulo: a.reducaoRotulo,
+    totalProdutos: a.produtosServicos.length,
+    baseLegal: a.capitulacaoLegal,
+  }))
 
   // 1. Classificações oficiais (NCM, cClassTrib, CST, CEST, cCredPres, etc.)
   const classifPromise = fetchClassifications({
@@ -729,6 +905,7 @@ export async function buscarAvancado(
 
   const totalGeral =
     assuntosEspeciaisFiltrados.length +
+    anexosReformaFiltrados.length +
     normasResult.length +
     radarAtosResult.length +
     classifResult.totalItems +
@@ -744,6 +921,12 @@ export async function buscarAvancado(
       items: assuntosEspeciaisFiltrados,
       total: assuntosEspeciaisFiltrados.length,
       categoriasPresentes,
+    },
+    anexosReforma: {
+      items: anexosReformaFiltrados,
+      total: anexosReformaFiltrados.length,
+      categoriasPresentes: categoriasAnexosPresentes,
+      resumoReducoes,
     },
     normas: {
       items: normasResult,
