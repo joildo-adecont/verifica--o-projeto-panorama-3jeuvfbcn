@@ -48,6 +48,12 @@ routerAdd('POST', '/backend/v1/agente-fontes/notificar', (e) => {
   var execucao = body.execucao || ''
   var resumo = body.resumo || ''
   var destinatario = body.destinatario || 'joildo@adecont.com.br'
+  // MODO CUSTOM (31/10/2026): o chamador pode trazer assunto e html prontos — é o
+  // que o Radar Nacional usa para o resumo diário dos três níveis. Quando presentes,
+  // o hook usa exatamente o que veio e registra o envio como RADAR_NACIONAL.
+  var assuntoCustom = (body.assunto || '').toString()
+  var htmlCustom = (body.html || '').toString()
+  var comandoLog = assuntoCustom && htmlCustom ? 'RADAR_NACIONAL' : null
   // cópias vêm do cadastro (agente_config), não do corpo: quem manda no cadastro
   // manda no envio, e o chamador não pode acrescentar destinatário por conta
   // própria. O corpo pode sobrescrever só com 'destinatario'.
@@ -167,7 +173,9 @@ routerAdd('POST', '/backend/v1/agente-fontes/notificar', (e) => {
   }
 
   var assunto
-  if (alerta) {
+  if (assuntoCustom && htmlCustom) {
+    assunto = assuntoCustom
+  } else if (alerta) {
     assunto =
       mudancas.length === 1
         ? '[ADECONT] Alerta de legislação: ' +
