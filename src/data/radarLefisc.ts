@@ -46,7 +46,7 @@ export interface RadarLefisc {
 export const FONTE_MESTRA = 'DOU'
 
 export const RADAR_LEFISC: RadarLefisc = {
-  executadoEm: '2026-10-31T14:28:19-03:00',
+  executadoEm: '2026-10-31T14:31:10-03:00',
   janelaDouDias: 7,
   fontes: {
     lefisc: { itens: 10, ok: true },
