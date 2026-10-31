@@ -45,6 +45,29 @@ function ehRecente(dataBR: string): boolean {
 const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
+    data: '31/10/2026',
+    hora: '14:15',
+    titulo:
+      'Lefisc vira fonte de atualização, sempre comparada com o Diário Oficial — radar diário às 08:00',
+    conteudo:
+      'A pedido do CEO: usar a Lefisc como fonte de informação para atualizar a reforma tributária, comparando sempre a publicação da Lefisc com a publicação das fontes oficiais do governo, atualizar o sistema diariamente e manter a atualização de quarta-feira. Criado o radar em três etapas: extração da lista pública de legislação federal recente da Lefisc, sem login; varredura do Diário Oficial dos últimos dias com os termos da reforma; e cruzamento por assinatura do ato, tipo mais número mais ano. A assinatura foi necessária porque as duas fontes redigem o mesmo ato de formas diferentes: a Lefisc escreve número barra ano com espaços, o DOU escreve número, de dia de mês de ano, e ainda trunca o título em oitenta colunas, o que exigiu usar o ano da data de publicação como reserva. Cada item recebe veredito: confirmado quando está nas duas fontes, só oficial quando o DOU publicou e a Lefisc atrasou, e só na Lefisc quando apenas o agregador divulgou. REGRA DE OPERAÇÃO: item que só existe na Lefisc não entra no sistema, porque a Lefisc localiza e o órgão oficial confirma. Dois defeitos corrigidos durante a construção: a lista de tipos casava lei complementar dentro de portaria conjunta, devolvendo a Portaria Conjunta RFB/PGFN 740 como se fosse lei complementar, e o padrão de número não reconhecia a redação do DOU, gerando falso negativo no Ato Técnico Conjunto 10. RESULTADO DO PRIMEIRO CRUZAMENTO: dez atos na Lefisc, dois no DOU, dois confirmados, oito fora do escopo por tratarem de ICMS, IR ou trabalhista e zero divergência. AGENDAMENTO: rotina própria todos os dias às 08:00, com marca d’água para avisar uma única vez por item. A rotina de quarta-feira às 11:00 permanece e ganhou o cruzamento como passo zero, passando a ser o fechamento semanal e não mais a única atualização. A Seção 18 exibe o painel com o retrato da última execução, a contagem por veredito e o link do DOU de cada ato.',
+    fontes: [
+      {
+        titulo:
+          'DOU — Ato Técnico Conjunto RFB/SUFIS/CGIBS/DIRETORIA-EXECUTIVA nº 10, de 28/10/2026',
+        url: 'https://www.in.gov.br/web/dou/-/ato-tecnico-conjunto-rfb/sufis/cgibs/diretoria-executiva-n-10-de-28-de-outubro-de-2026-741177669',
+      },
+      {
+        titulo: 'DOU — Ato Técnico Conjunto RFB/CGIBS nº 9, de 20/10/2026',
+        url: 'https://www.in.gov.br/web/dou/-/ato-tecnico-conjunto-rfb/cgibs-n-9-de-20-de-outubro-de-2026-740391670',
+      },
+    ],
+    caminho:
+      'scripts/radar_lefisc/ (comparar.py, resumo_diario.py, publicar_estado.py, run.sh) + src/data/radarLefisc.ts + src/data/legislacaoCronologica.ts + src/components/SectionLefisc.tsx + scripts/1b8edc430ba4e07b/run.sh (passo 0/6)',
+    versao: 'v0.0.281',
+    bloco: 'sistema',
+  },
+  {
     data: '29/10/2026',
     hora: '22:40',
     titulo:
@@ -58,6 +81,22 @@ const REGISTROS: Registro[] = [
     bloco: 'sistema',
   },
   // ============ BLOCO: ATUALIZAÇÃO DA LEGISLAÇÃO ============
+  {
+    data: '31/10/2026',
+    hora: '14:15',
+    titulo: 'Ato Técnico Conjunto RFB/SUFIS/CGIBS/DIRETORIA-EXECUTIVA nº 10, de 28/10/2026',
+    conteudo:
+      'Aprovação conjunta da Receita Federal do Brasil e do Comitê Gestor do IBS da documentação técnica dos documentos fiscais que especifica. Publicado no DOU de 29/10/2026, seção DO1_EXTRA_C. Confirmado nas duas fontes do radar: Diário Oficial e Lefisc, id 237543. É o ato que operacionaliza campos e leiautes dos documentos fiscais do IBS e da CBS — a camada prática sobre a qual emissores e escrituração passam a rodar. Situação: vigente. Incorporado à linha do tempo da Seção 1 e ao Monitor; o detalhe dos leiautes fica para quando o texto integral for lido.',
+    fontes: [
+      {
+        titulo: 'DOU — Ato Técnico Conjunto nº 10/2026 (DO1_EXTRA_C, 29/10/2026)',
+        url: 'https://www.in.gov.br/web/dou/-/ato-tecnico-conjunto-rfb/sufis/cgibs/diretoria-executiva-n-10-de-28-de-outubro-de-2026-741177669',
+      },
+    ],
+    caminho: 'src/data/legislacaoCronologica.ts (ATC RFB/SUFIS/CGIBS 10/2026)',
+    versao: 'v0.0.281',
+    bloco: 'legislacao',
+  },
   {
     data: '29/10/2026',
     hora: '22:25',
