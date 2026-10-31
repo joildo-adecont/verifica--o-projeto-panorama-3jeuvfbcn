@@ -207,6 +207,14 @@ const DADOS = {
       nivel: 'municipal',
     },
     {
+      uf: 'ES',
+      titulo:
+        'DECRETO-R 00006356/2026 — Altera o Decreto 4.269-R, de 21 de junho de 2018, que regulamenta a Lei nº 10.824, de 6 de abril de 2018, que dispõe sobre o Programa ',
+      url: 'https://conteudo.seg.es.gov.br/APINormas/AtoNormativo/14560206',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
       uf: 'GO',
       titulo: 'LEI 1690/2026',
       url: 'https://www.diariomunicipal.com.br/fgm/materia/7712DECD',
@@ -2222,6 +2230,14 @@ const DADOS = {
         'O DIAMETRO SERVICO COMPLEMENTAR / CARACT',
         'dias uteis; 100% em ate 10 dias uteis, a',
       ],
+    },
+    {
+      uf: 'ES',
+      nome: 'Consulta Normas ES (SEGER)',
+      ativo: true,
+      modo: 'API oficial REST com Swagger (POST /Buscar, descricao + período)',
+      hits: 1,
+      amostra: ['DECRETO-R 00006356/2026 — Altera o Decre'],
     },
   ],
 }
