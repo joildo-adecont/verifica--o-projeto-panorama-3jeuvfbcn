@@ -12,6 +12,7 @@ import {
   MapPin,
   ShieldAlert,
 } from 'lucide-react'
+import { RadarNacional } from '@/components/RadarNacional'
 
 /**
  * SEÇÃO 19 — RADAR NACIONAL: FEDERAL, ESTADUAL E MUNICIPAL
@@ -2325,6 +2326,28 @@ export function SectionRadarNacional() {
             </button>
           ))}
         </div>
+      </div>
+
+      {/* AMPLIAÇÃO MUNICIPAL DO RADAR NACIONAL — BUSCADOR SERVER-SIDE IBGE */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-panorama-gold-dark bg-panorama-gold/10 px-2 py-0.5 rounded border border-panorama-gold/30">
+                Cobertura Municipal Integral
+              </span>
+              <h3 className="text-sm md:text-base font-bold text-slate-900">
+                Ampliação Municipal do Radar Nacional — 5.570 Municípios Oficiais (27 UFs)
+              </h3>
+            </div>
+            <p className="text-[11px] text-slate-600 mt-0.5">
+              Consulte qualquer município brasileiro diretamente da API oficial do PocketBase, com
+              expansão por UF, chips selecionáveis e contagem de atos vinculados por código IBGE.
+            </p>
+          </div>
+        </div>
+
+        <RadarNacional initialUf={uf} />
       </div>
 
       {/* ACHADOS */}
