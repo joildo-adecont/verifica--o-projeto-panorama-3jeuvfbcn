@@ -194,45 +194,48 @@ routerAdd('POST', '/backend/v1/agente-fontes/notificar', (e) => {
       '</p>'
     : '<p style="font-size:14px">A vigilância semanal foi executada e <b>nenhuma das fontes de origem da legislação mudou</b>. Nada a fazer: este e-mail é a confirmação de que o sistema está de pé e conferiu as fontes.</p>'
 
+  // MODO CUSTOM: usa o HTML que veio do chamador (Radar Nacional) sem montar o template
   var html =
-    '<div style="font-family:Arial,sans-serif;max-width:640px;margin:0 auto;color:#1c2b3a">' +
-    '<div style="background:#0b3142;padding:18px;text-align:center">' +
-    '<img src="' +
-    baseUrl +
-    '/logo-adecont-branco.png" alt="ADECONT" style="max-height:52px">' +
-    '</div>' +
-    '<div style="height:4px;background:' +
-    corFaixa +
-    '"></div>' +
-    '<div style="padding:22px;background:#fff;border:1px solid #dbe3ee">' +
-    '<h2 style="color:' +
-    corTitulo +
-    ';margin-top:0">' +
-    titulo +
-    '</h2>' +
-    abertura +
-    '<div style="background:#f6f8fc;border:1px solid #dbe3ee;border-radius:8px;padding:10px 14px;margin:0 0 16px;font-size:13px;color:#475569">' +
-    '<b>Varredura:</b> ' +
-    (execucao || 'agora') +
-    '<br><b>Resumo:</b> ' +
-    (resumo || 'não informado') +
-    '</div>' +
-    blocos +
-    tabelaFontes +
-    '<p style="font-size:13px;margin-top:18px">' +
-    (alerta
-      ? 'O que fazer: abra o Monitor Legislativo, confira as seções indicadas e atualize o Panorama se a alteração valer. A varredura compara o hash do texto de cada fonte — uma divergência significa ato novo ou texto alterado, não erro de leitura.'
-      : 'Como funciona: cada fonte guarda a assinatura de conteúdo (o hash do texto) da varredura anterior. Quando o hash muda, o aviso deixa de ser este resumo e passa a ser um alerta com as seções a revisar.') +
-    '</p>' +
-    '<p style="margin:20px 0 0;text-align:center">' +
-    '<a href="' +
-    baseUrl +
-    '/#monitor-legislativo" style="background:#12315e;color:#fff;padding:11px 24px;border-radius:8px;text-decoration:none;font-weight:bold;display:inline-block">Abrir o Monitor Legislativo</a>' +
-    '</p>' +
-    '</div>' +
-    '<div style="padding:14px 22px 26px;background:#f6f8fc;border:1px solid #dbe3ee;border-top:none;text-align:center">' +
-    '<p style="margin:0;font-size:11px;color:#8a97a8">ADECONT Assessoria Administrativa, Contábil · aviso automático do Agente de Vigilância das Fontes · toda quarta-feira, 11:00 · não responda</p>' +
-    '</div></div>'
+    assuntoCustom && htmlCustom
+      ? htmlCustom
+      : '<div style="font-family:Arial,sans-serif;max-width:640px;margin:0 auto;color:#1c2b3a">' +
+        '<div style="background:#0b3142;padding:18px;text-align:center">' +
+        '<img src="' +
+        baseUrl +
+        '/logo-adecont-branco.png" alt="ADECONT" style="max-height:52px">' +
+        '</div>' +
+        '<div style="height:4px;background:' +
+        corFaixa +
+        '"></div>' +
+        '<div style="padding:22px;background:#fff;border:1px solid #dbe3ee">' +
+        '<h2 style="color:' +
+        corTitulo +
+        ';margin-top:0">' +
+        titulo +
+        '</h2>' +
+        abertura +
+        '<div style="background:#f6f8fc;border:1px solid #dbe3ee;border-radius:8px;padding:10px 14px;margin:0 0 16px;font-size:13px;color:#475569">' +
+        '<b>Varredura:</b> ' +
+        (execucao || 'agora') +
+        '<br><b>Resumo:</b> ' +
+        (resumo || 'não informado') +
+        '</div>' +
+        blocos +
+        tabelaFontes +
+        '<p style="font-size:13px;margin-top:18px">' +
+        (alerta
+          ? 'O que fazer: abra o Monitor Legislativo, confira as seções indicadas e atualize o Panorama se a alteração valer. A varredura compara o hash do texto de cada fonte — uma divergência significa ato novo ou texto alterado, não erro de leitura.'
+          : 'Como funciona: cada fonte guarda a assinatura de conteúdo (o hash do texto) da varredura anterior. Quando o hash muda, o aviso deixa de ser este resumo e passa a ser um alerta com as seções a revisar.') +
+        '</p>' +
+        '<p style="margin:20px 0 0;text-align:center">' +
+        '<a href="' +
+        baseUrl +
+        '/#monitor-legislativo" style="background:#12315e;color:#fff;padding:11px 24px;border-radius:8px;text-decoration:none;font-weight:bold;display:inline-block">Abrir o Monitor Legislativo</a>' +
+        '</p>' +
+        '</div>' +
+        '<div style="padding:14px 22px 26px;background:#f6f8fc;border:1px solid #dbe3ee;border-top:none;text-align:center">' +
+        '<p style="margin:0;font-size:11px;color:#8a97a8">ADECONT Assessoria Administrativa, Contábil · aviso automático do Agente de Vigilância das Fontes · toda quarta-feira, 11:00 · não responda</p>' +
+        '</div></div>'
 
   // ── envia ──
   var enviado = false
@@ -265,7 +268,7 @@ routerAdd('POST', '/backend/v1/agente-fontes/notificar', (e) => {
   try {
     var col = $app.findCollectionByNameOrId('acesso_comandos')
     var rec = new Record(col)
-    rec.set('comando', alerta ? 'ALERTA_FONTES' : 'RESUMO_FONTES')
+    rec.set('comando', comandoLog || (alerta ? 'ALERTA_FONTES' : 'RESUMO_FONTES'))
     rec.set(
       'descricao',
       (alerta ? 'Aviso de alteração' : 'Resumo semanal') +
