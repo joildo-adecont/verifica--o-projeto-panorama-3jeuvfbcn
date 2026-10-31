@@ -524,8 +524,9 @@ export function SectionLefisc() {
             </p>
             <p className="text-[10px] text-slate-500 leading-snug">
               O <b>DOU</b> é a fonte mestra: confirma, corrige e prevalece. A Lefisc é o radar que
-              descobre, lendo a <b>legislação diária federal</b> dia a dia. Nada entra no sistema
-              sem o Diário Oficial — roda todo dia às 08:00 e no fechamento de quarta-feira.
+              descobre, lendo a <b>legislação diária federal</b> dia a dia e trazendo o{' '}
+              <b>trecho relevante do texto integral</b> de cada ato confirmado. Nada entra no
+              sistema sem o Diário Oficial — roda todo dia às 08:00 e no fechamento de quarta-feira.
             </p>
           </div>
           <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[9.5px] font-bold text-slate-600 shrink-0">
@@ -646,6 +647,18 @@ export function SectionLefisc() {
                         ↳ {d} — prevalece o DOU
                       </span>
                     ))}
+                    {l.trechoIntegra && (
+                      <div className="mt-1 rounded border-l-2 border-panorama-gold bg-white/70 px-1.5 py-1">
+                        <p className="text-[9.5px] text-slate-700 leading-snug italic">
+                          “{l.trechoIntegra}”
+                        </p>
+                        <p className="text-[8px] text-slate-400 leading-tight mt-0.5">
+                          Trecho do {l.criterioTrecho || 'texto'} · íntegra de{' '}
+                          {(l.caracteresIntegra || 0).toLocaleString('pt-BR')} caracteres
+                          {l.origemIntegra ? ` · lida no ${l.origemIntegra}` : ''}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

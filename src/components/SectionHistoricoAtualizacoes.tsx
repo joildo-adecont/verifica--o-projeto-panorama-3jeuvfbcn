@@ -105,6 +105,39 @@ const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DA LEGISLAÇÃO ============
   {
     data: '31/10/2026',
+    hora: '14:50',
+    titulo: 'Ato Técnico Conjunto RFB/CGIBS nº 9, de 20/10/2026 — trecho do texto integral',
+    conteudo:
+      'Trecho do texto integral, extraído automaticamente pelo radar (Art. 1º) e conferido contra a publicação oficial. Íntegra de 29457 caracteres, lida no DOU. Conteúdo: Art. 1º Este Ato Técnico Conjunto disciplina a organização e o funcionamento dos trabalhos de cooperação entre a Secretaria Especial da Receita Federal do Brasil - RFB e a Diretoria Executiva do Comitê Gestor do Imposto sobre Bens e Serviços - DIREX, destinados à implementação da reforma tributária sobre o consumo, instituída pela Emenda Constitucional nº 132, de 20 de dezembro de 2023. § 1º Para a execução dos trabalhos conjuntos, ficam instituídos Grupos de Trabalho Interinstitucionais - GTI, compostos por representantes da RFB e da DIREX, na forma deste Ato Técnico Conjunto. A íntegra completa está no link do Diário Oficial. A referência citável é o DOU; a leitura pela Lefisc serve para localizar o trecho, não para substituir o ato.',
+    fontes: [
+      {
+        titulo: 'DOU — texto integral publicado',
+        url: 'https://www.in.gov.br/web/dou/-/ato-tecnico-conjunto-rfb/cgibs-n-9-de-20-de-outubro-de-2026-740391670',
+      },
+    ],
+    caminho: 'src/data/legislacaoCronologica.ts + scripts/radar_lefisc/extrair_integra.py',
+    versao: 'v0.0.287',
+    bloco: 'legislacao',
+  },
+  {
+    data: '31/10/2026',
+    hora: '14:50',
+    titulo:
+      'Ato Técnico Conjunto RFB/SUFIS/CGIBS/DIRETORIA-EXECUTIVA nº 10, de 28/10/2026 — trecho do texto integral',
+    conteudo:
+      'Trecho do texto integral, extraído automaticamente pelo radar (Art. 1º) e conferido contra a publicação oficial. Íntegra de 4483 caracteres, lida no Lefisc. Conteúdo: Art. 1º Fica aprovada a documentação técnica a seguir indicada, cujas especificações se aplicam à Contribuição sobre Bens e Serviços - CBS e ao Imposto sobre Bens e Serviços - IBS, constituída pelos seguintes instrumentos: A íntegra completa está no link do Diário Oficial. A referência citável é o DOU; a leitura pela Lefisc serve para localizar o trecho, não para substituir o ato.',
+    fontes: [
+      {
+        titulo: 'DOU — texto integral publicado',
+        url: 'https://www.in.gov.br/web/dou/-/ato-tecnico-conjunto-rfb/sufis/cgibs/diretoria-executiva-n-10-de-28-de-outubro-de-2026-741177669',
+      },
+    ],
+    caminho: 'src/data/legislacaoCronologica.ts + scripts/radar_lefisc/extrair_integra.py',
+    versao: 'v0.0.287',
+    bloco: 'legislacao',
+  },
+  {
+    data: '31/10/2026',
     hora: '14:15',
     titulo: 'Ato Técnico Conjunto RFB/SUFIS/CGIBS/DIRETORIA-EXECUTIVA nº 10, de 28/10/2026',
     conteudo:
