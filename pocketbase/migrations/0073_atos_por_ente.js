@@ -87,6 +87,18 @@ migrate(
 
     app.save(atos)
 
+    // ─────── 2b. regras de API ───────
+    // Sem isto a coleção só aceita gravação de SUPERUSUÁRIO — foi o que fez a
+    // primeira carga falhar com 403 "Only superusers can perform this action",
+    // mascarado como 429 pelo retry. A rotina grava com o token do agente; a
+    // leitura é pública (o painel consulta).
+    atos.listRule = ''
+    atos.viewRule = ''
+    atos.createRule = ''
+    atos.updateRule = ''
+    atos.deleteRule = ''
+    app.save(atos)
+
     // ─────── 3. índices de deduplicação e consulta ───────
     // Recriar a coleção com os índices novos. O índice único é o que impede o mesmo
     // ato entrar duas vezes na rotina diária; os demais servem ao painel por ente.
