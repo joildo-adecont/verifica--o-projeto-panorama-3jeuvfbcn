@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { RADAR_LEFISC } from '@/data/radarLefisc'
+import { RADAR_LEFISC, FONTE_MESTRA } from '@/data/radarLefisc'
 import {
   ArrowRight,
   BadgeAlert,
@@ -504,8 +504,9 @@ export function SectionLefisc() {
               Radar diário: Lefisc × fontes oficiais
             </p>
             <p className="text-[10px] text-slate-500 leading-snug">
-              O que a Lefisc publica é conferido contra o Diário Oficial antes de entrar no sistema.
-              Roda todo dia às 08:00 e também no fechamento de quarta-feira.
+              O <b>DOU</b> é a fonte mestra: confirma, corrige e prevalece. A Lefisc é o radar que
+              descobre. Nada entra no sistema sem o Diário Oficial — roda todo dia às 08:00 e no
+              fechamento de quarta-feira.
             </p>
           </div>
           <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[9.5px] font-bold text-slate-600 shrink-0">
@@ -519,7 +520,11 @@ export function SectionLefisc() {
           </span>
         </div>
 
-        <div className="grid grid-cols-3 gap-1.5 mb-2.5">
+        <div
+          className={`grid gap-1.5 mb-2.5 ${
+            RADAR_LEFISC.resumo.divergentes > 0 ? 'grid-cols-4' : 'grid-cols-3'
+          }`}
+        >
           <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-2 py-1.5 text-center">
             <p className="text-[16px] font-bold text-emerald-800 tabular-nums leading-none">
               {RADAR_LEFISC.resumo.confirmados}
@@ -533,7 +538,7 @@ export function SectionLefisc() {
               {RADAR_LEFISC.resumo.soOficial}
             </p>
             <p className="text-[9px] font-bold uppercase tracking-wide text-sky-700 mt-0.5">
-              só oficial
+              só DOU
             </p>
           </div>
           <div className="rounded-lg border border-amber-200 bg-amber-50 px-2 py-1.5 text-center">
@@ -544,6 +549,16 @@ export function SectionLefisc() {
               só Lefisc
             </p>
           </div>
+          {RADAR_LEFISC.resumo.divergentes > 0 && (
+            <div className="rounded-lg border border-rose-200 bg-rose-50 px-2 py-1.5 text-center">
+              <p className="text-[16px] font-bold text-rose-800 tabular-nums leading-none">
+                {RADAR_LEFISC.resumo.divergentes}
+              </p>
+              <p className="text-[9px] font-bold uppercase tracking-wide text-rose-700 mt-0.5">
+                divergente
+              </p>
+            </div>
+          )}
         </div>
 
         <p className="text-[9.5px] text-slate-500 leading-snug mb-2">
@@ -561,17 +576,21 @@ export function SectionLefisc() {
         <div className="space-y-1">
           {RADAR_LEFISC.linhas.map((l, i) => {
             const cor =
-              l.veredito === 'CONFIRMADO'
-                ? 'border-emerald-200 bg-emerald-50/50'
-                : l.veredito === 'SO_OFICIAL'
-                  ? 'border-sky-200 bg-sky-50/50'
-                  : 'border-amber-200 bg-amber-50/50'
+              l.veredito === 'DIVERGENTE'
+                ? 'border-rose-200 bg-rose-50/50'
+                : l.veredito === 'CONFIRMADO'
+                  ? 'border-emerald-200 bg-emerald-50/50'
+                  : l.veredito === 'SO_OFICIAL'
+                    ? 'border-sky-200 bg-sky-50/50'
+                    : 'border-amber-200 bg-amber-50/50'
             const selo =
-              l.veredito === 'CONFIRMADO'
-                ? { txt: 'nas duas fontes', cls: 'bg-emerald-700 text-white' }
-                : l.veredito === 'SO_OFICIAL'
-                  ? { txt: 'só oficial', cls: 'bg-sky-700 text-white' }
-                  : { txt: 'aguarda DOU', cls: 'bg-amber-600 text-white' }
+              l.veredito === 'DIVERGENTE'
+                ? { txt: 'DOU corrige', cls: 'bg-rose-700 text-white' }
+                : l.veredito === 'CONFIRMADO'
+                  ? { txt: 'nas duas fontes', cls: 'bg-emerald-700 text-white' }
+                  : l.veredito === 'SO_OFICIAL'
+                    ? { txt: 'só DOU', cls: 'bg-sky-700 text-white' }
+                    : { txt: 'aguarda DOU', cls: 'bg-amber-600 text-white' }
             return (
               <div key={i} className={`rounded-lg border px-2 py-1.5 ${cor}`}>
                 <div className="flex items-start gap-1.5">
@@ -600,6 +619,14 @@ export function SectionLefisc() {
                       {l.secao ? ` · ${l.secao}` : ''}
                       {l.veredito === 'SO_LEFISC' ? ' · não publicar até sair no DOU' : ''}
                     </span>
+                    {(l.divergencias || []).map((d, k) => (
+                      <span
+                        key={k}
+                        className="block text-[9px] text-rose-800 font-semibold leading-tight mt-0.5"
+                      >
+                        ↳ {d} — prevalece o DOU
+                      </span>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -613,8 +640,10 @@ export function SectionLefisc() {
         </div>
 
         <p className="mt-2 text-[9px] text-slate-400 leading-snug">
-          Regra: item que só aparece na Lefisc <b>não entra</b> no Panorama. A Lefisc localiza; o
-          Diário Oficial confirma. Os atos confirmados são acrescentados à linha do tempo da{' '}
+          Regra: o <b>{FONTE_MESTRA}</b> é a fonte mestra — confirma, corrige e prevalece. Item que
+          só aparece na Lefisc <b>não entra</b> no Panorama. Quando as duas divergem, vale o que
+          está no Diário Oficial e a diferença fica registrada aqui. Os atos confirmados são
+          acrescentados à linha do tempo da{' '}
           <a href="#secao-1" className="font-bold hover:text-slate-700">
             Seção 1
           </a>{' '}
