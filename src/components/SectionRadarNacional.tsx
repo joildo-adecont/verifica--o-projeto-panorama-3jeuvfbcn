@@ -487,6 +487,293 @@ const DADOS = {
       nivel: 'estadual',
     },
     {
+      uf: 'MS',
+      titulo:
+        '. § 2º O Fator X evidenciara as variacoes ocorridas entre a aplicacao da Reforma Tributaria , bem como',
+      url: 'https://assets.imprensaoficial.ms.gov.br/public/prd/Diario%20Oficial/2026/03/03/DO12089_03_03_2026.pdf',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'MS',
+      titulo:
+        '001275/2026 Assunto: Aquisicao de 5 (cinco) inscricoes no curso "Reforma Tributaria CBS, IBS e Imposto Seletivo … 0001-15, visando a aquisicao de 5 (cinco) insc',
+      url: 'https://assets.imprensaoficial.ms.gov.br/public/prd/Diario%20Oficial/2026/05/04/DO12144_04_05_2026.pdf',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'MS',
+      titulo:
+        'Auditar a emissao das faturas de agua e esgoto e os aspectos relacionados a Tarifa Social e a Reforma Tributaria',
+      url: 'https://assets.imprensaoficial.ms.gov.br/public/prd/Diario%20Oficial/2026/08/07/DO12244_07_08_2026.pdf',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'MS',
+      titulo:
+        'CONSULTORIA S/A; OBJETO: Participacao do empregado Xerxes Flamarion Sabino no curso Impactos da Reforma Tributaria',
+      url: 'https://assets.imprensaoficial.ms.gov.br/public/prd/Diario%20Oficial/2026/03/03/DO12089_03_03_2026.pdf',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'MS',
+      titulo:
+        'Complementar Federal nº 214, de 16 de janeiro de 2025, que institui o Imposto sobre Bens e Servicos ( IBS … da carga tributaria efetiva suportada pela contratad',
+      url: 'https://assets.imprensaoficial.ms.gov.br/public/prd/Diario%20Oficial/2026/09/01/DO12267_01_09_2026.pdf',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'MS',
+      titulo:
+        'Contribuicao sobre Bens e Servicos ( CBS ) Processo tributario judicial. Contencioso fiscal.',
+      url: 'https://assets.imprensaoficial.ms.gov.br/public/prd/Diario%20Oficial/2026/03/16/DO12100_16_03_2026.pdf',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'MS',
+      titulo:
+        'DECISAO Processo SEI n. 33/001275/2026 Assunto: Aquisicao de 5 (cinco) inscricoes no curso " Reforma Tributaria … inscrita no CNPJ n. 11.128.083/0001-15, visand',
+      url: 'https://assets.imprensaoficial.ms.gov.br/public/prd/Diario%20Oficial/2026/05/04/DO12144_04_05_2026.pdf',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'MS',
+      titulo:
+        'Em seus lugares, foram criados dois tributos: a Contribuicao sobre Bens e Servicos ( CBS ), de ambito federal',
+      url: 'https://assets.imprensaoficial.ms.gov.br/public/prd/Diario%20Oficial/2026/07/17/DO12225_17_07_2026.pdf',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'MS',
+      titulo:
+        'Federal (Contribuicao sobre Bens e Servicos ("CBS")) e uma subnacional (Imposto sobre Bens e Servicos (" IBS … Embora a regulamentacao e institui- cao do Comite',
+      url: 'https://assets.imprensaoficial.ms.gov.br/public/prd/Diario%20Oficial/2026/01/20/DO12053_20_01_2026.pdf',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'MS',
+      titulo:
+        'Foi criado tambem um Imposto Seletivo ("IS"), de competencia Federal, que incidira sobre a producao,',
+      url: 'https://assets.imprensaoficial.ms.gov.br/public/prd/Diario%20Oficial/2026/01/20/DO12053_20_01_2026.pdf',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'MS',
+      titulo:
+        'Gestao Orcamentaria e Financeira no Setor Publico - O impacto no uso de novas tecnologias e Reforma Tributaria',
+      url: 'https://assets.imprensaoficial.ms.gov.br/public/prd/Diario%20Oficial/2026/07/08/DO12215_08_07_2026.pdf',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'MS',
+      titulo:
+        'Gestao Orcamentaria e Financeira no Setor Publico - O impacto no uso de novas tecnologias e Reforma Tributaria',
+      url: 'https://assets.imprensaoficial.ms.gov.br/public/prd/Diario%20Oficial/2026/06/10/DO12180_10_06_2026.pdf',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'MS',
+      titulo: 'Imposto sobre Bens e Servicos ( IBS ). Imposto Sobre Servico (ISS).',
+      url: 'https://assets.imprensaoficial.ms.gov.br/public/prd/Diario%20Oficial/2026/03/16/DO12100_16_03_2026.pdf',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'MS',
+      titulo:
+        'Inexigibilidade, conforme justificativa no processo de Pagamento de 03 (tres) inscricoes no curso " Reforma Tributaria',
+      url: 'https://assets.imprensaoficial.ms.gov.br/public/prd/Diario%20Oficial/2026/08/12/DO12247_12_08_2026.pdf',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'MS',
+      titulo:
+        'MARKETING EIRELI OBJETO: Valor que se empenha para aquisicao de Pacote de 03 inscricoes no curso Reforma Tributaria',
+      url: 'https://assets.imprensaoficial.ms.gov.br/public/prd/Diario%20Oficial/2026/05/04/DO12144_04_05_2026.pdf',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'MS',
+      titulo:
+        'Melhoria Os Estados devem indicar suas estimativas de arrecadacao do Imposto sobre Bens e Servicos ( IBS … Tributaria nas receitas tributarias do Estado, os efe',
+      url: 'https://assets.imprensaoficial.ms.gov.br/public/prd/Diario%20Oficial/2026/07/17/DO12225_17_07_2026.pdf',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'MS',
+      titulo:
+        'O novo sistema composto por dois tributos ( IBS e CBS) sucedera cinco tributos atuais (PIS, COFINS, ICMS … e operacionalizou os novos tributos sobre o consumo, ',
+      url: 'https://assets.imprensaoficial.ms.gov.br/public/prd/Diario%20Oficial/2026/04/15/DO12128_15_04_2026.pdf',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'MS',
+      titulo:
+        'O novo sistema composto por dois tributos (IBS e CBS ) sucedera cinco tributos atuais (PIS, COFINS, ICMS … consumo, notadamente o Imposto sobre Bens e Servicos ',
+      url: 'https://assets.imprensaoficial.ms.gov.br/public/prd/Diario%20Oficial/2026/04/15/DO12128_15_04_2026.pdf',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'MS',
+      titulo:
+        'OBJETO: Valor que se empenha para aquisicao de Pacote de 03 inscricoes no curso Reforma Tributaria Cbs, Ibs',
+      url: 'https://assets.imprensaoficial.ms.gov.br/public/prd/Diario%20Oficial/2026/05/04/DO12144_04_05_2026.pdf',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'MS',
+      titulo:
+        'Processo SEI n. 33/001275/2026 Assunto: Aquisicao de 5 (cinco) inscricoes no curso "Reforma Tributaria CBS … CNPJ n. 11.128.083/0001-15, visando a aquisicao de ',
+      url: 'https://assets.imprensaoficial.ms.gov.br/public/prd/Diario%20Oficial/2026/05/04/DO12144_04_05_2026.pdf',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'MS',
+      titulo:
+        'SEI n. 33/001275/2026 Assunto: Aquisicao de 5 (cinco) inscricoes no curso "Reforma Tributaria CBS, IBS … 11.128.083/0001-15, visando a aquisicao de 5 (cinco) in',
+      url: 'https://assets.imprensaoficial.ms.gov.br/public/prd/Diario%20Oficial/2026/05/04/DO12144_04_05_2026.pdf',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'MS',
+      titulo:
+        'Tributacao conforme solicitacao; g)Reformulacao e adequacao do Codigo Tribunal Municipal a reforma tributaria',
+      url: 'https://assets.imprensaoficial.ms.gov.br/public/prd/Diario%20Oficial/2026/09/16/DO12280_16_09_2026.pdf',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'MS',
+      titulo:
+        'Tributacao conforme solicitacao; g)Reformulacao e adequacao do Codigo Tribunal Municipal a reforma tributaria',
+      url: 'https://assets.imprensaoficial.ms.gov.br/public/prd/Diario%20Oficial/2026/03/24/DO12108_24_03_2026.pdf',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'MS',
+      titulo:
+        'autenticidade deste documento pode ser verificada no endereco www.diariooficial.ms.gov.br Reforma Tributaria … Relativamente as estimativas dos efeitos da Refor',
+      url: 'https://assets.imprensaoficial.ms.gov.br/public/prd/Diario%20Oficial/2026/07/17/DO12225_17_07_2026.pdf',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'MS',
+      titulo:
+        'de 2025, que institui o Imposto sobre Bens e Servicos (IBS), a Contribuicao sobre Bens e Servicos ( CBS … tributaria efetiva suportada pela contratada em decorr',
+      url: 'https://assets.imprensaoficial.ms.gov.br/public/prd/Diario%20Oficial/2026/09/01/DO12267_01_09_2026.pdf',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'MS',
+      titulo:
+        'dezembro de 2023, foi promulgada a Emenda Cons- titucional nº 132 ("EC nº 132"), que estabelece a Reforma Tributaria',
+      url: 'https://assets.imprensaoficial.ms.gov.br/public/prd/Diario%20Oficial/2026/01/20/DO12053_20_01_2026.pdf',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'MS',
+      titulo:
+        'empresa de pequeno porte e ao produtor rural de pequeno porte; XII - Imposto sobre Bens e Servicos ( IBS',
+      url: 'https://assets.imprensaoficial.ms.gov.br/public/prd/Diario%20Oficial/2026/07/17/DO12225_17_07_2026.pdf',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'MS',
+      titulo:
+        'espera nao ser elegivel para aplicar os requisitos de divulgacao reduzidos. 3.16.Impactos da reforma tributaria … Reforma tributaria do consumo (LC 214/2025) A ',
+      url: 'https://assets.imprensaoficial.ms.gov.br/public/prd/Diario%20Oficial/2026/04/15/DO12128_15_04_2026.pdf',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'MS',
+      titulo:
+        'financeira, relativa a competencia compartilhada para administrar o Imposto sobre Bens e Servicos ( IBS',
+      url: 'https://assets.imprensaoficial.ms.gov.br/public/prd/Diario%20Oficial/2026/07/13/DO12219_13_07_2026.pdf',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'MS',
+      titulo:
+        'institui o Imposto sobre Bens e Servicos (IBS), a Contribuicao sobre Bens e Servicos (CBS) e o Imposto Seletivo',
+      url: 'https://assets.imprensaoficial.ms.gov.br/public/prd/Diario%20Oficial/2026/09/01/DO12267_01_09_2026.pdf',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'MS',
+      titulo:
+        'modalidade on-line e 100% ao vivo, para participacao dos servidores da CCONT/SES no curso " Reforma Tributaria',
+      url: 'https://assets.imprensaoficial.ms.gov.br/public/prd/Diario%20Oficial/2026/08/13/DO12249_13_08_2026.pdf',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'MS',
+      titulo:
+        'notadamente o Imposto sobre Bens e Servicos (IBS), a Contribuicao sobre Bens e Servicos (CBS) e o Imposto Seletivo … Vigencia gradual a partir de 2027 com imple',
+      url: 'https://assets.imprensaoficial.ms.gov.br/public/prd/Diario%20Oficial/2026/04/15/DO12128_15_04_2026.pdf',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'MS',
+      titulo:
+        'participacao de Procuradores e servidores da Procuradoria-Geral do Estado no curso "Entendendo a Reforma Tributaria',
+      url: 'https://assets.imprensaoficial.ms.gov.br/public/prd/Diario%20Oficial/2026/01/09/DO12043_09_01_2026.pdf',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'MS',
+      titulo:
+        'referente a Tarifa Social Residencial; variacoes financeiras efetivas, relacionadas a aplicacao da Reforma Tributaria',
+      url: 'https://assets.imprensaoficial.ms.gov.br/public/prd/Diario%20Oficial/2026/03/03/DO12089_03_03_2026.pdf',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'MS',
+      titulo:
+        'se empenha para aquisicao de Pacote de 03 inscricoes no curso Reforma Tributaria Cbs, Ibs e Imposto Seletivo',
+      url: 'https://assets.imprensaoficial.ms.gov.br/public/prd/Diario%20Oficial/2026/05/04/DO12144_04_05_2026.pdf',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'MS',
+      titulo:
+        'uma proposta de Zona Franca Lista de Espera 51 181,5 2,88 Lais Fernanda de Azevedo Silva A reforma tributaria',
+      url: 'https://assets.imprensaoficial.ms.gov.br/public/prd/Diario%20Oficial/2026/07/09/DO12217_09_07_2026.pdf',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
       uf: 'PA',
       titulo: 'DECRETO Nº 1070, DE 19 DE OUTUBRO DE 2026.',
       url: 'https://www.diariomunicipal.com.br/famep/materia/78B0317B',
@@ -2185,7 +2472,7 @@ const DADOS = {
       ativo: true,
       modo: 'API textual (atas) + PDF integral',
       hits: 3,
-      amostra: ['Comsefaz', 'CGIBS'],
+      amostra: ['CGIBS'],
     },
     {
       uf: 'SP',
@@ -2246,6 +2533,18 @@ const DADOS = {
       modo: 'PDF integral da edição (a busca do portal devolve só agregações)',
       hits: 0,
       amostra: [],
+    },
+    {
+      uf: 'MS',
+      nome: 'Diário Oficial de MS (DOE/MS)',
+      ativo: true,
+      modo: 'API aberta (Next.js) com trecho destacado, data e PDF da edição',
+      hits: 36,
+      amostra: [
+        'Complementar Federal nº 214, de 16 de ja',
+        'empresa de pequeno porte e ao produtor r',
+        'Melhoria Os Estados devem indicar suas e',
+      ],
     },
   ],
 }
