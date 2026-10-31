@@ -2183,7 +2183,7 @@ const DADOS = {
       uf: 'RS',
       nome: 'DOE/RS',
       ativo: true,
-      modo: 'API textual (atas) + PDF integral (leis/decretos)',
+      modo: 'API textual (atas) + PDF integral',
       hits: 3,
       amostra: ['Comsefaz', 'CGIBS'],
     },
@@ -2238,6 +2238,14 @@ const DADOS = {
       modo: 'API oficial REST com Swagger (POST /Buscar, descricao + período)',
       hits: 1,
       amostra: ['DECRETO-R 00006356/2026 — Altera o Decre'],
+    },
+    {
+      uf: 'MT',
+      nome: 'Diário Oficial de MT (IOMAT)',
+      ativo: true,
+      modo: 'PDF integral da edição (a busca do portal devolve só agregações)',
+      hits: 0,
+      amostra: [],
     },
   ],
 }
