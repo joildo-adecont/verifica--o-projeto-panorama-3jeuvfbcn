@@ -46,6 +46,28 @@ const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
     data: '31/10/2026',
+    hora: '14:32',
+    titulo: 'DOU formalizado como FONTE MESTRA do sistema — a Lefisc é radar e se curva a ele',
+    conteudo:
+      'Decisão do CEO, em suas palavras: o Diário Oficial da União é a principal fonte de confirmação, a principal fonte de atualização e a espinha dorsal da legislação publicada; é a fonte segura das informações e é ele que corrigirá todas as informações que porventura venham diferentes dessa publicação; o sistema deve ser organizado sempre em função do DOU. A hierarquia deixou de ser acordo verbal e passou a estar escrita e executada no código. O que mudou, em concreto: primeiro, o cruzamento ganhou o veredito DIVERGENTE, para quando as duas fontes falam do mesmo ato mas discordam em número, ano ou órgão emissor — nesse caso o ato é marcado, a versão que segue para o sistema é a do DOU e a diferença fica exibida com a anotação de que o DOU prevalece, em vez de ser escondida. Segundo, o casamento entre as fontes passou a exigir o tipo do ato, porque comparar só número e ano fazia o Ato Técnico Conjunto 9 casar com a Portaria RFB 742 e acusar uma divergência inexistente. Terceiro, criada tolerância de um ano para o mesmo tipo e número, que resolve o caso de ato de dezembro publicado em janeiro e evita que o mesmo ato apareça duas vezes, uma como fantasma na Lefisc e outra como duplicata no oficial. Quarto, a hierarquia foi escrita na documentação das duas rotinas, no resumo diário e no painel da Seção 18, que agora abre com a frase de que o DOU confirma, corrige e prevalece. Cinco defeitos silenciosos corrigidos no extrator durante a revisão: ele lia o número errado em cinco dos dez atos da Lefisc — dava 9 para a Portaria RFB 742, 238 para a Portaria Conjunta 740, 975 para a Portaria SECEX 549 e 272 para a Republicação da Resolução GECEX 976 — porque concatenava o campo título, que vem sem número, antes do campo extenso, que traz o número. Confirmado em produção: o painel mostra um ato nas duas fontes, um só no DOU, zero só na Lefisc, e a regra escrita de que item que só aparece na Lefisc não entra no Panorama.',
+    fontes: [
+      {
+        titulo:
+          'DOU — Ato Técnico Conjunto RFB/SUFIS/CGIBS/DIRETORIA-EXECUTIVA nº 10, de 28/10/2026',
+        url: 'https://www.in.gov.br/web/dou/-/ato-tecnico-conjunto-rfb/sufis/cgibs/diretoria-executiva-n-10-de-28-de-outubro-de-2026-741177669',
+      },
+      {
+        titulo: 'DOU — Ato Técnico Conjunto RFB/CGIBS nº 9, de 20/10/2026',
+        url: 'https://www.in.gov.br/web/dou/-/ato-tecnico-conjunto-rfb/cgibs-n-9-de-20-de-outubro-de-2026-740391670',
+      },
+    ],
+    caminho:
+      'scripts/radar_lefisc/comparar.py (hierarquia + DIVERGENTE + tolerância de ano) + resumo_diario.py + run.sh + scripts/1b8edc430ba4e07b/run.sh (passo 0/6) + src/data/radarLefisc.ts (FONTE_MESTRA) + src/components/SectionLefisc.tsx',
+    versao: 'v0.0.283-284',
+    bloco: 'sistema',
+  },
+  {
+    data: '31/10/2026',
     hora: '14:15',
     titulo:
       'Lefisc vira fonte de atualização, sempre comparada com o Diário Oficial — radar diário às 08:00',
