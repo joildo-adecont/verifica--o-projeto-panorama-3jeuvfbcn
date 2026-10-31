@@ -6,6 +6,7 @@ import {
   Search,
   X,
   AlertTriangle,
+  CheckCircle2,
   ExternalLink,
   Radar,
   MapPin,
@@ -34,28 +35,27 @@ import {
 const DADOS = {
   gerado: '2026-10-31',
   periodo: {
-    inicio: '2026-09-16',
+    inicio: '2026-10-01',
     fim: '2026-10-31',
   },
   consultas: 88,
   associacoes: 22,
   entes: 2823,
   porUf: {
-    PR: 53,
-    RN: 47,
-    RS: 36,
+    PR: 48,
+    RN: 38,
     RO: 35,
-    MG: 33,
-    PA: 22,
-    PE: 21,
-    CE: 16,
-    AL: 10,
-    AM: 7,
-    PB: 4,
+    RS: 29,
+    MG: 26,
+    PA: 21,
+    PE: 19,
+    AL: 9,
+    CE: 7,
+    AM: 5,
+    PB: 3,
     RJ: 3,
-    GO: 2,
-    RR: 1,
     SP: 1,
+    GO: 1,
   },
   achados: [
     {
@@ -68,12 +68,6 @@ const DADOS = {
       uf: 'AL',
       titulo: 'LEI MUNICIPAL N.º 398, DE 20 DE OUTUBRO DE 2026.',
       url: 'https://www.diariomunicipal.com.br/ama/materia/B1A73F9A',
-      assoc: 'ama',
-    },
-    {
-      uf: 'AL',
-      titulo: 'LEI Nº 1.277/2026, DE 22 DE SETEMBRO DE 2026.',
-      url: 'https://www.diariomunicipal.com.br/ama/materia/ACAE7B32',
       assoc: 'ama',
     },
     {
@@ -120,12 +114,6 @@ const DADOS = {
     },
     {
       uf: 'AM',
-      titulo: 'DECRETO MUNICIPAL Nº. 087/2026– PMCV.',
-      url: 'https://www.diariomunicipal.com.br/aam/materia/AF1D2A57',
-      assoc: 'aam',
-    },
-    {
-      uf: 'AM',
       titulo: 'LEI COMPLEMENTAR Nº 367/2026 GPM-SAI, DE 01 DE JULHO DE 2026',
       url: 'https://www.diariomunicipal.com.br/aam/materia/ECE4399C',
       assoc: 'aam',
@@ -144,12 +132,6 @@ const DADOS = {
     },
     {
       uf: 'AM',
-      titulo: 'PORTARIA 1528_2026 CONCEDER LICENÇA PRÊMIO -MANOEL ALTAMIR TEIXEIRA ARANHA - SEMS',
-      url: 'https://www.diariomunicipal.com.br/aam/materia/87818790',
-      assoc: 'aam',
-    },
-    {
-      uf: 'AM',
       titulo: 'RESOLUÇÃO Nº 003/2005',
       url: 'https://www.diariomunicipal.com.br/aam/materia/6B8647FF',
       assoc: 'aam',
@@ -162,12 +144,6 @@ const DADOS = {
     },
     {
       uf: 'CE',
-      titulo: 'DECRETO MUNICIPAL N.º 019/2026 ERERÉ CEARÁ, 18 DE SETEMBRO DE 2026.',
-      url: 'https://www.diariomunicipal.com.br/aprece/materia/F2B33FF3',
-      assoc: 'aprece',
-    },
-    {
-      uf: 'CE',
       titulo: 'LEI COMPLEMENTAR Nº 1.697, DE 21 DE OUTUBRO DE 2026.',
       url: 'https://www.diariomunicipal.com.br/aprece/materia/674A9DE7',
       assoc: 'aprece',
@@ -176,18 +152,6 @@ const DADOS = {
       uf: 'CE',
       titulo: 'LEI MUNICIPAL N° 032/2009 DE 02 DE JULHO DE 2009.',
       url: 'https://www.diariomunicipal.com.br/aprece/materia/573DF99E',
-      assoc: 'aprece',
-    },
-    {
-      uf: 'CE',
-      titulo: 'LEI MUNICIPAL N° 567/2026 ERERÉ CEARÁ, 18 DE SETEMBRO DE 2026.',
-      url: 'https://www.diariomunicipal.com.br/aprece/materia/34E4153F',
-      assoc: 'aprece',
-    },
-    {
-      uf: 'CE',
-      titulo: 'LEI MUNICIPAL Nº 537, DE 28 DE JULHO DE 2026',
-      url: 'https://www.diariomunicipal.com.br/aprece/materia/3E9F4CD9',
       assoc: 'aprece',
     },
     {
@@ -204,18 +168,6 @@ const DADOS = {
     },
     {
       uf: 'CE',
-      titulo: 'NOVA LEI ORGÂNICA DO MUNICÍPIO DE ACOPIARA',
-      url: 'https://www.diariomunicipal.com.br/aprece/materia/8F5A963D',
-      assoc: 'aprece',
-    },
-    {
-      uf: 'CE',
-      titulo: 'PORTARIA DE DIÁRIA Nº 023/2026, DE 17 DE SETEMBRO DE 2026.',
-      url: 'https://www.diariomunicipal.com.br/aprece/materia/0C8600FE',
-      assoc: 'aprece',
-    },
-    {
-      uf: 'CE',
       titulo: 'PORTARIA DE DIÁRIA Nº 260916.001/2026',
       url: 'https://www.diariomunicipal.com.br/aprece/materia/1D50B49C',
       assoc: 'aprece',
@@ -228,40 +180,10 @@ const DADOS = {
     },
     {
       uf: 'CE',
-      titulo: 'PORTARIA Nº 770/2026 DE 21 DE SETEMBRO DE 2026',
-      url: 'https://www.diariomunicipal.com.br/aprece/materia/973CEBBB',
-      assoc: 'aprece',
-    },
-    {
-      uf: 'CE',
-      titulo: 'PORTARIA Nº. 0015/2026/SMG',
-      url: 'https://www.diariomunicipal.com.br/aprece/materia/242B3356',
-      assoc: 'aprece',
-    },
-    {
-      uf: 'CE',
-      titulo: 'PORTARIA Nº. 0110/2026/SMF',
-      url: 'https://www.diariomunicipal.com.br/aprece/materia/A7786E63',
-      assoc: 'aprece',
-    },
-    {
-      uf: 'CE',
-      titulo: 'PORTARIA Nº. 0111/2026/SMF',
-      url: 'https://www.diariomunicipal.com.br/aprece/materia/88D72B19',
-      assoc: 'aprece',
-    },
-    {
-      uf: 'CE',
       titulo:
         'RESOLUÇÃO Nº 172/2024 COM REDAÇÃO ALTERADA PELA RESOLUÇÃO Nº 177/2025. DISPÕE SOBRE O REGIMENTO INTERNO DA CÂMARA MUNICIPAL DE MOMBAÇA-CE E DÁ OUTRAS PROVIDÊNCIAS.',
       url: 'https://www.diariomunicipal.com.br/aprece/materia/4C0F4F13',
       assoc: 'aprece',
-    },
-    {
-      uf: 'GO',
-      titulo: 'CONTRATO DE LOCAÇÃO DE IMÓVEL Nº. 26/2026 - FMAS',
-      url: 'https://www.diariomunicipal.com.br/fgm/materia/2F428F25',
-      assoc: 'fgm',
     },
     {
       uf: 'GO',
@@ -284,12 +206,6 @@ const DADOS = {
     },
     {
       uf: 'MG',
-      titulo: 'DECRETO MUNICIPAL DE Nº 6708/2026',
-      url: 'https://www.diariomunicipal.com.br/amm-mg/materia/DB003AFE',
-      assoc: 'amm-mg',
-    },
-    {
-      uf: 'MG',
       titulo: 'DECRETO N.º 4.192/2026',
       url: 'https://www.diariomunicipal.com.br/amm-mg/materia/128222D8',
       assoc: 'amm-mg',
@@ -304,12 +220,6 @@ const DADOS = {
       uf: 'MG',
       titulo: 'DECRETO Nº 0000070/2026',
       url: 'https://www.diariomunicipal.com.br/amm-mg/materia/40C4D48F',
-      assoc: 'amm-mg',
-    },
-    {
-      uf: 'MG',
-      titulo: 'DECRETO Nº 053 DE 18 DE SETEMBRO DE 2026',
-      url: 'https://www.diariomunicipal.com.br/amm-mg/materia/8F8E22CA',
       assoc: 'amm-mg',
     },
     {
@@ -386,38 +296,14 @@ const DADOS = {
     },
     {
       uf: 'MG',
-      titulo: 'LEI COMPLEMENTAR Nº 257, DE 18 DE DEZEMBRO DE 2025.',
-      url: 'https://www.diariomunicipal.com.br/amm-mg/materia/0770A313',
-      assoc: 'amm-mg',
-    },
-    {
-      uf: 'MG',
       titulo: 'LEI COMPLEMENTAR Nº 261, 01 DE ABRIL DE 2026.',
       url: 'https://www.diariomunicipal.com.br/amm-mg/materia/96328256',
       assoc: 'amm-mg',
     },
     {
       uf: 'MG',
-      titulo: 'LEI MUNICIPAL DE N.° 2224/2026',
-      url: 'https://www.diariomunicipal.com.br/amm-mg/materia/8F4C7C1A',
-      assoc: 'amm-mg',
-    },
-    {
-      uf: 'MG',
-      titulo: 'LEI MUNICIPAL N.º 3.010, DE 06 DE AGOSTO DE 2026',
-      url: 'https://www.diariomunicipal.com.br/amm-mg/materia/C35D203C',
-      assoc: 'amm-mg',
-    },
-    {
-      uf: 'MG',
       titulo: 'LEI MUNICIPAL Nº 2.830/2026',
       url: 'https://www.diariomunicipal.com.br/amm-mg/materia/4597D1F6',
-      assoc: 'amm-mg',
-    },
-    {
-      uf: 'MG',
-      titulo: 'LEI MUNICIPAL Nº 387, DE 10 DE JULHO DE 2026',
-      url: 'https://www.diariomunicipal.com.br/amm-mg/materia/041C0DCA',
       assoc: 'amm-mg',
     },
     {
@@ -442,12 +328,6 @@ const DADOS = {
       uf: 'MG',
       titulo: 'PORTARIA Nº 020, DE 22 DE OUTUBRO DE 2026.',
       url: 'https://www.diariomunicipal.com.br/amm-mg/materia/EC0609CA',
-      assoc: 'amm-mg',
-    },
-    {
-      uf: 'MG',
-      titulo: 'PORTARIA Nº 86/2026',
-      url: 'https://www.diariomunicipal.com.br/amm-mg/materia/39A77837',
       assoc: 'amm-mg',
     },
     {
@@ -486,12 +366,6 @@ const DADOS = {
       uf: 'PA',
       titulo: 'EXTRATO DE CONTRATO',
       url: 'https://www.diariomunicipal.com.br/famep/materia/56F55AF6',
-      assoc: 'famep',
-    },
-    {
-      uf: 'PA',
-      titulo: 'LEI Nº 682/2026',
-      url: 'https://www.diariomunicipal.com.br/famep/materia/E7A56A7E',
       assoc: 'famep',
     },
     {
@@ -611,12 +485,6 @@ const DADOS = {
     },
     {
       uf: 'PB',
-      titulo: 'DECRETO Nº 0567 2026 EM, 09 DE SETEMBRO DE 2026.',
-      url: 'https://www.diariomunicipal.com.br/famup/materia/747B99E0',
-      assoc: 'famup',
-    },
-    {
-      uf: 'PB',
       titulo: 'DECRETO Nº 0581 2026 EM, 30 DE SETEMBRO DE 2026.',
       url: 'https://www.diariomunicipal.com.br/famup/materia/5E41513E',
       assoc: 'famup',
@@ -684,32 +552,20 @@ const DADOS = {
     },
     {
       uf: 'PE',
-      titulo: 'LEI MUNICIPAL N.º 768/2026/GP, DE 01 DE SETEMBRO DE 2026',
-      url: 'https://www.diariomunicipal.com.br/amupe/materia/7F07E3A3',
+      titulo: 'INSTRUÇÃO NORMATIVA CABOPREV Nº 01, DE 26 DE OUTUBRO DE 2026',
+      url: 'https://www.diariomunicipal.com.br/amupe/materia/56535941',
       assoc: 'amupe',
     },
     {
       uf: 'PE',
-      titulo: 'LEI MUNICIPAL Nº 1.154, DE 08 DE SETEMBRO DE 2026',
-      url: 'https://www.diariomunicipal.com.br/amupe/materia/5E36FBD4',
+      titulo: 'LEI 3.053/2026',
+      url: 'https://www.diariomunicipal.com.br/amupe/materia/2AB7DF34',
       assoc: 'amupe',
     },
     {
       uf: 'PE',
       titulo: 'LEI MUNICIPAL Nº 1.281, DE 20 AGOSTO DE 2026',
       url: 'https://www.diariomunicipal.com.br/amupe/materia/2A57620A',
-      assoc: 'amupe',
-    },
-    {
-      uf: 'PE',
-      titulo: 'LEI MUNICIPAL Nº 1.581, DE 14 DE SETEMBRO DE 2026.',
-      url: 'https://www.diariomunicipal.com.br/amupe/materia/DB1858BE',
-      assoc: 'amupe',
-    },
-    {
-      uf: 'PE',
-      titulo: 'LEI MUNICIPAL Nº 2039, DE 18 DE SETEMBRO DE 2026.',
-      url: 'https://www.diariomunicipal.com.br/amupe/materia/F1977A1F',
       assoc: 'amupe',
     },
     {
@@ -733,14 +589,14 @@ const DADOS = {
     },
     {
       uf: 'PE',
-      titulo: 'LEI Nº 6451/2026',
-      url: 'https://www.diariomunicipal.com.br/amupe/materia/34CA17EF',
+      titulo: 'LEI Nº 1.962, DE 06 DE OUTUBRO DE 2026.',
+      url: 'https://www.diariomunicipal.com.br/amupe/materia/08115567',
       assoc: 'amupe',
     },
     {
       uf: 'PE',
-      titulo: 'LEI Nº 839 DE 18 DE SETEMBRO DE 2026.',
-      url: 'https://www.diariomunicipal.com.br/amupe/materia/D9DA6A8D',
+      titulo: 'LEI ORDINÁRIA Nº 2.571/2026',
+      url: 'https://www.diariomunicipal.com.br/amupe/materia/0167DF95',
       assoc: 'amupe',
     },
     {
@@ -785,12 +641,6 @@ const DADOS = {
       titulo:
         'COMISSÃO DE FINANÇAS E ORÇAMENTO PARECER Nº 27/2026 REFERÊNCIA: PROJETO DE LEI DO EXECUTIVO Nº 69/2026 ASSUNTO: LEI ORÇAMENTÁRIA ANUAL – LOA PARA O EXERCÍCIO FINANCEIRO DE 2027',
       url: 'https://www.diariomunicipal.com.br/amp/materia/F78CEA6C',
-      assoc: 'amp',
-    },
-    {
-      uf: 'PR',
-      titulo: 'CONTRATO DE FINANCIAMENTO - CONTRATO FOMENTO PARANÁ',
-      url: 'https://www.diariomunicipal.com.br/amp/materia/9C3446F0',
       assoc: 'amp',
     },
     {
@@ -846,12 +696,6 @@ const DADOS = {
       uf: 'PR',
       titulo: 'DECRETO Nº 1986/2026',
       url: 'https://www.diariomunicipal.com.br/amp/materia/27601298',
-      assoc: 'amp',
-    },
-    {
-      uf: 'PR',
-      titulo: 'DECRETO Nº 23830/2026',
-      url: 'https://www.diariomunicipal.com.br/amp/materia/436DEFF3',
       assoc: 'amp',
     },
     {
@@ -951,20 +795,8 @@ const DADOS = {
     },
     {
       uf: 'PR',
-      titulo: 'LEI COMPLEMENTAR Nº 048/2026',
-      url: 'https://www.diariomunicipal.com.br/amp/materia/1EDCCC84',
-      assoc: 'amp',
-    },
-    {
-      uf: 'PR',
       titulo: 'LEI COMPLEMENTAR Nº 067/2026',
       url: 'https://www.diariomunicipal.com.br/amp/materia/5EFB9666',
-      assoc: 'amp',
-    },
-    {
-      uf: 'PR',
-      titulo: 'LEI COMPLEMENTAR Nº 609',
-      url: 'https://www.diariomunicipal.com.br/amp/materia/CE6E18FD',
       assoc: 'amp',
     },
     {
@@ -984,12 +816,6 @@ const DADOS = {
       uf: 'PR',
       titulo: 'LEI Nº 2.081/2026',
       url: 'https://www.diariomunicipal.com.br/amp/materia/0C05FA82',
-      assoc: 'amp',
-    },
-    {
-      uf: 'PR',
-      titulo: 'LEI Nº 2459/2026',
-      url: 'https://www.diariomunicipal.com.br/amp/materia/F470588C',
       assoc: 'amp',
     },
     {
@@ -1112,12 +938,6 @@ const DADOS = {
     },
     {
       uf: 'RN',
-      titulo: 'ATA DA AUDIÊNCIA PÚBLICA – LEI ORÇAMENTÁRIA ANUAL (LOA) 2027',
-      url: 'https://www.diariomunicipal.com.br/femurn/materia/EA920695',
-      assoc: 'femurn',
-    },
-    {
-      uf: 'RN',
       titulo: 'CONTRATO ADMINISTRATIVO Nº 9010056/2026 - DISP. 020/2026',
       url: 'https://www.diariomunicipal.com.br/femurn/materia/0AAF36E5',
       assoc: 'femurn',
@@ -1148,12 +968,6 @@ const DADOS = {
     },
     {
       uf: 'RN',
-      titulo: 'DECRETO ORÇAMENTÁRIO Nº 0025/2026, DE 03 DE AGOSTO DE 2026.',
-      url: 'https://www.diariomunicipal.com.br/femurn/materia/DCE7D6BE',
-      assoc: 'femurn',
-    },
-    {
-      uf: 'RN',
       titulo: 'DECRETO ORÇAMENTÁRIO Nº 029/2026 DE 01 DE JULHO DE 2026.',
       url: 'https://www.diariomunicipal.com.br/femurn/materia/274FF9F9',
       assoc: 'femurn',
@@ -1174,22 +988,8 @@ const DADOS = {
     {
       uf: 'RN',
       titulo:
-        'EDITAL DE CONVOCAÇÃO DOS CANDIDATOS CLASSIFICADOS NO PROCESSO SELETIVO SIMPLIFICADO DO MUNICÍPIO DE ACARI Nº 015/2026',
-      url: 'https://www.diariomunicipal.com.br/femurn/materia/AFD17CE0',
-      assoc: 'femurn',
-    },
-    {
-      uf: 'RN',
-      titulo:
         'EDITAL DE CONVOCAÇÃO DOS CANDIDATOS CLASSIFICADOS NO PROCESSO SELETIVO SIMPLIFICADO DO MUNICÍPIO DE ACARI/RN - EDITAL Nº 012/2025',
       url: 'https://www.diariomunicipal.com.br/femurn/materia/6D209F02',
-      assoc: 'femurn',
-    },
-    {
-      uf: 'RN',
-      titulo:
-        'EDITAL DE CONVOCAÇÃO DOS CANDIDATOS CLASSIFICADOS NO PROCESSO SELETIVO SIMPLIFICADO DO MUNICÍPIO DE ACARI/RN - EDITAL Nº 012/2025',
-      url: 'https://www.diariomunicipal.com.br/femurn/materia/079B0C86',
       assoc: 'femurn',
     },
     {
@@ -1207,21 +1007,9 @@ const DADOS = {
     },
     {
       uf: 'RN',
-      titulo: 'EXTRATO DO CONTRATO Nº 058/2026',
-      url: 'https://www.diariomunicipal.com.br/femurn/materia/752E7375',
-      assoc: 'femurn',
-    },
-    {
-      uf: 'RN',
       titulo:
         'JUSTIFICATIVA DE INEXIGIBILIDADE- LEI 13.019/2014 TERMO DE INEXIGIBILIDADE Nº 062/2026',
       url: 'https://www.diariomunicipal.com.br/femurn/materia/86D9CEBF',
-      assoc: 'femurn',
-    },
-    {
-      uf: 'RN',
-      titulo: 'LEI COMPLEMENTAR Nº 017, DE 29 DE SETEMBRO DE 2026.',
-      url: 'https://www.diariomunicipal.com.br/femurn/materia/DB305D45',
       assoc: 'femurn',
     },
     {
@@ -1244,12 +1032,6 @@ const DADOS = {
     },
     {
       uf: 'RN',
-      titulo: 'LEI MUNICIPAL Nº 926, DE 15 DE SETEMBRO DE 2026',
-      url: 'https://www.diariomunicipal.com.br/femurn/materia/494F4C2C',
-      assoc: 'femurn',
-    },
-    {
-      uf: 'RN',
       titulo: 'LEI MUNICIPAL Nº543, DE 21 DE OUTUBRO DE 2026.',
       url: 'https://www.diariomunicipal.com.br/femurn/materia/6EC4A10D',
       assoc: 'femurn',
@@ -1268,21 +1050,8 @@ const DADOS = {
     },
     {
       uf: 'RN',
-      titulo:
-        'LEI Nº 513 2026 - ALTERA A LEI COMPLEMENTAR Nº 006 2017 (CÓDIGO TRIBUTÁRIO DO MUNICÍPIO DE PILÕES RN)',
-      url: 'https://www.diariomunicipal.com.br/femurn/materia/79C1C42C',
-      assoc: 'femurn',
-    },
-    {
-      uf: 'RN',
       titulo: 'LEI Nº 814/2026-GP',
       url: 'https://www.diariomunicipal.com.br/femurn/materia/EE6F1CA6',
-      assoc: 'femurn',
-    },
-    {
-      uf: 'RN',
-      titulo: 'LEI ORDINÁRIA N°594,DE 29 DE SETEMBRO DE 2026.',
-      url: 'https://www.diariomunicipal.com.br/femurn/materia/0A4DDBCD',
       assoc: 'femurn',
     },
     {
@@ -1615,27 +1384,9 @@ const DADOS = {
       assoc: 'arom',
     },
     {
-      uf: 'RR',
-      titulo: 'RELATORIO DE GESTAO FISCAL',
-      url: 'https://www.diariomunicipal.com.br/amr/materia/1D3471C9',
-      assoc: 'amr',
-    },
-    {
       uf: 'RS',
       titulo: '1° TERMO ADITIVO AO CONTRATO N. 158/2025',
       url: 'https://www.diariomunicipal.com.br/agm/materia/925D3E58',
-      assoc: 'agm',
-    },
-    {
-      uf: 'RS',
-      titulo: 'CONTRATO N° 063/2026 - PREF',
-      url: 'https://www.diariomunicipal.com.br/agm/materia/1A1A41FE',
-      assoc: 'agm',
-    },
-    {
-      uf: 'RS',
-      titulo: 'DECRETO 129',
-      url: 'https://www.diariomunicipal.com.br/agm/materia/E6F44A5E',
       assoc: 'agm',
     },
     {
@@ -1700,20 +1451,8 @@ const DADOS = {
     },
     {
       uf: 'RS',
-      titulo: 'EXTRATO DO CONTRATO ADMINISTRATIVO Nº 158/2026',
-      url: 'https://www.diariomunicipal.com.br/famurs/materia/0FC22F93',
-      assoc: 'famurs',
-    },
-    {
-      uf: 'RS',
       titulo: 'LEI 1.965/2026',
       url: 'https://www.diariomunicipal.com.br/famurs/materia/6144FC77',
-      assoc: 'famurs',
-    },
-    {
-      uf: 'RS',
-      titulo: 'LEI 1863',
-      url: 'https://www.diariomunicipal.com.br/famurs/materia/FF7A5A3E',
       assoc: 'famurs',
     },
     {
@@ -1739,12 +1478,6 @@ const DADOS = {
       uf: 'RS',
       titulo: 'LEI MUNICIPAL Nº 2133, DE 16 DE OUTUBRO DE 2026.',
       url: 'https://www.diariomunicipal.com.br/famurs/materia/B10B59A0',
-      assoc: 'famurs',
-    },
-    {
-      uf: 'RS',
-      titulo: 'LEI MUNICIPAL Nº 4.843 DE 23 DE SETEMBRO DE 2026',
-      url: 'https://www.diariomunicipal.com.br/famurs/materia/19186CFD',
       assoc: 'famurs',
     },
     {
@@ -1817,12 +1550,6 @@ const DADOS = {
     },
     {
       uf: 'RS',
-      titulo: 'LEI Nº 716/2026',
-      url: 'https://www.diariomunicipal.com.br/agm/materia/F47F90CB',
-      assoc: 'agm',
-    },
-    {
-      uf: 'RS',
       titulo: 'LEI Nº. 3.771 DE 06 DE OUTUBRO DE 2026',
       url: 'https://www.diariomunicipal.com.br/famurs/materia/569C456A',
       assoc: 'famurs',
@@ -1831,12 +1558,6 @@ const DADOS = {
       uf: 'RS',
       titulo: 'PORTARIA 8143/2026',
       url: 'https://www.diariomunicipal.com.br/famurs/materia/E3B6C70C',
-      assoc: 'famurs',
-    },
-    {
-      uf: 'RS',
-      titulo: 'SÚMULA DO CONTRATO Nº 102/2026',
-      url: 'https://www.diariomunicipal.com.br/famurs/materia/5DDE96CD',
       assoc: 'famurs',
     },
     {
@@ -1854,6 +1575,16 @@ const DADOS = {
     off: 17,
     total: 27,
   },
+  conectores: [
+    {
+      uf: 'RS',
+      nome: 'DOE/RS',
+      ativo: true,
+      modo: 'API textual (atas) + PDF integral (leis/decretos)',
+      hits: 3,
+      amostra: ['Comsefaz', 'CGIBS', 'Comsefaz'],
+    },
+  ],
 }
 
 const NAVY = 'bg-panorama-navy'
@@ -2187,6 +1918,42 @@ export function SectionRadarNacional() {
           </div>
         </div>
       </div>
+
+      {/* CONECTORES ESTADUAIS ATIVOS */}
+      {DADOS.conectores.length > 0 && (
+        <div className="rounded-xl border-2 border-emerald-300 bg-emerald-50/60 overflow-hidden">
+          <div className="bg-emerald-800 px-3 py-2 flex items-center gap-2">
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-300" />
+            <h3 className="text-[11.5px] font-bold text-white">Conectores estaduais ativos</h3>
+            <span className="ml-auto text-[9px] text-emerald-200">lendo na fonte oficial</span>
+          </div>
+          <div className="p-3 space-y-2">
+            {DADOS.conectores.map((c, i) => (
+              <div key={i} className="rounded-lg bg-white border border-emerald-200 p-2.5">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-[11px] font-bold text-emerald-800">{c.uf}</span>
+                  <span className="text-[10.5px] font-semibold text-slate-800">{c.nome}</span>
+                  <span className="ml-auto text-[9.5px] font-bold text-emerald-700 bg-emerald-100 rounded px-1.5 py-0.5">
+                    {c.hits} ocorrência{c.hits === 1 ? '' : 's'} na última varredura
+                  </span>
+                </div>
+                <p className="text-[9.5px] text-slate-600 mt-1">{c.modo}</p>
+                {c.amostra && c.amostra.length > 0 && (
+                  <p className="text-[9px] text-slate-500 mt-0.5">
+                    termos achados: {c.amostra.filter((x, j, a) => a.indexOf(x) === j).join(', ')}
+                  </p>
+                )}
+              </div>
+            ))}
+            <p className="text-[9.5px] text-slate-600 leading-relaxed">
+              O RS foi o primeiro estado instalado (pedido do CEO, 31/10/2026): a busca textual da
+              API oficial cobre atas e editais, e o PDF integral da edição cobre leis e decretos — o
+              conector lê as duas vias. Os demais estados entram na sequência, um conector por
+              portal.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* CAPITULAÇÃO */}
       <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
