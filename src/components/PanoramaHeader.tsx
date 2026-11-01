@@ -210,7 +210,10 @@ export function PanoramaHeader({
           <div className="flex min-w-0 flex-wrap items-center gap-1.5 sm:gap-2">
             <button
               onClick={() => setIsAutoOn(!isAutoOn)}
-              className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[11px] font-medium transition-colors ${
+              /* min-h-[40px]: a auditoria da própria Seção 17 mediu 23px de
+                 altura neste botão — abaixo do mínimo de 40px para o dedo.
+                 Vale para os três botões da barra de status. */
+              className={`inline-flex min-h-[40px] items-center gap-1.5 rounded px-2.5 py-1 text-[11px] font-medium transition-colors ${
                 isAutoOn
                   ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
                   : 'bg-white/10 text-slate-400 border border-white/20'
@@ -224,7 +227,7 @@ export function PanoramaHeader({
             <button
               onClick={handleRefresh}
               disabled={isRefreshing}
-              className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[11px] font-bold bg-panorama-gold hover:bg-panorama-gold-light text-panorama-navy transition-colors"
+              className="inline-flex min-h-[40px] items-center gap-1.5 rounded bg-panorama-gold px-2.5 py-1 text-[11px] font-bold text-panorama-navy transition-colors hover:bg-panorama-gold-light"
               title="Faz a verificação imediata das fontes"
             >
               <RotateCw className={`w-3 h-3 ${isRefreshing ? 'animate-spin' : ''}`} />
@@ -369,7 +372,7 @@ export function PanoramaHeader({
           {/* Mobile hamburger */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="lg:hidden p-1.5 text-slate-600 hover:text-slate-900 focus:outline-none"
+            className="flex min-h-[40px] min-w-[40px] items-center justify-center p-1.5 text-slate-600 hover:text-slate-900 focus:outline-none lg:hidden"
             aria-label="Menu"
           >
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -388,7 +391,7 @@ export function PanoramaHeader({
                 setSearchTerm(e.target.value)
                 setMostraProdutos(true)
               }}
-              className="w-full pl-9 pr-9 py-2 text-xs rounded-lg border border-slate-300 focus:outline-none focus:border-blue-600 bg-slate-50"
+              className="w-full rounded-lg border border-slate-300 bg-slate-50 py-2 pl-9 pr-9 text-xs focus:border-blue-600 focus:outline-none min-h-[40px]"
             />
             {searchTerm && (
               <button

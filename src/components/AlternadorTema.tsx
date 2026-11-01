@@ -29,7 +29,7 @@ export function AlternadorTema() {
   return (
     <button
       onClick={alternar}
-      className="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-slate-300 bg-white text-slate-600 hover:text-panorama-gold-dark hover:border-panorama-gold transition-colors"
+      className="inline-flex h-10 w-10 min-h-[40px] min-w-[40px] items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-600 transition-colors hover:border-panorama-gold hover:text-panorama-gold-dark"
       title={escuro ? 'Mudar para modo claro' : 'Mudar para modo escuro'}
       aria-label={escuro ? 'Mudar para modo claro' : 'Mudar para modo escuro'}
     >
