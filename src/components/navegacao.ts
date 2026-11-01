@@ -50,6 +50,7 @@ import {
   Globe2,
   Sparkles,
   PackageCheck,
+  BrainCircuit,
 } from 'lucide-react'
 
 export interface LinkNavegacao {
@@ -588,6 +589,44 @@ const FONTES: LinkNavegacao[] = [
       'mudanca',
       'agente',
       'fiscalizacao',
+    ],
+  },
+  {
+    /*
+     * Diagnóstico Tributário — posicionado IMEDIATAMENTE ABAIXO do Monitor Legislativo.
+     * Agente inteligente de tributos, jurídico e contábil da ADECONT para análises interpretativas,
+     * pareceres resumidos, pontos de atenção para fusão administrativa, debate com CEO e cálculos.
+     * Tecla 't' (de "Tributário" / "Tributos"): livre entre todos os atalhos.
+     */
+    href: '#diagnostico-tributario',
+    label: 'Diagnóstico Tributário',
+    curto: 'Diagnóstico',
+    tecla: 't',
+    numero: '12B',
+    Icon: BrainCircuit,
+    cor: 'text-indigo-700',
+    bg: 'bg-indigo-50',
+    borda: 'border-indigo-300',
+    descricao: 'Agente inteligente de tributos, pareceres, debate com CEO e relatórios ADECONT',
+    tags: [
+      'diagnostico',
+      'diagnostico tributario',
+      'agente',
+      'inteligente',
+      'ia',
+      'parecer',
+      'pareceres',
+      'juridico',
+      'contabil',
+      'reflexos',
+      'interligacoes',
+      'fusao administrativa',
+      'debate',
+      'ceo',
+      'relatorio',
+      'planilha',
+      'aliquotas',
+      'calculos',
     ],
   },
 ]

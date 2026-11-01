@@ -29,6 +29,7 @@ import { SectionLefisc } from '@/components/SectionLefisc'
 import { SectionRadarNacional } from '@/components/SectionRadarNacional'
 import { SectionBuscaAvancada } from '@/components/SectionBuscaAvancada'
 import { SectionControleVersao } from '@/components/SectionControleVersao'
+import { SectionDiagnosticoTributario } from '@/components/SectionDiagnosticoTributario'
 import { NAVEGACAO } from '@/components/navegacao'
 import type { TaxNormItem } from '@/types/panorama'
 
@@ -104,6 +105,7 @@ const COMPONENTES: Record<string, ComponentType<PropsAba>> = {
   '#fontes-agregador': SectionFontesAgregador,
   '#fontes-primarias': SectionFontesPrimarias,
   '#monitor-legislativo': SectionMonitorLegislativo,
+  '#diagnostico-tributario': SectionDiagnosticoTributario,
   '#cadastro-envios': SectionCadastroEnvios,
   '#central-entrega': SectionCentralEntrega,
   '#assistentes-seguranca': SectionAssistentesSeguranca,

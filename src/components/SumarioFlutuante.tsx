@@ -32,6 +32,7 @@ const SECOES: { id: string; label: string }[] = [
   { id: 'secao-9', label: 'Fontes' },
   { id: 'fontes-primarias', label: 'Fontes primárias' },
   { id: 'monitor-legislativo', label: 'Monitor Legislativo' },
+  { id: 'diagnostico-tributario', label: 'Diagnóstico Tributário' },
   { id: 'central-entrega', label: 'Central de Entrega' },
   { id: 'assistentes-seguranca', label: 'Assistentes & Segurança' },
   { id: 'controle-acesso', label: 'Níveis de Acesso' },

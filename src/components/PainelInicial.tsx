@@ -540,6 +540,12 @@ export function PainelInicial() {
               cor: 'text-fuchsia-700 bg-fuchsia-50 border-fuchsia-200',
             },
             {
+              href: '#diagnostico-tributario',
+              label: 'Diagnóstico',
+              Icon: Sparkles,
+              cor: 'text-indigo-700 bg-indigo-50 border-indigo-200',
+            },
+            {
               href: '#central-entrega',
               label: 'Entregar',
               Icon: Mail,

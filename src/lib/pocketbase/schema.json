@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-01T19:35:25.839Z",
+  "generatedAt": "2026-11-01T20:28:17.590Z",
   "collections": [
     {
       "name": "users",
@@ -1865,6 +1865,111 @@
         "CREATE INDEX idx_programa_propagacoes_envio ON programa_propagacoes (envio_id)",
         "CREATE INDEX idx_programa_propagacoes_atualizacao ON programa_propagacoes (atualizacao_id)",
         "CREATE INDEX idx_programa_propagacoes_plat ON programa_propagacoes (plataforma)"
+      ]
+    },
+    {
+      "name": "diagnostico_sessoes",
+      "type": "base",
+      "apiRules": {
+        "list": "",
+        "view": "",
+        "create": "",
+        "update": "",
+        "delete": ""
+      },
+      "fields": [
+        {
+          "name": "titulo",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "tema",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "ato_analisado",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "conversation_id",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "tipo_analise",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": ["geral", "ato_normativo", "interligacoes", "debate_ceo"]
+        },
+        {
+          "name": "parecer_resumido",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "pontos_atencao",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "passo_a_passo",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "dados_tabela",
+          "type": "json",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "relatorio_consolidado",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "autor_email",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "data_sessao",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": [
+        "CREATE INDEX idx_diag_sessoes_data ON diagnostico_sessoes (created DESC)",
+        "CREATE INDEX idx_diag_sessoes_tipo ON diagnostico_sessoes (tipo_analise)",
+        "CREATE INDEX idx_diag_sessoes_conv ON diagnostico_sessoes (conversation_id)"
       ]
     }
   ]
