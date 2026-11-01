@@ -4337,8 +4337,8 @@ const DADOS = {
       uf: 'RJ',
       nome: 'Diário Oficial do RJ — dados abertos',
       ativo: true,
-      modo: 'JSON completo (CKAN) · critério próprio; 1.037 atos em 2 meses',
-      hits: 230,
+      modo: 'JSON diário completo (CKAN) · acervo A PARTIR DE 2025 (piso fixado) · 11.389 atos em 2025-2026',
+      hits: 11389,
       amostra: ['I - Portaria', 'II - Pareceres', 'I - Edital'],
     },
     {

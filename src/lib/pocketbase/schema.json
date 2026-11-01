@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-01T17:23:42.123Z",
+  "generatedAt": "2026-11-01T18:57:52.987Z",
   "collections": [
     {
       "name": "users",
@@ -1513,6 +1513,191 @@
         "CREATE INDEX idx_radar_atos_ente ON radar_atos (ente_chave)",
         "CREATE INDEX idx_radar_atos_data ON radar_atos (data_publicacao)",
         "CREATE UNIQUE INDEX idx_radar_atos_unico ON radar_atos (nivel, ente_chave, titulo, data_publicacao)"
+      ]
+    },
+    {
+      "name": "programa_versoes",
+      "type": "base",
+      "apiRules": {
+        "list": "",
+        "view": "",
+        "create": "",
+        "update": "",
+        "delete": ""
+      },
+      "fields": [
+        {
+          "name": "versao",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "data_atualizacao",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "notas_versao",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "status",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": ["atual", "anterior", "planejada"]
+        },
+        {
+          "name": "url_instalador",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "canal_distribuicao",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "controlado_por",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": [
+        "CREATE INDEX idx_programa_versoes_data ON programa_versoes (data_atualizacao DESC)",
+        "CREATE INDEX idx_programa_versoes_status ON programa_versoes (status)"
+      ]
+    },
+    {
+      "name": "programa_envios",
+      "type": "base",
+      "apiRules": {
+        "list": "",
+        "view": "",
+        "create": "",
+        "update": "",
+        "delete": ""
+      },
+      "fields": [
+        {
+          "name": "versao_ref",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "data_atualizacao_ref",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "destinatario_nome",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "destinatario_email",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "destinatario_whatsapp",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "destinatario_empresa",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "canal",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": ["email", "whatsapp", "qr_code", "link_direto"]
+        },
+        {
+          "name": "status",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": ["ENVIADO", "RECEBIDO", "PENDENTE"]
+        },
+        {
+          "name": "protocolo",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "mensagem",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "url_instalador_enviada",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "enviado_por",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "data_envio",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": [
+        "CREATE INDEX idx_programa_envios_versao ON programa_envios (versao_ref)",
+        "CREATE INDEX idx_programa_envios_created ON programa_envios (created DESC)"
       ]
     }
   ]
