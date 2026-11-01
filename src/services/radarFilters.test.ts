@@ -2,10 +2,11 @@ import { describe, it, expect } from 'vitest'
 import {
   filtrarAtosRadar,
   contarFiltrosRadarAtivos,
+  filtrarMunicipiosPorRecorte,
   FILTROS_RADAR_INICIAIS,
   OPCOES_NIVEIS_RADAR,
 } from './radarFilters'
-import type { RadarAtoItem } from './radarMunicipios'
+import type { RadarAtoItem, RadarMunicipioItem } from './radarMunicipios'
 
 const ATOS_MOCK: RadarAtoItem[] = [
   {
@@ -152,5 +153,103 @@ describe('Filtros facetados do Radar Nacional (radarFilters.ts)', () => {
     expect(res).toHaveLength(1)
     expect(res[0].codigo_ibge).toBe('3304557')
     expect(res[0].uf).toBe('RJ')
+  })
+
+  describe('Recorte por nível dentro de UF expandida (filtrarMunicipiosPorRecorte)', () => {
+    const MUNICIPIOS_MG: RadarMunicipioItem[] = [
+      { id: 'm-bh', codigo_ibge: '3106200', nome: 'Belo Horizonte', uf: 'MG', atosCount: 0 },
+      { id: 'm-ub', codigo_ibge: '3170206', nome: 'Uberlândia', uf: 'MG', atosCount: 0 },
+      { id: 'm-jf', codigo_ibge: '3136702', nome: 'Juiz de Fora', uf: 'MG', atosCount: 0 },
+      { id: 'm-ct', codigo_ibge: '3118601', nome: 'Contagem', uf: 'MG', atosCount: 0 },
+    ]
+
+    const ATOS_MG: RadarAtoItem[] = [
+      {
+        id: 'ato-mg-1',
+        uf: 'MG',
+        codigo_ibge: '3106200',
+        municipio_nome: 'Belo Horizonte',
+        titulo: 'Decreto Municipal nº 18.630/2024',
+        nivel: 'municipal',
+      },
+      {
+        id: 'ato-mg-2',
+        uf: 'MG',
+        codigo_ibge: '3170206',
+        municipio_nome: 'Uberlândia',
+        titulo: 'Portaria SEFIN nº 076/2024',
+        nivel: 'municipal',
+      },
+      {
+        id: 'ato-mg-3',
+        uf: 'MG',
+        titulo: 'Publicação Estadual no Jornal Minas Gerais',
+        nivel: 'estadual',
+      },
+    ]
+
+    it('sem filtro de nível, exibe todos os municípios da UF com contagens gerais', () => {
+      const res = filtrarMunicipiosPorRecorte(MUNICIPIOS_MG, ATOS_MG, {
+        ...FILTROS_RADAR_INICIAIS,
+        uf: 'MG',
+      })
+      expect(res).toHaveLength(4)
+      const nomes = res.map((m) => m.nome)
+      expect(nomes).toContain('Belo Horizonte')
+      expect(nomes).toContain('Uberlândia')
+      expect(nomes).toContain('Juiz de Fora')
+      expect(nomes).toContain('Contagem')
+    })
+
+    it('com nível "municipal" ativo, grupo da UF expandida exibe APENAS municípios com atos municipais vinculados', () => {
+      const res = filtrarMunicipiosPorRecorte(MUNICIPIOS_MG, ATOS_MG, {
+        ...FILTROS_RADAR_INICIAIS,
+        uf: 'MG',
+        niveis: ['municipal'],
+      })
+      // Apenas Belo Horizonte e Uberlândia possuem atos municipais vinculados
+      expect(res).toHaveLength(2)
+      const codigos = res.map((m) => m.codigo_ibge)
+      expect(codigos).toContain('3106200')
+      expect(codigos).toContain('3170206')
+      expect(codigos).not.toContain('3136702') // Juiz de Fora sem ato municipal
+      expect(codigos).not.toContain('3118601') // Contagem sem ato municipal
+
+      // Contagens atualizadas refletindo o recorte
+      const bh = res.find((m) => m.codigo_ibge === '3106200')
+      expect(bh?.atosCount).toBe(1)
+      const ub = res.find((m) => m.codigo_ibge === '3170206')
+      expect(ub?.atosCount).toBe(1)
+    })
+
+    it('ao limpar o filtro de nível, lista volta ao estado completo da UF', () => {
+      // 1. Aplica filtro municipal
+      const filtrado = filtrarMunicipiosPorRecorte(MUNICIPIOS_MG, ATOS_MG, {
+        ...FILTROS_RADAR_INICIAIS,
+        uf: 'MG',
+        niveis: ['municipal'],
+      })
+      expect(filtrado).toHaveLength(2)
+
+      // 2. Limpa o filtro (volta a FILTROS_RADAR_INICIAIS)
+      const restaurado = filtrarMunicipiosPorRecorte(MUNICIPIOS_MG, ATOS_MG, {
+        ...FILTROS_RADAR_INICIAIS,
+        uf: 'MG',
+        niveis: [],
+      })
+      expect(restaurado).toHaveLength(4)
+    })
+
+    it('com nível "estadual" ativo, municípios não exibem atos municipais', () => {
+      const res = filtrarMunicipiosPorRecorte(MUNICIPIOS_MG, ATOS_MG, {
+        ...FILTROS_RADAR_INICIAIS,
+        uf: 'MG',
+        niveis: ['estadual'],
+      })
+      expect(res).toHaveLength(4)
+      for (const m of res) {
+        expect(m.atosCount).toBe(0)
+      }
+    })
   })
 })

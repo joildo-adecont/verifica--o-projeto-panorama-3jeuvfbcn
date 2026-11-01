@@ -109,3 +109,61 @@ export function contarFiltrosRadarAtivos(filtros: FiltrosRadarState): number {
     filtros.niveis.length
   )
 }
+
+/**
+ * Filtra e recomputa a lista de municípios de uma UF com base nos filtros ativos de nível e atos vinculados.
+ * Com o nível 'municipal' ativo, o grupo da UF passa a exibir apenas os municípios que possuem atos
+ * vinculados correspondentes, com a contagem atualizada refletindo o recorte.
+ * Se o filtro de nível for limpo (ou nenhum nível ativo), retorna todos os municípios carregados.
+ */
+export function filtrarMunicipiosPorRecorte(
+  municipios: RadarMunicipioItem[],
+  atosDaUf: RadarAtoItem[],
+  filtros: FiltrosRadarState,
+): RadarMunicipioItem[] {
+  const niveisAtivos = filtros.niveis || []
+  const soMunicipal = niveisAtivos.includes('municipal')
+  const soEstadualOuFederal = niveisAtivos.length > 0 && !soMunicipal
+
+  // Indexa atos por código IBGE respeitando os filtros (incluindo nível e busca)
+  const atosFiltrados = filtrarAtosRadar(atosDaUf, filtros)
+  const contagemPorIbge: Record<string, number> = {}
+  for (const ato of atosFiltrados) {
+    if (ato.codigo_ibge) {
+      contagemPorIbge[ato.codigo_ibge] = (contagemPorIbge[ato.codigo_ibge] || 0) + 1
+    }
+  }
+
+  // Se nível 'municipal' estiver ativo: mostra APENAS municípios com atos municipais vinculados
+  if (soMunicipal) {
+    return municipios
+      .filter((m) => (contagemPorIbge[m.codigo_ibge] || 0) > 0)
+      .map((m) => ({
+        ...m,
+        atosCount: contagemPorIbge[m.codigo_ibge] || 0,
+      }))
+  }
+
+  // Se outro nível (ex: apenas estadual ou federal) estiver ativo sem municipal:
+  // no âmbito municipal não há atos desse nível, então os municípios ficam com atosCount 0
+  if (soEstadualOuFederal) {
+    return municipios.map((m) => ({
+      ...m,
+      atosCount: 0,
+    }))
+  }
+
+  // Sem filtro de nível (ou níveis mistos que não forçam o isolamento municipal):
+  // mantém a lista completa de municípios, com a contagem refletindo os atos compatíveis
+  return municipios.map((m) => {
+    // Se não há filtro de nível nem termo, usa a contagem total de atos do município
+    const count =
+      niveisAtivos.length === 0 && !filtros.termo
+        ? (m.atosCount ?? contagemPorIbge[m.codigo_ibge] ?? 0)
+        : contagemPorIbge[m.codigo_ibge] || 0
+    return {
+      ...m,
+      atosCount: count,
+    }
+  })
+}

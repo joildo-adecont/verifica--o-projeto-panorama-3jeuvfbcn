@@ -34,6 +34,7 @@ import {
   OPCOES_NIVEIS_RADAR,
   filtrarAtosRadar,
   contarFiltrosRadarAtivos,
+  filtrarMunicipiosPorRecorte,
   type NivelAtoRadar,
   type FiltrosRadarState,
 } from '@/services/radarFilters'
@@ -227,14 +228,17 @@ export function RadarNacional({ initialUf = '' }: RadarNacionalProps) {
     [expandedUfs, ufData, carregarMunicipiosDaUf],
   )
 
-  // Recarrega UFs expandidas quando o termo geral ou mapa de atos muda
+  // Recarrega UFs expandidas quando o termo geral, mapa de atos ou filtros mudam
   useEffect(() => {
     Object.keys(expandedUfs).forEach((ufCode) => {
       if (expandedUfs[ufCode]) {
-        carregarMunicipiosDaUf(ufCode, 1)
+        // Carrega sob demanda se ainda não tiver itens
+        if (!ufData[ufCode] || ufData[ufCode].items.length === 0) {
+          carregarMunicipiosDaUf(ufCode, 1)
+        }
       }
     })
-  }, [debouncedTermo, atosMap.porIbge, carregarMunicipiosDaUf])
+  }, [debouncedTermo, atosMap.porIbge, expandedUfs, ufData, carregarMunicipiosDaUf])
 
   // Atalho 1: Saltar direto para a UF por sigla ou nome (ex.: 'MG' ou 'Minas Gerais')
   const saltarParaUf = useCallback(
@@ -396,10 +400,51 @@ export function RadarNacional({ initialUf = '' }: RadarNacionalProps) {
     setSugestoesMunicipios([])
   }
 
+  // Obtém lista de municípios filtrados por nível e contexto para uma dada UF
+  const getMunicipiosVisiveisUf = useCallback(
+    (ufCode: string, itemsOriginais: RadarMunicipioItem[]): RadarMunicipioItem[] => {
+      const atosDaUf = atosMap.porUf[ufCode] || []
+      return filtrarMunicipiosPorRecorte(itemsOriginais, atosDaUf, filtrosState)
+    },
+    [atosMap.porUf, filtrosState],
+  )
+
   // Lista consolidada de atos filtrados via serviço puro radarFilters.ts
   const atosFiltrados = useMemo(() => {
     return filtrarAtosRadar(atosMap.todos, filtrosState)
   }, [atosMap.todos, filtrosState])
+
+  // Contagem de atos por UF respeitando o recorte de filtros ativo
+  const atosContagemPorUfFiltrada = useMemo(() => {
+    const mapa: Record<string, number> = {}
+    for (const a of atosFiltrados) {
+      const u = (a.uf || '').toUpperCase().trim()
+      if (u) {
+        mapa[u] = (mapa[u] || 0) + 1
+      }
+    }
+    return mapa
+  }, [atosFiltrados])
+
+  const filtroNivelAtivo = useMemo(() => {
+    return niveisSelecionados.length > 0
+  }, [niveisSelecionados])
+
+  // Helper para contagem de atos da UF considerando filtros
+  const totalAtosAtivosFiltrados = useCallback(
+    (
+      ufCode: string,
+      atosOriginais: number,
+      contagemFiltrada: Record<string, number>,
+      ativos: number,
+    ): number => {
+      if (ativos > 0) {
+        return contagemFiltrada[ufCode] || 0
+      }
+      return atosOriginais
+    },
+    [],
+  )
 
   // Lista de UFs a renderizar (se filtro de UF estiver ativo, isola apenas a UF correspondente)
   const ufsVisiveis = useMemo(() => {
@@ -947,7 +992,13 @@ export function RadarNacional({ initialUf = '' }: RadarNacionalProps) {
             const isExpanded = !!expandedUfs[ufCode]
             const isSelectedUf = selectedUf === ufCode
             const totalOficialUf = TOTAL_OFICIAL_MUNICIPIOS_POR_UF[ufCode] || 0
-            const totalAtosUf = stats.atosPorUf[ufCode] || 0
+            // Se houver filtro ativo de nível ou termo, utiliza a contagem filtrada para a UF
+            const totalAtosUf = totalAtosAtivosFiltrados(
+              ufCode,
+              stats.atosPorUf[ufCode] || 0,
+              atosContagemPorUfFiltrada,
+              totalAtivos,
+            )
             const stateData = ufData[ufCode] || {
               items: [],
               page: 1,
@@ -955,6 +1006,8 @@ export function RadarNacional({ initialUf = '' }: RadarNacionalProps) {
               totalItems: totalOficialUf,
               loading: false,
             }
+            // Municípios renderizados com recorte aplicado (respeita nível municipal / estadual / federal)
+            const municipiosRenderizados = getMunicipiosVisiveisUf(ufCode, stateData.items)
 
             return (
               <div
@@ -1028,10 +1081,21 @@ export function RadarNacional({ initialUf = '' }: RadarNacionalProps) {
                 {isExpanded && (
                   <div className="p-3.5 bg-slate-50/40 space-y-3 animate-in fade-in duration-150">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
-                      <p className="text-[11px] text-slate-600">
-                        Municípios oficiais de <strong>{nomeEstado}</strong> ({ufCode}) com código
-                        IBGE de 7 dígitos e contador de atos vigentes:
-                      </p>
+                      <div className="space-y-0.5">
+                        <p className="text-[11px] text-slate-600">
+                          Municípios oficiais de <strong>{nomeEstado}</strong> ({ufCode}) com código
+                          IBGE de 7 dígitos e contador de atos vigentes:
+                        </p>
+                        {niveisSelecionados.includes('municipal') && (
+                          <p className="text-[10px] text-blue-700 font-semibold flex items-center gap-1">
+                            <Filter className="w-3 h-3" />
+                            <span>
+                              Recorte por nível municipal ativo: exibindo apenas municípios com atos
+                              municipais vinculados.
+                            </span>
+                          </p>
+                        )}
+                      </div>
 
                       <div className="flex items-center gap-2 shrink-0 text-[11px]">
                         {stateData.loading ? (
@@ -1041,7 +1105,10 @@ export function RadarNacional({ initialUf = '' }: RadarNacionalProps) {
                           </span>
                         ) : (
                           <span className="text-slate-500 font-mono">
-                            Exibindo {stateData.items.length} de {stateData.totalItems} mun.
+                            Exibindo {municipiosRenderizados.length} de{' '}
+                            {niveisSelecionados.includes('municipal')
+                              ? `${municipiosRenderizados.length} com atos`
+                              : `${stateData.totalItems} mun.`}
                           </span>
                         )}
                       </div>
@@ -1054,13 +1121,27 @@ export function RadarNacional({ initialUf = '' }: RadarNacionalProps) {
                           Consultando municípios de {nomeEstado} no PocketBase...
                         </span>
                       </div>
-                    ) : stateData.items.length === 0 ? (
-                      <div className="p-5 text-center rounded-lg border border-dashed border-slate-300 bg-white text-slate-500 text-xs">
-                        Nenhum município encontrado em {nomeEstado} com os filtros atuais.
+                    ) : municipiosRenderizados.length === 0 ? (
+                      <div className="p-5 text-center rounded-lg border border-dashed border-slate-300 bg-white text-slate-500 text-xs space-y-2">
+                        <p>
+                          {niveisSelecionados.includes('municipal')
+                            ? `Nenhum município de ${nomeEstado} possui atos municipais vinculados com os filtros atuais.`
+                            : `Nenhum município encontrado em ${nomeEstado} com os filtros atuais.`}
+                        </p>
+                        {totalAtivos > 0 && (
+                          <button
+                            type="button"
+                            onClick={handleLimparFiltros}
+                            className="inline-flex items-center gap-1 text-[11px] font-bold text-panorama-navy hover:underline cursor-pointer"
+                          >
+                            <RotateCcw className="w-3 h-3" />
+                            <span>Limpar filtros e exibir todos os municípios</span>
+                          </button>
+                        )}
                       </div>
                     ) : (
                       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-                        {stateData.items.map((m) => {
+                        {municipiosRenderizados.map((m) => {
                           const isMunSelected = selectedMunicipio?.codigo_ibge === m.codigo_ibge
                           const temAtos = (m.atosCount || 0) > 0
 

@@ -181,6 +181,10 @@ export async function fetchAtosMunicipaisPorCodigo(): Promise<{
 
     if (list.length > 0) {
       for (const r of list) {
+        const nivelAto = (r.nivel ? String(r.nivel).toLowerCase() : 'municipal') as
+          | 'municipal'
+          | 'estadual'
+          | 'federal'
         const ato: RadarAtoItem = {
           id: r.id,
           uf: (r.uf || '').toUpperCase(),
@@ -188,8 +192,10 @@ export async function fetchAtosMunicipaisPorCodigo(): Promise<{
           municipio_nome: r.municipio_nome || undefined,
           titulo: r.titulo,
           url: r.url || undefined,
-          assoc: r.assoc || undefined,
-          nivel: 'municipal',
+          assoc: r.assoc || r.fonte_oficial || undefined,
+          data: r.data_publicacao || undefined,
+          resumo: r.trecho || undefined,
+          nivel: nivelAto,
         }
         todos.push(ato)
         if (ato.codigo_ibge) {
