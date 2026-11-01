@@ -39,7 +39,7 @@ const DADOS = {
     inicio: '2025-01-01',
     fim: '2026-11-01',
   },
-  consultas: 9,
+  consultas: 8,
   associacoes: 22,
   entes: 2823,
   porUf: {
@@ -66,6 +66,7 @@ const DADOS = {
       url: 'https://portal.doe.sea.sc.gov.br/v2.44.07/#/portal/edicao/buscar-publicacao',
       assoc: 'estadual',
       nivel: 'estadual',
+      relacao: 'reforma',
     },
     {
       uf: 'MG',
@@ -74,13 +75,7 @@ const DADOS = {
       url: 'https://www.jornalminasgerais.mg.gov.br/edicao-do-dia',
       assoc: 'estadual',
       nivel: 'estadual',
-    },
-    {
-      uf: 'RJ',
-      titulo: 'ATO DO ORDENADOR DE DESPESAS PORTARIA GSI Nº 085',
-      url: 'https://dadosabertos.rj.gov.br/dataset/f2c05af8-2077-4cc4-b015-39266feba0be/resource/ab334c1a-f39b-4af1-864d-3f59240a81a9/download/2026-10-02.json',
-      assoc: 'estadual',
-      nivel: 'estadual',
+      relacao: 'reforma',
     },
     {
       uf: 'RJ',
@@ -88,13 +83,7 @@ const DADOS = {
       url: 'https://dadosabertos.rj.gov.br/dataset/f2c05af8-2077-4cc4-b015-39266feba0be/resource/ab334c1a-f39b-4af1-864d-3f59240a81a9/download/2026-10-02.json',
       assoc: 'estadual',
       nivel: 'estadual',
-    },
-    {
-      uf: 'RJ',
-      titulo: 'ATO DO ORDENADOR DE DESPESAS PORTARIA GSI Nº 085',
-      url: 'https://dadosabertos.rj.gov.br/dataset/f2c05af8-2077-4cc4-b015-39266feba0be/resource/ab334c1a-f39b-4af1-864d-3f59240a81a9/download/2026-10-02.json',
-      assoc: 'estadual',
-      nivel: 'estadual',
+      relacao: 'reforma',
     },
     {
       uf: 'RJ',
@@ -102,6 +91,7 @@ const DADOS = {
       url: 'https://dadosabertos.rj.gov.br/dataset/f2c05af8-2077-4cc4-b015-39266feba0be/resource/ab334c1a-f39b-4af1-864d-3f59240a81a9/download/2026-10-02.json',
       assoc: 'estadual',
       nivel: 'estadual',
+      relacao: 'reforma',
     },
     {
       uf: 'SE',
@@ -110,6 +100,7 @@ const DADOS = {
       url: 'https://iose.se.gov.br/diario-oficial',
       assoc: 'estadual',
       nivel: 'estadual',
+      relacao: 'reforma',
     },
     {
       uf: 'SE',
@@ -118,14 +109,24 @@ const DADOS = {
       url: 'https://iose.se.gov.br/diario-oficial',
       assoc: 'estadual',
       nivel: 'estadual',
+      relacao: 'reforma',
     },
     {
       uf: 'PR',
       titulo:
         'DECRETO Nº 19.659, DE 21 DE OUTUBRO DE 2026 - DISPÕE SOBRE A INSTITUIÇÃO DE COMISSÃO MUNICIPAL DE ACOMPANHAMENTO DA IMPLEMENTAÇÃO DA REFORMA TRIBUTÁRIA, DECORRENTE DA EMENDA CONSTITUCIONAL Nº 132, DE ',
       url: 'https://www.diariomunicipal.com.br/amp/materia/877F9305',
-      assoc: 'amp',
+      assoc: 'estadual',
       nivel: 'municipal',
+      relacao: 'reforma',
+    },
+    {
+      uf: 'BR',
+      titulo: 'Resolução CGIBS nº 6, de 30/04/2026 — Regulamento do IBS',
+      url: 'https://www.cgibs.gov.br',
+      assoc: 'cgibs',
+      nivel: 'federal',
+      relacao: 'reforma',
     },
   ],
   portais: {
