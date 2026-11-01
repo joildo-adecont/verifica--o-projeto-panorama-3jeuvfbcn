@@ -377,47 +377,47 @@ export function SectionControleAcesso() {
             numa área de 370px e vazava 13px para fora da tela. As outras duas
             tabelas desta seção já tinham o container; esta não. */}
         <div className="overflow-x-auto">
-        <table className="w-full min-w-[360px] text-sm">
-          <thead>
-            <tr className="bg-panorama-navy text-white border-b-2 border-panorama-gold">
-              <th className="px-4 py-2 text-left text-xs uppercase tracking-wide font-semibold">
-                Comando
-              </th>
-              <th className="px-4 py-2 text-left text-xs uppercase tracking-wide font-semibold">
-                O que faz
-              </th>
-              <th className="px-4 py-2 text-center text-xs uppercase tracking-wide font-semibold">
-                N1
-              </th>
-              <th className="px-4 py-2 text-center text-xs uppercase tracking-wide font-semibold">
-                N2
-              </th>
-              <th className="px-4 py-2 text-center text-xs uppercase tracking-wide font-semibold">
-                N3
-              </th>
-              <th className="px-4 py-2 text-center text-xs uppercase tracking-wide font-semibold">
-                N4
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {COMANDOS.map((c) => (
-              <tr key={c.cmd} className="border-b border-slate-100">
-                <td className="px-4 py-2 font-mono text-xs font-bold text-slate-800">{c.cmd}</td>
-                <td className="px-4 py-2 text-slate-700">{c.nome}</td>
-                {[1, 2, 3, 4].map((n) => (
-                  <td key={n} className="px-4 py-2 text-center">
-                    {n >= c.min ? (
-                      <Check className="w-4 h-4 text-emerald-600 inline" />
-                    ) : (
-                      <X className="w-4 h-4 text-slate-300 inline" />
-                    )}
-                  </td>
-                ))}
+          <table className="w-full min-w-[360px] text-sm">
+            <thead>
+              <tr className="bg-panorama-navy text-white border-b-2 border-panorama-gold">
+                <th className="px-4 py-2 text-left text-xs uppercase tracking-wide font-semibold">
+                  Comando
+                </th>
+                <th className="px-4 py-2 text-left text-xs uppercase tracking-wide font-semibold">
+                  O que faz
+                </th>
+                <th className="px-4 py-2 text-center text-xs uppercase tracking-wide font-semibold">
+                  N1
+                </th>
+                <th className="px-4 py-2 text-center text-xs uppercase tracking-wide font-semibold">
+                  N2
+                </th>
+                <th className="px-4 py-2 text-center text-xs uppercase tracking-wide font-semibold">
+                  N3
+                </th>
+                <th className="px-4 py-2 text-center text-xs uppercase tracking-wide font-semibold">
+                  N4
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {COMANDOS.map((c) => (
+                <tr key={c.cmd} className="border-b border-slate-100">
+                  <td className="px-4 py-2 font-mono text-xs font-bold text-slate-800">{c.cmd}</td>
+                  <td className="px-4 py-2 text-slate-700">{c.nome}</td>
+                  {[1, 2, 3, 4].map((n) => (
+                    <td key={n} className="px-4 py-2 text-center">
+                      {n >= c.min ? (
+                        <Check className="w-4 h-4 text-emerald-600 inline" />
+                      ) : (
+                        <X className="w-4 h-4 text-slate-300 inline" />
+                      )}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
 
