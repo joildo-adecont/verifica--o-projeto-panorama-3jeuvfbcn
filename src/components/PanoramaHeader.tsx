@@ -207,7 +207,7 @@ export function PanoramaHeader({
             </span>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex min-w-0 flex-wrap items-center gap-1.5 sm:gap-2">
             <button
               onClick={() => setIsAutoOn(!isAutoOn)}
               className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[11px] font-medium transition-colors ${
@@ -237,9 +237,14 @@ export function PanoramaHeader({
       </div>
 
       {/* Main Header */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-1.5">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3 md:gap-4">
+      {/* w-full + min-w-0: medido em 02/11/2026 no iPhone 18 Pro Max (440px),
+          este bloco media 518px e o cabeçalho estourava 78px para fora da tela
+          — invisível e sem rolagem possível. `min-w-0` permite que os filhos
+          ENCOLHAM em vez de empurrar; `flex-wrap` deixa o que não couber ir
+          para a linha de baixo em vez de sair pela lateral. */}
+      <div className="mx-auto w-full max-w-7xl px-3 py-1.5 sm:px-6">
+        <div className="flex w-full min-w-0 flex-wrap items-center justify-between gap-2 sm:gap-4">
+          <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3 md:gap-4">
             {/* Logo oficial da ADECONT Assessoria Administrativa, Contábil */}
             <a
               href="#"
