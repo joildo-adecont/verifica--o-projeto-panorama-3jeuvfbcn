@@ -4257,7 +4257,7 @@ const DADOS = {
       uf: 'RS',
       nome: 'DOE/RS',
       ativo: true,
-      modo: 'API textual + PDF',
+      modo: 'PDF integral da edição (a API só indexa atas e editais)',
       hits: 3,
       amostra: ['CGIBS'],
     },
