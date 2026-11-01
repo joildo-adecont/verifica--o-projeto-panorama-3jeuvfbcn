@@ -57,14 +57,18 @@ export function SectionControleVersao() {
   const [disparando, setDisparando] = useState(false)
   const [feedbackEnvio, setFeedbackEnvio] = useState<{ texto: string; ok: boolean } | null>(null)
 
+  // Filtros de visualização e plataforma
+  const [filtroPlataforma, setFiltroPlataforma] = useState<'todas' | 'desktop' | 'celular'>('todas')
+
   // Formulário de cadastro de nova versão pelo COU
   const [novaVersaoNum, setNovaVersaoNum] = useState('')
+  const [novaPlataforma, setNovaPlataforma] = useState<'desktop' | 'celular'>('celular')
   const [novaDataAtualizacao, setNovaDataAtualizacao] = useState(() =>
     new Date().toISOString().slice(0, 10),
   )
   const [novasNotas, setNovasNotas] = useState('')
   const [novoStatus, setNovoStatus] = useState<StatusVersao>('atual')
-  const [novoCanalDist, setNovoCanalDist] = useState('E-mail, WhatsApp e QR Code Seguro')
+  const [novoCanalDist, setNovoCanalDist] = useState('WhatsApp, QR Code Celular e E-mail')
   const [salvandoVersao, setSalvandoVersao] = useState(false)
   const [feedbackVersao, setFeedbackVersao] = useState<{ texto: string; ok: boolean } | null>(null)
 
@@ -134,7 +138,8 @@ export function SectionControleVersao() {
   // URL final de instalação gerada pelo sistema/proxy institucional
   const urlInstaladorFinal = useMemo(() => {
     const vParam = versaoAtiva?.versao ? `&v=${encodeURIComponent(versaoAtiva.versao)}` : ''
-    return `${baseOrigin}/#instalador-versao?origem=cou${vParam}`
+    const platParam = versaoAtiva?.plataforma === 'celular' ? '&tipo=celular' : ''
+    return `${baseOrigin}/#instalador-versao?origem=cou${platParam}${vParam}`
   }, [baseOrigin, versaoAtiva])
 
   // QR Code da instalação
@@ -148,6 +153,7 @@ export function SectionControleVersao() {
     if (!versaoAtiva) return ''
     return formatarMensagemInstalacao({
       versao: versaoAtiva.versao,
+      plataforma: versaoAtiva.plataforma || 'desktop',
       dataAtualizacao: versaoAtiva.data_atualizacao,
       notasVersao: versaoAtiva.notas_versao,
       destinatarioNome: clienteAtivo?.nome,
@@ -178,6 +184,7 @@ export function SectionControleVersao() {
     try {
       const novoRegistro = await registrarEnvioInstalacao({
         versao_ref: versaoAtiva.versao,
+        plataforma: versaoAtiva.plataforma || 'desktop',
         data_atualizacao_ref: versaoAtiva.data_atualizacao,
         destinatario_nome: nomeDest,
         destinatario_email: emailDest,
@@ -228,10 +235,12 @@ export function SectionControleVersao() {
     try {
       const versaoSalva = await createProgramaVersao({
         versao: novaVersaoNum.trim(),
+        plataforma: novaPlataforma,
         data_atualizacao: novaDataAtualizacao.trim(),
         notas_versao: novasNotas.trim(),
         status: novoStatus,
-        url_instalador: '/#instalador-versao',
+        url_instalador:
+          novaPlataforma === 'celular' ? '/#instalador-versao?tipo=celular' : '/#instalador-versao',
         canal_distribuicao: novoCanalDist.trim(),
         controlado_por: 'COU — Centro de Operações Unificadas ADECONT',
       })
@@ -261,9 +270,9 @@ export function SectionControleVersao() {
     }
   }
 
-  async function handlePromoverAtual(id: string) {
+  async function handlePromoverAtual(id: string, plataforma?: 'desktop' | 'celular') {
     try {
-      await setVersaoComoAtual(id)
+      await setVersaoComoAtual(id, plataforma)
       const lista = await fetchProgramaVersoes()
       setVersoes(lista)
     } catch (err) {
@@ -401,20 +410,77 @@ export function SectionControleVersao() {
             <div className="lg:col-span-6 p-5 rounded-2xl border border-slate-200 bg-white shadow-xs space-y-3">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
-                  <Layers className="w-4 h-4 text-panorama-navy" />
+                  {versaoAtiva?.plataforma === 'celular' ? (
+                    <Smartphone className="w-4 h-4 text-emerald-600" />
+                  ) : (
+                    <Monitor className="w-4 h-4 text-panorama-navy" />
+                  )}
                   1. Versão do Programa Homologada pelo COU:
                 </label>
-                {versaoAtiva && (
-                  <span
-                    className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                      versaoAtiva.status === 'atual'
-                        ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                        : 'bg-slate-100 text-slate-600'
-                    }`}
-                  >
-                    Status: {versaoAtiva.status.toUpperCase()}
-                  </span>
-                )}
+                <div className="flex items-center gap-1.5">
+                  {versaoAtiva?.plataforma === 'celular' ? (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300">
+                      <Smartphone className="w-3 h-3 text-emerald-700" />
+                      CELULAR
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-100 text-blue-800 border border-blue-300">
+                      <Monitor className="w-3 h-3 text-blue-700" />
+                      DESKTOP
+                    </span>
+                  )}
+                  {versaoAtiva && (
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                        versaoAtiva.status === 'atual'
+                          ? 'bg-emerald-600 text-white shadow-xs'
+                          : 'bg-slate-100 text-slate-600'
+                      }`}
+                    >
+                      {versaoAtiva.status === 'atual' ? 'VERSÃO ATUAL' : versaoAtiva.status}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Filtro rápido de plataforma para o seletor */}
+              <div className="flex items-center gap-1.5 pb-1">
+                <span className="text-[11px] font-bold text-slate-500 mr-1">Filtrar:</span>
+                <button
+                  type="button"
+                  onClick={() => setFiltroPlataforma('todas')}
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-bold cursor-pointer transition-colors ${
+                    filtroPlataforma === 'todas'
+                      ? 'bg-panorama-navy text-white'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  Todas ({versoes.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFiltroPlataforma('celular')}
+                  className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold cursor-pointer transition-colors ${
+                    filtroPlataforma === 'celular'
+                      ? 'bg-emerald-600 text-white'
+                      : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100'
+                  }`}
+                >
+                  <Smartphone className="w-3 h-3" />
+                  Celular ({versoes.filter((v) => v.plataforma === 'celular').length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFiltroPlataforma('desktop')}
+                  className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold cursor-pointer transition-colors ${
+                    filtroPlataforma === 'desktop'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-blue-50 text-blue-800 hover:bg-blue-100'
+                  }`}
+                >
+                  <Monitor className="w-3 h-3" />
+                  Desktop ({versoes.filter((v) => v.plataforma !== 'celular').length})
+                </button>
               </div>
 
               <select
@@ -422,16 +488,32 @@ export function SectionControleVersao() {
                 onChange={(e) => setVersaoSelecionadaId(e.target.value)}
                 className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm font-bold text-slate-900 focus:ring-2 focus:ring-panorama-gold/70 focus:outline-none"
               >
-                {versoes.map((v) => (
-                  <option key={v.id} value={v.id}>
-                    {v.versao} — Atualização: {v.data_atualizacao.split('-').reverse().join('/')} (
-                    {v.status === 'atual' ? 'VERSÃO ATUAL' : v.status})
-                  </option>
-                ))}
+                {versoes
+                  .filter((v) => {
+                    if (filtroPlataforma === 'celular') return v.plataforma === 'celular'
+                    if (filtroPlataforma === 'desktop') return v.plataforma !== 'celular'
+                    return true
+                  })
+                  .map((v) => {
+                    const isCel = v.plataforma === 'celular'
+                    return (
+                      <option key={v.id} value={v.id}>
+                        {isCel ? '📱 [CELULAR]' : '💻 [DESKTOP]'} {v.versao} — Atualização:{' '}
+                        {v.data_atualizacao.split('-').reverse().join('/')} (
+                        {v.status === 'atual' ? 'VERSÃO ATUAL' : v.status})
+                      </option>
+                    )
+                  })}
               </select>
 
               {versaoAtiva && (
-                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-2">
+                <div
+                  className={`p-3.5 rounded-xl border text-xs space-y-2 ${
+                    versaoAtiva.plataforma === 'celular'
+                      ? 'bg-emerald-50/50 border-emerald-200'
+                      : 'bg-slate-50 border-slate-200'
+                  }`}
+                >
                   <div className="flex items-center justify-between text-[11px] text-slate-500 border-b border-slate-200 pb-1.5">
                     <span className="flex items-center gap-1 font-semibold text-slate-700">
                       <Calendar className="w-3.5 h-3.5 text-panorama-gold-dark" />
@@ -440,8 +522,18 @@ export function SectionControleVersao() {
                         {versaoAtiva.data_atualizacao.split('-').reverse().join('/')}
                       </strong>
                     </span>
-                    <span className="text-[10px] font-mono text-slate-400">
-                      Controle: {versaoAtiva.controlado_por || 'COU'}
+                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-700">
+                      {versaoAtiva.plataforma === 'celular' ? (
+                        <>
+                          <Smartphone className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>Versão para Celular</span>
+                        </>
+                      ) : (
+                        <>
+                          <Monitor className="w-3.5 h-3.5 text-blue-600" />
+                          <span>Versão para Computador (Desktop)</span>
+                        </>
+                      )}
                     </span>
                   </div>
 
@@ -518,11 +610,19 @@ export function SectionControleVersao() {
             <div className="lg:col-span-5 flex flex-col items-center justify-between p-5 bg-gradient-to-b from-slate-50 to-white rounded-xl border border-slate-200 text-center space-y-4">
               <div className="space-y-1">
                 <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-panorama-navy">
-                  <QrCode className="w-4 h-4 text-panorama-gold-dark" />
-                  QR Code Oficial do Instalador ADECONT
+                  {versaoAtiva?.plataforma === 'celular' ? (
+                    <Smartphone className="w-4 h-4 text-emerald-600" />
+                  ) : (
+                    <QrCode className="w-4 h-4 text-panorama-gold-dark" />
+                  )}
+                  {versaoAtiva?.plataforma === 'celular'
+                    ? 'QR Code — Instalação no Celular'
+                    : 'QR Code Oficial do Instalador ADECONT'}
                 </div>
                 <p className="text-[11px] text-slate-500 max-w-[240px]">
-                  Aponte a câmera do celular para instalar o PWA homologado na versão{' '}
+                  {versaoAtiva?.plataforma === 'celular'
+                    ? 'Aponte a câmera do smartphone para instalar a versão mobile homologada '
+                    : 'Aponte a câmera do celular para instalar o PWA homologado na versão '}
                   <strong>{versaoAtiva?.versao}</strong>.
                 </p>
               </div>
@@ -694,17 +794,44 @@ export function SectionControleVersao() {
               </span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-700">Número da Versão *</label>
                 <input
                   type="text"
                   value={novaVersaoNum}
                   onChange={(e) => setNovaVersaoNum(e.target.value)}
-                  placeholder="Ex.: v2.8.5 ou v3.0.0"
+                  placeholder="Ex.: v2.8.5 ou v2.8.5-m"
                   className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-bold focus:ring-2 focus:ring-panorama-gold/70 focus:outline-none"
                   required
                 />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-700 flex items-center gap-1">
+                  <span>Plataforma *</span>
+                  {novaPlataforma === 'celular' ? (
+                    <Smartphone className="w-3.5 h-3.5 text-emerald-600" />
+                  ) : (
+                    <Monitor className="w-3.5 h-3.5 text-blue-600" />
+                  )}
+                </label>
+                <select
+                  value={novaPlataforma}
+                  onChange={(e) => {
+                    const plat = e.target.value as 'desktop' | 'celular'
+                    setNovaPlataforma(plat)
+                    if (plat === 'celular') {
+                      setNovoCanalDist('WhatsApp, QR Code Celular e E-mail')
+                    } else {
+                      setNovoCanalDist('E-mail, WhatsApp e QR Code Seguro')
+                    }
+                  }}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-bold bg-white focus:ring-2 focus:ring-panorama-gold/70 focus:outline-none"
+                >
+                  <option value="celular">📱 Celular (Mobile / Smartphone)</option>
+                  <option value="desktop">💻 Desktop (Computador / PC)</option>
+                </select>
               </div>
 
               <div className="space-y-1">
@@ -821,26 +948,62 @@ export function SectionControleVersao() {
             <div className="divide-y divide-slate-200 border border-slate-200 rounded-xl overflow-hidden bg-white">
               {versoes.map((item) => {
                 const isAtual = item.status === 'atual'
+                const isCelular = item.plataforma === 'celular'
                 return (
                   <div
                     key={item.id}
                     className={`p-4 sm:p-5 transition-colors space-y-2.5 ${
                       isAtual
-                        ? 'bg-emerald-50/40 border-l-4 border-l-emerald-600'
+                        ? isCelular
+                          ? 'bg-emerald-50/50 border-l-4 border-l-emerald-600'
+                          : 'bg-blue-50/40 border-l-4 border-l-blue-600'
                         : 'hover:bg-slate-50'
                     }`}
                   >
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div className="space-y-1">
                         <div className="flex items-center gap-2.5 flex-wrap">
+                          {/* Ícone novo de celular vs ícone de desktop */}
+                          <div
+                            className={`p-1.5 rounded-lg border ${
+                              isCelular
+                                ? 'bg-emerald-100 border-emerald-300 text-emerald-800'
+                                : 'bg-blue-100 border-blue-300 text-blue-800'
+                            }`}
+                            title={
+                              isCelular
+                                ? 'Versão para Celular (Mobile)'
+                                : 'Versão para Desktop (Computador)'
+                            }
+                          >
+                            {isCelular ? (
+                              <Smartphone className="w-4 h-4" />
+                            ) : (
+                              <Monitor className="w-4 h-4" />
+                            )}
+                          </div>
+
                           <span className="text-base font-black text-slate-900 font-mono">
                             {item.versao}
                           </span>
 
+                          {/* Badge de plataforma com o novo ícone */}
+                          {isCelular ? (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-600 text-white shadow-xs uppercase tracking-wider">
+                              <Smartphone className="w-3 h-3" />
+                              CELULAR
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-700 text-white shadow-xs uppercase tracking-wider">
+                              <Monitor className="w-3 h-3" />
+                              DESKTOP
+                            </span>
+                          )}
+
                           <span
                             className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
                               isAtual
-                                ? 'bg-emerald-600 text-white shadow-xs'
+                                ? 'bg-amber-400 text-panorama-navy font-black shadow-xs border border-amber-500'
                                 : 'bg-slate-200 text-slate-700'
                             }`}
                           >
@@ -857,20 +1020,26 @@ export function SectionControleVersao() {
                         </div>
 
                         <div className="text-[11px] text-slate-500">
-                          Controlado por: <strong>{item.controlado_por || 'COU ADECONT'}</strong> •
-                          Canais: {item.canal_distribuicao || 'E-mail, WhatsApp e PWA'}
+                          Plataforma:{' '}
+                          <strong>
+                            {isCelular ? 'Celular (Android/iOS)' : 'Desktop/Computador'}
+                          </strong>{' '}
+                          • Controlado por: <strong>{item.controlado_por || 'COU ADECONT'}</strong>{' '}
+                          • Canais: {item.canal_distribuicao || 'E-mail, WhatsApp e PWA'}
                         </div>
                       </div>
 
                       <div className="flex items-center gap-2">
                         {!isAtual && (
                           <button
-                            onClick={() => handlePromoverAtual(item.id)}
+                            onClick={() =>
+                              handlePromoverAtual(item.id, item.plataforma || 'desktop')
+                            }
                             className="px-3 py-1.5 rounded-lg border border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors"
-                            title="Definir como a versão atual homologada pelo COU"
+                            title={`Definir como a versão atual homologada pelo COU para ${isCelular ? 'celular' : 'desktop'}`}
                           >
                             <Check className="w-3.5 h-3.5" />
-                            <span>Definir como Atual</span>
+                            <span>Definir como Atual ({isCelular ? 'Celular' : 'Desktop'})</span>
                           </button>
                         )}
 
@@ -925,6 +1094,7 @@ export function SectionControleVersao() {
                 <tr>
                   <th className="p-3">Protocolo</th>
                   <th className="p-3">Destinatário</th>
+                  <th className="p-3">Plataforma</th>
                   <th className="p-3">Versão Enviada</th>
                   <th className="p-3">Data Atualização</th>
                   <th className="p-3">Canal</th>
@@ -935,7 +1105,7 @@ export function SectionControleVersao() {
               <tbody className="divide-y divide-slate-200">
                 {envios.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="p-6 text-center text-slate-400 text-xs">
+                    <td colSpan={8} className="p-6 text-center text-slate-400 text-xs">
                       Nenhum envio registrado ainda. Organize seu primeiro disparo na Aba 1.
                     </td>
                   </tr>
@@ -955,6 +1125,19 @@ export function SectionControleVersao() {
                         {env.destinatario_email && (
                           <span className="block text-[10px] text-slate-400 font-mono">
                             {env.destinatario_email}
+                          </span>
+                        )}
+                      </td>
+                      <td className="p-3">
+                        {env.plataforma === 'celular' ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                            <Smartphone className="w-3 h-3 text-emerald-700" />
+                            Celular
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-300">
+                            <Monitor className="w-3 h-3 text-blue-700" />
+                            Desktop
                           </span>
                         )}
                       </td>
