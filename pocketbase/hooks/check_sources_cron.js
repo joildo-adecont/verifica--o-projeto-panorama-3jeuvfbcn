@@ -162,7 +162,10 @@ cronAdd('check_tax_sources', '0 * * * *', () => {
     {
       key: 'cgsn_simples',
       name: 'Comitê Gestor do Simples Nacional (CGSN)',
-      url: 'https://www.receita.fazenda.gov.br/simplesnacional',
+      // URL antiga (sem "www8" e sem barra final) devolvia 404 — a fonte
+      // aparecia como quebrada no painel de status. Este é o endereço real do
+      // portal do Simples Nacional, que responde 200 e cita o CGSN.
+      url: 'https://www8.receita.fazenda.gov.br/SimplesNacional/',
       order: 16,
       isAccessible: true,
       alternative: 'Acesso direto oficial',
@@ -191,7 +194,9 @@ cronAdd('check_tax_sources', '0 * * * *', () => {
     {
       key: 'lexml',
       name: 'LexML (Rede de Informação Legislativa e Jurídica)',
-      url: 'http://www.lexml.gov.br',
+      // era http:// (sem TLS): o portal responde em https com o mesmo
+      // certificado válido, então a verificação passa a ser cifrada.
+      url: 'https://www.lexml.gov.br',
       order: 19,
       isAccessible: false,
       humanOnly: true,
