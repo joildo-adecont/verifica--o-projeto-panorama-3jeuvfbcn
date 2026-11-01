@@ -4362,6 +4362,14 @@ const DADOS = {
       ],
     },
     {
+      uf: 'AC',
+      nome: 'Diário Oficial do Acre',
+      ativo: true,
+      modo: 'Busca por palavra-chave (POST form) · exige mínimo de 4 caracteres · 20 atos',
+      hits: 20,
+      amostra: [],
+    },
+    {
       uf: 'AL',
       nome: 'Diário Oficial de Alagoas',
       ativo: true,
