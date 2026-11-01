@@ -373,7 +373,11 @@ export function SectionControleAcesso() {
             novos comandos entram aqui e na API com o nível mínimo
           </span>
         </div>
-        <table className="w-full text-sm">
+        {/* overflow-x-auto: em 402px (iPhone 18 Pro) esta tabela media 398px
+            numa área de 370px e vazava 13px para fora da tela. As outras duas
+            tabelas desta seção já tinham o container; esta não. */}
+        <div className="overflow-x-auto">
+        <table className="w-full min-w-[360px] text-sm">
           <thead>
             <tr className="bg-panorama-navy text-white border-b-2 border-panorama-gold">
               <th className="px-4 py-2 text-left text-xs uppercase tracking-wide font-semibold">
@@ -414,6 +418,7 @@ export function SectionControleAcesso() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
 
       {/* Trava de segurança — Rate Limit + bloqueio na 3ª tentativa */}
