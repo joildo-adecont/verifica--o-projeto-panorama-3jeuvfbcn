@@ -391,4 +391,87 @@ describe('Validação dos fluxos do Panorama da Reforma Tributária', () => {
     expect(resTermoGeral.termo).toBe('Simples Nacional')
     expect(resTermoGeral.totalGeralEncontrado).toBeGreaterThan(0)
   })
+
+  it('validação dos filtros facetados da Seção de Normas (#secao-1)', async () => {
+    const { fallbackNorms } = await import('./panorama')
+    const {
+      filtrarNormas,
+      deduzirTipoAto,
+      deduzirEsferaNorma,
+      correspondeFonteNorma,
+      contarFiltrosNormasAtivos,
+      FILTROS_NORMAS_INICIAIS,
+      OPCOES_TIPOS_ATO_NORMA,
+      OPCOES_FONTES_NORMA,
+      OPCOES_ESFERAS_NORMA,
+      OPCOES_INCIDENCIA_NORMA,
+    } = await import('./normasFilters')
+
+    // Deve possuir as opções padronizadas
+    expect(OPCOES_TIPOS_ATO_NORMA.length).toBeGreaterThanOrEqual(6)
+    expect(OPCOES_FONTES_NORMA.length).toBeGreaterThanOrEqual(6)
+    expect(OPCOES_ESFERAS_NORMA.length).toBe(3)
+    expect(OPCOES_INCIDENCIA_NORMA.length).toBeGreaterThanOrEqual(5)
+
+    // 1. Sem filtros: total de normas preservado
+    const todas = filtrarNormas(fallbackNorms, FILTROS_NORMAS_INICIAIS)
+    expect(todas).toHaveLength(fallbackNorms.length)
+
+    // 2. Filtro por tipo de ato: Resoluções (CGIBS e CGSN)
+    const resolucoes = filtrarNormas(fallbackNorms, {
+      ...FILTROS_NORMAS_INICIAIS,
+      tiposAto: ['Resolução'],
+    })
+    expect(resolucoes.length).toBeGreaterThan(0)
+    for (const r of resolucoes) {
+      expect(deduzirTipoAto(r)).toBe('Resolução')
+    }
+
+    // 3. Filtro por fonte oficial: Planalto (EC 132, LC 214, LC 227, Decreto 12.955)
+    const planalto = filtrarNormas(fallbackNorms, {
+      ...FILTROS_NORMAS_INICIAIS,
+      fontes: ['Planalto'],
+    })
+    expect(planalto.length).toBeGreaterThanOrEqual(4)
+    for (const p of planalto) {
+      expect(correspondeFonteNorma(p, 'Planalto')).toBe(true)
+    }
+
+    // 4. Filtro por fonte oficial: CGIBS
+    const cgibs = filtrarNormas(fallbackNorms, {
+      ...FILTROS_NORMAS_INICIAIS,
+      fontes: ['CGIBS'],
+    })
+    expect(cgibs.length).toBeGreaterThanOrEqual(8)
+
+    // 5. Combinação de filtros: tipo Decreto + fonte Planalto
+    const decretoPlanalto = filtrarNormas(fallbackNorms, {
+      ...FILTROS_NORMAS_INICIAIS,
+      tiposAto: ['Decreto'],
+      fontes: ['Planalto'],
+    })
+    expect(decretoPlanalto).toHaveLength(1)
+    expect(decretoPlanalto[0].code).toBe('Decreto 12.955/2026')
+
+    // 6. Combinação com estado vazio (nenhuma correspondência)
+    const vazia = filtrarNormas(fallbackNorms, {
+      ...FILTROS_NORMAS_INICIAIS,
+      tiposAto: ['Emenda Constitucional'],
+      fontes: ['CGSN'],
+    })
+    expect(vazia).toHaveLength(0)
+
+    // 7. Esferas federativas
+    expect(deduzirEsferaNorma(fallbackNorms[0])).toBe('federal')
+
+    // 8. Contador de filtros
+    const totalContador = contarFiltrosNormasAtivos({
+      termo: 'IBS',
+      tiposAto: ['Resolução'],
+      esferas: ['federal'],
+      fontes: ['CGIBS'],
+      incidencias: ['OPERACIONAL'],
+    })
+    expect(totalContador).toBe(5)
+  })
 })
