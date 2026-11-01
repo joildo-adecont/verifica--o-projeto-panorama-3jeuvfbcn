@@ -89,4 +89,66 @@ describe('Instalador e Controle de Versão (CEO)', () => {
     // Se chamar o backend real ou falhar por rede, a lógica pura pode ser testada por contrato
     expect(typeof registrarEnvioInstalacao).toBe('function')
   })
+
+  it('a mensagem de instalação cita explicitamente o mecanismo de atualização automática no mesmo dia e o manifesto oficial', () => {
+    const msg = formatarMensagemInstalacao({
+      versao: 'v2.8.4',
+      dataAtualizacao: '2026-10-31',
+      urlInstalador: 'https://verificacao-projeto-panorama-18549.goskip.app/#instalador-versao',
+      canal: 'email',
+    })
+
+    expect(msg).toContain('Mecanismo de Atualização Automática no Mesmo Dia')
+    expect(msg).toContain('propaga automaticamente para todos os sistemas enviados no mesmo dia')
+    expect(msg).toContain('Manifesto Oficial (/backend/v1/programa-manifesto)')
+    expect(msg).toContain('sem necessidade de reinstalação manual')
+  })
+
+  it('garante que a data da propagação é estritamente o MESMO DIA da atualização da base', async () => {
+    const { registrarAtualizacaoBaseEPropagar } = await import('./programaVersoes')
+    expect(typeof registrarAtualizacaoBaseEPropagar).toBe('function')
+
+    // Execução real contra o backend de teste/preview
+    const dataMockHoje = '2026-11-01'
+    const resultado = await registrarAtualizacaoBaseEPropagar({
+      origem: 'teste unitario automatizado',
+      versaoBase: 'base-teste-2026-11-01',
+      descricao: 'Teste de garantia de propagação para todos os sistemas no mesmo dia.',
+      dataAtualizacao: dataMockHoje,
+    })
+
+    expect(resultado).toBeDefined()
+    expect(resultado.atualizacao.data_atualizacao).toBe(dataMockHoje)
+    expect(resultado.dataPropagacao).toBe(dataMockHoje)
+    expect(resultado.dataPropagacao).toBe(resultado.atualizacao.data_atualizacao)
+  })
+
+  it('o manifesto oficial responde com requires_update correto para versões desatualizadas', async () => {
+    const { consultarProgramaManifesto } = await import('./programaVersoes')
+    expect(typeof consultarProgramaManifesto).toBe('function')
+
+    // Consulta com versão desatualizada
+    const respDesatualizada = await consultarProgramaManifesto({
+      plataforma: 'celular',
+      versaoCliente: 'v2.8.0-m',
+    })
+
+    expect(respDesatualizada.sucesso).toBe(true)
+    expect(respDesatualizada.plataforma).toBe('celular')
+    expect(respDesatualizada.requires_update).toBe(true)
+    expect(respDesatualizada.versao_atual).toBe('v2.8.4-m')
+    expect(respDesatualizada.mecanismo_atualizacao.status).toBe('ativo')
+    expect(respDesatualizada.mecanismo_atualizacao.tipo).toBe('propagacao_mesmo_dia')
+    expect(respDesatualizada.mecanismo_atualizacao.politica).toContain('mesmo dia')
+
+    // Consulta com versão atualizada
+    const respAtualizada = await consultarProgramaManifesto({
+      plataforma: 'desktop',
+      versaoCliente: 'v2.8.4',
+    })
+
+    expect(respAtualizada.sucesso).toBe(true)
+    expect(respAtualizada.requires_update).toBe(false)
+    expect(respAtualizada.versao_atual).toBe('v2.8.4')
+  })
 })

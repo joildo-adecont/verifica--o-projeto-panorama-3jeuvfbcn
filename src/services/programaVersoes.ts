@@ -47,6 +47,7 @@ export interface ProgramaEnvioItem {
   url_instalador_enviada?: string
   enviado_por?: string
   data_envio?: string
+  requer_atualizacao?: boolean
   created?: string
   updated?: string
 }
@@ -66,6 +67,64 @@ export interface CreateEnvioInput {
   url_instalador_enviada?: string
   enviado_por?: string
   data_envio?: string
+  requer_atualizacao?: boolean
+}
+
+export interface ProgramaAtualizacaoItem {
+  id: string
+  data_atualizacao: string
+  origem: string
+  versao_base: string
+  descricao: string
+  total_envios_afetados?: number
+  executado_por?: string
+  created?: string
+  updated?: string
+}
+
+export interface ProgramaPropagacaoItem {
+  id: string
+  atualizacao_id: string
+  envio_id: string
+  protocolo_envio: string
+  plataforma: PlataformaVersao
+  destinatario_nome?: string
+  data_propagacao: string // mesmo dia da atualização
+  status: 'propagada' | 'pendente' | 'confirmada'
+  created?: string
+  updated?: string
+}
+
+export interface ProgramaManifestoResponse {
+  sucesso: boolean
+  mecanismo_atualizacao: {
+    status: string
+    tipo: string
+    controlado_por: string
+    politica: string
+    manifesto_url: string
+  }
+  plataforma: PlataformaVersao
+  versao_cliente: string | null
+  versao_atual: string
+  data_atualizacao: string
+  notas_versao?: string
+  url_instalador: string
+  requires_update: boolean
+  base_dados: {
+    versao_mais_recente: string
+    data_mais_recente: string
+    atualizacoes_mesmo_dia: Array<{
+      id: string
+      data_atualizacao: string
+      origem: string
+      versao_base: string
+      descricao: string
+      total_envios_afetados?: number
+      executado_por?: string
+    }>
+  }
+  servidor_timestamp: string
 }
 
 export interface DestinatarioCliente {
@@ -262,6 +321,132 @@ export async function fetchProgramaEnvios(): Promise<ProgramaEnvioItem[]> {
   }
 }
 
+/** Busca atualizações da base registradas no sistema */
+export async function fetchProgramaAtualizacoes(): Promise<ProgramaAtualizacaoItem[]> {
+  try {
+    const records = await pb
+      .collection('programa_atualizacoes')
+      .getFullList<ProgramaAtualizacaoItem>({
+        sort: '-data_atualizacao,-created',
+      })
+    return records || []
+  } catch (err) {
+    console.warn('[programaVersoes] Falha ao ler programa_atualizacoes:', err)
+    return []
+  }
+}
+
+/** Busca propagações registradas */
+export async function fetchProgramaPropagacoes(
+  atualizacaoId?: string,
+): Promise<ProgramaPropagacaoItem[]> {
+  try {
+    const filter = atualizacaoId ? `atualizacao_id = '${atualizacaoId}'` : ''
+    const records = await pb
+      .collection('programa_propagacoes')
+      .getFullList<ProgramaPropagacaoItem>({
+        filter,
+        sort: '-data_propagacao,-created',
+      })
+    return records || []
+  } catch (err) {
+    console.warn('[programaVersoes] Falha ao ler programa_propagacoes:', err)
+    return []
+  }
+}
+
+/**
+ * Registra uma atualização de base pelo CEO ou rotina e PROPAGA PARA TODOS OS ENVIOS NO MESMO DIA.
+ * Garante que a data da propagação seja estritamente o MESMO DIA da atualização.
+ */
+export async function registrarAtualizacaoBaseEPropagar(params: {
+  origem: string
+  versaoBase: string
+  descricao: string
+  dataAtualizacao?: string // YYYY-MM-DD
+  executadoPor?: string
+}): Promise<{
+  atualizacao: ProgramaAtualizacaoItem
+  propagacoesCriadas: number
+  dataPropagacao: string
+}> {
+  const dataHoje = params.dataAtualizacao || new Date().toISOString().slice(0, 10)
+  const executadoPor = params.executadoPor || 'CEO — Direção Executiva ADECONT'
+
+  // 1. Criar registro de atualização da base
+  const attRecord = await pb.collection('programa_atualizacoes').create<ProgramaAtualizacaoItem>({
+    data_atualizacao: dataHoje,
+    origem: params.origem,
+    versao_base: params.versaoBase,
+    descricao: params.descricao,
+    total_envios_afetados: 0,
+    executado_por: executadoPor,
+  })
+
+  // 2. Buscar todos os envios emitidos (desktop e celular)
+  const envios = await pb.collection('programa_envios').getFullList<ProgramaEnvioItem>({
+    sort: '-created',
+  })
+
+  let propagacoesCriadas = 0
+
+  // 3. Criar registro de propagação datado no MESMO DIA para cada envio
+  for (const envio of envios) {
+    try {
+      await pb.collection('programa_propagacoes').create<ProgramaPropagacaoItem>({
+        atualizacao_id: attRecord.id,
+        envio_id: envio.id,
+        protocolo_envio: envio.protocolo || envio.id,
+        plataforma: envio.plataforma || 'desktop',
+        destinatario_nome: envio.destinatario_nome,
+        data_propagacao: dataHoje, // MESMO DIA DA ATUALIZAÇÃO
+        status: 'propagada',
+      })
+
+      // Marcar envio como requer_atualizacao
+      await pb.collection('programa_envios').update(envio.id, {
+        requer_atualizacao: true,
+      })
+
+      propagacoesCriadas++
+    } catch (err) {
+      console.warn(`[programaVersoes] Falha ao propagar para o envio ${envio.id}:`, err)
+    }
+  }
+
+  // 4. Atualizar total de afetados
+  const atualizacaoFinal = await pb
+    .collection('programa_atualizacoes')
+    .update<ProgramaAtualizacaoItem>(attRecord.id, {
+      total_envios_afetados: propagacoesCriadas,
+    })
+
+  return {
+    atualizacao: atualizacaoFinal,
+    propagacoesCriadas,
+    dataPropagacao: dataHoje,
+  }
+}
+
+/**
+ * Consulta o Manifesto Oficial de Atualização consumido pelo programa instalado.
+ */
+export async function consultarProgramaManifesto(params?: {
+  plataforma?: PlataformaVersao
+  versaoCliente?: string
+}): Promise<ProgramaManifestoResponse> {
+  const base = import.meta.env.VITE_POCKETBASE_URL || ''
+  const plat = params?.plataforma || 'desktop'
+  const vParam = params?.versaoCliente ? `&versao=${encodeURIComponent(params.versaoCliente)}` : ''
+  const url = `${base}/backend/v1/programa-manifesto?plataforma=${plat}${vParam}`
+
+  const res = await fetch(url)
+  if (!res.ok) {
+    throw new Error(`Falha ao obter manifesto de atualização: HTTP ${res.status}`)
+  }
+  return (await res.json()) as ProgramaManifestoResponse
+}
+
 /** Gera a mensagem institucional completa da ADECONT para instalação */
 export function formatarMensagemInstalacao(params: {
   versao: string
@@ -305,6 +490,9 @@ export function formatarMensagemInstalacao(params: {
     ? `• *Plataforma:* 📱 Celular (Smartphone Android & Apple iOS)`
     : `• *Plataforma:* 💻 Desktop / Computador de Mesa e Notebook`
 
+  const blocoMecanismoAtualizacao = `🔄 *Mecanismo de Atualização Automática no Mesmo Dia:*
+O programa instalado inclui mecanismo inteligente de verificação contínua: à medida que a base legislativa e de classificações da ADECONT é atualizada, a nova versão propaga automaticamente para todos os sistemas enviados no mesmo dia. O programa consulta o Manifesto Oficial (/backend/v1/programa-manifesto) para validar integridade, normas vigentes e aplicar novas bases sem necessidade de reinstalação manual.`
+
   const instrucoes = isCelular
     ? `📱 *Instalação Rápida no seu Celular:*
 1. Abra o link seguro no celular (Chrome ou Safari).
@@ -330,6 +518,8 @@ ${infoPlataforma}
 
 ${notasVersao ? `📝 *O que mudou nesta atualização:*\n${notasVersao}\n\n` : ''}🔗 *Link Direto de Instalação (Anti-bloqueio Seguro):*
 ${urlInstalador}
+
+${blocoMecanismoAtualizacao}
 
 ${instrucoes}
 

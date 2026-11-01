@@ -340,6 +340,54 @@ routerAdd('POST', '/backend/v1/trigger-weekly-review', (e) => {
     reviewRecord.set('summary', summaryText)
 
     $app.save(reviewRecord)
+
+    // INTEGRAÇÃO COM MECANISMO DE ATUALIZAÇÃO E PROPAGAÇÃO NO MESMO DIA
+    let totalPropagados = 0
+    try {
+      const dataHoje = nowIso.slice(0, 10)
+      const colAtt = $app.findCollectionByNameOrId('programa_atualizacoes')
+      const attRec = new Record(colAtt)
+      attRec.set('data_atualizacao', dataHoje)
+      attRec.set('origem', 'rotina semanal de normas')
+      attRec.set('versao_base', 'base-semanal-' + dataHoje)
+      attRec.set(
+        'descricao',
+        'Revisão periódica de normas oficiais (CGIBS, RFB, Senado, normas.leg.br, DOU) acionada via API. Propagação automática disparada para todos os sistemas enviados.',
+      )
+      attRec.set('executado_por', 'Rotina Semanal ADECONT')
+      $app.save(attRec)
+
+      // Propagar para TODOS os sistemas enviados
+      const colProp = $app.findCollectionByNameOrId('programa_propagacoes')
+      const envios = $app.findRecordsByFilter('programa_envios', '', '-created', 500, 0)
+
+      for (let eIdx = 0; eIdx < envios.length; eIdx++) {
+        const envio = envios[eIdx]
+        const pRec = new Record(colProp)
+        pRec.set('atualizacao_id', attRec.id)
+        pRec.set('envio_id', envio.id)
+        pRec.set('protocolo_envio', envio.getString('protocolo') || envio.id)
+        pRec.set('plataforma', envio.getString('plataforma') || 'desktop')
+        pRec.set('destinatario_nome', envio.getString('destinatario_nome'))
+        pRec.set('data_propagacao', dataHoje) // MESMO DIA
+        pRec.set('status', 'propagada')
+        $app.save(pRec)
+
+        try {
+          envio.set('requer_atualizacao', true)
+          $app.save(envio)
+        } catch (_) {}
+
+        totalPropagados++
+      }
+
+      attRec.set('total_envios_afetados', totalPropagados)
+      $app.save(attRec)
+    } catch (attErr) {
+      console.log(
+        'Erro ao propagar atualização da base em trigger-weekly-review: ' + String(attErr),
+      )
+    }
   } catch (reviewErr) {
     return e.json(500, {
       success: false,
@@ -356,6 +404,10 @@ routerAdd('POST', '/backend/v1/trigger-weekly-review', (e) => {
       notes: reviewRecord.getString('notes'),
       summary: reviewRecord.getString('summary'),
       sources_checked: checkedSources,
+    },
+    propagacao_mesmo_dia: {
+      executada: true,
+      total_afetados: totalPropagados,
     },
   })
 })

@@ -21,6 +21,11 @@ import {
   Download,
   KeyRound,
   FileText,
+  RefreshCw,
+  Cpu,
+  ArrowRight,
+  AlertCircle,
+  CheckCircle2,
 } from 'lucide-react'
 import { AdecontLogo, AdecontBadge } from '@/components/AdecontLogo'
 import { renderQrCodeSvg } from '@/lib/qrCode'
@@ -32,22 +37,50 @@ import {
   registrarEnvioInstalacao,
   fetchProgramaEnvios,
   formatarMensagemInstalacao,
+  fetchProgramaAtualizacoes,
+  fetchProgramaPropagacoes,
+  registrarAtualizacaoBaseEPropagar,
+  consultarProgramaManifesto,
   type ProgramaVersaoItem,
   type DestinatarioCliente,
   type ProgramaEnvioItem,
   type CanalEnvioInstalacao,
   type StatusVersao,
+  type ProgramaAtualizacaoItem,
+  type ProgramaPropagacaoItem,
+  type ProgramaManifestoResponse,
 } from '@/services/programaVersoes'
 
 export function SectionControleVersao() {
-  const [abaAtiva, setAbaAtiva] = useState<'envio' | 'versoes' | 'historico_envios'>('envio')
+  const [abaAtiva, setAbaAtiva] = useState<
+    'envio' | 'versoes' | 'historico_envios' | 'atualizacoes'
+  >('envio')
 
   // Dados do backend
   const [versoes, setVersoes] = useState<ProgramaVersaoItem[]>([])
   const [clientes, setClientes] = useState<DestinatarioCliente[]>([])
   const [envios, setEnvios] = useState<ProgramaEnvioItem[]>([])
+  const [atualizacoes, setAtualizacoes] = useState<ProgramaAtualizacaoItem[]>([])
+  const [propagacoes, setPropagacoes] = useState<ProgramaPropagacaoItem[]>([])
+  const [manifestoDesktop, setManifestoDesktop] = useState<ProgramaManifestoResponse | null>(null)
+  const [manifestoCelular, setManifestoCelular] = useState<ProgramaManifestoResponse | null>(null)
   const [loading, setLoading] = useState(false)
   const [copiedKey, setCopiedKey] = useState<string | null>(null)
+
+  // Ações de Atualização Manual de Base e Propagação no Mesmo Dia
+  const [novaOrigemBase, setNovaOrigemBase] = useState('manual CEO')
+  const [novaVersaoBase, setNovaVersaoBase] = useState(
+    () => `base-${new Date().toISOString().slice(0, 10)}`,
+  )
+  const [novaDescricaoBase, setNovaDescricaoBase] = useState('')
+  const [dataAtualizacaoBase, setDataAtualizacaoBase] = useState(() =>
+    new Date().toISOString().slice(0, 10),
+  )
+  const [propagando, setPropagando] = useState(false)
+  const [feedbackPropagacao, setFeedbackPropagacao] = useState<{
+    texto: string
+    ok: boolean
+  } | null>(null)
 
   // Seleções para envio
   const [versaoSelecionadaId, setVersaoSelecionadaId] = useState<string>('')
@@ -92,14 +125,22 @@ export function SectionControleVersao() {
   async function carregarTudo() {
     setLoading(true)
     try {
-      const [vList, cList, eList] = await Promise.all([
+      const [vList, cList, eList, aList, pList, mDesk, mCel] = await Promise.all([
         fetchProgramaVersoes(),
         fetchDestinatariosCadastro(),
         fetchProgramaEnvios(),
+        fetchProgramaAtualizacoes(),
+        fetchProgramaPropagacoes(),
+        consultarProgramaManifesto({ plataforma: 'desktop' }).catch(() => null),
+        consultarProgramaManifesto({ plataforma: 'celular' }).catch(() => null),
       ])
       setVersoes(vList)
       setClientes(cList)
       setEnvios(eList)
+      setAtualizacoes(aList)
+      setPropagacoes(pList)
+      setManifestoDesktop(mDesk)
+      setManifestoCelular(mCel)
 
       // Seleciona versão atual por padrão se disponível
       const vAtual = vList.find((v) => v.status === 'atual') || vList[0]
@@ -109,6 +150,57 @@ export function SectionControleVersao() {
     } finally {
       setLoading(false)
     }
+  }
+
+  async function handleDispararAtualizacaoBaseEPropagar(e: React.FormEvent) {
+    e.preventDefault()
+    if (!novaDescricaoBase.trim()) {
+      setFeedbackPropagacao({ texto: 'Informe a descrição da atualização de base.', ok: false })
+      return
+    }
+
+    setPropagando(true)
+    setFeedbackPropagacao(null)
+    try {
+      const res = await registrarAtualizacaoBaseEPropagar({
+        origem: novaOrigemBase,
+        versaoBase: novaVersaoBase.trim(),
+        descricao: novaDescricaoBase.trim(),
+        dataAtualizacao: dataAtualizacaoBase,
+        executadoPor: 'CEO — Direção Executiva ADECONT',
+      })
+
+      setFeedbackPropagacao({
+        texto: `✔ Atualização registrada e propagada com sucesso no mesmo dia (${res.dataPropagacao}) para ${res.propagacoesCriadas} envios!`,
+        ok: true,
+      })
+      setNovaDescricaoBase('')
+      await carregarTudo()
+    } catch (err) {
+      setFeedbackPropagacao({
+        texto: 'Erro ao registrar atualização de base e propagar. Verifique o console.',
+        ok: false,
+      })
+      console.error(err)
+    } finally {
+      setPropagando(false)
+    }
+  }
+
+  async function handleReenviarEnvioAtualizado(envio: ProgramaEnvioItem) {
+    // Reutiliza o fluxo de envio existente
+    const vRef = versoes.find((v) => v.versao === envio.versao_ref) || versaoAtiva
+    if (!vRef) return
+
+    setVersaoSelecionadaId(vRef.id)
+    const cliRef = clientes.find(
+      (c) => c.nome === envio.destinatario_nome || c.email === envio.destinatario_email,
+    )
+    if (cliRef) {
+      setClienteSelecionadoId(cliRef.id)
+    }
+    setCanalEnvio(envio.canal || 'whatsapp')
+    setAbaAtiva('envio')
   }
 
   const versaoAtiva = useMemo(() => {
@@ -398,6 +490,18 @@ export function SectionControleVersao() {
         >
           <History className="w-4 h-4 text-blue-400" />
           <span>3. Histórico de Envios Registrados ({envios.length})</span>
+        </button>
+
+        <button
+          onClick={() => setAbaAtiva('atualizacoes')}
+          className={`px-4 py-2.5 rounded-lg text-xs sm:text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
+            abaAtiva === 'atualizacoes'
+              ? 'bg-panorama-navy text-white shadow-xs'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+          }`}
+        >
+          <RefreshCw className="w-4 h-4 text-amber-400" />
+          <span>4. Atualizações Automáticas & Propagação ({atualizacoes.length})</span>
         </button>
       </div>
 
@@ -1100,12 +1204,13 @@ export function SectionControleVersao() {
                   <th className="p-3">Canal</th>
                   <th className="p-3">Data do Envio</th>
                   <th className="p-3">Status</th>
+                  <th className="p-3">Propagação / Base</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
                 {envios.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="p-6 text-center text-slate-400 text-xs">
+                    <td colSpan={9} className="p-6 text-center text-slate-400 text-xs">
                       Nenhum envio registrado ainda. Organize seu primeiro disparo na Aba 1.
                     </td>
                   </tr>
@@ -1172,11 +1277,405 @@ export function SectionControleVersao() {
                           {env.status}
                         </span>
                       </td>
+                      <td className="p-3">
+                        {env.requer_atualizacao ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-100 text-amber-900 border border-amber-300">
+                            <RefreshCw className="w-3 h-3 animate-spin text-amber-700" />
+                            Requer Atualização
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">
+                            <Check className="w-3 h-3 text-emerald-600" />
+                            Base Sincronizada
+                          </span>
+                        )}
+                      </td>
                     </tr>
                   ))
                 )}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* ABA 4: ATUALIZAÇÕES AUTOMÁTICAS & PROPAGAÇÃO NO MESMO DIA */}
+      {abaAtiva === 'atualizacoes' && (
+        <div className="space-y-6">
+          {/* PAINEL DE STATUS DO MECANISMO E LINKS DO MANIFESTO */}
+          <div className="p-5 sm:p-6 rounded-2xl border-2 border-emerald-400/50 bg-gradient-to-br from-emerald-50/50 via-white to-slate-50 shadow-sm space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-emerald-200/60 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-emerald-600 text-white">
+                  <RefreshCw className="w-5 h-5 animate-spin text-emerald-100" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
+                    Mecanismo de Atualizações Automáticas e Propagação no Mesmo Dia
+                  </h3>
+                  <p className="text-xs text-slate-600">
+                    O programa instalado consulta o <strong>Manifesto Oficial ADECONT</strong> para
+                    manter a base sincronizada e aplicar normas e classificações no mesmo dia em que
+                    são atualizadas.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-600 text-white shadow-xs">
+                  <CheckCircle2 className="w-4 h-4" />
+                  Mecanismo Ativo
+                </span>
+              </div>
+            </div>
+
+            {/* Endpoints do Manifesto para Configuração no Programa Instalado */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+              {/* Endpoint Desktop */}
+              <div className="p-4 rounded-xl border border-blue-200 bg-blue-50/40 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="inline-flex items-center gap-1.5 text-xs font-black text-blue-900">
+                    <Monitor className="w-4 h-4 text-blue-700" />
+                    Manifesto para Desktop (PC / Notebook)
+                  </span>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-200 text-blue-900">
+                    Versão Atual: {manifestoDesktop?.versao_atual || 'v2.8.4'}
+                  </span>
+                </div>
+                <div className="p-2.5 rounded-lg bg-white border border-blue-200 font-mono text-[11px] text-slate-800 break-all select-all flex items-center justify-between gap-2">
+                  <span>{`${import.meta.env.VITE_POCKETBASE_URL || ''}/backend/v1/programa-manifesto?plataforma=desktop`}</span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      copiarParaClipboard(
+                        `${import.meta.env.VITE_POCKETBASE_URL || ''}/backend/v1/programa-manifesto?plataforma=desktop`,
+                        'manifesto_desktop',
+                      )
+                    }
+                    className="p-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 cursor-pointer shrink-0"
+                    title="Copiar URL do manifesto desktop"
+                  >
+                    {copiedKey === 'manifesto_desktop' ? (
+                      <Check className="w-3.5 h-3.5 text-emerald-600" />
+                    ) : (
+                      <Copy className="w-3.5 h-3.5" />
+                    )}
+                  </button>
+                </div>
+                <p className="text-[11px] text-slate-600">
+                  Consumido pelo programa Desktop ao iniciar para verificar se a base ou o software
+                  possuem novas compilações.
+                </p>
+              </div>
+
+              {/* Endpoint Mobile */}
+              <div className="p-4 rounded-xl border border-emerald-200 bg-emerald-50/40 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="inline-flex items-center gap-1.5 text-xs font-black text-emerald-900">
+                    <Smartphone className="w-4 h-4 text-emerald-700" />
+                    Manifesto para Celular (Mobile PWA)
+                  </span>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-200 text-emerald-900">
+                    Versão Atual: {manifestoCelular?.versao_atual || 'v2.8.4-m'}
+                  </span>
+                </div>
+                <div className="p-2.5 rounded-lg bg-white border border-emerald-200 font-mono text-[11px] text-slate-800 break-all select-all flex items-center justify-between gap-2">
+                  <span>{`${import.meta.env.VITE_POCKETBASE_URL || ''}/backend/v1/programa-manifesto?plataforma=celular`}</span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      copiarParaClipboard(
+                        `${import.meta.env.VITE_POCKETBASE_URL || ''}/backend/v1/programa-manifesto?plataforma=celular`,
+                        'manifesto_celular',
+                      )
+                    }
+                    className="p-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 cursor-pointer shrink-0"
+                    title="Copiar URL do manifesto celular"
+                  >
+                    {copiedKey === 'manifesto_celular' ? (
+                      <Check className="w-3.5 h-3.5 text-emerald-600" />
+                    ) : (
+                      <Copy className="w-3.5 h-3.5" />
+                    )}
+                  </button>
+                </div>
+                <p className="text-[11px] text-slate-600">
+                  Permite aos smartphones instalados sincronizar instantaneamente classificações e
+                  tabelas da Reforma Tributária.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* FORMULÁRIO MANUAL DE ATUALIZAÇÃO DA BASE E PROPAGAÇÃO NO MESMO DIA */}
+          <form
+            onSubmit={handleDispararAtualizacaoBaseEPropagar}
+            className="p-5 sm:p-6 rounded-2xl border border-slate-200 bg-white shadow-xs space-y-4"
+          >
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <div className="flex items-center gap-2">
+                <Cpu className="w-5 h-5 text-panorama-navy" />
+                <h3 className="text-sm sm:text-base font-bold text-slate-900">
+                  Registrar Atualização de Base e Propagar no Mesmo Dia (Ação CEO)
+                </h3>
+              </div>
+              <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">
+                Gatilho Imediato
+              </span>
+            </div>
+
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Ao registrar uma atualização de base, o sistema percorre{' '}
+              <strong>todos os envios emitidos (desktop e celular)</strong> e cria registros de
+              propagação datados <strong>estritamente no mesmo dia da atualização</strong>, marcando
+              os envios como requerentes de atualização até sua confirmação.
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-700">Origem da Atualização *</label>
+                <select
+                  value={novaOrigemBase}
+                  onChange={(e) => setNovaOrigemBase(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-bold bg-white focus:ring-2 focus:ring-panorama-gold/70 focus:outline-none"
+                >
+                  <option value="manual CEO">Manual CEO (Direção Executiva)</option>
+                  <option value="base de classificações">
+                    Base de Classificações NCM / TIPI / SVRS
+                  </option>
+                  <option value="rotina semanal de normas">
+                    Rotina Semanal de Normas (Segunda-feira)
+                  </option>
+                  <option value="reforma tributária atos">
+                    Atos Oficiais e Decretos Regulamentadores
+                  </option>
+                </select>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-700">
+                  Identificador / Versão da Base *
+                </label>
+                <input
+                  type="text"
+                  value={novaVersaoBase}
+                  onChange={(e) => setNovaVersaoBase(e.target.value)}
+                  placeholder="Ex.: base-2026-11-01 ou ncm-15240-rev3"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-mono font-bold focus:ring-2 focus:ring-panorama-gold/70 focus:outline-none"
+                  required
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-700">
+                  Data do Evento (Mesmo Dia) *
+                </label>
+                <input
+                  type="date"
+                  value={dataAtualizacaoBase}
+                  onChange={(e) => setDataAtualizacaoBase(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-bold focus:ring-2 focus:ring-panorama-gold/70 focus:outline-none"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-700">
+                Descrição Detalhada das Alterações da Base *
+              </label>
+              <textarea
+                rows={3}
+                value={novaDescricaoBase}
+                onChange={(e) => setNovaDescricaoBase(e.target.value)}
+                placeholder="Ex.: Atualização da tabela de classificações NCM, novas resoluções publicadas pelo CGIBS e alíquotas de referência CBS/IBS ajustadas..."
+                className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-sans focus:ring-2 focus:ring-panorama-gold/70 focus:outline-none"
+                required
+              />
+            </div>
+
+            {feedbackPropagacao && (
+              <div
+                className={`p-3 rounded-xl text-xs font-bold ${
+                  feedbackPropagacao.ok
+                    ? 'bg-emerald-50 text-emerald-900 border border-emerald-300'
+                    : 'bg-rose-50 text-rose-900 border border-rose-300'
+                }`}
+              >
+                {feedbackPropagacao.texto}
+              </div>
+            )}
+
+            <div className="flex justify-end pt-1">
+              <button
+                type="submit"
+                disabled={propagando}
+                className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-2 shadow-xs cursor-pointer disabled:opacity-50 transition-all"
+              >
+                <RefreshCw className={`w-4 h-4 ${propagando ? 'animate-spin' : ''}`} />
+                <span>
+                  {propagando
+                    ? 'Propagando para todos os envios no mesmo dia...'
+                    : 'Registrar Atualização de Base e Propagar'}
+                </span>
+              </button>
+            </div>
+          </form>
+
+          {/* HISTÓRICO DE ATUALIZAÇÕES DA BASE E SUAS PROPAGAÇÕES */}
+          <div className="p-5 sm:p-6 rounded-2xl border border-slate-200 bg-white shadow-xs space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <div>
+                <h3 className="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
+                  <Layers className="w-4 h-4 text-panorama-navy" />
+                  Atualizações de Base Registradas & Rastreabilidade de Propagação
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Lista cronológica das atualizações da base, data do evento, origem e total de
+                  envios afetados no mesmo dia.
+                </p>
+              </div>
+
+              <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700">
+                {atualizacoes.length} atualizações registradas
+              </span>
+            </div>
+
+            <div className="divide-y divide-slate-200 border border-slate-200 rounded-xl overflow-hidden bg-white">
+              {atualizacoes.length === 0 ? (
+                <div className="p-6 text-center text-slate-400 text-xs">
+                  Nenhuma atualização de base registrada ainda.
+                </div>
+              ) : (
+                atualizacoes.map((att) => {
+                  const propsDestaAtt = propagacoes.filter((p) => p.atualizacao_id === att.id)
+                  return (
+                    <div
+                      key={att.id}
+                      className="p-4 sm:p-5 space-y-3 hover:bg-slate-50/70 transition-colors"
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex items-center gap-2.5 flex-wrap">
+                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-panorama-navy text-white uppercase tracking-wider">
+                            {att.origem}
+                          </span>
+                          <span className="font-mono font-bold text-xs text-slate-900">
+                            {att.versao_base}
+                          </span>
+                          <span className="text-xs font-bold text-slate-600 flex items-center gap-1">
+                            <Calendar className="w-3.5 h-3.5 text-panorama-gold-dark" />
+                            Data da Atualização:{' '}
+                            <strong className="text-slate-900">
+                              {att.data_atualizacao.split('-').reverse().join('/')}
+                            </strong>
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                            <Check className="w-3.5 h-3.5 text-emerald-600" />
+                            {att.total_envios_afetados ?? propsDestaAtt.length} envios propagados no
+                            mesmo dia
+                          </span>
+                        </div>
+                      </div>
+
+                      <p className="text-xs text-slate-700 leading-relaxed font-sans bg-slate-50 p-3 rounded-lg border border-slate-200">
+                        {att.descricao}
+                      </p>
+
+                      <div className="text-[11px] text-slate-500 flex items-center justify-between">
+                        <span>
+                          Responsável: <strong>{att.executado_por || 'CEO ADECONT'}</strong>
+                        </span>
+                        <span>
+                          Data da Propagação:{' '}
+                          <strong>
+                            {att.data_atualizacao.split('-').reverse().join('/')} (Mesmo Dia)
+                          </strong>
+                        </span>
+                      </div>
+                    </div>
+                  )
+                })
+              )}
+            </div>
+          </div>
+
+          {/* LISTA DE ENVIOS QUE REQUEREM ATUALIZAÇÃO / COM BOTÃO DE REENVIO */}
+          <div className="p-5 sm:p-6 rounded-2xl border border-slate-200 bg-white shadow-xs space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <div>
+                <h3 className="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-amber-600" />
+                  Envios Pendentes de Atualização ("Requer Atualização")
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Sistemas e destinatários que receberam a propagação da nova base e podem receber
+                  um reenvio/notificação oficial pelo fluxo existente.
+                </p>
+              </div>
+
+              <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-800">
+                {envios.filter((e) => e.requer_atualizacao).length} pendentes
+              </span>
+            </div>
+
+            <div className="divide-y divide-slate-200 border border-slate-200 rounded-xl overflow-hidden bg-white">
+              {envios.filter((e) => e.requer_atualizacao).length === 0 ? (
+                <div className="p-6 text-center text-emerald-700 bg-emerald-50/50 text-xs font-medium flex items-center justify-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                  Todos os sistemas enviados estão sincronizados com a base atual ou nenhum envio
+                  pendente!
+                </div>
+              ) : (
+                envios
+                  .filter((e) => e.requer_atualizacao)
+                  .map((env) => (
+                    <div
+                      key={env.id}
+                      className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50 transition-colors"
+                    >
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono font-bold text-xs text-panorama-navy">
+                            {env.protocolo || env.id.slice(0, 10).toUpperCase()}
+                          </span>
+                          <span className="text-xs font-bold text-slate-900">
+                            {env.destinatario_nome}{' '}
+                            {env.destinatario_empresa ? `(${env.destinatario_empresa})` : ''}
+                          </span>
+                          <span
+                            className={`px-2 py-0.2 rounded-full text-[10px] font-bold ${
+                              env.plataforma === 'celular'
+                                ? 'bg-emerald-100 text-emerald-800'
+                                : 'bg-blue-100 text-blue-800'
+                            }`}
+                          >
+                            {env.plataforma === 'celular' ? '📱 Celular' : '💻 Desktop'}
+                          </span>
+                        </div>
+
+                        <div className="text-[11px] text-slate-500">
+                          Versão enviada: <strong>{env.versao_ref}</strong> • Canal:{' '}
+                          <strong className="uppercase">{env.canal}</strong> • Data do Envio:{' '}
+                          {env.data_envio ? env.data_envio.split('-').reverse().join('/') : '—'}
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => handleReenviarEnvioAtualizado(env)}
+                        className="px-3.5 py-2 rounded-xl bg-panorama-navy hover:bg-panorama-navy-light text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer shrink-0 transition-colors"
+                      >
+                        <Send className="w-3.5 h-3.5 text-panorama-gold" />
+                        <span>Reenviar com Base Atualizada</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))
+              )}
+            </div>
           </div>
         </div>
       )}

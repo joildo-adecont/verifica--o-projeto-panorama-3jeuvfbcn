@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-01T19:28:37.172Z",
+  "generatedAt": "2026-11-01T19:35:25.839Z",
   "collections": [
     {
       "name": "users",
@@ -1708,12 +1708,163 @@
           "required": false,
           "system": false,
           "selectValues": ["desktop", "celular"]
+        },
+        {
+          "name": "requer_atualizacao",
+          "type": "bool",
+          "required": false,
+          "system": false
         }
       ],
       "indexes": [
         "CREATE INDEX idx_programa_envios_versao ON programa_envios (versao_ref)",
         "CREATE INDEX idx_programa_envios_created ON programa_envios (created DESC)",
-        "CREATE INDEX `idx_programa_envios_plataforma` ON `programa_envios` (plataforma)"
+        "CREATE INDEX `idx_programa_envios_plataforma` ON `programa_envios` (plataforma)",
+        "CREATE INDEX `idx_programa_envios_requer_att` ON `programa_envios` (requer_atualizacao)"
+      ]
+    },
+    {
+      "name": "programa_atualizacoes",
+      "type": "base",
+      "apiRules": {
+        "list": "",
+        "view": "",
+        "create": "",
+        "update": "",
+        "delete": ""
+      },
+      "fields": [
+        {
+          "name": "data_atualizacao",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "origem",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "versao_base",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "descricao",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "total_envios_afetados",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "executado_por",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": [
+        "CREATE INDEX idx_programa_atualizacoes_data ON programa_atualizacoes (data_atualizacao DESC)",
+        "CREATE INDEX idx_programa_atualizacoes_origem ON programa_atualizacoes (origem)"
+      ]
+    },
+    {
+      "name": "programa_propagacoes",
+      "type": "base",
+      "apiRules": {
+        "list": "",
+        "view": "",
+        "create": "",
+        "update": "",
+        "delete": ""
+      },
+      "fields": [
+        {
+          "name": "atualizacao_id",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "envio_id",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "protocolo_envio",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "plataforma",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": ["desktop", "celular"]
+        },
+        {
+          "name": "destinatario_nome",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "data_propagacao",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "status",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": ["propagada", "pendente", "confirmada"]
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": [
+        "CREATE INDEX idx_programa_propagacoes_data ON programa_propagacoes (data_propagacao DESC)",
+        "CREATE INDEX idx_programa_propagacoes_envio ON programa_propagacoes (envio_id)",
+        "CREATE INDEX idx_programa_propagacoes_atualizacao ON programa_propagacoes (atualizacao_id)",
+        "CREATE INDEX idx_programa_propagacoes_plat ON programa_propagacoes (plataforma)"
       ]
     }
   ]
