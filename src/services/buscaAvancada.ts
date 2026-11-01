@@ -1011,10 +1011,21 @@ export async function buscarAvancado(
           if (termoNorm === 'arroz' || termoNorm === 'feijao' || termoNorm === 'alimento') {
             return item.categoria === 'Cesta Básica' || item.tema.includes('Agro')
           }
-          if (termoNorm === 'isencao' || termoNorm === 'isencao') {
+          if (termoNorm === 'isencao' || termoNorm === 'isencao' || termoNorm === 'isencoes') {
             return item.tipoTratamento.includes('Isenção') || item.tipoTratamento.includes('Zero')
           }
-          if (termoNorm === 'imunidade') {
+          if (
+            termoNorm === 'imunidade' ||
+            termoNorm === 'imunidades' ||
+            termoNorm === 'templo' ||
+            termoNorm === 'templo religioso' ||
+            termoNorm === 'livro' ||
+            termoNorm === 'livros' ||
+            termoNorm === 'exportacao' ||
+            termoNorm === 'exportacoes' ||
+            termoNorm === 'ouro' ||
+            termoNorm === 'reciprocidade'
+          ) {
             return item.categoria === 'Imunidade'
           }
           if (termoNorm === 'zfm' || termoNorm === 'zona franca') {

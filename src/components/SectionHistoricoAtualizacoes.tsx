@@ -96,7 +96,7 @@ const REGISTROS: Registro[] = [
       },
     ],
     caminho: 'src/components/SectionImunidades.tsx',
-    versao: 'v0.0.327',
+    versao: 'v0.0.329',
     bloco: 'sistema',
   },
   {
