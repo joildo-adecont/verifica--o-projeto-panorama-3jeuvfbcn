@@ -39,6 +39,7 @@ import {
 } from '@/data/legislacaoCronologica'
 import { LINHAS_POR_DISPOSITIVO } from '@/data/vinculosLegislacao'
 import { AgenteFontes } from '@/components/AgenteFontes'
+import { AdecontLogo } from '@/components/AdecontLogo'
 
 /**
  * Seção 12A — MONITOR LEGISLATIVO
@@ -178,13 +179,18 @@ export function SectionMonitorLegislativo() {
       <div className="rounded-2xl border border-slate-200 bg-white p-6 md:p-8 shadow-sm space-y-6">
         {/* ─────────────── Cabeçalho ─────────────── */}
         <div>
-          <div className="flex items-center gap-2">
-            <span className="flex items-center justify-center w-7 h-7 rounded-md bg-panorama-navy text-panorama-gold-light ring-1 ring-panorama-gold/50">
-              <Eye className="w-3.5 h-3.5" />
-            </span>
-            <p className="text-xs font-bold uppercase tracking-wider text-panorama-gold-dark">
-              Seção 12A
-            </p>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <span className="flex items-center justify-center w-7 h-7 rounded-md bg-panorama-navy text-panorama-gold-light ring-1 ring-panorama-gold/50">
+                <Eye className="w-3.5 h-3.5" />
+              </span>
+              <p className="text-xs font-bold uppercase tracking-wider text-panorama-gold-dark">
+                Seção 12A
+              </p>
+            </div>
+            <div className="bg-slate-50 px-3 py-1 rounded-xl border border-slate-200 shrink-0 self-start sm:self-auto">
+              <AdecontLogo className="h-6 w-auto" />
+            </div>
           </div>
           <h2 className="text-xl md:text-2xl font-bold text-slate-900 mt-1">
             Monitor Legislativo — controle da legislação e das tabelas da reforma

@@ -713,6 +713,9 @@ export function SectionControleVersao() {
             {/* Coluna QR Code & Links Oficiais (5 cols) */}
             <div className="lg:col-span-5 flex flex-col items-center justify-between p-5 bg-gradient-to-b from-slate-50 to-white rounded-xl border border-slate-200 text-center space-y-4">
               <div className="space-y-1">
+                <div className="flex justify-center mb-1">
+                  <AdecontLogo className="h-6 w-auto" />
+                </div>
                 <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-panorama-navy">
                   {versaoAtiva?.plataforma === 'celular' ? (
                     <Smartphone className="w-4 h-4 text-emerald-600" />
@@ -774,11 +777,32 @@ export function SectionControleVersao() {
                   <div className="flex items-center gap-2">
                     <FileText className="w-4 h-4 text-panorama-navy" />
                     <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-                      Mensagem Institucional do CEO para o Envio
+                      Mensagem Institucional do CEO para o Envio (
+                      {versaoAtiva?.plataforma === 'celular' ? 'Celular / Mobile' : 'Desktop / PC'})
                     </span>
                   </div>
-                  <span className="text-[11px] font-bold text-panorama-gold-dark">
-                    Versão: {versaoAtiva?.versao} • Data: {versaoAtiva?.data_atualizacao}
+                  <div className="flex items-center gap-2">
+                    <div className="hidden sm:flex items-center bg-white px-2 py-0.5 rounded-lg border border-slate-200 shadow-2xs">
+                      <AdecontLogo className="h-4.5 w-auto" />
+                    </div>
+                    <span className="text-[11px] font-bold text-panorama-gold-dark">
+                      Versão: {versaoAtiva?.versao} • Data: {versaoAtiva?.data_atualizacao}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Banner institucional com logo da ADECONT para a mensagem do instalador */}
+                <div className="flex items-center justify-between px-3 py-2 bg-gradient-to-r from-panorama-navy/10 via-slate-50 to-amber-50/50 rounded-lg border border-slate-200 text-xs">
+                  <div className="flex items-center gap-2">
+                    <AdecontLogo className="h-5 w-auto shrink-0" />
+                    <span className="text-[11px] font-bold text-slate-700">
+                      {versaoAtiva?.plataforma === 'celular'
+                        ? 'Instalador Mobile Homologado — Smartphone & Celular'
+                        : 'Instalador Desktop Homologado — Computador & PC'}
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-panorama-navy text-white">
+                    ADECONT Oficial
                   </span>
                 </div>
 

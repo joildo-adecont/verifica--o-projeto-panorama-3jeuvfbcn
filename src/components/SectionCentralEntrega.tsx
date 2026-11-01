@@ -17,6 +17,7 @@ import {
 import { ModalAtalhosInstalacao } from '@/components/ModalAtalhosInstalacao'
 import { ModalBaseClassificacoes } from '@/components/ModalBaseClassificacoes'
 import { ModalBuscaAvancada } from '@/components/ModalBuscaAvancada'
+import { AdecontLogo } from '@/components/AdecontLogo'
 import { FileSpreadsheet } from 'lucide-react'
 
 const SIM_URL = '/simulador.html'
@@ -292,13 +293,18 @@ export function SectionCentralEntrega() {
   return (
     <section id="central-entrega" className="scroll-mt-24 space-y-5">
       <div className="border-b-2 border-panorama-gold/60 pb-3">
-        <div className="flex items-center gap-2">
-          <span className="flex items-center justify-center w-7 h-7 rounded-md bg-panorama-navy text-panorama-gold-light font-bold text-xs ring-1 ring-panorama-gold/50">
-            14
-          </span>
-          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
-            Central de Entrega — impressão e envio ao cliente
-          </h2>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <span className="flex items-center justify-center w-7 h-7 rounded-md bg-panorama-navy text-panorama-gold-light font-bold text-xs ring-1 ring-panorama-gold/50">
+              14
+            </span>
+            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+              Central de Entrega — impressão e envio ao cliente
+            </h2>
+          </div>
+          <div className="bg-white px-3 py-1 rounded-xl shadow-2xs border border-slate-200 shrink-0 self-start sm:self-auto">
+            <AdecontLogo className="h-6 w-auto" />
+          </div>
         </div>
         <p className="text-xs sm:text-sm text-slate-600 mt-2 leading-relaxed">
           Todo o material imprimível e transmissível do sistema em um só lugar: simuladores,
