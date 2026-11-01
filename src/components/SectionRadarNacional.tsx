@@ -481,6 +481,254 @@ const DADOS = {
       nivel: 'estadual',
     },
     {
+      uf: 'PE',
+      titulo:
+        '), fundamentado no Plano de Aquisições – PA, Código P9976, Produto: P1.2 – Subproduto: 1.2.2, do Contrato de Empréstimo 4554/OC-BR - PROFISCO II - PE, objetivan',
+      url: 'https://diariooficial.cepe.com.br/diariooficialweb/#/visualizar-publicacao',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'PE',
+      titulo:
+        '. - ADEPE Portaria Conjunta SDEC/SEFAZ/SEPLAG/ADEPE Nº 001/2025 Institui o Grupo de Trabalho para Avaliação dos Impactos da Reforma Tributária no Estado de Pern',
+      url: 'https://diariooficial.cepe.com.br/diariooficialweb/#/visualizar-publicacao',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'PE',
+      titulo:
+        '1048 - Autorizar o afastamento do Estado, tendo em vista a solicitação do Secretário de Turismo e Lazer, de HAMILTON BARROS FALCÃO, da referida Secretaria, para',
+      url: 'https://diariooficial.cepe.com.br/diariooficialweb/#/visualizar-publicacao',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'PE',
+      titulo:
+        '4554/OC-BR - PROFISCO-PE, cujo objeto é a contratação de serviços especializados de consultoria envolvendo planejamento, facilitação, condução e sistematização ',
+      url: 'https://diariooficial.cepe.com.br/diariooficialweb/#/visualizar-publicacao',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'PE',
+      titulo:
+        'Além disso, o Governo man- teve as alíquotas reduzidas para caminhões e ônibus; automóveis movidos a gás natural vei- cular (GNV) ou avaliados em até R$ 100 mil',
+      url: 'https://diariooficial.cepe.com.br/diariooficialweb/#/visualizar-publicacao',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'PE',
+      titulo:
+        'EXISTÊNCIA DE LEGISLAÇÃO POSTERIOR COM PREVISÃO DE ALÍQUOTA REDUZIDA . OBSERVÂNCIA DA NORMA VIGENTE À ÉPOCA DO FATO GERADOR.',
+      url: 'https://diariooficial.cepe.com.br/diariooficialweb/#/visualizar-publicacao',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'PE',
+      titulo:
+        'Estado, tendo em vista a solicitação da Gerente Geral de Obras, da Secretaria de Desenvolvimento Urbano e Habitação, de GICELI ELISIO DE BARROS MARTINS, da refe',
+      url: 'https://diariooficial.cepe.com.br/diariooficialweb/#/visualizar-publicacao',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'PE',
+      titulo:
+        'Formular estudos e diagnósticos sobre os impactos da reforma tributária nacional (IBS, CBS, redistribuição de receitas, incentivos estaduais) sobre os setores e',
+      url: 'https://diariooficial.cepe.com.br/diariooficialweb/#/visualizar-publicacao',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'PE',
+      titulo:
+        'Impossibilidade de aplicação da alíquota reduzida de 2% prevista na Lei Complementar nº 563/2025, por não se tratar de transmissão ocorrida por doação, tampouco',
+      url: 'https://diariooficial.cepe.com.br/diariooficialweb/#/visualizar-publicacao',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'PE',
+      titulo:
+        'Impossibilidade de aplicação da alíquota reduzida de 2% prevista na Lei do PERC de 2025, por não se tratar de transmissões ocorridas por doação, tampouco ocorri',
+      url: 'https://diariooficial.cepe.com.br/diariooficialweb/#/visualizar-publicacao',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'PE',
+      titulo:
+        'Imposto sobre Bens e Serviços - CGIBS; o interesse público na mútua colaboração entre a Administração Tributária do Estado de Pernambuco e o Comitê Gestor do IB',
+      url: 'https://diariooficial.cepe.com.br/diariooficialweb/#/visualizar-publicacao',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'PE',
+      titulo:
+        'Itens como telefones celulares e câmeras digitais não se enquadram como produtos de informática para fins de alíquota reduzida . 8.',
+      url: 'https://diariooficial.cepe.com.br/diariooficialweb/#/visualizar-publicacao',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'PE',
+      titulo:
+        'LEGITIMIDADE DA APLICAÇÃO DA ALÍQUOTA REDUZIDA NAS OPERAÇÕES INTERESTADUAIS. IMPOSSIBILIDADE DE EXTENSÃO DO BENEFÍCIO ÀS OPERAÇÕES INTERNAS, POR AUSÊNCIA DE AMP',
+      url: 'https://diariooficial.cepe.com.br/diariooficialweb/#/visualizar-publicacao',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'PE',
+      titulo:
+        'Lei Complementar nº 214/2025, que institui o Imposto sobre Bens e Serviços (IBS), a Contribuição Social sobre Bens e Serviços (CBS) e o Imposto Seletivo (IS); c',
+      url: 'https://diariooficial.cepe.com.br/diariooficialweb/#/visualizar-publicacao',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'PE',
+      titulo:
+        'Lei Complementar nº 214/2025, que institui o Imposto sobre Bens e Serviços (IBS), a Contribuição Social sobre Bens e Serviços (CBS) e o Imposto Seletivo (IS); c',
+      url: 'https://diariooficial.cepe.com.br/diariooficialweb/#/visualizar-publicacao',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'PE',
+      titulo:
+        'Licitatório nº 1136.2026.CPL.II.IN.1125.EMPETUR, referente a Contratação direta da empresa "OPEN SOLUÇÕES TRIBUTÁRIAS LTDA”, para participação de de 01 (um) ser',
+      url: 'https://diariooficial.cepe.com.br/diariooficialweb/#/visualizar-publicacao',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'PE',
+      titulo:
+        'Nesta edição, o foco será a Reforma Tributária , um dos principais debates econômicos do país, incentivando os docentes a trabalharem o tema “Refor- ma Tributár',
+      url: 'https://diariooficial.cepe.com.br/diariooficialweb/#/visualizar-publicacao',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'PE',
+      titulo:
+        'Nº 1348 - Autorizar o afastamento do Estado, tendo em vista a solicitação do Secretário da Fazenda, de CARLOS ALBERTO DE MIRANDA MEDEIROS, da referida Secretari',
+      url: 'https://diariooficial.cepe.com.br/diariooficialweb/#/visualizar-publicacao',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'PE',
+      titulo:
+        'Nº 1348 - Autorizar o afastamento do Estado, tendo em vista a solicitação do Secretário da Fazenda, de CARLOS ALBERTO DE MIRANDA, da referida Secretaria, para p',
+      url: 'https://diariooficial.cepe.com.br/diariooficialweb/#/visualizar-publicacao',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'PE',
+      titulo:
+        'Nº 653 - Autorizar o afastamento do Estado, tendo em vista a solicitação do Secretário de Comunicação, de FERNANDO FÁBIO FILHO SOUTO MAIOR, da referida Secretar',
+      url: 'https://diariooficial.cepe.com.br/diariooficialweb/#/visualizar-publicacao',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'PE',
+      titulo:
+        'Objeto: Viabilizar a aquisição de participação em Curso de Reforma Tributária para Órgãos Públicos e Sistema S. Número do empenho: 2026NE000841 - Data de empenh',
+      url: 'https://diariooficial.cepe.com.br/diariooficialweb/#/visualizar-publicacao',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'PE',
+      titulo:
+        'Orçamentária Concessões e PPPs Prestação de Contas Manual da Despesa Pública Manual do Ordenador de Despesas Planejamento Financeiro e Orçamentário Convênios e ',
+      url: 'https://diariooficial.cepe.com.br/diariooficialweb/#/visualizar-publicacao',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'PE',
+      titulo:
+        'Patrocínio do evento “ENCONTRO DOS PROCURADORES DO ESTADO DE PE.E I SEMINÁRIO SOBRE O IMPACTO DA REFORMA TRIBUTÁRIA DA PGE/PE” de 20 a 21 de agosto de 2025, e 0',
+      url: 'https://diariooficial.cepe.com.br/diariooficialweb/#/visualizar-publicacao',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'PE',
+      titulo:
+        'Reforma Tributária A Reforma Tributária foi aprovada pela Emenda Constitucional nº 132, de 2023, com o objetivo principal de simplifi car os tributos sobre o co',
+      url: 'https://diariooficial.cepe.com.br/diariooficialweb/#/visualizar-publicacao',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'PE',
+      titulo:
+        'Reforma Tributária Foi promulgada em 20 de dezembro de 2023, a Emenda Constitucional nº 132/2023, que instituiu a reforma tributária do consumo no Brasil, que e',
+      url: 'https://diariooficial.cepe.com.br/diariooficialweb/#/visualizar-publicacao',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'PE',
+      titulo:
+        'SECRETARIA DA FAZENDA EXTRATO DE CONTRATOS C-PROFISCO 023/25 LESEN LIVRARIA LTDA CNPJ:31.719.665/0002-64 Curso da Reforma Tributária 40h Ass:17/11/2025 Vigência',
+      url: 'https://diariooficial.cepe.com.br/diariooficialweb/#/visualizar-publicacao',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'PE',
+      titulo:
+        'Tributária – GERT, com duração prevista até 31.12.2026, podendo ser prorrogado a critério da Administração Fazendária. Art. 2º São objetivos do GERT: I – mapear',
+      url: 'https://diariooficial.cepe.com.br/diariooficialweb/#/visualizar-publicacao',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'PE',
+      titulo:
+        'alterações, RESOLVE: Nº 875 - Autorizar o afastamento do Estado, tendo em vista solicitação do Secretário da Fazenda, de ANTONIO MACHADO GUEDES ALCOFORADO, da r',
+      url: 'https://diariooficial.cepe.com.br/diariooficialweb/#/visualizar-publicacao',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'PE',
+      titulo:
+        'atual, baseado nos tributos ICMS, ISS, PIS, COFINS e IPI, e o novo modelo, que introduz o IVA, composto pelo Imposto sobre Bens e Serviços (IBS), e a Contribuiç',
+      url: 'https://diariooficial.cepe.com.br/diariooficialweb/#/visualizar-publicacao',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'PE',
+      titulo:
+        'da Fazenda, de MATHEUS GONÇALVES LUNA, da referida Secretaria, para participar do Curso de Retenções Tributárias, Escrituração Fiscal, DCTFWeb, novo Módulo de I',
+      url: 'https://diariooficial.cepe.com.br/diariooficialweb/#/visualizar-publicacao',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'PE',
+      titulo:
+        'suas finalidades, o Comitê deverá acompanhar as transformações econômicas, regulatórias e institucionais que impactem o ambiente de negócios do Estado de Pernam',
+      url: 'https://diariooficial.cepe.com.br/diariooficialweb/#/visualizar-publicacao',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
       uf: 'PR',
       titulo:
         'DECRETO Nº 19.659, DE 21 DE OUTUBRO DE 2026 - DISPÕE SOBRE A INSTITUIÇÃO DE COMISSÃO MUNICIPAL DE ACOMPANHAMENTO DA IMPLEMENTAÇÃO DA REFORMA TRIBUTÁRIA, DECORRENTE DA EMENDA CONSTITUCIONAL Nº 132, DE 20 DE DEZEMBRO DE 2023, NO ÂMBITO DO MUNICÍPIO',
