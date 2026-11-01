@@ -150,6 +150,68 @@ export function PanoramaSideMenu() {
       </div>
 
       <nav className="flex-1 overflow-y-auto py-1.5">
+        {/* DESTAQUE MÁXIMO BEM NO INÍCIO: INSTALADOR E CONTROLE DE VERSÃO DO PROGRAMA */}
+        {(() => {
+          const itemInstalador = TODOS.find((i) => i.id === '#instalador-versao')
+          if (!itemInstalador) return null
+          const isAtivo = ativo === 'instalador-versao'
+          return (
+            <div className="px-2 py-1 mb-1">
+              <button
+                onClick={() => ir(itemInstalador)}
+                className={`w-full flex items-center gap-2 px-2.5 py-2.5 rounded-xl text-left transition-all border-2 shadow-xs group cursor-pointer ${
+                  isAtivo
+                    ? 'bg-gradient-to-r from-panorama-navy via-slate-900 to-[#0F294A] text-white border-panorama-gold shadow-md'
+                    : 'bg-gradient-to-r from-amber-500/15 via-amber-500/10 to-blue-500/10 text-slate-900 border-panorama-gold/80 hover:border-panorama-gold hover:bg-amber-100/50 hover:shadow-md'
+                }`}
+                title="Atalho: Tecla U — Instalador e Controle de Versão (COU)"
+              >
+                <div
+                  className={`inline-flex items-center justify-center w-8 h-8 shrink-0 rounded-lg shadow-sm border ${
+                    isAtivo
+                      ? 'bg-panorama-gold text-panorama-navy border-panorama-gold-light'
+                      : 'bg-gradient-to-br from-panorama-gold via-amber-400 to-panorama-gold-dark text-panorama-navy border-amber-300'
+                  }`}
+                >
+                  <itemInstalador.Icon className="w-4 h-4" />
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <span className="inline-flex items-center px-1.5 py-0.2 rounded text-[9px] font-black uppercase tracking-wider bg-panorama-gold text-panorama-navy">
+                      #1 COU
+                    </span>
+                    <span
+                      className={`text-[9px] font-bold ${
+                        isAtivo ? 'text-amber-300' : 'text-amber-800'
+                      }`}
+                    >
+                      INSTALADOR
+                    </span>
+                  </div>
+                  <div
+                    className={`text-[12px] font-black leading-tight truncate ${
+                      isAtivo ? 'text-white' : 'text-slate-900 group-hover:text-panorama-navy'
+                    }`}
+                  >
+                    Instalador & Versão
+                  </div>
+                </div>
+
+                <kbd
+                  className={`px-1.5 py-0.5 rounded text-[10px] font-black font-mono shrink-0 shadow-xs ${
+                    isAtivo
+                      ? 'bg-panorama-gold text-panorama-navy'
+                      : 'bg-white text-panorama-navy border border-panorama-gold/60'
+                  }`}
+                >
+                  U
+                </kbd>
+              </button>
+            </div>
+          )
+        })()}
+
         {/* Início */}
         <button
           onClick={() => ir({ id: HOME.href })}

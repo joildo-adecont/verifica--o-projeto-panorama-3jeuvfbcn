@@ -28,6 +28,7 @@ import { SectionHistoricoAtualizacoes } from '@/components/SectionHistoricoAtual
 import { SectionLefisc } from '@/components/SectionLefisc'
 import { SectionRadarNacional } from '@/components/SectionRadarNacional'
 import { SectionBuscaAvancada } from '@/components/SectionBuscaAvancada'
+import { SectionControleVersao } from '@/components/SectionControleVersao'
 import { NAVEGACAO } from '@/components/navegacao'
 import type { TaxNormItem } from '@/types/panorama'
 
@@ -81,6 +82,7 @@ export interface RotaAba {
  * do roteador sem mentir sobre quem usa a prop (o Index sempre a passa).
  */
 const COMPONENTES: Record<string, ComponentType<PropsAba>> = {
+  '#instalador-versao': SectionControleVersao,
   '#busca-avancada': SectionBuscaAvancada,
   '#secao-1': SectionNorms as ComponentType<PropsAba>,
   '#secao-2': SectionFatoGerador,

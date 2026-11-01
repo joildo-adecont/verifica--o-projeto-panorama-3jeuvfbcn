@@ -49,6 +49,7 @@ import {
   Lock,
   Globe2,
   Sparkles,
+  PackageCheck,
 } from 'lucide-react'
 
 export interface LinkNavegacao {
@@ -698,8 +699,41 @@ const SISTEMA: LinkNavegacao[] = [
   },
 ]
 
-/* ───────────── GRUPO 0 — INDICADORES (acesso de topo) ───────────── */
-const INDICADORES: LinkNavegacao[] = [
+/* ───────────── GRUPO 0 — CONTROLE COU & INDICADORES (acesso de topo) ───────────── */
+const DESTAQUE_TOPO: LinkNavegacao[] = [
+  {
+    href: '#instalador-versao',
+    label: 'Instalador e Controle de Versão do Programa',
+    curto: 'Instalador & Versão',
+    tecla: 'u',
+    numero: '1',
+    Icon: PackageCheck,
+    cor: 'text-amber-600',
+    bg: 'bg-gradient-to-r from-amber-100 via-amber-50 to-blue-50',
+    borda: 'border-amber-400',
+    descricao:
+      'Organização de envios de instalação por e-mail/WhatsApp para clientes, gestão de versões e datas pelo COU',
+    tags: [
+      'instalador',
+      'versao',
+      'controle de versao',
+      'versoes',
+      'cou',
+      'atualizacao',
+      'atualizacoes',
+      'envio',
+      'instalacao',
+      'download',
+      'pwa',
+      'cliente',
+      'permissao',
+      'programa',
+      'pacote',
+      'whatsapp',
+      'email',
+      'qr code',
+    ],
+  },
   {
     href: '#busca-avancada',
     label: 'Busca Avançada',
@@ -768,13 +802,13 @@ const INDICADORES: LinkNavegacao[] = [
 export const GRUPOS: GrupoNavegacao[] = [
   {
     id: 'indicadores',
-    nome: 'Indicadores',
-    proposito: 'Bater o olho e entender o sistema',
+    nome: 'Controle COU & Indicadores',
+    proposito: 'Instalação, controle de versão e visão executiva do sistema',
     Icon: Gauge,
     cor: 'text-amber-700',
     bg: 'bg-amber-100',
     borda: 'border-amber-400',
-    itens: INDICADORES,
+    itens: DESTAQUE_TOPO,
   },
   {
     id: 'fundamentos',

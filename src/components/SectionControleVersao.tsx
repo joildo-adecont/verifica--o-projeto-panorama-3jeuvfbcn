@@ -108,7 +108,11 @@ export function SectionControleVersao() {
   }
 
   const versaoAtiva = useMemo(() => {
-    return versoes.find((v) => v.id === versaoSelecionadaId) || versoes.find((v) => v.status === 'atual') || versoes[0]
+    return (
+      versoes.find((v) => v.id === versaoSelecionadaId) ||
+      versoes.find((v) => v.status === 'atual') ||
+      versoes[0]
+    )
   }, [versoes, versaoSelecionadaId])
 
   const clienteAtivo = useMemo(() => {
@@ -501,8 +505,8 @@ export function SectionControleVersao() {
                 </div>
               ) : (
                 <p className="text-[11px] text-slate-500 italic">
-                  ℹ️ Selecione um cliente para direcionamento pessoal ou envie para múltiplos contatos
-                  com a mensagem institucional oficial da ADECONT.
+                  ℹ️ Selecione um cliente para direcionamento pessoal ou envie para múltiplos
+                  contatos com a mensagem institucional oficial da ADECONT.
                 </p>
               )}
             </div>
@@ -659,12 +663,12 @@ export function SectionControleVersao() {
           <div className="p-4 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 text-blue-950 text-xs flex items-start gap-3">
             <ShieldCheck className="w-5 h-5 text-panorama-navy shrink-0 mt-0.5" />
             <div className="leading-relaxed">
-              <strong>Garantia de Integridade e Anti-Bloqueio ADECONT:</strong> Os downloads e
-              links de instalação são servidos diretamente pelo proxy e roteador do próprio sistema
+              <strong>Garantia de Integridade e Anti-Bloqueio ADECONT:</strong> Os downloads e links
+              de instalação são servidos diretamente pelo proxy e roteador do próprio sistema
               ADECONT, sem redirecionamentos externos que possam ser bloqueados por filtros
               corporativos ou navegadores (política institucional de integridade anti-bloqueio). O
-              COU centraliza todas as versões e garante que os clientes recebam a compilação
-              oficial homologada.
+              COU centraliza todas as versões e garante que os clientes recebam a compilação oficial
+              homologada.
             </div>
           </div>
         </div>
@@ -821,7 +825,9 @@ export function SectionControleVersao() {
                   <div
                     key={item.id}
                     className={`p-4 sm:p-5 transition-colors space-y-2.5 ${
-                      isAtual ? 'bg-emerald-50/40 border-l-4 border-l-emerald-600' : 'hover:bg-slate-50'
+                      isAtual
+                        ? 'bg-emerald-50/40 border-l-4 border-l-emerald-600'
+                        : 'hover:bg-slate-50'
                     }`}
                   >
                     <div className="flex flex-wrap items-start justify-between gap-3">
@@ -952,9 +958,7 @@ export function SectionControleVersao() {
                           </span>
                         )}
                       </td>
-                      <td className="p-3 font-bold text-slate-800 font-mono">
-                        {env.versao_ref}
-                      </td>
+                      <td className="p-3 font-bold text-slate-800 font-mono">{env.versao_ref}</td>
                       <td className="p-3 text-slate-600">
                         {env.data_atualizacao_ref
                           ? env.data_atualizacao_ref.split('-').reverse().join('/')
