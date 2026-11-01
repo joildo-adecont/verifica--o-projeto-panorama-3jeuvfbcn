@@ -179,14 +179,19 @@ export function PanoramaHeader({
   }, [])
 
   return (
-    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm">
+    <header className="sticky top-0 z-50 w-full max-w-full overflow-x-clip bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm">
       {/* Top Banner / Status Bar */}
-      <div className="bg-panorama-navy text-slate-100 text-[11px] py-1 px-4 sm:px-6 border-b border-panorama-gold/30">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="font-medium text-slate-200">
-              CGIBS, Senado Dados Abertos, RFB & DOU — 100% Cobertura Ativa
+      <div className="w-full bg-panorama-navy text-slate-100 text-[11px] py-1 px-3 sm:px-6 border-b border-panorama-gold/30">
+        <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-2">
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="flex h-2 w-2 shrink-0 rounded-full bg-emerald-400 animate-pulse" />
+            {/* min-w-0 + quebra: em 430px (iPhone 14 Pro Max) esta frase sozinha
+                media 545px e empurrava o cabeçalho inteiro para fora da tela —
+                115px ficavam inalcançáveis, sem rolagem horizontal possível.
+                Agora ela quebra em duas linhas no celular e segue em uma no
+                desktop (sm:truncate evita quebrar o alinhamento lá). */}
+            <span className="min-w-0 font-medium text-slate-200">
+              CGIBS, Senado Dados Abertos, RFB &amp; DOU — 100% Cobertura Ativa
             </span>
             <span className="hidden md:inline text-slate-400">|</span>
             <span
