@@ -3,6 +3,7 @@ import {
   filtrarAtosRadar,
   contarFiltrosRadarAtivos,
   filtrarMunicipiosPorRecorte,
+  extrairAtosMunicipaisNaoIdentificados,
   FILTROS_RADAR_INICIAIS,
   OPCOES_NIVEIS_RADAR,
 } from './radarFilters'
@@ -250,6 +251,145 @@ describe('Filtros facetados do Radar Nacional (radarFilters.ts)', () => {
       for (const m of res) {
         expect(m.atosCount).toBe(0)
       }
+    })
+
+    describe('Atos municipais com município não identificado e combinação completa', () => {
+      const ATOS_COMBINADOS_MG: RadarAtoItem[] = [
+        {
+          id: 'ato-sg-1',
+          uf: 'MG',
+          codigo_ibge: '3162104',
+          municipio_nome: 'São Gotardo',
+          titulo: 'Lei Complementar nº 245/2025',
+          termos: 'reforma tributária, imposto seletivo',
+          resumo: 'Regulamenta imposto seletivo e reforma tributária',
+          nivel: 'municipal',
+        },
+        {
+          id: 'ato-nao-ident-1',
+          uf: 'MG',
+          codigo_ibge: undefined,
+          municipio_nome: undefined,
+          ente_nome: 'município não identificado',
+          ente_chave: 'MG-',
+          titulo: 'Decreto nº 160/2026',
+          termos: 'imposto seletivo',
+          resumo: 'Matéria municipal sobre imposto seletivo',
+          nivel: 'municipal',
+        },
+        {
+          id: 'ato-nao-ident-2',
+          uf: 'MG',
+          codigo_ibge: undefined,
+          municipio_nome: undefined,
+          ente_nome: 'município não identificado',
+          ente_chave: 'MG-',
+          titulo: 'Portaria nº 020/2026',
+          termos: 'reforma tributária',
+          resumo: 'Matéria sobre reforma tributária sem imposto seletivo',
+          nivel: 'municipal',
+        },
+        {
+          id: 'ato-est-1',
+          uf: 'MG',
+          titulo: 'Decreto Estadual nº 48.000',
+          termos: 'imposto seletivo',
+          nivel: 'estadual',
+        },
+      ]
+
+      it('recorte UF + nível municipal + termo "imposto seletivo" preserva ato identificado e ato não identificado', () => {
+        const res = filtrarAtosRadar(ATOS_COMBINADOS_MG, {
+          ...FILTROS_RADAR_INICIAIS,
+          uf: 'MG',
+          niveis: ['municipal'],
+          termo: 'imposto seletivo',
+        })
+        // Deve conter ato-sg-1 (São Gotardo) e ato-nao-ident-1 (não identificado com imposto seletivo)
+        expect(res).toHaveLength(2)
+        const ids = res.map((a) => a.id)
+        expect(ids).toContain('ato-sg-1')
+        expect(ids).toContain('ato-nao-ident-1')
+        expect(ids).not.toContain('ato-nao-ident-2') // termo não casa
+        expect(ids).not.toContain('ato-est-1') // nível estadual excluído pelo filtro municipal
+      })
+
+      it('busca por código IBGE 3162104 isola apenas o município correspondente', () => {
+        const res = filtrarAtosRadar(ATOS_COMBINADOS_MG, {
+          ...FILTROS_RADAR_INICIAIS,
+          uf: 'MG',
+          niveis: ['municipal'],
+          termo: '3162104',
+        })
+        expect(res).toHaveLength(1)
+        expect(res[0].id).toBe('ato-sg-1')
+        expect(res[0].codigo_ibge).toBe('3162104')
+      })
+
+      it('extrairAtosMunicipaisNaoIdentificados retorna atos sem IBGE quando o termo casa', () => {
+        const naoIdent = extrairAtosMunicipaisNaoIdentificados(ATOS_COMBINADOS_MG, {
+          ...FILTROS_RADAR_INICIAIS,
+          uf: 'MG',
+          niveis: ['municipal'],
+          termo: 'imposto seletivo',
+        })
+        expect(naoIdent).toHaveLength(1)
+        expect(naoIdent[0].id).toBe('ato-nao-ident-1')
+      })
+
+      it('extrairAtosMunicipaisNaoIdentificados não retorna nada quando um município específico por IBGE está selecionado', () => {
+        const naoIdent = extrairAtosMunicipaisNaoIdentificados(ATOS_COMBINADOS_MG, {
+          ...FILTROS_RADAR_INICIAIS,
+          uf: 'MG',
+          municipio: { id: 'm-sg', codigo_ibge: '3162104', nome: 'São Gotardo', uf: 'MG' },
+          niveis: ['municipal'],
+        })
+        expect(naoIdent).toHaveLength(0)
+      })
+
+      it('extrairAtosMunicipaisNaoIdentificados não retorna nada quando a busca é por código IBGE de 7 dígitos', () => {
+        const naoIdent = extrairAtosMunicipaisNaoIdentificados(ATOS_COMBINADOS_MG, {
+          ...FILTROS_RADAR_INICIAIS,
+          uf: 'MG',
+          termo: '3162104',
+          niveis: ['municipal'],
+        })
+        expect(naoIdent).toHaveLength(0)
+      })
+
+      it('limpar a busca e os filtros restaura a listagem completa da UF sem fechar o grupo', () => {
+        // 1. Estado filtrado por termo
+        const filtrado = filtrarAtosRadar(ATOS_COMBINADOS_MG, {
+          ...FILTROS_RADAR_INICIAIS,
+          uf: 'MG',
+          termo: 'imposto seletivo',
+          niveis: ['municipal'],
+        })
+        expect(filtrado).toHaveLength(2)
+
+        // 2. Estado após restauração (limpeza de filtros para a UF)
+        const restaurado = filtrarAtosRadar(ATOS_COMBINADOS_MG, {
+          ...FILTROS_RADAR_INICIAIS,
+          uf: 'MG',
+        })
+        // Retorna todos os 4 atos da UF (municipais identificados, não identificados e estaduais)
+        expect(restaurado).toHaveLength(4)
+
+        // Municípios filtrados também restauram todos os municípios da UF
+        const munFiltrados = filtrarMunicipiosPorRecorte(MUNICIPIOS_MG, ATOS_COMBINADOS_MG, {
+          ...FILTROS_RADAR_INICIAIS,
+          uf: 'MG',
+          niveis: ['municipal'],
+          termo: 'São Gotardo',
+        })
+        expect(munFiltrados).toHaveLength(0) // MUNICIPIOS_MG tem BH, Uberlândia, Contagem, Juiz de Fora
+
+        const munRestaurados = filtrarMunicipiosPorRecorte(MUNICIPIOS_MG, ATOS_COMBINADOS_MG, {
+          ...FILTROS_RADAR_INICIAIS,
+          uf: 'MG',
+        })
+        expect(munRestaurados).toHaveLength(4)
+      })
     })
   })
 })

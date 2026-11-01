@@ -35,6 +35,7 @@ import {
   filtrarAtosRadar,
   contarFiltrosRadarAtivos,
   filtrarMunicipiosPorRecorte,
+  extrairAtosMunicipaisNaoIdentificados,
   type NivelAtoRadar,
   type FiltrosRadarState,
 } from '@/services/radarFilters'
@@ -413,6 +414,26 @@ export function RadarNacional({ initialUf = '' }: RadarNacionalProps) {
   const atosFiltrados = useMemo(() => {
     return filtrarAtosRadar(atosMap.todos, filtrosState)
   }, [atosMap.todos, filtrosState])
+
+  // Atos de município não identificado da UF ativa
+  const atosNaoIdentificadosUf = useMemo(() => {
+    if (!selectedUf) return []
+    const atosDaUf = atosMap.porUf[selectedUf] || []
+    return extrairAtosMunicipaisNaoIdentificados(atosDaUf, filtrosState)
+  }, [selectedUf, atosMap.porUf, filtrosState])
+
+  // Mapa de contagem de atos de município não identificado por UF respeitando filtros
+  const atosNaoIdentificadosPorUf = useMemo(() => {
+    const mapa: Record<string, number> = {}
+    for (const uf of UFS_BRASIL) {
+      const atosDaUf = atosMap.porUf[uf] || []
+      const naoIdent = extrairAtosMunicipaisNaoIdentificados(atosDaUf, filtrosState)
+      if (naoIdent.length > 0) {
+        mapa[uf] = naoIdent.length
+      }
+    }
+    return mapa
+  }, [atosMap.porUf, filtrosState])
 
   // Contagem de atos por UF respeitando o recorte de filtros ativo
   const atosContagemPorUfFiltrada = useMemo(() => {
@@ -1114,6 +1135,30 @@ export function RadarNacional({ initialUf = '' }: RadarNacionalProps) {
                       </div>
                     </div>
 
+                    {/* Aviso honesto de atos de município não identificado dentro da UF */}
+                    {atosNaoIdentificadosPorUf[ufCode] > 0 ? (
+                      <div className="px-3 py-2 rounded-lg bg-amber-50 border border-amber-200 flex items-start gap-1.5">
+                        <ShieldAlert className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
+                        <p className="text-[10px] leading-relaxed text-amber-800">
+                          <strong>
+                            {atosNaoIdentificadosPorUf[ufCode]}
+                            {atosNaoIdentificadosPorUf[ufCode] === 1
+                              ? ' ato municipal'
+                              : ' atos municipais'}
+                          </strong>{' '}
+                          de {nomeEstado} sem município identificado na coleta (ente_chave{' '}
+                          {`"${String(ufCode)}-"`} /cnameihy rótulo &ldquo;município não
+                          identificado&rdquo;). Eles permanecem contados no grupo da UF exibido
+                          acima
+                          {niveisSelecionados.includes('municipal')
+                            ? ' e também aparecem no painel de atos vinculados no fim da página'
+                            : ''}
+                          . A busca por código IBGE específico não os retorna, pois não há como
+                          atribuí-los a um município exato.
+                        </p>
+                      </div>
+                    ) : null}
+
                     {stateData.loading && stateData.items.length === 0 ? (
                       <div className="p-8 text-center flex flex-col items-center justify-center gap-2 text-slate-500">
                         <Loader2 className="w-5 h-5 animate-spin text-panorama-navy" />
@@ -1309,60 +1354,69 @@ export function RadarNacional({ initialUf = '' }: RadarNacionalProps) {
               </div>
             </div>
           ) : (
-            atosFiltrados.map((ato) => (
-              <div
-                key={ato.id}
-                className="p-3 hover:bg-slate-50/70 transition-colors flex flex-col sm:flex-row sm:items-start justify-between gap-2.5"
-              >
-                <div className="space-y-1 min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    <span className="text-[9px] font-bold uppercase bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded border border-amber-300">
-                      Nível {ato.nivel || 'Municipal'}
-                    </span>
-                    <span className="text-[9px] font-bold bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded">
-                      UF: {ato.uf}
-                    </span>
-                    {ato.codigo_ibge && (
-                      <span className="text-[9px] font-mono font-semibold bg-blue-50 text-blue-800 px-1.5 py-0.5 rounded border border-blue-200">
-                        IBGE: {ato.codigo_ibge}
+            atosFiltrados.map((ato) => {
+              const semIbge = !ato.codigo_ibge || ato.codigo_ibge.trim() === ''
+              return (
+                <div
+                  key={ato.id}
+                  className={`p-3 transition-colors flex flex-col sm:flex-row sm:items-start justify-between gap-2.5 ${
+                    semIbge ? 'bg-amber-50/30 hover:bg-amber-50/60' : 'hover:bg-slate-50/70'
+                  }`}
+                >
+                  <div className="space-y-1 min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <span className="text-[9px] font-bold uppercase bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded border border-amber-300">
+                        Nível {ato.nivel || 'Municipal'}
                       </span>
+                      <span className="text-[9px] font-bold bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded">
+                        UF: {ato.uf}
+                      </span>
+                      {ato.codigo_ibge ? (
+                        <span className="text-[9px] font-mono font-semibold bg-blue-50 text-blue-800 px-1.5 py-0.5 rounded border border-blue-200">
+                          IBGE: {ato.codigo_ibge}
+                        </span>
+                      ) : null}
+                      {ato.municipio_nome ? (
+                        <span className="text-[9px] font-bold text-slate-900">
+                          {ato.municipio_nome}
+                        </span>
+                      ) : (
+                        <span className="text-[9px] font-bold text-amber-800 italic px-1.5 py-0.5 rounded bg-amber-100/70 border border-amber-200">
+                          {ato.ente_nome || 'município não identificado'}
+                        </span>
+                      )}
+                    </div>
+
+                    <h4 className="text-xs font-bold text-slate-900 leading-snug">{ato.titulo}</h4>
+
+                    {ato.resumo && (
+                      <p className="text-[10px] text-slate-600 leading-relaxed">{ato.resumo}</p>
                     )}
-                    {ato.municipio_nome && (
-                      <span className="text-[9px] font-bold text-slate-900">
-                        {ato.municipio_nome}
-                      </span>
+
+                    {ato.assoc && (
+                      <p className="text-[9px] text-slate-500 font-medium">
+                        Diário Oficial / Fonte: {ato.assoc}
+                        {ato.data && ` • Data: ${ato.data}`}
+                      </p>
                     )}
                   </div>
 
-                  <h4 className="text-xs font-bold text-slate-900 leading-snug">{ato.titulo}</h4>
-
-                  {ato.resumo && (
-                    <p className="text-[10px] text-slate-600 leading-relaxed">{ato.resumo}</p>
-                  )}
-
-                  {ato.assoc && (
-                    <p className="text-[9px] text-slate-500 font-medium">
-                      Diário Oficial / Fonte: {ato.assoc}
-                      {ato.data && ` • Data: ${ato.data}`}
-                    </p>
+                  {ato.url && (
+                    <div className="shrink-0 self-end sm:self-center">
+                      <a
+                        href={ato.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-[10px] font-bold text-blue-700 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2 py-1 rounded transition-colors"
+                      >
+                        <span>Abrir no Diário Oficial</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </div>
                   )}
                 </div>
-
-                {ato.url && (
-                  <div className="shrink-0 self-end sm:self-center">
-                    <a
-                      href={ato.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-[10px] font-bold text-blue-700 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2 py-1 rounded transition-colors"
-                    >
-                      <span>Abrir no Diário Oficial</span>
-                      <ExternalLink className="w-3 h-3" />
-                    </a>
-                  </div>
-                )}
-              </div>
-            ))
+              )
+            })
           )}
         </div>
       </div>

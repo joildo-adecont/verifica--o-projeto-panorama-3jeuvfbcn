@@ -19,6 +19,9 @@ export interface RadarAtoItem {
   uf: string
   codigo_ibge?: string
   municipio_nome?: string
+  ente_nome?: string
+  ente_chave?: string
+  termos?: string
   titulo: string
   url?: string
   assoc?: string
@@ -190,6 +193,9 @@ export async function fetchAtosMunicipaisPorCodigo(): Promise<{
           uf: (r.uf || '').toUpperCase(),
           codigo_ibge: r.codigo_ibge || undefined,
           municipio_nome: r.municipio_nome || undefined,
+          ente_nome: r.ente_nome || undefined,
+          ente_chave: r.ente_chave || undefined,
+          termos: r.termos || undefined,
           titulo: r.titulo,
           url: r.url || undefined,
           assoc: r.assoc || r.fonte_oficial || undefined,

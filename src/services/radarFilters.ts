@@ -44,7 +44,7 @@ export const FILTROS_RADAR_INICIAIS: FiltrosRadarState = {
   niveis: [],
 }
 
-function normalizarTexto(str?: string): string {
+export function normalizarTexto(str?: string): string {
   return (str || '')
     .toLowerCase()
     .normalize('NFD')
@@ -54,9 +54,19 @@ function normalizarTexto(str?: string): string {
 
 /**
  * Função pura que aplica a combinação facetada de filtros sobre a lista de atos normativos do Radar Nacional.
+ * Comportamento com recorte municipal:
+ * - Se um município específico for selecionado por IBGE, retorna os atos desse IBGE.
+ * - Se houver busca por código IBGE no termo de busca (7 dígitos), casa atos com aquele código IBGE.
+ * - Atos municipais sem código IBGE / com 'município não identificado':
+ *   - Pertencem à UF correspondente.
+ *   - Ficam visíveis na UF quando o filtro de nível 'municipal' está ativo ou sem nível.
+ *   - Ficam visíveis quando a busca é por termo textual e o termo casa no título, trecho, termos ou rótulo.
+ *   - Não aparecem quando a busca/filtro seleciona especificamente outro código IBGE de 7 dígitos.
  */
 export function filtrarAtosRadar(atos: RadarAtoItem[], filtros: FiltrosRadarState): RadarAtoItem[] {
-  const termoNorm = normalizarTexto(filtros.termo)
+  const termoRaw = (filtros.termo || '').trim()
+  const termoNorm = normalizarTexto(termoRaw)
+  const isIbgeTermo = /^\d{7}$/.test(termoRaw)
   const ufFiltro = filtros.uf ? filtros.uf.toUpperCase().trim() : ''
   const ibgeFiltro = filtros.municipio?.codigo_ibge
 
@@ -77,20 +87,27 @@ export function filtrarAtosRadar(atos: RadarAtoItem[], filtros: FiltrosRadarStat
       }
     }
 
-    // 3. Município específico por código IBGE de 7 dígitos
+    // 3. Município específico por seleção (código IBGE de 7 dígitos)
     if (ibgeFiltro) {
       if (ato.codigo_ibge !== ibgeFiltro) {
         return false
       }
     }
 
-    // 4. Busca textual livre em título, município, código IBGE ou resumo
+    // 4. Busca textual livre ou por código IBGE (em título, resumo/trecho, termos, código IBGE, município ou associação)
     if (termoNorm) {
-      const searchSpace = normalizarTexto(
-        `${ato.titulo || ''} ${ato.municipio_nome || ''} ${ato.codigo_ibge || ''} ${ato.resumo || ''} ${ato.assoc || ''}`,
-      )
-      if (!searchSpace.includes(termoNorm)) {
-        return false
+      // Se a busca for um código IBGE de 7 dígitos exato:
+      if (isIbgeTermo) {
+        if (ato.codigo_ibge !== termoRaw) {
+          return false
+        }
+      } else {
+        const searchSpace = normalizarTexto(
+          `${ato.titulo || ''} ${ato.municipio_nome || ''} ${ato.codigo_ibge || ''} ${ato.resumo || ''} ${ato.termos || ''} ${ato.ente_nome || ''} ${ato.assoc || ''}`,
+        )
+        if (!searchSpace.includes(termoNorm)) {
+          return false
+        }
       }
     }
 
@@ -112,7 +129,7 @@ export function contarFiltrosRadarAtivos(filtros: FiltrosRadarState): number {
 
 /**
  * Filtra e recomputa a lista de municípios de uma UF com base nos filtros ativos de nível e atos vinculados.
- * Com o nível 'municipal' ativo, o grupo da UF passa a exibir apenas os municípios que possuem atos
+ * Com o nível 'municipal' ativo, o grupo da UF passa a exibir os municípios que possuem atos
  * vinculados correspondentes, com a contagem atualizada refletindo o recorte.
  * Se o filtro de nível for limpo (ou nenhum nível ativo), retorna todos os municípios carregados.
  */
@@ -166,4 +183,29 @@ export function filtrarMunicipiosPorRecorte(
       atosCount: count,
     }
   })
+}
+
+/**
+ * Retorna os atos de "município não identificado" para uma dada UF que atendem aos filtros.
+ * Atos de município não identificado são aqueles com nível municipal (ou sem nível explícito),
+ * pertencentes à UF, mas com codigo_ibge vazio ou municipio_nome não preenchido.
+ */
+export function extrairAtosMunicipaisNaoIdentificados(
+  atosDaUf: RadarAtoItem[],
+  filtros: FiltrosRadarState,
+): RadarAtoItem[] {
+  // Se houver seleção de município específico por IBGE, não retorna os não identificados
+  if (filtros.municipio?.codigo_ibge) {
+    return []
+  }
+  // Se o termo for um código IBGE específico (7 dígitos), também não casa não identificados
+  const termoRaw = (filtros.termo || '').trim()
+  if (/^\d{7}$/.test(termoRaw)) {
+    return []
+  }
+
+  const atosFiltrados = filtrarAtosRadar(atosDaUf, filtros)
+  return atosFiltrados.filter(
+    (a) => (!a.codigo_ibge || a.codigo_ibge.trim() === '') && (a.nivel === 'municipal' || !a.nivel),
+  )
 }
