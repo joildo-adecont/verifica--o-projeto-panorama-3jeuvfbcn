@@ -4390,6 +4390,14 @@ const DADOS = {
       amostra: [],
     },
     {
+      uf: 'RN',
+      nome: 'Diário Legislativo Eletrônico do RN (ALE-RN)',
+      ativo: true,
+      modo: 'Busca textual real (POST form) + PDF · o diário do Executivo saiu do ar',
+      hits: 0,
+      amostra: [],
+    },
+    {
       uf: 'RR',
       nome: 'Diário Oficial de Roraima (Imprensa Oficial)',
       ativo: true,
