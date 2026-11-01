@@ -233,7 +233,7 @@ export default function Index() {
                   {anterior ? (
                     <button
                       onClick={() => navegar(anterior.id)}
-                      className="flex-1 flex items-center gap-2 rounded-xl border-2 border-slate-200 bg-white px-3 py-2 text-left hover:border-panorama-gold hover:bg-panorama-gold/5 transition-colors cursor-pointer"
+                      className="flex min-w-0 flex-1 items-center gap-2 rounded-xl border-2 border-slate-200 bg-white px-2 py-2 text-left hover:border-panorama-gold hover:bg-panorama-gold/5 transition-colors cursor-pointer sm:px-3"
                     >
                       <ChevronLeft className="w-4 h-4 text-slate-400 shrink-0" />
                       <span className="min-w-0">
@@ -265,7 +265,7 @@ export default function Index() {
                   {proxima ? (
                     <button
                       onClick={() => navegar(proxima.id)}
-                      className="flex-1 flex items-center gap-2 justify-end rounded-xl border-2 border-slate-200 bg-white px-3 py-2 text-right hover:border-panorama-gold hover:bg-panorama-gold/5 transition-colors cursor-pointer"
+                      className="flex min-w-0 flex-1 items-center gap-2 justify-end rounded-xl border-2 border-slate-200 bg-white px-2 py-2 text-right hover:border-panorama-gold hover:bg-panorama-gold/5 transition-colors cursor-pointer sm:px-3"
                     >
                       <span className="min-w-0">
                         <span className="block text-[9px] font-bold uppercase tracking-wide text-slate-400">
