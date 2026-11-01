@@ -312,4 +312,83 @@ describe('Validação dos fluxos do Panorama da Reforma Tributária', () => {
     expect(ModalBuscaAvancada).toBeDefined()
     expect(typeof ModalBuscaAvancada).toBe('function')
   })
+
+  it('validação dos filtros avançados combináveis da Busca Avançada', async () => {
+    const { buscarAvancado } = await import('./buscaAvancada')
+
+    // 1. Filtro por grupo específico: apenas 'anexos'
+    const resApenasAnexos = await buscarAvancado({
+      termo: 'arroz',
+      filtros: {
+        grupos: ['anexos'],
+      },
+    })
+    expect(resApenasAnexos.anexosReforma.total).toBeGreaterThan(0)
+    expect(resApenasAnexos.normas.total).toBe(0)
+    expect(resApenasAnexos.radarAtos.total).toBe(0)
+    expect(resApenasAnexos.assuntosEspeciais.total).toBe(0)
+    expect(resApenasAnexos.classificacoes.items.length).toBe(0)
+
+    // 2. Filtro por esfera federativa: 'federal'
+    const resEsferaFed = await buscarAvancado({
+      termo: '',
+      filtros: {
+        esferas: ['federal'],
+      },
+    })
+    expect(resEsferaFed.normas.total).toBeGreaterThan(0)
+
+    // 3. Filtro por redução/alíquota: 0% / Alíquota zero
+    const resReducaoZero = await buscarAvancado({
+      termo: '',
+      filtros: {
+        reducoes: ['0%'],
+      },
+    })
+    expect(resReducaoZero.anexosReforma.total).toBeGreaterThan(0)
+    for (const anexo of resReducaoZero.anexosReforma.items) {
+      expect(
+        anexo.reducaoAliquotaPct === 0 ||
+          anexo.reducaoAliquotaPct === -100 ||
+          anexo.reducaoRotulo.toLowerCase().includes('zero') ||
+          anexo.reducaoRotulo.toLowerCase().includes('0%'),
+      ).toBe(true)
+    }
+
+    // 4. Combinação de filtros: grupo 'assuntos-especiais' + fonte 'CGIBS'
+    const resAssuntoCgibs = await buscarAvancado({
+      termo: '',
+      filtros: {
+        grupos: ['assuntos-especiais'],
+        fontes: ['CGIBS'],
+      },
+    })
+    expect(resAssuntoCgibs.assuntosEspeciais.total).toBeGreaterThan(0)
+    for (const esp of resAssuntoCgibs.assuntosEspeciais.items) {
+      const temFonteCgibs = esp.fontesOficiais.some(
+        (fo) => fo.orgao.includes('CGIBS') || fo.nome.includes('CGIBS'),
+      )
+      expect(temFonteCgibs).toBe(true)
+    }
+
+    // 5. Filtro de tabela NCM nas classificações oficiais
+    const resTabelaNcm = await buscarAvancado({
+      termo: 'café',
+      filtros: {
+        grupos: ['classificacoes'],
+        tabelas: ['NCM'],
+      },
+    })
+    for (const item of resTabelaNcm.classificacoes.items) {
+      expect(item.tipo).toBe('NCM')
+    }
+
+    // 6. Limpeza e preservação do termo de consulta vindo de link (?q=)
+    const resTermoGeral = await buscarAvancado({
+      termo: 'Simples Nacional',
+      filtros: {},
+    })
+    expect(resTermoGeral.termo).toBe('Simples Nacional')
+    expect(resTermoGeral.totalGeralEncontrado).toBeGreaterThan(0)
+  })
 })

@@ -26,6 +26,10 @@ import {
   Flame,
   BadgeCheck,
   FileSpreadsheet,
+  SlidersHorizontal,
+  RotateCcw,
+  Check,
+  Landmark,
 } from 'lucide-react'
 import { AdecontLogo } from '@/components/AdecontLogo'
 import {
@@ -34,6 +38,9 @@ import {
   type AnexoReformaItem,
   type ResultadoBuscaAvancada,
   type ParametrosBuscaAvancada,
+  type FiltrosAvancados,
+  type GrupoResultadoId,
+  type EsferaFederativaId,
 } from '@/services/buscaAvancada'
 import { downloadOfficialDocViaProxy } from '@/services/panorama'
 import { OPCOES_TABELAS_CLASSIFICACOES } from '@/components/ModalBaseClassificacoes'
@@ -94,6 +101,50 @@ const CATEGORIAS_ESPECIAIS_FILTRO = [
   'Imunidades por Produtos e Segmentos',
 ]
 
+const GRUPOS_CONTEUDO: { id: GrupoResultadoId; label: string; icon: typeof Layers }[] = [
+  { id: 'normas', label: 'Normas e Atos', icon: Scale },
+  { id: 'classificacoes', label: 'Classificações (11 Tabelas)', icon: Layers },
+  { id: 'assuntos-especiais', label: 'Assuntos Especiais', icon: AlertOctagon },
+  { id: 'anexos', label: 'Anexos da LC 214', icon: FileSpreadsheet },
+  { id: 'aliquotas', label: 'Alíquotas & Desonerações', icon: Percent },
+  { id: 'analises', label: 'Análises & Projeções', icon: TrendingUp },
+]
+
+const ESFERAS_FEDERATIVAS: { id: EsferaFederativaId; label: string; sigla: string }[] = [
+  { id: 'federal', label: 'Federal (União, CGIBS, RFB)', sigla: 'FED' },
+  { id: 'estadual', label: 'Estadual (Sefaz, Estados)', sigla: 'EST' },
+  { id: 'municipal', label: 'Municipal (Prefeituras, Diários)', sigla: 'MUN' },
+]
+
+const FONTES_OFICIAIS_OPCOES = [
+  { id: 'CGIBS', label: 'CGIBS (Comitê Gestor)', badge: 'Oficial' },
+  { id: 'Planalto', label: 'Planalto (Presidência)', badge: 'Lei/Decreto' },
+  { id: 'RFB', label: 'Receita Federal (RFB)', badge: 'Instruções' },
+  { id: 'CONFAZ', label: 'CONFAZ', badge: 'Convênios' },
+  { id: 'Siscomex', label: 'Siscomex (MDIC)', badge: 'NCM/Aduana' },
+  { id: 'IBGE', label: 'IBGE (CNAE)', badge: 'Estatística' },
+  { id: 'CGSN', label: 'CGSN (Simples)', badge: 'Simples' },
+  { id: 'SUFRAMA', label: 'SUFRAMA (ZFM)', badge: 'Regional' },
+]
+
+const TIPOS_ATO_OPCOES = [
+  'Resolução',
+  'Decreto',
+  'Portaria',
+  'Ato',
+  'Lei Complementar',
+  'Emenda Constitucional',
+  'Convênio',
+]
+
+const REDUCOES_ALIQUOTA_OPCOES = [
+  { id: '0%', label: 'Alíquota Zero / Isenção (0%)', badge: 'Cesta Básica' },
+  { id: '-30%', label: 'Redução 30% (-30%)', badge: 'Profissões' },
+  { id: '-50%', label: 'Redução 50% (-50%)', badge: 'Dedução' },
+  { id: '-60%', label: 'Redução 60% (-60%)', badge: 'Saúde / Agro' },
+  { id: '-100%', label: 'Desoneração Total (100%)', badge: 'Imunidade' },
+]
+
 function extrairTermoInicialUrl(): string {
   if (typeof window === 'undefined') return 'cigarro'
   try {
@@ -124,6 +175,15 @@ export function SectionBuscaAvancada() {
   )
   const [categoriaEspecial, setCategoriaEspecial] = useState<string>('TODAS')
   const [filtroAnexo, setFiltroAnexo] = useState<string>('TODOS')
+  const [filtros, setFiltros] = useState<FiltrosAvancados>({
+    grupos: [],
+    esferas: [],
+    fontes: [],
+    tiposAto: [],
+    tabelas: [],
+    reducoes: [],
+  })
+  const [painelFiltrosAberto, setPainelFiltrosAberto] = useState<boolean>(true)
   const [classifPage, setClassifPage] = useState<number>(1)
   const [abaAtiva, setAbaAtiva] = useState<
     | 'tudo'
@@ -142,6 +202,50 @@ export function SectionBuscaAvancada() {
   const [baixandoId, setBaixandoId] = useState<string | null>(null)
   const [modalEnvioAberto, setModalEnvioAberto] = useState<boolean>(false)
   const [, startTransition] = useTransition()
+
+  // Handlers para manipulação facetada de filtros
+  const toggleFiltro = <K extends keyof FiltrosAvancados>(chave: K, valor: string) => {
+    setClassifPage(1)
+    setFiltros((prev) => {
+      const listaAtual = (prev[chave] || []) as string[]
+      const jaExiste = listaAtual.includes(valor)
+      const novaLista = jaExiste
+        ? listaAtual.filter((item) => item !== valor)
+        : [...listaAtual, valor]
+      return {
+        ...prev,
+        [chave]: novaLista,
+      }
+    })
+  }
+
+  const limparFiltros = () => {
+    setClassifPage(1)
+    setFiltros({
+      grupos: [],
+      esferas: [],
+      fontes: [],
+      tiposAto: [],
+      tabelas: [],
+      reducoes: [],
+    })
+    setTipoClassif('TODOS')
+    setAtosNivel('todos')
+    setCategoriaEspecial('TODAS')
+    setFiltroAnexo('TODOS')
+  }
+
+  const totalFiltrosAtivos =
+    (filtros.grupos?.length || 0) +
+    (filtros.esferas?.length || 0) +
+    (filtros.fontes?.length || 0) +
+    (filtros.tiposAto?.length || 0) +
+    (filtros.tabelas?.length || 0) +
+    (filtros.reducoes?.length || 0) +
+    (tipoClassif !== 'TODOS' ? 1 : 0) +
+    (atosNivel !== 'todos' ? 1 : 0) +
+    (categoriaEspecial !== 'TODAS' ? 1 : 0) +
+    (filtroAnexo !== 'TODOS' ? 1 : 0)
 
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -186,6 +290,7 @@ export function SectionBuscaAvancada() {
         atosNivel,
         categoriaEspecial,
         filtroAnexo,
+        filtros,
         classifPage,
         classifPerPage: 25,
       })
@@ -194,7 +299,7 @@ export function SectionBuscaAvancada() {
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current)
     }
-  }, [termo, tipoClassif, atosNivel, categoriaEspecial, filtroAnexo, classifPage])
+  }, [termo, tipoClassif, atosNivel, categoriaEspecial, filtroAnexo, filtros, classifPage])
 
   const handleBaixarDocumento = async (id: string, filename?: string) => {
     setBaixandoId(id)
@@ -331,91 +436,396 @@ export function SectionBuscaAvancada() {
           ))}
         </div>
 
-        {/* Barra de Filtros Refinados */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-3 border-t border-slate-100">
-          <div className="flex items-center gap-2 flex-wrap">
-            <div className="flex items-center gap-1.5 text-xs text-slate-600 font-semibold">
-              <Filter className="w-3.5 h-3.5 text-slate-400" />
-              <span>Tabela:</span>
-            </div>
-            <select
-              value={tipoClassif}
-              onChange={(e) => {
-                setTipoClassif(e.target.value)
-                setClassifPage(1)
-              }}
-              className="text-xs bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-slate-700 font-medium focus:outline-none focus:border-panorama-navy"
-            >
-              <option value="TODOS">Todas as classificações (11 tabelas)</option>
-              {OPCOES_TABELAS_CLASSIFICACOES.filter((t) => t.id !== 'TODOS').map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.label}
-                </option>
-              ))}
-            </select>
+        {/* Barra de Filtros e Painel Facetado Expandível */}
+        <div className="space-y-3 pt-3 border-t border-slate-100">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                type="button"
+                onClick={() => setPainelFiltrosAberto((prev) => !prev)}
+                className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer shadow-2xs ${
+                  totalFiltrosAtivos > 0
+                    ? 'bg-panorama-navy text-panorama-gold-light border-panorama-navy'
+                    : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+                }`}
+              >
+                <SlidersHorizontal className="w-3.5 h-3.5 text-panorama-gold" />
+                <span>Filtros Avançados</span>
+                {totalFiltrosAtivos > 0 && (
+                  <span className="px-1.5 py-0.2 rounded-full text-[10px] font-black bg-panorama-gold text-panorama-navy">
+                    {totalFiltrosAtivos}
+                  </span>
+                )}
+              </button>
 
-            <div className="flex items-center gap-1.5 text-xs text-slate-600 font-semibold ml-2">
-              <span>Esfera dos Atos:</span>
-            </div>
-            <select
-              value={atosNivel}
-              onChange={(e) =>
-                setAtosNivel(e.target.value as 'todos' | 'federal' | 'estadual' | 'municipal')
-              }
-              className="text-xs bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-slate-700 font-medium focus:outline-none focus:border-panorama-navy"
-            >
-              <option value="todos">Todas as esferas</option>
-              <option value="federal">Federal (União, CGIBS, RFB)</option>
-              <option value="estadual">Estadual (Sefaz / Estados)</option>
-              <option value="municipal">Municipal (Prefeituras / Diários)</option>
-            </select>
+              {totalFiltrosAtivos > 0 && (
+                <button
+                  type="button"
+                  onClick={limparFiltros}
+                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-semibold cursor-pointer transition-colors"
+                  title="Limpar todos os filtros selecionados"
+                >
+                  <RotateCcw className="w-3 h-3" />
+                  <span>Limpar filtros</span>
+                </button>
+              )}
 
-            <div className="flex items-center gap-1.5 text-xs text-amber-800 font-semibold ml-2">
-              <AlertOctagon className="w-3.5 h-3.5 text-amber-600" />
-              <span>Assuntos Especiais:</span>
+              {/* Seletor rápido de esfera */}
+              <div className="hidden lg:flex items-center gap-1 text-xs text-slate-600">
+                <span className="font-semibold text-[11px] text-slate-500 ml-2">Esfera:</span>
+                {ESFERAS_FEDERATIVAS.map((esf) => {
+                  const ativa = filtros.esferas?.includes(esf.id)
+                  return (
+                    <button
+                      key={esf.id}
+                      type="button"
+                      onClick={() => toggleFiltro('esferas', esf.id)}
+                      className={`px-2 py-0.5 rounded-lg text-[11px] font-bold border transition-colors cursor-pointer ${
+                        ativa
+                          ? 'bg-blue-700 text-white border-blue-800'
+                          : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                      }`}
+                    >
+                      {esf.sigla}
+                    </button>
+                  )
+                })}
+              </div>
             </div>
-            <select
-              value={categoriaEspecial}
-              onChange={(e) => setCategoriaEspecial(e.target.value)}
-              className="text-xs bg-amber-50/70 border border-amber-300 rounded-lg px-2.5 py-1.5 text-amber-900 font-medium focus:outline-none focus:border-amber-600"
-            >
-              {CATEGORIAS_ESPECIAIS_FILTRO.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat === 'TODAS' ? 'Todos os 9 grupos especiais' : cat}
-                </option>
-              ))}
-            </select>
 
-            <div className="flex items-center gap-1.5 text-xs text-blue-900 font-semibold ml-2">
-              <FileSpreadsheet className="w-3.5 h-3.5 text-blue-600" />
-              <span>Anexos da Reforma:</span>
+            <div className="flex items-center gap-2 text-xs text-slate-500 justify-end">
+              {carregando ? (
+                <span className="inline-flex items-center gap-1 text-panorama-navy font-semibold">
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                  Pesquisando nas bases...
+                </span>
+              ) : resultado ? (
+                <span>
+                  <strong>{resultado.totalGeralEncontrado.toLocaleString('pt-BR')}</strong>{' '}
+                  registros correlacionados às {resultado.timestamp}
+                </span>
+              ) : null}
             </div>
-            <select
-              value={filtroAnexo}
-              onChange={(e) => setFiltroAnexo(e.target.value)}
-              className="text-xs bg-blue-50/70 border border-blue-300 rounded-lg px-2.5 py-1.5 text-blue-950 font-medium focus:outline-none focus:border-blue-600"
-            >
-              {ANEXOS_FILTRO_RAPIDO.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.label}
-                </option>
-              ))}
-            </select>
           </div>
 
-          <div className="flex items-center gap-2 text-xs text-slate-500 justify-end">
-            {carregando ? (
-              <span className="inline-flex items-center gap-1 text-panorama-navy font-semibold">
-                <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                Pesquisando nas bases...
-              </span>
-            ) : resultado ? (
-              <span>
-                <strong>{resultado.totalGeralEncontrado.toLocaleString('pt-BR')}</strong> registros
-                correlacionados às {resultado.timestamp}
-              </span>
-            ) : null}
-          </div>
+          {/* PAINEL COMPLETO DE FILTROS FACETADOS (ESTILO ADECONT) */}
+          {painelFiltrosAberto && (
+            <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-slate-50 via-white to-blue-50/20 border-2 border-slate-200 space-y-4 animate-in fade-in duration-200 shadow-inner">
+              {/* Grupo 1: Tipo de Conteúdo / Grupo de Resultado */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                    <Layers className="w-3.5 h-3.5 text-panorama-navy" />
+                    1. Grupo de Resultado / Tipo de Conteúdo
+                  </span>
+                  <span className="text-[11px] text-slate-400">
+                    {filtros.grupos && filtros.grupos.length > 0
+                      ? `${filtros.grupos.length} grupo(s) selecionado(s)`
+                      : 'Todos os grupos exibidos'}
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {GRUPOS_CONTEUDO.map((grp) => {
+                    const ativo = filtros.grupos?.includes(grp.id)
+                    const Icone = grp.icon
+                    return (
+                      <button
+                        key={grp.id}
+                        type="button"
+                        onClick={() => toggleFiltro('grupos', grp.id)}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
+                          ativo
+                            ? 'bg-panorama-navy text-panorama-gold-light border-panorama-navy shadow-xs font-bold'
+                            : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50'
+                        }`}
+                      >
+                        <Icone
+                          className={`w-3.5 h-3.5 ${ativo ? 'text-panorama-gold' : 'text-slate-400'}`}
+                        />
+                        <span>{grp.label}</span>
+                        {ativo && <Check className="w-3 h-3 text-panorama-gold" />}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Grid 2 colunas para Esfera + Fontes + Atos + Reduções */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-2 border-t border-slate-200/80">
+                {/* 2. Esfera Federativa */}
+                <div className="space-y-2">
+                  <span className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                    <Scale className="w-3.5 h-3.5 text-blue-600" />
+                    2. Esfera Federativa
+                  </span>
+                  <div className="flex flex-col gap-1.5">
+                    {ESFERAS_FEDERATIVAS.map((esf) => {
+                      const ativo = filtros.esferas?.includes(esf.id)
+                      return (
+                        <button
+                          key={esf.id}
+                          type="button"
+                          onClick={() => toggleFiltro('esferas', esf.id)}
+                          className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-colors cursor-pointer text-left ${
+                            ativo
+                              ? 'bg-blue-50 border-blue-400 text-blue-950 font-bold'
+                              : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                          }`}
+                        >
+                          <span className="truncate">{esf.label}</span>
+                          {ativo ? (
+                            <Check className="w-3.5 h-3.5 text-blue-700 shrink-0 ml-1" />
+                          ) : (
+                            <span className="w-3.5 h-3.5 rounded border border-slate-300 shrink-0 ml-1" />
+                          )}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                {/* 3. Fontes Oficiais */}
+                <div className="space-y-2">
+                  <span className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                    <BadgeCheck className="w-3.5 h-3.5 text-emerald-600" />
+                    3. Fonte Oficial
+                  </span>
+                  <div className="flex flex-wrap gap-1 max-h-40 overflow-y-auto p-1">
+                    {FONTES_OFICIAIS_OPCOES.map((fnt) => {
+                      const ativo = filtros.fontes?.includes(fnt.id)
+                      return (
+                        <button
+                          key={fnt.id}
+                          type="button"
+                          onClick={() => toggleFiltro('fontes', fnt.id)}
+                          className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg border text-[11px] font-semibold transition-colors cursor-pointer ${
+                            ativo
+                              ? 'bg-emerald-100 text-emerald-950 border-emerald-400 font-bold shadow-2xs'
+                              : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                          }`}
+                        >
+                          <span>{fnt.label}</span>
+                          {ativo && <Check className="w-3 h-3 text-emerald-700" />}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                {/* 4. Tipo de Ato Normativo */}
+                <div className="space-y-2">
+                  <span className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                    <Scale className="w-3.5 h-3.5 text-amber-600" />
+                    4. Tipo de Ato
+                  </span>
+                  <div className="flex flex-wrap gap-1 max-h-40 overflow-y-auto p-1">
+                    {TIPOS_ATO_OPCOES.map((tipo) => {
+                      const ativo = filtros.tiposAto?.includes(tipo)
+                      return (
+                        <button
+                          key={tipo}
+                          type="button"
+                          onClick={() => toggleFiltro('tiposAto', tipo)}
+                          className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg border text-[11px] font-semibold transition-colors cursor-pointer ${
+                            ativo
+                              ? 'bg-amber-100 text-amber-950 border-amber-400 font-bold shadow-2xs'
+                              : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                          }`}
+                        >
+                          <span>{tipo}</span>
+                          {ativo && <Check className="w-3 h-3 text-amber-800" />}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                {/* 5. Reduções / Alíquotas dos Anexos */}
+                <div className="space-y-2">
+                  <span className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                    <Percent className="w-3.5 h-3.5 text-indigo-600" />
+                    5. Redução / Alíquota
+                  </span>
+                  <div className="flex flex-col gap-1.5">
+                    {REDUCOES_ALIQUOTA_OPCOES.map((red) => {
+                      const ativo = filtros.reducoes?.includes(red.id)
+                      return (
+                        <button
+                          key={red.id}
+                          type="button"
+                          onClick={() => toggleFiltro('reducoes', red.id)}
+                          className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-colors cursor-pointer text-left ${
+                            ativo
+                              ? 'bg-indigo-50 border-indigo-400 text-indigo-950 font-bold'
+                              : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                          }`}
+                        >
+                          <span className="truncate">{red.label}</span>
+                          {ativo ? (
+                            <Check className="w-3.5 h-3.5 text-indigo-700 shrink-0 ml-1" />
+                          ) : (
+                            <span className="w-3.5 h-3.5 rounded border border-slate-300 shrink-0 ml-1" />
+                          )}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* 6. As 11 Tabelas de Classificações Oficiais (quando relevante) */}
+              <div className="space-y-2 pt-2 border-t border-slate-200/80">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                    <Layers className="w-3.5 h-3.5 text-amber-600" />
+                    6. Tabelas de Classificações Oficiais (11 Bases Oficiais)
+                  </span>
+                  <span className="text-[11px] text-slate-400">
+                    Siscomex · CGIBS · CONFAZ · SPED
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {OPCOES_TABELAS_CLASSIFICACOES.filter((t) => t.id !== 'TODOS').map((t) => {
+                    const ativo = filtros.tabelas?.includes(t.id)
+                    return (
+                      <button
+                        key={t.id}
+                        type="button"
+                        onClick={() => toggleFiltro('tabelas', t.id)}
+                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border text-[11px] font-mono transition-all cursor-pointer ${
+                          ativo
+                            ? 'bg-amber-100 text-amber-950 border-amber-400 font-bold shadow-2xs'
+                            : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                        }`}
+                      >
+                        <span>{t.id}</span>
+                        <span className="text-[10px] font-sans text-slate-500">
+                          ({t.label.split('(')[1]?.replace(')', '') || t.label})
+                        </span>
+                        {ativo && <Check className="w-3 h-3 text-amber-700" />}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* CHIPS DE FILTROS ATIVOS REMOVÍVEIS */}
+          {totalFiltrosAtivos > 0 && (
+            <div className="flex items-center gap-1.5 flex-wrap pt-1 text-xs">
+              <span className="text-slate-500 font-semibold text-[11px]">Filtros ativos:</span>
+              {filtros.grupos?.map((g) => (
+                <span
+                  key={`chip-g-${g}`}
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-panorama-navy text-panorama-gold-light border border-panorama-navy text-[11px] font-semibold"
+                >
+                  <span>Grupo: {GRUPOS_CONTEUDO.find((x) => x.id === g)?.label || g}</span>
+                  <button
+                    type="button"
+                    onClick={() => toggleFiltro('grupos', g)}
+                    className="hover:text-white cursor-pointer"
+                    title="Remover filtro"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              ))}
+
+              {filtros.esferas?.map((esf) => (
+                <span
+                  key={`chip-esf-${esf}`}
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-100 text-blue-900 border border-blue-300 text-[11px] font-semibold"
+                >
+                  <span>Esfera: {esf}</span>
+                  <button
+                    type="button"
+                    onClick={() => toggleFiltro('esferas', esf)}
+                    className="hover:text-blue-950 cursor-pointer"
+                    title="Remover filtro"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              ))}
+
+              {filtros.fontes?.map((fnt) => (
+                <span
+                  key={`chip-fnt-${fnt}`}
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300 text-[11px] font-semibold"
+                >
+                  <span>Fonte: {fnt}</span>
+                  <button
+                    type="button"
+                    onClick={() => toggleFiltro('fontes', fnt)}
+                    className="hover:text-emerald-950 cursor-pointer"
+                    title="Remover filtro"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              ))}
+
+              {filtros.tiposAto?.map((tipo) => (
+                <span
+                  key={`chip-tipo-${tipo}`}
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 text-[11px] font-semibold"
+                >
+                  <span>Ato: {tipo}</span>
+                  <button
+                    type="button"
+                    onClick={() => toggleFiltro('tiposAto', tipo)}
+                    className="hover:text-amber-950 cursor-pointer"
+                    title="Remover filtro"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              ))}
+
+              {filtros.tabelas?.map((tab) => (
+                <span
+                  key={`chip-tab-${tab}`}
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-purple-100 text-purple-900 border border-purple-300 text-[11px] font-semibold"
+                >
+                  <span>Tabela: {tab}</span>
+                  <button
+                    type="button"
+                    onClick={() => toggleFiltro('tabelas', tab)}
+                    className="hover:text-purple-950 cursor-pointer"
+                    title="Remover filtro"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              ))}
+
+              {filtros.reducoes?.map((red) => (
+                <span
+                  key={`chip-red-${red}`}
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-900 border border-indigo-300 text-[11px] font-semibold"
+                >
+                  <span>Redução: {red}</span>
+                  <button
+                    type="button"
+                    onClick={() => toggleFiltro('reducoes', red)}
+                    className="hover:text-indigo-950 cursor-pointer"
+                    title="Remover filtro"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              ))}
+
+              <button
+                type="button"
+                onClick={limparFiltros}
+                className="text-[11px] font-bold text-rose-600 hover:underline cursor-pointer ml-1"
+              >
+                Limpar todos
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -565,8 +975,41 @@ export function SectionBuscaAvancada() {
         </nav>
       </div>
 
+      {/* Estado vazio quando filtros e termo não retornam nenhum registro */}
+      {resultado && resultado.totalGeralEncontrado === 0 && !carregando && (
+        <div className="p-8 rounded-2xl border-2 border-dashed border-slate-300 bg-white text-center space-y-3">
+          <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
+            <Search className="w-6 h-6" />
+          </div>
+          <h3 className="text-base font-bold text-slate-800">
+            Nenhum resultado localizado com os filtros aplicados
+          </h3>
+          <p className="text-xs text-slate-500 max-w-md mx-auto">
+            Não encontramos registros correlacionados para o termo &ldquo;{termo}&rdquo; com as
+            restrições selecionadas. Experimente limpar ou flexibilizar os filtros de esferas,
+            fontes ou tabelas.
+          </p>
+          <div className="pt-2">
+            <button
+              type="button"
+              onClick={limparFiltros}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-panorama-navy text-panorama-gold-light hover:bg-panorama-navy-light text-xs font-bold transition-all shadow-xs cursor-pointer"
+            >
+              <RotateCcw className="w-3.5 h-3.5 text-panorama-gold" />
+              <span>Limpar todos os filtros</span>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* BLOCO NOVO: CONSULTA COMPLETA DOS ANEXOS DA LC 214/2025 (LISTA DE TODOS OS ITENS SEM PRECISAR DIGITAR BUSCA) */}
-      {(abaAtiva === 'tudo' || abaAtiva === 'consulta-anexos') && <ConsultaCompletaAnexos />}
+      {(abaAtiva === 'tudo' || abaAtiva === 'consulta-anexos') && (
+        <ConsultaCompletaAnexos
+          filtroReducao={filtros.reducoes}
+          filtroTabela={filtros.tabelas}
+          filtroFonte={filtros.fontes}
+        />
+      )}
 
       {/* BLOCO 0A: ANEXOS DA REFORMA TRIBUTÁRIA (LC 214/2025 E REGIMES ESPECÍFICOS - VISÃO EM CARDS) */}
       {(abaAtiva === 'tudo' || abaAtiva === 'anexos-reforma') &&
@@ -1420,6 +1863,14 @@ export function SectionBuscaAvancada() {
           anexoFiltro: filtroAnexo,
           categoriaEspecial,
           totalRegistros: resultado?.totalGeralEncontrado,
+          filtrosAplicados: {
+            grupos: filtros.grupos,
+            esferas: filtros.esferas,
+            fontes: filtros.fontes,
+            tiposAto: filtros.tiposAto,
+            tabelas: filtros.tabelas,
+            reducoes: filtros.reducoes,
+          },
         }}
       />
     </div>

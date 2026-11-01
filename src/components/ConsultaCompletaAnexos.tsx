@@ -24,7 +24,17 @@ import {
 import { downloadOfficialDocViaProxy } from '@/services/panorama'
 import { toast } from '@/hooks/use-toast'
 
-export function ConsultaCompletaAnexos() {
+export interface ConsultaCompletaAnexosProps {
+  filtroReducao?: string[]
+  filtroTabela?: string[]
+  filtroFonte?: string[]
+}
+
+export function ConsultaCompletaAnexos({
+  filtroReducao,
+  filtroTabela,
+  filtroFonte,
+}: ConsultaCompletaAnexosProps = {}) {
   const [anexoSelecionadoId, setAnexoSelecionadoId] = useState<string>(
     ANEXOS_REFORMA_CATALOGO[0]?.id || '',
   )
@@ -50,6 +60,40 @@ export function ConsultaCompletaAnexos() {
     const termo = buscaInterna.trim().toLowerCase()
 
     let lista = anexoAtual.produtosServicos.filter((p: ProdutoServicoAnexo) => {
+      // Filtro de Redução / Alíquota herdado dos filtros avançados
+      if (filtroReducao && filtroReducao.length > 0) {
+        const itemPct = p.reducaoPct !== undefined ? p.reducaoPct : anexoAtual.reducaoAliquotaPct
+        const itemRot = (p.reducaoRotulo || anexoAtual.reducaoRotulo).toLowerCase()
+        const matchRed = filtroReducao.some((r) => {
+          if (r === '0%' && (itemPct === 0 || itemRot.includes('0%') || itemRot.includes('zero')))
+            return true
+          if (r === '-30%' && (itemPct === -30 || itemRot.includes('30%'))) return true
+          if (r === '-50%' && (itemPct === -50 || itemRot.includes('50%'))) return true
+          if (r === '-60%' && (itemPct === -60 || itemRot.includes('60%'))) return true
+          if (
+            r === '-100%' &&
+            (itemPct === -100 || itemRot.includes('100%') || itemRot.includes('zero'))
+          )
+            return true
+          return itemRot.includes(r.toLowerCase())
+        })
+        if (!matchRed) return false
+      }
+
+      // Filtro de Tabela oficial (NCM, NBS, cClassTrib, cCredPres, CEST)
+      if (filtroTabela && filtroTabela.length > 0) {
+        const matchTab = filtroTabela.some((t) => {
+          if (t === 'NCM' && (p.ncm || p.tipoCodigo === 'NCM')) return true
+          if (t === 'NBS' && (p.nbs || p.tipoCodigo === 'NBS')) return true
+          if (t === 'cClassTrib' && p.cClassTrib) return true
+          if (t === 'cCredPres' && p.cCredPres) return true
+          if (t === 'CEST' && p.cest) return true
+          if (p.tipoCodigo === t) return true
+          return false
+        })
+        if (!matchTab) return false
+      }
+
       if (!termo) return true
       return (
         p.descricao.toLowerCase().includes(termo) ||
@@ -93,7 +137,7 @@ export function ConsultaCompletaAnexos() {
     })
 
     return lista
-  }, [anexoAtual, buscaInterna, ordenacao])
+  }, [anexoAtual, buscaInterna, ordenacao, filtroReducao, filtroTabela, filtroFonte])
 
   // Paginação
   const totalPaginas = Math.ceil(itensFiltrados.length / itensPorPagina) || 1

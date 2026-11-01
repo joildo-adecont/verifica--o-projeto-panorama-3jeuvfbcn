@@ -81,6 +81,25 @@ export interface AliquotaTratamentoItem {
     | 'Referência'
 }
 
+export type GrupoResultadoId =
+  | 'normas'
+  | 'classificacoes'
+  | 'assuntos-especiais'
+  | 'anexos'
+  | 'aliquotas'
+  | 'analises'
+
+export type EsferaFederativaId = 'federal' | 'estadual' | 'municipal'
+
+export interface FiltrosAvancados {
+  grupos?: GrupoResultadoId[] // se vazio ou undefined = todos
+  esferas?: EsferaFederativaId[] // se vazio = todas
+  fontes?: string[] // CGIBS, Planalto, RFB, CONFAZ, IBGE, Siscomex, CGSN, SUFRAMA, etc.
+  tiposAto?: string[] // Resolução, Decreto, Portaria, Ato, Lei, Emenda Constitucional
+  tabelas?: string[] // as 11 tabelas (NCM, cClassTrib, CST, cCredPres, CEST, etc.)
+  reducoes?: string[] // '0%', '-30%', '-50%', '-60%', '-100%'
+}
+
 export interface ParametrosBuscaAvancada {
   termo: string
   tipoClassificacao?: string
@@ -89,12 +108,14 @@ export interface ParametrosBuscaAvancada {
   atosNivel?: 'todos' | 'federal' | 'estadual' | 'municipal'
   categoriaEspecial?: string
   filtroAnexo?: string
+  filtros?: FiltrosAvancados
 }
 
 export interface ResultadoBuscaAvancada {
   termo: string
   timestamp: string
   totalGeralEncontrado: number
+  filtrosAplicados?: FiltrosAvancados
   // (0) Assuntos Especiais — fora da tributação geral (grupo de maior destaque)
   assuntosEspeciais: {
     items: AssuntoEspecialItem[]
@@ -391,267 +412,333 @@ export async function buscarAvancado(
   const atosNivel = params.atosNivel || 'todos'
   const filtroCategoriaEspecial = params.categoriaEspecial || 'TODAS'
   const filtroAnexo = params.filtroAnexo || 'TODOS'
+  const f = params.filtros
+
+  // Helpers de compatibilidade e facetamento
+  const gruposAtivos = f?.grupos && f.grupos.length > 0 ? new Set(f.grupos) : null
+  const esferasAtivas = f?.esferas && f.esferas.length > 0 ? new Set(f.esferas) : null
+  const fontesAtivas = f?.fontes && f.fontes.length > 0 ? f.fontes.map((x) => normalizar(x)) : null
+  const tiposAtoAtivos =
+    f?.tiposAto && f.tiposAto.length > 0 ? f.tiposAto.map((x) => normalizar(x)) : null
+  const tabelasAtivas = f?.tabelas && f.tabelas.length > 0 ? new Set(f.tabelas) : null
+  const reducoesAtivas = f?.reducoes && f.reducoes.length > 0 ? new Set(f.reducoes) : null
 
   // 0. Assuntos Especiais — fora da tributação geral
-  const assuntosEspeciaisFiltrados = ASSUNTOS_ESPECIAIS_CATALOGO.filter((item) => {
-    if (filtroCategoriaEspecial !== 'TODAS' && item.categoria !== filtroCategoriaEspecial) {
-      return false
-    }
-    if (!termoNorm) return true
+  const assuntosEspeciaisFiltrados =
+    gruposAtivos && !gruposAtivos.has('assuntos-especiais')
+      ? []
+      : ASSUNTOS_ESPECIAIS_CATALOGO.filter((item) => {
+          if (filtroCategoriaEspecial !== 'TODAS' && item.categoria !== filtroCategoriaEspecial) {
+            return false
+          }
 
-    const searchSpace = normalizar(
-      `${item.titulo} ${item.subtitulo} ${item.categoria} ${item.descricao} ${item.oQueMuda} ${item.baseLegal} ${item.aliquotaOuTratamento} ${item.termosChave.join(' ')} ${item.produtosOuSegmentosAfetados.join(' ')}`,
-    )
+          // Filtro de fonte nas fontes oficiais do assunto
+          if (fontesAtivas) {
+            const matchFonte = item.fontesOficiais.some((fo) => {
+              const norm = normalizar(`${fo.orgao} ${fo.nome}`)
+              return fontesAtivas.some((fa) => norm.includes(fa) || fa.includes(norm))
+            })
+            if (!matchFonte) return false
+          }
+          if (!termoNorm) return true
 
-    // Correspondência direta por inclusão ou por termo-chave exato
-    if (searchSpace.includes(termoNorm)) return true
+          const searchSpace = normalizar(
+            `${item.titulo} ${item.subtitulo} ${item.categoria} ${item.descricao} ${item.oQueMuda} ${item.baseLegal} ${item.aliquotaOuTratamento} ${item.termosChave.join(' ')} ${item.produtosOuSegmentosAfetados.join(' ')}`,
+          )
 
-    // Correspondências semânticas e flexões comuns
-    if (
-      termoNorm === 'cigarro' ||
-      termoNorm === 'cigarros' ||
-      termoNorm === 'fumo' ||
-      termoNorm === 'tabaco'
-    ) {
-      return item.categoria === 'Imposto do Pecado'
-    }
-    if (
-      termoNorm === 'alcool' ||
-      termoNorm === 'alcoolicas' ||
-      termoNorm === 'cerveja' ||
-      termoNorm === 'bebida' ||
-      termoNorm === 'bebidas'
-    ) {
-      return item.categoria === 'Imposto do Pecado'
-    }
-    if (
-      termoNorm === 'simples' ||
-      termoNorm === 'simples nacional' ||
-      termoNorm === 'cgsn' ||
-      termoNorm === 'das'
-    ) {
-      return item.categoria === 'Simples Nacional' || item.categoria === 'ME e EPP'
-    }
-    if (
-      termoNorm === 'me' ||
-      termoNorm === 'epp' ||
-      termoNorm === 'microempresa' ||
-      termoNorm === 'mei'
-    ) {
-      return item.categoria === 'ME e EPP' || item.categoria === 'Simples Nacional'
-    }
-    if (
-      termoNorm === 'lucro presumido' ||
-      termoNorm === 'lucro real' ||
-      termoNorm === 'presumido' ||
-      termoNorm === 'real'
-    ) {
-      return item.categoria === 'Regimes Societários'
-    }
-    if (
-      termoNorm === 'entidades associativas' ||
-      termoNorm === 'associacao' ||
-      termoNorm === 'associacoes' ||
-      termoNorm === 'ong' ||
-      termoNorm === 'terceiro setor'
-    ) {
-      return item.categoria === 'Entidades Associativas'
-    }
-    if (
-      termoNorm === 'sindicato' ||
-      termoNorm === 'sindicatos' ||
-      termoNorm === 'sindical' ||
-      termoNorm === 'contribuicao sindical'
-    ) {
-      return item.categoria === 'Sindicatos'
-    }
-    if (
-      termoNorm === 'comite gestor' ||
-      termoNorm === 'comite gestor do ibs' ||
-      termoNorm === 'cgibs' ||
-      termoNorm === 'aliquota de referencia' ||
-      termoNorm === '26,5' ||
-      termoNorm === '26.5'
-    ) {
-      return item.categoria === 'Comitê Gestor'
-    }
-    if (
-      termoNorm === 'combustivel' ||
-      termoNorm === 'combustiveis' ||
-      termoNorm === 'gasolina' ||
-      termoNorm === 'diesel' ||
-      termoNorm === 'financeiro' ||
-      termoNorm === 'banco' ||
-      termoNorm === 'zfm' ||
-      termoNorm === 'zona franca'
-    ) {
-      return item.categoria === 'Regras Especiais'
-    }
-    if (
-      termoNorm === 'imunidade' ||
-      termoNorm === 'imunidades' ||
-      termoNorm === 'livro' ||
-      termoNorm === 'livros' ||
-      termoNorm === 'exportacao'
-    ) {
-      return (
-        item.categoria === 'Imunidades por Produtos e Segmentos' ||
-        item.categoria === 'Entidades Associativas' ||
-        item.categoria === 'Sindicatos'
-      )
-    }
+          // Correspondência direta por inclusão ou por termo-chave exato
+          if (searchSpace.includes(termoNorm)) return true
 
-    return false
-  })
+          // Correspondências semânticas e flexões comuns
+          if (
+            termoNorm === 'cigarro' ||
+            termoNorm === 'cigarros' ||
+            termoNorm === 'fumo' ||
+            termoNorm === 'tabaco'
+          ) {
+            return item.categoria === 'Imposto do Pecado'
+          }
+          if (
+            termoNorm === 'alcool' ||
+            termoNorm === 'alcoolicas' ||
+            termoNorm === 'cerveja' ||
+            termoNorm === 'bebida' ||
+            termoNorm === 'bebidas'
+          ) {
+            return item.categoria === 'Imposto do Pecado'
+          }
+          if (
+            termoNorm === 'simples' ||
+            termoNorm === 'simples nacional' ||
+            termoNorm === 'cgsn' ||
+            termoNorm === 'das'
+          ) {
+            return item.categoria === 'Simples Nacional' || item.categoria === 'ME e EPP'
+          }
+          if (
+            termoNorm === 'me' ||
+            termoNorm === 'epp' ||
+            termoNorm === 'microempresa' ||
+            termoNorm === 'mei'
+          ) {
+            return item.categoria === 'ME e EPP' || item.categoria === 'Simples Nacional'
+          }
+          if (
+            termoNorm === 'lucro presumido' ||
+            termoNorm === 'lucro real' ||
+            termoNorm === 'presumido' ||
+            termoNorm === 'real'
+          ) {
+            return item.categoria === 'Regimes Societários'
+          }
+          if (
+            termoNorm === 'entidades associativas' ||
+            termoNorm === 'associacao' ||
+            termoNorm === 'associacoes' ||
+            termoNorm === 'ong' ||
+            termoNorm === 'terceiro setor'
+          ) {
+            return item.categoria === 'Entidades Associativas'
+          }
+          if (
+            termoNorm === 'sindicato' ||
+            termoNorm === 'sindicatos' ||
+            termoNorm === 'sindical' ||
+            termoNorm === 'contribuicao sindical'
+          ) {
+            return item.categoria === 'Sindicatos'
+          }
+          if (
+            termoNorm === 'comite gestor' ||
+            termoNorm === 'comite gestor do ibs' ||
+            termoNorm === 'cgibs' ||
+            termoNorm === 'aliquota de referencia' ||
+            termoNorm === '26,5' ||
+            termoNorm === '26.5'
+          ) {
+            return item.categoria === 'Comitê Gestor'
+          }
+          if (
+            termoNorm === 'combustivel' ||
+            termoNorm === 'combustiveis' ||
+            termoNorm === 'gasolina' ||
+            termoNorm === 'diesel' ||
+            termoNorm === 'financeiro' ||
+            termoNorm === 'banco' ||
+            termoNorm === 'zfm' ||
+            termoNorm === 'zona franca'
+          ) {
+            return item.categoria === 'Regras Especiais'
+          }
+          if (
+            termoNorm === 'imunidade' ||
+            termoNorm === 'imunidades' ||
+            termoNorm === 'livro' ||
+            termoNorm === 'livros' ||
+            termoNorm === 'exportacao'
+          ) {
+            return (
+              item.categoria === 'Imunidades por Produtos e Segmentos' ||
+              item.categoria === 'Entidades Associativas' ||
+              item.categoria === 'Sindicatos'
+            )
+          }
+
+          return false
+        })
 
   const categoriasPresentes = Array.from(
     new Set(assuntosEspeciaisFiltrados.map((item) => item.categoria)),
   )
 
   // 0b. Anexos da Reforma Tributária (LC 214/2025, EC 132/2023, RIBS)
-  const anexosReformaFiltrados = ANEXOS_REFORMA_CATALOGO.filter((anexo) => {
-    if (filtroAnexo !== 'TODOS' && anexo.id !== filtroAnexo && anexo.numero !== filtroAnexo) {
-      return false
-    }
-    if (!termoNorm) return true
+  const anexosReformaFiltrados =
+    gruposAtivos && !gruposAtivos.has('anexos')
+      ? []
+      : ANEXOS_REFORMA_CATALOGO.filter((anexo) => {
+          if (filtroAnexo !== 'TODOS' && anexo.id !== filtroAnexo && anexo.numero !== filtroAnexo) {
+            return false
+          }
 
-    // Monta espaço de busca textual contendo título, capitulação, produtos, NCMs e tags
-    const produtosStr = anexo.produtosServicos
-      .map(
-        (p) =>
-          `${p.item} ${p.descricao} ${p.codigo || ''} ${p.tipoCodigo || ''} ${p.detalhes || ''}`,
-      )
-      .join(' ')
-    const searchSpace = normalizar(
-      `${anexo.numero} ${anexo.titulo} ${anexo.subtitulo} ${anexo.capitulacaoLegal} ${anexo.artigosRemissao.join(' ')} ${anexo.reducaoRotulo} ${anexo.aliquotaEfetivaIbsCbs} ${anexo.resumo} ${anexo.tags.join(' ')} ${anexo.categoria} ${produtosStr}`,
-    )
+          // Filtro de redução/alíquota (0%, -30%, -50%, -60%, -100%)
+          if (reducoesAtivas) {
+            const pct = anexo.reducaoAliquotaPct
+            const rot = anexo.reducaoRotulo
+            const matchReducao = Array.from(reducoesAtivas).some((r) => {
+              if (r === '0%' && (pct === 0 || rot.includes('0%') || rot.includes('Zero')))
+                return true
+              if (r === '-30%' && (pct === -30 || rot.includes('30%'))) return true
+              if (r === '-50%' && (pct === -50 || rot.includes('50%'))) return true
+              if (r === '-60%' && (pct === -60 || rot.includes('60%'))) return true
+              if (r === '-100%' && (pct === -100 || rot.includes('100%') || rot.includes('Zero')))
+                return true
+              return rot.includes(r)
+            })
+            if (!matchReducao) return false
+          }
 
-    if (searchSpace.includes(termoNorm)) return true
+          // Filtro de fontes oficiais
+          if (fontesAtivas) {
+            const seloNorm = normalizar(`${anexo.fonteOficial.nome} ${anexo.fonteOficial.selo}`)
+            const matchFonte = fontesAtivas.some(
+              (fa) => seloNorm.includes(fa) || fa.includes(seloNorm),
+            )
+            if (!matchFonte) return false
+          }
 
-    // Sinônimos tributários e de produtos
-    if (
-      termoNorm === 'arroz' ||
-      termoNorm === 'feijao' ||
-      termoNorm === 'leite' ||
-      termoNorm === 'pao'
-    ) {
-      return anexo.numero === 'Anexo I'
-    }
-    if (
-      termoNorm === 'medicina' ||
-      termoNorm === 'medico' ||
-      termoNorm === 'hospital' ||
-      termoNorm === 'clinica' ||
-      termoNorm === 'saude'
-    ) {
-      return (
-        anexo.numero === 'Anexo III' ||
-        anexo.numero === 'Anexo IV' ||
-        anexo.numero === 'Anexo XII' ||
-        anexo.id.includes('saude')
-      )
-    }
-    if (
-      termoNorm === 'dispositivo medico' ||
-      termoNorm === 'dispositivo' ||
-      termoNorm === 'tomografo' ||
-      termoNorm === 'respirador' ||
-      termoNorm === 'marcapasso'
-    ) {
-      return anexo.numero === 'Anexo IV' || anexo.numero === 'Anexo XII'
-    }
-    if (
-      termoNorm === 'insumo' ||
-      termoNorm === 'insumo agropecuario' ||
-      termoNorm === 'fertilizante' ||
-      termoNorm === 'defensivo' ||
-      termoNorm === 'semente' ||
-      termoNorm === 'racao'
-    ) {
-      return anexo.numero === 'Anexo IX'
-    }
-    if (
-      termoNorm === 'educacao' ||
-      termoNorm === 'servico de educacao' ||
-      termoNorm === 'escola' ||
-      termoNorm === 'faculdade' ||
-      termoNorm === 'universidade'
-    ) {
-      return anexo.numero === 'Anexo II'
-    }
-    if (
-      termoNorm === 'acessibilidade' ||
-      termoNorm === 'pcd' ||
-      termoNorm === 'cadeirante' ||
-      termoNorm === 'cadeira de rodas'
-    ) {
-      return anexo.numero === 'Anexo V' || anexo.numero === 'Anexo XIII'
-    }
-    if (
-      termoNorm === 'cooperativa' ||
-      termoNorm === 'cooperativas' ||
-      termoNorm === 'sociedade cooperativa' ||
-      termoNorm === 'cooperado'
-    ) {
-      return anexo.id === 'anexo-regime-cooperativas'
-    }
-    if (
-      termoNorm === 'intercambio' ||
-      termoNorm === 'intercambio internacional' ||
-      termoNorm === 'estudante' ||
-      termoNorm === 'turismo'
-    ) {
-      return anexo.id === 'anexo-regime-intercambio'
-    }
-    if (
-      termoNorm === 'combustivel' ||
-      termoNorm === 'combustiveis' ||
-      termoNorm === 'gasolina' ||
-      termoNorm === 'diesel' ||
-      termoNorm === 'etanol' ||
-      termoNorm === 'glp' ||
-      termoNorm === 'mineral' ||
-      termoNorm === 'monofasico'
-    ) {
-      return anexo.id === 'anexo-regime-combustiveis'
-    }
-    if (
-      termoNorm === 'plano de saude' ||
-      termoNorm === 'planos de saude' ||
-      termoNorm === 'planos privados' ||
-      termoNorm === 'convenio'
-    ) {
-      return anexo.id === 'anexo-regime-planos-saude' || anexo.numero === 'Anexo III'
-    }
-    if (
-      termoNorm === 'cultura' ||
-      termoNorm === 'incentivo a cultura' ||
-      termoNorm === 'audiovisual' ||
-      termoNorm === 'teatro' ||
-      termoNorm === 'cinema'
-    ) {
-      return anexo.numero === 'Anexo X'
-    }
-    if (
-      termoNorm === 'profissao' ||
-      termoNorm === 'profissoes' ||
-      termoNorm === 'advogado' ||
-      termoNorm === 'contador' ||
-      termoNorm === 'engenheiro'
-    ) {
-      return anexo.id === 'anexo-profissoes-30'
-    }
-    if (
-      termoNorm === 'imposto seletivo' ||
-      termoNorm === 'seletivo' ||
-      termoNorm === 'cigarro' ||
-      termoNorm === 'cerveja'
-    ) {
-      return anexo.numero === 'Anexo XVII'
-    }
+          // Filtro de tabela quando o usuário filtrar por uma tabela específica de classificações
+          if (tabelasAtivas) {
+            const matchTabela = anexo.produtosServicos.some((p) => {
+              if (p.tipoCodigo && tabelasAtivas.has(p.tipoCodigo)) return true
+              if (tabelasAtivas.has('NCM') && p.ncm) return true
+              if (tabelasAtivas.has('NBS') && p.nbs) return true
+              if (tabelasAtivas.has('cClassTrib') && p.cClassTrib) return true
+              if (tabelasAtivas.has('cCredPres') && p.cCredPres) return true
+              if (tabelasAtivas.has('CEST') && p.cest) return true
+              return false
+            })
+            if (!matchTabela) return false
+          }
 
-    return false
-  })
+          if (!termoNorm) return true
+
+          // Monta espaço de busca textual contendo título, capitulação, produtos, NCMs e tags
+          const produtosStr = anexo.produtosServicos
+            .map(
+              (p) =>
+                `${p.item} ${p.descricao} ${p.codigo || ''} ${p.tipoCodigo || ''} ${p.detalhes || ''}`,
+            )
+            .join(' ')
+          const searchSpace = normalizar(
+            `${anexo.numero} ${anexo.titulo} ${anexo.subtitulo} ${anexo.capitulacaoLegal} ${anexo.artigosRemissao.join(' ')} ${anexo.reducaoRotulo} ${anexo.aliquotaEfetivaIbsCbs} ${anexo.resumo} ${anexo.tags.join(' ')} ${anexo.categoria} ${produtosStr}`,
+          )
+
+          if (searchSpace.includes(termoNorm)) return true
+
+          // Sinônimos tributários e de produtos
+          if (
+            termoNorm === 'arroz' ||
+            termoNorm === 'feijao' ||
+            termoNorm === 'leite' ||
+            termoNorm === 'pao'
+          ) {
+            return anexo.numero === 'Anexo I'
+          }
+          if (
+            termoNorm === 'medicina' ||
+            termoNorm === 'medico' ||
+            termoNorm === 'hospital' ||
+            termoNorm === 'clinica' ||
+            termoNorm === 'saude'
+          ) {
+            return (
+              anexo.numero === 'Anexo III' ||
+              anexo.numero === 'Anexo IV' ||
+              anexo.numero === 'Anexo XII' ||
+              anexo.id.includes('saude')
+            )
+          }
+          if (
+            termoNorm === 'dispositivo medico' ||
+            termoNorm === 'dispositivo' ||
+            termoNorm === 'tomografo' ||
+            termoNorm === 'respirador' ||
+            termoNorm === 'marcapasso'
+          ) {
+            return anexo.numero === 'Anexo IV' || anexo.numero === 'Anexo XII'
+          }
+          if (
+            termoNorm === 'insumo' ||
+            termoNorm === 'insumo agropecuario' ||
+            termoNorm === 'fertilizante' ||
+            termoNorm === 'defensivo' ||
+            termoNorm === 'semente' ||
+            termoNorm === 'racao'
+          ) {
+            return anexo.numero === 'Anexo IX'
+          }
+          if (
+            termoNorm === 'educacao' ||
+            termoNorm === 'servico de educacao' ||
+            termoNorm === 'escola' ||
+            termoNorm === 'faculdade' ||
+            termoNorm === 'universidade'
+          ) {
+            return anexo.numero === 'Anexo II'
+          }
+          if (
+            termoNorm === 'acessibilidade' ||
+            termoNorm === 'pcd' ||
+            termoNorm === 'cadeirante' ||
+            termoNorm === 'cadeira de rodas'
+          ) {
+            return anexo.numero === 'Anexo V' || anexo.numero === 'Anexo XIII'
+          }
+          if (
+            termoNorm === 'cooperativa' ||
+            termoNorm === 'cooperativas' ||
+            termoNorm === 'sociedade cooperativa' ||
+            termoNorm === 'cooperado'
+          ) {
+            return anexo.id === 'anexo-regime-cooperativas'
+          }
+          if (
+            termoNorm === 'intercambio' ||
+            termoNorm === 'intercambio internacional' ||
+            termoNorm === 'estudante' ||
+            termoNorm === 'turismo'
+          ) {
+            return anexo.id === 'anexo-regime-intercambio'
+          }
+          if (
+            termoNorm === 'combustivel' ||
+            termoNorm === 'combustiveis' ||
+            termoNorm === 'gasolina' ||
+            termoNorm === 'diesel' ||
+            termoNorm === 'etanol' ||
+            termoNorm === 'glp' ||
+            termoNorm === 'mineral' ||
+            termoNorm === 'monofasico'
+          ) {
+            return anexo.id === 'anexo-regime-combustiveis'
+          }
+          if (
+            termoNorm === 'plano de saude' ||
+            termoNorm === 'planos de saude' ||
+            termoNorm === 'planos privados' ||
+            termoNorm === 'convenio'
+          ) {
+            return anexo.id === 'anexo-regime-planos-saude' || anexo.numero === 'Anexo III'
+          }
+          if (
+            termoNorm === 'cultura' ||
+            termoNorm === 'incentivo a cultura' ||
+            termoNorm === 'audiovisual' ||
+            termoNorm === 'teatro' ||
+            termoNorm === 'cinema'
+          ) {
+            return anexo.numero === 'Anexo X'
+          }
+          if (
+            termoNorm === 'profissao' ||
+            termoNorm === 'profissoes' ||
+            termoNorm === 'advogado' ||
+            termoNorm === 'contador' ||
+            termoNorm === 'engenheiro'
+          ) {
+            return anexo.id === 'anexo-profissoes-30'
+          }
+          if (
+            termoNorm === 'imposto seletivo' ||
+            termoNorm === 'seletivo' ||
+            termoNorm === 'cigarro' ||
+            termoNorm === 'cerveja'
+          ) {
+            return anexo.numero === 'Anexo XVII'
+          }
+
+          return false
+        })
 
   const categoriasAnexosPresentes = Array.from(
     new Set(anexosReformaFiltrados.map((item) => item.categoria)),
@@ -667,17 +754,56 @@ export async function buscarAvancado(
   }))
 
   // 1. Classificações oficiais (NCM, cClassTrib, CST, CEST, cCredPres, etc.)
-  const classifPromise = fetchClassifications({
-    tipo: tipoClassif,
-    termo: rawTerm,
-    page: classifPage,
-    perPage: classifPerPage,
-    sortBy: 'codigo',
-    sortDirection: 'asc',
-  })
+  // Se o grupo Classificações estiver desmarcado, pula a busca server-side pesada
+  const classifDesativado = gruposAtivos && !gruposAtivos.has('classificacoes')
+  // Se houver filtro de tabela selecionado via filtros facetados, aplica se for único ou mantém TODOS
+  const tipoParaBuscar =
+    tabelasAtivas && tabelasAtivas.size === 1 ? Array.from(tabelasAtivas)[0] : tipoClassif
+
+  const classifPromise = classifDesativado
+    ? Promise.resolve({
+        items: [] as ClassificationItem[],
+        totalItems: 0,
+        page: 1,
+        perPage: classifPerPage,
+        totalPages: 0,
+        source: 'database' as const,
+      })
+    : fetchClassifications({
+        tipo: tipoParaBuscar,
+        termo: rawTerm,
+        page: classifPage,
+        perPage: classifPerPage,
+        sortBy: 'codigo',
+        sortDirection: 'asc',
+      }).then((res) => {
+        let items = res.items
+        if (tabelasAtivas && tabelasAtivas.size > 0) {
+          items = items.filter((it) => tabelasAtivas.has(it.tipo))
+        }
+        if (fontesAtivas && fontesAtivas.length > 0) {
+          items = items.filter((it) => {
+            const fonteNorm = normalizar(`${it.fonte} ${it.tabela_origem || ''}`)
+            return fontesAtivas.some((fa) => fonteNorm.includes(fa) || fa.includes(fonteNorm))
+          })
+        }
+        return {
+          ...res,
+          items,
+          totalItems: tabelasAtivas || fontesAtivas ? items.length : res.totalItems,
+        }
+      })
 
   // 2. Normas centrais (tax_norms do PocketBase ou fallback oficial)
+  // Se o grupo normas estiver desativado, retorna lista vazia
+  const normasDesativadas = gruposAtivos && !gruposAtivos.has('normas')
+
   const normasPromise = (async (): Promise<TaxNormItem[]> => {
+    if (normasDesativadas) return []
+    // Se esferas não incluir 'federal', normas centrais federais não aparecem
+    if (esferasAtivas && !esferasAtivas.has('federal')) return []
+
+    let base: TaxNormItem[] = []
     try {
       if (rawTerm) {
         const sanitized = rawTerm.replace(/"/g, '\\"')
@@ -687,34 +813,60 @@ export async function buscarAvancado(
           sort: 'order',
           requestKey: null,
         })
-        if (res.items && res.items.length > 0) return res.items
+        if (res.items && res.items.length > 0) {
+          base = res.items
+        }
       }
-      // Se não encontrou no filtro de banco ou termo vazio, busca geral e filtra
-      const all = await pb.collection('tax_norms').getFullList<TaxNormItem>({
-        sort: 'order',
-        requestKey: null,
-      })
-      const base = all.length > 0 ? all : fallbackNorms
-      if (!termoNorm) return base
-      return base.filter((n) => {
+      if (base.length === 0) {
+        const all = await pb.collection('tax_norms').getFullList<TaxNormItem>({
+          sort: 'order',
+          requestKey: null,
+        })
+        base = all.length > 0 ? all : fallbackNorms
+      }
+    } catch {
+      base = fallbackNorms
+    }
+
+    return base.filter((n) => {
+      if (termoNorm) {
         const str = normalizar(
           `${n.code} ${n.title} ${n.summary} ${n.status_incidence} ${n.norm_type || ''} ${n.origin || ''}`,
         )
-        return str.includes(termoNorm)
-      })
-    } catch {
-      if (!termoNorm) return fallbackNorms
-      return fallbackNorms.filter((n) =>
-        normalizar(`${n.code} ${n.title} ${n.summary}`).includes(termoNorm),
-      )
-    }
+        if (!str.includes(termoNorm)) return false
+      }
+      // Filtro de tipo de ato normativo
+      if (tiposAtoAtivos) {
+        const tipoNorm = normalizar(n.norm_type || '')
+        const matchTipo = tiposAtoAtivos.some(
+          (ta) => tipoNorm.includes(ta) || ta.includes(tipoNorm),
+        )
+        if (!matchTipo) return false
+      }
+      // Filtro de fonte oficial
+      if (fontesAtivas) {
+        const fonteNorm = normalizar(n.origin || '')
+        const matchFonte = fontesAtivas.some(
+          (fa) => fonteNorm.includes(fa) || fa.includes(fonteNorm),
+        )
+        if (!matchFonte) return false
+      }
+      return true
+    })
   })()
 
   // 3. Radar de Atos dos 3 Níveis (radar_atos do PocketBase)
   const radarAtosPromise = (async (): Promise<RadarAtoBuscaItem[]> => {
+    if (normasDesativadas) return []
     try {
       const filterParts: string[] = []
-      if (atosNivel !== 'todos') {
+      // Se houver esferas facetadas ativas
+      if (esferasAtivas && esferasAtivas.size > 0) {
+        const esferasFiltro = Array.from(esferasAtivas)
+          .map((esf) => `nivel = "${esf}"`)
+          .join(' || ')
+        filterParts.push(`(${esferasFiltro})`)
+      } else if (atosNivel !== 'todos') {
         filterParts.push(`nivel = "${atosNivel}"`)
       }
       if (rawTerm) {
@@ -728,7 +880,25 @@ export async function buscarAvancado(
         sort: '-data_publicacao',
         requestKey: null,
       })
-      return res.items || []
+      let items = res.items || []
+
+      // Filtro de tipo de ato em radar_atos
+      if (tiposAtoAtivos) {
+        items = items.filter((a) => {
+          const tNorm = normalizar(`${a.tipo_ato} ${a.titulo}`)
+          return tiposAtoAtivos.some((ta) => tNorm.includes(ta) || ta.includes(tNorm))
+        })
+      }
+
+      // Filtro de fontes oficiais
+      if (fontesAtivas) {
+        items = items.filter((a) => {
+          const fNorm = normalizar(`${a.fonte_oficial || ''} ${a.ente_nome || ''}`)
+          return fontesAtivas.some((fa) => fNorm.includes(fa) || fa.includes(fNorm))
+        })
+      }
+
+      return items
     } catch (err) {
       console.warn('Erro ao consultar radar_atos na busca avançada:', err)
       return []
@@ -763,26 +933,66 @@ export async function buscarAvancado(
   ])
 
   // 5. Filtrar e correlacionar tratamentos e alíquotas
-  const tratamentosCorrelatos = TRATAMENTOS_BASE.filter((item) => {
-    if (!termoNorm) return true
-    const searchSpace = normalizar(
-      `${item.tema} ${item.tipoTratamento} ${item.fundamentoLegal} ${item.observacao} ${item.categoria}`,
-    )
-    // Sinônimos contextuais
-    if (termoNorm === 'arroz' || termoNorm === 'feijao' || termoNorm === 'alimento') {
-      return item.categoria === 'Cesta Básica' || item.tema.includes('Agro')
-    }
-    if (termoNorm === 'isencao' || termoNorm === 'isencao') {
-      return item.tipoTratamento.includes('Isenção') || item.tipoTratamento.includes('Zero')
-    }
-    if (termoNorm === 'imunidade') {
-      return item.categoria === 'Imunidade'
-    }
-    if (termoNorm === 'zfm' || termoNorm === 'zona franca') {
-      return item.tema.includes('Zona Franca')
-    }
-    return searchSpace.includes(termoNorm)
-  })
+  const tratamentosCorrelatos =
+    gruposAtivos && !gruposAtivos.has('aliquotas')
+      ? []
+      : TRATAMENTOS_BASE.filter((item) => {
+          // Filtro de reduções/alíquotas
+          if (reducoesAtivas) {
+            const matchReducao = Array.from(reducoesAtivas).some((r) => {
+              if (
+                r === '0%' &&
+                (item.reducaoOuFator.includes('0%') ||
+                  item.tipoTratamento.includes('Zero') ||
+                  item.tipoTratamento.includes('Isenção'))
+              )
+                return true
+              if (
+                r === '-30%' &&
+                (item.reducaoOuFator.includes('30%') || item.tipoTratamento.includes('30%'))
+              )
+                return true
+              if (
+                r === '-50%' &&
+                (item.reducaoOuFator.includes('50%') || item.tipoTratamento.includes('50%'))
+              )
+                return true
+              if (
+                r === '-60%' &&
+                (item.reducaoOuFator.includes('60%') || item.tipoTratamento.includes('60%'))
+              )
+                return true
+              if (
+                r === '-100%' &&
+                (item.reducaoOuFator.includes('100%') ||
+                  item.tipoTratamento.includes('100%') ||
+                  item.tipoTratamento.includes('Zero'))
+              )
+                return true
+              return item.reducaoOuFator.includes(r) || item.tipoTratamento.includes(r)
+            })
+            if (!matchReducao) return false
+          }
+
+          if (!termoNorm) return true
+          const searchSpace = normalizar(
+            `${item.tema} ${item.tipoTratamento} ${item.fundamentoLegal} ${item.observacao} ${item.categoria}`,
+          )
+          // Sinônimos contextuais
+          if (termoNorm === 'arroz' || termoNorm === 'feijao' || termoNorm === 'alimento') {
+            return item.categoria === 'Cesta Básica' || item.tema.includes('Agro')
+          }
+          if (termoNorm === 'isencao' || termoNorm === 'isencao') {
+            return item.tipoTratamento.includes('Isenção') || item.tipoTratamento.includes('Zero')
+          }
+          if (termoNorm === 'imunidade') {
+            return item.categoria === 'Imunidade'
+          }
+          if (termoNorm === 'zfm' || termoNorm === 'zona franca') {
+            return item.tema.includes('Zona Franca')
+          }
+          return searchSpace.includes(termoNorm)
+        })
 
   // 6. Conexões Legais (cadeia legal: LC 214/2025, EC 132/2023, RIBS, Anexos)
   const conexoesFiltradas: ConexaoLegalItem[] = []
@@ -830,18 +1040,30 @@ export async function buscarAvancado(
   })
 
   // 7. Análises e Projeções de Especialistas
-  const analisesFiltradas = ANALISES_ESPECIALISTAS_BASE.filter((an) => {
-    if (!termoNorm) return true
-    const searchSpace = normalizar(
-      `${an.tema} ${an.autoridadeOuFonte} ${an.resumo} ${an.impactoOuProjecao} ${an.tag}`,
-    )
-    if ((termoNorm === 'arroz' || termoNorm === 'cesta basica') && an.tag === 'Cesta Básica')
-      return true
-    if (termoNorm === 'agronegocio' && an.tag === 'Agronegócio') return true
-    if (termoNorm === 'aliquota' && (an.tag === 'Macroeconomia' || an.tag === 'Profissionais'))
-      return true
-    return searchSpace.includes(termoNorm)
-  })
+  const analisesFiltradas =
+    gruposAtivos && !gruposAtivos.has('analises')
+      ? []
+      : ANALISES_ESPECIALISTAS_BASE.filter((an) => {
+          if (fontesAtivas) {
+            const fNorm = normalizar(an.autoridadeOuFonte)
+            const matchFonte = fontesAtivas.some((fa) => fNorm.includes(fa) || fa.includes(fNorm))
+            if (!matchFonte) return false
+          }
+
+          if (!termoNorm) return true
+          const searchSpace = normalizar(
+            `${an.tema} ${an.autoridadeOuFonte} ${an.resumo} ${an.impactoOuProjecao} ${an.tag}`,
+          )
+          if ((termoNorm === 'arroz' || termoNorm === 'cesta basica') && an.tag === 'Cesta Básica')
+            return true
+          if (termoNorm === 'agronegocio' && an.tag === 'Agronegócio') return true
+          if (
+            termoNorm === 'aliquota' &&
+            (an.tag === 'Macroeconomia' || an.tag === 'Profissionais')
+          )
+            return true
+          return searchSpace.includes(termoNorm)
+        })
 
   // 8. Gráficos correlatos:
   // (a) Composição dos Atos por nível/tipo
@@ -917,6 +1139,7 @@ export async function buscarAvancado(
     termo: rawTerm,
     timestamp: new Date().toLocaleTimeString('pt-BR'),
     totalGeralEncontrado: totalGeral,
+    filtrosAplicados: f,
     assuntosEspeciais: {
       items: assuntosEspeciaisFiltrados,
       total: assuntosEspeciaisFiltrados.length,

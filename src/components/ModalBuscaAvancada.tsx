@@ -35,6 +35,14 @@ export interface ModalBuscaAvancadaProps {
     anexoFiltro?: string
     categoriaEspecial?: string
     totalRegistros?: number
+    filtrosAplicados?: {
+      grupos?: string[]
+      esferas?: string[]
+      fontes?: string[]
+      tiposAto?: string[]
+      tabelas?: string[]
+      reducoes?: string[]
+    }
   }
 }
 
@@ -173,31 +181,50 @@ export function ModalBuscaAvancada({
       ? `Prezado(a) ${clienteAtual.nome}${clienteAtual.empresa ? ` (${clienteAtual.empresa})` : ''},`
       : 'Prezado cliente,'
 
+    const f = contextoInicial?.filtrosAplicados
+    const temFiltrosFacetados =
+      f &&
+      ((f.grupos && f.grupos.length > 0) ||
+        (f.esferas && f.esferas.length > 0) ||
+        (f.fontes && f.fontes.length > 0) ||
+        (f.tiposAto && f.tiposAto.length > 0) ||
+        (f.tabelas && f.tabelas.length > 0) ||
+        (f.reducoes && f.reducoes.length > 0))
+
     const temContextoExtra =
       contextoInicial &&
       ((contextoInicial.anexoFiltro && contextoInicial.anexoFiltro !== 'TODOS') ||
         (contextoInicial.categoriaEspecial && contextoInicial.categoriaEspecial !== 'TODAS') ||
+        temFiltrosFacetados ||
         typeof contextoInicial.totalRegistros === 'number')
+
+    const detalhesFiltros = [
+      contextoInicial?.anexoFiltro && contextoInicial.anexoFiltro !== 'TODOS'
+        ? `Anexo: ${contextoInicial.anexoFiltro}`
+        : null,
+      contextoInicial?.categoriaEspecial && contextoInicial.categoriaEspecial !== 'TODAS'
+        ? `Grupo Especial: ${contextoInicial.categoriaEspecial}`
+        : null,
+      f?.grupos && f.grupos.length > 0 ? `Grupos: ${f.grupos.join(', ')}` : null,
+      f?.esferas && f.esferas.length > 0 ? `Esferas: ${f.esferas.join(', ')}` : null,
+      f?.fontes && f.fontes.length > 0 ? `Fontes: ${f.fontes.join(', ')}` : null,
+      f?.tiposAto && f.tiposAto.length > 0 ? `Atos: ${f.tiposAto.join(', ')}` : null,
+      f?.tabelas && f.tabelas.length > 0 ? `Tabelas: ${f.tabelas.join(', ')}` : null,
+      f?.reducoes && f.reducoes.length > 0 ? `Reduções: ${f.reducoes.join(', ')}` : null,
+      typeof contextoInicial?.totalRegistros === 'number'
+        ? `${contextoInicial.totalRegistros.toLocaleString('pt-BR')} registros correlacionados`
+        : null,
+    ]
+      .filter(Boolean)
+      .join(' • ')
 
     const detalheTermo = termoBusca.trim()
       ? `\n🔎 *Matéria / Informação pesquisada:* "${termoBusca.trim()}"` +
-        (temContextoExtra
-          ? `\n📊 *Filtros e abrangência:* ${[
-              contextoInicial.anexoFiltro && contextoInicial.anexoFiltro !== 'TODOS'
-                ? `Anexo: ${contextoInicial.anexoFiltro}`
-                : null,
-              contextoInicial.categoriaEspecial && contextoInicial.categoriaEspecial !== 'TODAS'
-                ? `Grupo Especial: ${contextoInicial.categoriaEspecial}`
-                : null,
-              typeof contextoInicial.totalRegistros === 'number'
-                ? `${contextoInicial.totalRegistros.toLocaleString('pt-BR')} registros correlacionados`
-                : null,
-            ]
-              .filter(Boolean)
-              .join(' • ')}`
-          : '') +
+        (temContextoExtra ? `\n📊 *Filtros e abrangência aplicados:* ${detalhesFiltros}` : '') +
         `\n(Ao acessar o link oficial abaixo, a Busca Avançada abrirá já pré-filtrada com todas as normas, NCMs e impactos correspondentes).\n`
-      : ''
+      : temContextoExtra
+        ? `\n📊 *Filtros aplicados na consulta:* ${detalhesFiltros}\n`
+        : ''
 
     return `*ADECONT — Assessoria Contábil e Administrativa*
 🔍 *${tit}*
