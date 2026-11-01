@@ -80,7 +80,7 @@ const REGISTROS: Registro[] = [
     fontes: [],
     caminho:
       'src/services/radarFilters.ts + src/services/radarFilters.test.ts + src/services/agregadoresFilters.ts + src/services/agregadoresFilters.test.ts + src/components/RadarNacional.tsx + src/components/SectionRadarNacional.tsx + src/components/SectionFontesAgregador.tsx + src/services/panorama.test.ts',
-    versao: 'v0.0.318',
+    versao: 'v0.0.318-320',
     bloco: 'sistema',
   },
   {
