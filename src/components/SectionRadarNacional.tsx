@@ -60,10 +60,66 @@ const DADOS = {
   achados: [
     {
       uf: 'AL',
+      titulo:
+        '.****-05 Manu Martins - Zezo Alagoano Agreste 81,33 X 0,00 81,33 127 6553 IBS PRODUÇÕES LTDA 63.529.727',
+      url: 'https://diario.imprensaoficial.al.gov.br',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'AL',
+      titulo:
+        '/ CGIBS . As despesas decorrentes da presente portaria correrão através do Programa de Trabalho … / CGIBS . As despesas decorrentes da presente portaria correrã',
+      url: 'https://diario.imprensaoficial.al.gov.br',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'AL',
+      titulo:
+        '227/2026. 4 Resolução CGIBS nº 6/2026, alterada pela ResoluçãoCGIBS nº 13/2026 (Regulamento do IBS ). 5 … IBS , CBS e Imposto Seletivo. 6 Princípio dodestino. 7',
+      url: 'https://diario.imprensaoficial.al.gov.br',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'AL',
+      titulo:
+        ': Brasília/DF OBJETIVO: Para participar de agendas presenciais do CGIBS , incluindo reunião da Comissão',
+      url: 'https://diario.imprensaoficial.al.gov.br',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'AL',
+      titulo:
+        'Diretorias do CGIBS . As despesas decorrentes da presente portaria correrão através do Programa de … Comitê Gestor do Imposto sobre Bens e Serviços - CGIBS . As',
+      url: 'https://diario.imprensaoficial.al.gov.br',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'AL',
       titulo: 'EXTRATO DE PUBLICAÇÃO DO TERMO DE CONTRATO Nº 32520/2026',
       url: 'https://www.diariomunicipal.com.br/ama/materia/19E1A4A3',
       assoc: 'ama',
       nivel: 'municipal',
+    },
+    {
+      uf: 'AL',
+      titulo:
+        'IBS, CBS e Imposto Seletivo. 6 Princípio dodestino. 7 Incidência, nãoincidência, imunidades, fato … arrecadação do IBS. 16 Regras de transição do IBS, CBS e ICM',
+      url: 'https://diario.imprensaoficial.al.gov.br',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'AL',
+      titulo:
+        'Imposto sobre Bens e Serviços - CGIBS . As despesas decorrentes da presente portaria correrão através do',
+      url: 'https://diario.imprensaoficial.al.gov.br',
+      assoc: 'estadual',
+      nivel: 'estadual',
     },
     {
       uf: 'AL',
@@ -120,6 +176,62 @@ const DADOS = {
       url: 'https://www.diariomunicipal.com.br/ama/materia/39E0C3B0',
       assoc: 'ama',
       nivel: 'municipal',
+    },
+    {
+      uf: 'AL',
+      titulo:
+        'REPRESENTANTE DO ESTADO DE ALAGOAS NO CONSELHO SUPEIOR, ÓRGÃO MÁXIMO DO COMITÊ GESTOR DO IBS , no uso … Superior do Comitê Gestor do IBS - CG- IBS , sem prejuíz',
+      url: 'https://diario.imprensaoficial.al.gov.br',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'AL',
+      titulo:
+        'da Reforma Tributária nos contratos administrativos, e dá outras providências. A Procuradora-Geral do … Emenda Constitucional nº 132, de 20 de dezembro de 2023,',
+      url: 'https://diario.imprensaoficial.al.gov.br',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'AL',
+      titulo:
+        'do CGIBS . As despesas decorrentes da presente portaria correrão através do Programa de Trabalho',
+      url: 'https://diario.imprensaoficial.al.gov.br',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'AL',
+      titulo:
+        'do CGIBS . As despesas decorrentes da presente portaria correrão através do Programa de Trabalho',
+      url: 'https://diario.imprensaoficial.al.gov.br',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'AL',
+      titulo:
+        'participar da Reunião Estratégica de Integração do Plano Conjunto de Implantação Gradual (PCIG) do CGIBS . As',
+      url: 'https://diario.imprensaoficial.al.gov.br',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'AL',
+      titulo:
+        'sobre Bens e Serviços ( CGIBS ). As despesas decorrentes da presente portaria correrão através do',
+      url: 'https://diario.imprensaoficial.al.gov.br',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'AL',
+      titulo:
+        '“Soluções de Intercâmbio de Informações entre RFB e CGIBS , bem como, do Workshop de Deinição da MD … participar da Reunião Presencial de Integração da Diretori',
+      url: 'https://diario.imprensaoficial.al.gov.br',
+      assoc: 'estadual',
+      nivel: 'estadual',
     },
     {
       uf: 'AM',
@@ -4238,6 +4350,18 @@ const DADOS = {
         'sexta-feira, 29 de Maio de 2026 Aracaju ',
         'Diário Oficial sexta-feira, 29 de Maio d',
         'segunda-feira, 30 de Março de 2026 Araca',
+      ],
+    },
+    {
+      uf: 'AL',
+      nome: 'Diário Oficial de Alagoas',
+      ativo: true,
+      modo: 'POST editions/searchES (Laravel+Elasticsearch) com trecho destacado',
+      hits: 14,
+      amostra: [
+        '227/2026. 4 Resolução CGIBS nº 6/2026, a',
+        'REPRESENTANTE DO ESTADO DE ALAGOAS NO CO',
+        '.****-05 Manu Martins - Zezo Alagoano Ag',
       ],
     },
   ],
