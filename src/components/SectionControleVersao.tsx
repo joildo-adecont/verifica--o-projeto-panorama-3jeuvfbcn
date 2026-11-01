@@ -41,6 +41,8 @@ import {
   fetchProgramaPropagacoes,
   registrarAtualizacaoBaseEPropagar,
   consultarProgramaManifesto,
+  ordenarAtualizacoesCronologico,
+  ordenarPropagacoesCronologico,
   type ProgramaVersaoItem,
   type DestinatarioCliente,
   type ProgramaEnvioItem,
@@ -137,8 +139,8 @@ export function SectionControleVersao() {
       setVersoes(vList)
       setClientes(cList)
       setEnvios(eList)
-      setAtualizacoes(aList)
-      setPropagacoes(pList)
+      setAtualizacoes(ordenarAtualizacoesCronologico(aList))
+      setPropagacoes(ordenarPropagacoesCronologico(pList))
       setManifestoDesktop(mDesk)
       setManifestoCelular(mCel)
 
@@ -202,6 +204,15 @@ export function SectionControleVersao() {
     setCanalEnvio(envio.canal || 'whatsapp')
     setAbaAtiva('envio')
   }
+
+  // Atualizações e propagações ordenadas rigorosamente de forma cronológica (a mais recente sempre no topo)
+  const atualizacoesCronologicas = useMemo(() => {
+    return ordenarAtualizacoesCronologico(atualizacoes)
+  }, [atualizacoes])
+
+  const propagacoesCronologicas = useMemo(() => {
+    return ordenarPropagacoesCronologico(propagacoes)
+  }, [propagacoes])
 
   const versaoAtiva = useMemo(() => {
     return (
@@ -1555,31 +1566,50 @@ export function SectionControleVersao() {
                   Atualizações de Base Registradas & Rastreabilidade de Propagação
                 </h3>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Lista cronológica das atualizações da base, data do evento, origem e total de
-                  envios afetados no mesmo dia.
+                  Lista cronológica com a atualização mais recente sempre no topo da tela, data do
+                  evento, origem e propagações no mesmo dia.
                 </p>
               </div>
 
-              <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700">
-                {atualizacoes.length} atualizações registradas
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200">
+                  <ArrowRight className="w-3 h-3 rotate-270 text-emerald-600" />
+                  Mais recente no topo
+                </span>
+                <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700">
+                  {atualizacoesCronologicas.length} atualizações registradas
+                </span>
+              </div>
             </div>
 
             <div className="divide-y divide-slate-200 border border-slate-200 rounded-xl overflow-hidden bg-white">
-              {atualizacoes.length === 0 ? (
+              {atualizacoesCronologicas.length === 0 ? (
                 <div className="p-6 text-center text-slate-400 text-xs">
                   Nenhuma atualização de base registrada ainda.
                 </div>
               ) : (
-                atualizacoes.map((att) => {
-                  const propsDestaAtt = propagacoes.filter((p) => p.atualizacao_id === att.id)
+                atualizacoesCronologicas.map((att, idx) => {
+                  const propsDestaAtt = propagacoesCronologicas.filter(
+                    (p) => p.atualizacao_id === att.id,
+                  )
+                  const isMaisRecente = idx === 0
                   return (
                     <div
                       key={att.id}
-                      className="p-4 sm:p-5 space-y-3 hover:bg-slate-50/70 transition-colors"
+                      className={`p-4 sm:p-5 space-y-3 transition-colors ${
+                        isMaisRecente
+                          ? 'bg-gradient-to-r from-emerald-50/40 via-white to-slate-50 border-l-4 border-l-emerald-600'
+                          : 'hover:bg-slate-50/70'
+                      }`}
                     >
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <div className="flex items-center gap-2.5 flex-wrap">
+                          {isMaisRecente && (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-600 text-white shadow-xs uppercase tracking-wider flex items-center gap-1">
+                              <CheckCircle2 className="w-3 h-3" />
+                              Última Atualização (Topo)
+                            </span>
+                          )}
                           <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-panorama-navy text-white uppercase tracking-wider">
                             {att.origem}
                           </span>
@@ -1619,6 +1649,47 @@ export function SectionControleVersao() {
                           </strong>
                         </span>
                       </div>
+
+                      {/* Histórico detalhado de propagações desta atualização (se houver, mais recentes no topo) */}
+                      {propsDestaAtt.length > 0 && (
+                        <div className="pt-2 border-t border-slate-100">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1.5">
+                            Histórico de Propagações Desta Atualização (Mais Recente no Topo):
+                          </span>
+                          <div className="max-h-36 overflow-y-auto space-y-1.5 pr-1">
+                            {propsDestaAtt.map((prop) => (
+                              <div
+                                key={prop.id}
+                                className="flex items-center justify-between text-[11px] bg-white px-2.5 py-1.5 rounded-lg border border-slate-200"
+                              >
+                                <div className="flex items-center gap-2">
+                                  <span className="font-mono font-bold text-panorama-navy">
+                                    {prop.protocolo_envio}
+                                  </span>
+                                  <span className="text-slate-800 font-medium">
+                                    {prop.destinatario_nome || 'Destinatário Geral'}
+                                  </span>
+                                  <span
+                                    className={`px-1.5 py-0.2 rounded text-[9px] font-bold ${
+                                      prop.plataforma === 'celular'
+                                        ? 'bg-emerald-100 text-emerald-800'
+                                        : 'bg-blue-100 text-blue-800'
+                                    }`}
+                                  >
+                                    {prop.plataforma === 'celular' ? '📱 Celular' : '💻 Desktop'}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2 text-slate-500">
+                                  <span>{prop.data_propagacao.split('-').reverse().join('/')}</span>
+                                  <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-emerald-100 text-emerald-800 uppercase">
+                                    {prop.status}
+                                  </span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )
                 })

@@ -1146,8 +1146,12 @@ export function SectionRadarNacional() {
             )}
           </div>
         </div>
-        <div className="max-h-[420px] overflow-y-auto">
-          <table className="w-full text-left">
+        {/* overflow-x-auto: em celular a tabela de atos (UF + Ato + link) é mais
+            larga que a coluna e estourava a página. Com o eixo X rolável, a
+            tabela rola dentro do próprio quadro e o documento nunca passa da
+            largura da tela. */}
+        <div className="max-h-[420px] overflow-y-auto overflow-x-auto">
+          <table className="w-full min-w-[420px] text-left">
             <thead className="sticky top-0 bg-slate-100 border-b border-slate-300">
               <tr>
                 <th className="px-2 py-1 text-[9px] font-bold uppercase text-slate-600 w-10">UF</th>

@@ -151,4 +151,38 @@ describe('Instalador e Controle de Versão (CEO)', () => {
     expect(respAtualizada.requires_update).toBe(false)
     expect(respAtualizada.versao_atual).toBe('v2.8.4')
   })
+
+  it('ordena atualizações da base em ordem cronológica com a mais recente sempre no topo', async () => {
+    const { ordenarAtualizacoesCronologico } = await import('./programaVersoes')
+
+    const listaDesordenada = [
+      { id: 'att-1', data_atualizacao: '2026-10-15', created: '2026-10-15T10:00:00Z' },
+      { id: 'att-3', data_atualizacao: '2026-11-02', created: '2026-11-02T12:00:00Z' },
+      { id: 'att-2', data_atualizacao: '2026-10-31', created: '2026-10-31T09:00:00Z' },
+      { id: 'att-4', data_atualizacao: '2026-11-02', created: '2026-11-02T18:00:00Z' },
+    ]
+
+    const ordenada = ordenarAtualizacoesCronologico(listaDesordenada)
+
+    expect(ordenada[0].id).toBe('att-4') // 2026-11-02 mais recente no horário
+    expect(ordenada[1].id).toBe('att-3') // 2026-11-02
+    expect(ordenada[2].id).toBe('att-2') // 2026-10-31
+    expect(ordenada[3].id).toBe('att-1') // 2026-10-15
+  })
+
+  it('ordena propagações em ordem cronológica com a mais recente no topo', async () => {
+    const { ordenarPropagacoesCronologico } = await import('./programaVersoes')
+
+    const listaProp = [
+      { id: 'p1', data_propagacao: '2026-10-20', created: '2026-10-20T10:00:00Z' },
+      { id: 'p3', data_propagacao: '2026-11-02', created: '2026-11-02T15:00:00Z' },
+      { id: 'p2', data_propagacao: '2026-11-01', created: '2026-11-01T11:00:00Z' },
+    ]
+
+    const ordenada = ordenarPropagacoesCronologico(listaProp)
+
+    expect(ordenada[0].id).toBe('p3')
+    expect(ordenada[1].id).toBe('p2')
+    expect(ordenada[2].id).toBe('p1')
+  })
 })

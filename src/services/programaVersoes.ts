@@ -321,7 +321,51 @@ export async function fetchProgramaEnvios(): Promise<ProgramaEnvioItem[]> {
   }
 }
 
-/** Busca atualizações da base registradas no sistema */
+/**
+ * Ordena atualizações de forma estritamente cronológica com a mais recente no topo.
+ * Critério: data_atualizacao DESC, com desempate em created DESC e id DESC.
+ */
+export function ordenarAtualizacoesCronologico<
+  T extends { data_atualizacao?: string; created?: string; id?: string },
+>(lista: T[]): T[] {
+  return [...lista].sort((a, b) => {
+    const dataA = a.data_atualizacao || ''
+    const dataB = b.data_atualizacao || ''
+    if (dataA !== dataB) {
+      return dataB.localeCompare(dataA)
+    }
+    const createdA = a.created || ''
+    const createdB = b.created || ''
+    if (createdA !== createdB) {
+      return createdB.localeCompare(createdA)
+    }
+    return (b.id || '').localeCompare(a.id || '')
+  })
+}
+
+/**
+ * Ordena propagações de forma estritamente cronológica com a mais recente no topo.
+ * Critério: data_propagacao DESC, com desempate em created DESC e id DESC.
+ */
+export function ordenarPropagacoesCronologico<
+  T extends { data_propagacao?: string; created?: string; id?: string },
+>(lista: T[]): T[] {
+  return [...lista].sort((a, b) => {
+    const dataA = a.data_propagacao || ''
+    const dataB = b.data_propagacao || ''
+    if (dataA !== dataB) {
+      return dataB.localeCompare(dataA)
+    }
+    const createdA = a.created || ''
+    const createdB = b.created || ''
+    if (createdA !== createdB) {
+      return createdB.localeCompare(createdA)
+    }
+    return (b.id || '').localeCompare(a.id || '')
+  })
+}
+
+/** Busca atualizações da base registradas no sistema (sempre ordenadas pela mais recente no topo) */
 export async function fetchProgramaAtualizacoes(): Promise<ProgramaAtualizacaoItem[]> {
   try {
     const records = await pb
@@ -329,14 +373,14 @@ export async function fetchProgramaAtualizacoes(): Promise<ProgramaAtualizacaoIt
       .getFullList<ProgramaAtualizacaoItem>({
         sort: '-data_atualizacao,-created',
       })
-    return records || []
+    return records && records.length > 0 ? ordenarAtualizacoesCronologico(records) : []
   } catch (err) {
     console.warn('[programaVersoes] Falha ao ler programa_atualizacoes:', err)
     return []
   }
 }
 
-/** Busca propagações registradas */
+/** Busca propagações registradas (sempre ordenadas pela mais recente no topo) */
 export async function fetchProgramaPropagacoes(
   atualizacaoId?: string,
 ): Promise<ProgramaPropagacaoItem[]> {
@@ -348,7 +392,7 @@ export async function fetchProgramaPropagacoes(
         filter,
         sort: '-data_propagacao,-created',
       })
-    return records || []
+    return records && records.length > 0 ? ordenarPropagacoesCronologico(records) : []
   } catch (err) {
     console.warn('[programaVersoes] Falha ao ler programa_propagacoes:', err)
     return []
