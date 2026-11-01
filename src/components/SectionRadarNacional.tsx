@@ -4365,6 +4365,14 @@ const DADOS = {
         '.****-05 Manu Martins - Zezo Alagoano Ag',
       ],
     },
+    {
+      uf: 'RR',
+      nome: 'Diário Oficial de Roraima (Imprensa Oficial)',
+      ativo: true,
+      modo: 'POST /_visualizar-doe/ baixa o PDF do dia; texto via pdftotext',
+      hits: 0,
+      amostra: [],
+    },
   ],
 }
 
