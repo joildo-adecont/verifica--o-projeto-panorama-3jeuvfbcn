@@ -202,24 +202,24 @@ export function BotaoInstalar() {
             <div className="mt-4 rounded-lg bg-slate-50 p-3 text-[11px] leading-relaxed text-slate-500">
               {ehIOS() ? (
                 <>
-                  <b className="text-slate-700">No Android é mais simples:</b>{' '}
-                  abra no Chrome e toque em{' '}
-                  <MoreVertical className="inline h-3 w-3 align-middle" /> →{' '}
+                  <b className="text-slate-700">No Android é mais simples:</b> abra no Chrome e
+                  toque em <MoreVertical className="inline h-3 w-3 align-middle" /> →{' '}
                   <b>Instalar aplicativo</b>.
                 </>
               ) : (
                 <>
-                  <b className="text-slate-700">No Android/Chrome:</b> toque nos
-                  três pontos{' '}
+                  <b className="text-slate-700">No Android/Chrome:</b> toque nos três pontos{' '}
                   <MoreVertical className="inline h-3 w-3 align-middle" /> →
                   <b> Instalar aplicativo</b> (ou “Adicionar à tela inicial”).
                   <br />
                   <b className="text-slate-700">No iPhone (Safari):</b>{' '}
-                  <Share className="inline h-3 w-3 align-middle" />{' '}
-                  Compartilhar → <b>Adicionar à Tela de Início</b>.
+                  <Share className="inline h-3 w-3 align-middle" /> Compartilhar →{' '}
+                  <b>Adicionar à Tela de Início</b>.
                 </>
               )}
-            </div>        </div>
+            </div>
+          </div>
+        </div>
       )}
     </>
   )
