@@ -85,4 +85,43 @@ describe('Diagnóstico Tributário ADECONT', () => {
 
     window.URL.createObjectURL = originalCreateObjectURL
   })
+
+  it('o formatador e parser de seções extrai corretamente resumo, pontos de atenção e passo a passo', async () => {
+    const { extrairSecoesDeRespostaAgente } = await import('@/services/diagnosticoFormatador')
+
+    const textoAgente = `1. Resumo da Matéria e Aplicabilidade:
+A LC 214/2025 estabelece as regras gerais do IVA Dual.
+
+2. Pontos de Atenção para a Fusão Administrativa:
+- Atenção para os créditos acumulados de ICMS
+- Risco operacional na emissão de documentos eletrônicos
+
+3. Orientações e Passo a Passo para Implementação:
+Etapa 1: Revisão do cadastro de NCM
+Etapa 2: Parametrização no ERP`
+
+    const secoes = extrairSecoesDeRespostaAgente(textoAgente)
+    expect(secoes.resumoExecutivo).toContain('A LC 214/2025 estabelece')
+    expect(secoes.pontosAtencao).toContain('Atenção para os créditos acumulados')
+    expect(secoes.passoAPasso).toContain('Etapa 1: Revisão do cadastro')
+  })
+
+  it('o parser de markdown em blocos gera hierarquias h1/h2, listas e caixas de atenção', async () => {
+    const { parsearMarkdownEmBlocos } = await import('@/components/RenderizadorTextoMarkdown')
+
+    const md = `# Título Principal
+## Subseção Técnica
+- Item primeiro
+- Item segundo
+1. Passo um
+2. Passo dois
+Atenção: Necessário validar o split payment antes da entrada em vigor.`
+
+    const blocos = parsearMarkdownEmBlocos(md)
+    expect(blocos.some((b) => b.tipo === 'h1' && b.conteudo === 'Título Principal')).toBe(true)
+    expect(blocos.some((b) => b.tipo === 'h2' && b.conteudo === 'Subseção Técnica')).toBe(true)
+    expect(blocos.some((b) => b.tipo === 'lista_bullet' && b.itens?.length === 2)).toBe(true)
+    expect(blocos.some((b) => b.tipo === 'lista_num' && b.itens?.length === 2)).toBe(true)
+    expect(blocos.some((b) => b.tipo === 'atencao')).toBe(true)
+  })
 })

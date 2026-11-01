@@ -22,20 +22,8 @@ import {
   RefreshCw,
   HelpCircle,
 } from 'lucide-react'
-import {
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip as RechartsTooltip,
-  Legend as RechartsLegend,
-  Cell,
-  PieChart,
-  Pie,
-} from 'recharts'
 import { AdecontLogo } from '@/components/AdecontLogo'
+import { RelatorioDiagnosticoModerno } from '@/components/RelatorioDiagnosticoModerno'
 import {
   enviarMensagemDiagnostico,
   listarSessoesDiagnostico,
@@ -45,6 +33,7 @@ import {
   type LinhaComparativoAliquota,
   type SessaoDiagnostico,
 } from '@/services/diagnosticoTributario'
+import { extrairSecoesDeRespostaAgente } from '@/services/diagnosticoFormatador'
 import { fetchTaxNorms } from '@/services/panorama'
 import type { TaxNormItem } from '@/types/panorama'
 
@@ -235,7 +224,16 @@ export function SectionDiagnosticoTributario() {
 
       // Se a resposta contiver parecer ou tópicos, atualizar dinamicamente o rascunho do relatório
       if (resp.content.length > 100) {
-        setParecerResumido(resp.content.slice(0, 800) + '...')
+        const secoesExtraidas = extrairSecoesDeRespostaAgente(resp.content)
+        if (secoesExtraidas.resumoExecutivo) {
+          setParecerResumido(secoesExtraidas.resumoExecutivo)
+        }
+        if (secoesExtraidas.pontosAtencao) {
+          setPontosAtencao(secoesExtraidas.pontosAtencao)
+        }
+        if (secoesExtraidas.passoAPasso) {
+          setPassoAPasso(secoesExtraidas.passoAPasso)
+        }
       }
     } catch (err: unknown) {
       const erroMsg = err instanceof Error ? err.message : 'Falha na comunicação com o agente'
@@ -370,7 +368,7 @@ export function SectionDiagnosticoTributario() {
   return (
     <div className="space-y-6 pb-12">
       {/* ── CABEÇALHO DA SEÇÃO COM LOGO ADECONT ── */}
-      <div className="rounded-2xl border-2 border-indigo-200 bg-gradient-to-r from-slate-900 via-panorama-navy to-indigo-950 p-6 text-white shadow-lg relative overflow-hidden">
+      <div className="secao-diagnostico-topo rounded-2xl border-2 border-indigo-200 bg-gradient-to-r from-slate-900 via-panorama-navy to-indigo-950 p-6 text-white shadow-lg relative overflow-hidden">
         <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-gradient-to-l from-indigo-500/10 to-transparent pointer-events-none" />
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
           <div className="space-y-2">
@@ -414,7 +412,7 @@ export function SectionDiagnosticoTributario() {
       </div>
 
       {/* ── BOTÕES DE INÍCIO DE ANÁLISE EM 1 CLIQUE ── */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <div className="secao-diagnostico-botoes grid grid-cols-1 md:grid-cols-3 gap-3">
         <button
           onClick={() => setModalAtoAberto(true)}
           className="group p-4 rounded-xl border-2 border-indigo-200 bg-white hover:border-indigo-500 hover:bg-indigo-50/50 shadow-xs hover:shadow-md transition-all text-left flex items-start gap-3 cursor-pointer"
@@ -477,7 +475,7 @@ export function SectionDiagnosticoTributario() {
       </div>
 
       {/* ── ÁREA PRINCIPAL: CONVERSA / CHAT COM O AGENTE ── */}
-      <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden flex flex-col h-[580px]">
+      <div className="secao-diagnostico-chat rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden flex flex-col h-[580px]">
         {/* Barra superior do chat */}
         <div className="px-5 py-3.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
@@ -636,333 +634,28 @@ export function SectionDiagnosticoTributario() {
         </div>
       </div>
 
-      {/* ── RELATÓRIO DESCRITIVO SIMPLIFICADO DAS MATÉRIAS (LOGO ADECONT + GRÁFICOS + TABELAS) ── */}
-      <div className="rounded-2xl border-2 border-indigo-300 bg-white shadow-md p-6 sm:p-8 space-y-6">
-        {/* Cabeçalho do Relatório */}
-        <div className="border-b-2 border-indigo-100 pb-5 space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <AdecontLogo variant="color" className="h-12 w-auto" />
-              <div className="border-l-2 border-slate-200 pl-3">
-                <span className="text-[10px] font-black uppercase tracking-widest text-indigo-700 block">
-                  Documento Oficial de Apresentação
-                </span>
-                <h2 className="text-xl sm:text-2xl font-black text-slate-900">
-                  Relatório Descritivo Simplificado
-                </h2>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 flex-wrap">
-              <button
-                onClick={handleExportarCsv}
-                className="px-3.5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold flex items-center gap-2 transition-colors shadow-xs cursor-pointer"
-                title="Exportar planilha completa compatível com Microsoft Excel (UTF-8 com BOM e ponto e vírgula)"
-              >
-                <FileSpreadsheet className="w-4 h-4" />
-                <span>Exportar Planilha (CSV/Excel)</span>
-              </button>
-
-              <button
-                onClick={handleSalvarSessao}
-                disabled={salvandoSessao}
-                className="px-3.5 py-2 rounded-xl bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-bold flex items-center gap-2 transition-colors shadow-xs cursor-pointer disabled:opacity-50"
-              >
-                <BookmarkPlus className="w-4 h-4" />
-                <span>{salvandoSessao ? 'Gravando...' : 'Gravar Sessão no Banco'}</span>
-              </button>
-            </div>
-          </div>
-
-          {sessaoSalvaId && (
-            <div className="p-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-              <span>
-                Sessão de diagnóstico registrada com sucesso na coleção nativa{' '}
-                <strong>diagnostico_sessoes</strong> (ID: {sessaoSalvaId}).
-              </span>
-            </div>
-          )}
-
-          {/* Dados descritivos do relatório */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
-            <div>
-              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">
-                Título do Diagnóstico
-              </label>
-              <input
-                type="text"
-                value={relatorioTitulo}
-                onChange={(e) => setRelatorioTitulo(e.target.value)}
-                className="w-full px-3 py-2 text-xs sm:text-sm font-bold text-slate-900 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:border-indigo-600"
-              />
-            </div>
-            <div>
-              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">
-                Matéria / Atos Normativos em Foco
-              </label>
-              <input
-                type="text"
-                value={relatorioAto}
-                onChange={(e) => setRelatorioAto(e.target.value)}
-                className="w-full px-3 py-2 text-xs sm:text-sm font-bold text-slate-900 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:border-indigo-600"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* 1. Parecer Resumido */}
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-700">
-            <Scale className="w-4 h-4 text-indigo-600" />
-            <span>1. Parecer dos Atos e Matéria Analisada</span>
-          </div>
-          <textarea
-            rows={4}
-            value={parecerResumido}
-            onChange={(e) => setParecerResumido(e.target.value)}
-            className="w-full p-3.5 text-xs sm:text-[13px] text-slate-800 bg-slate-50 border border-slate-300 rounded-xl leading-relaxed focus:outline-none focus:border-indigo-600"
-          />
-        </div>
-
-        {/* 2. Pontos de Atenção (Jurídico, Contábil e Fusão Administrativa) */}
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-amber-800">
-            <AlertTriangle className="w-4 h-4 text-amber-600" />
-            <span>2. Pontos de Atenção & Fusão Administrativa</span>
-          </div>
-          <textarea
-            rows={3}
-            value={pontosAtencao}
-            onChange={(e) => setPontosAtencao(e.target.value)}
-            className="w-full p-3.5 text-xs sm:text-[13px] text-slate-800 bg-amber-50/50 border border-amber-300 rounded-xl leading-relaxed focus:outline-none focus:border-amber-600"
-          />
-        </div>
-
-        {/* 3. Orientações e Passo a Passo para Implementação */}
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-emerald-800">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-            <span>3. Orientações e Passo a Passo para Implementação</span>
-          </div>
-          <textarea
-            rows={4}
-            value={passoAPasso}
-            onChange={(e) => setPassoAPasso(e.target.value)}
-            className="w-full p-3.5 text-xs sm:text-[13px] text-slate-800 bg-emerald-50/40 border border-emerald-300 rounded-xl leading-relaxed focus:outline-none focus:border-emerald-600"
-          />
-        </div>
-
-        {/* 4. Gráficos Comparativos (Reuso do padrão visual da Busca Avançada) */}
-        <div className="space-y-3 pt-2 border-t border-slate-200">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-700">
-              <TrendingUp className="w-4 h-4 text-indigo-600" />
-              <span>4. Gráficos Comparativos de Alíquotas e Carga por Regime</span>
-            </div>
-            <span className="text-[11px] text-slate-500">Estimativas LC 214/2025</span>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {/* Gráfico de Barras: Comparativo Total de IVA Dual */}
-            <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/60">
-              <span className="text-xs font-bold text-slate-800 block mb-2">
-                Alíquota Efetiva Total por Regime vs. Teto Geral de 26,50%
-              </span>
-              <div className="h-64 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={tabelaComparativa.map((r) => ({
-                      nome: r.regime.split(' (')[0],
-                      total: r.total,
-                      cbs: r.cbs,
-                      ibs: r.ibs,
-                    }))}
-                    margin={{ top: 10, right: 10, left: -20, bottom: 25 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
-                    <XAxis
-                      dataKey="nome"
-                      stroke="#64748b"
-                      fontSize={10}
-                      tickLine={false}
-                      angle={-20}
-                      textAnchor="end"
-                    />
-                    <YAxis
-                      stroke="#64748b"
-                      fontSize={11}
-                      tickLine={false}
-                      unit="%"
-                      domain={[0, 30]}
-                    />
-                    <RechartsTooltip
-                      formatter={(val: unknown) => [
-                        `${Number(val).toFixed(2).replace('.', ',')}%`,
-                        'Alíquota',
-                      ]}
-                      contentStyle={{
-                        backgroundColor: '#0f172a',
-                        borderColor: '#334155',
-                        color: '#f8fafc',
-                        borderRadius: '8px',
-                        fontSize: '12px',
-                      }}
-                    />
-                    <Bar dataKey="total" name="Alíquota Total" radius={[4, 4, 0, 0]}>
-                      {tabelaComparativa.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={
-                            entry.total === 0
-                              ? '#059669' // zero = verde
-                              : entry.total <= 10.6
-                                ? '#2563eb' // favorecido = azul
-                                : entry.total <= 18.55
-                                  ? '#7c3aed' // intermediário
-                                  : '#d97706' // teto
-                          }
-                        />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-
-            {/* Gráfico de Composição: CBS Federal (11,3%) vs. IBS Subnacional (18,7%) */}
-            <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/60 flex flex-col justify-between">
-              <div>
-                <span className="text-xs font-bold text-slate-800 block mb-1">
-                  Repartição do IVA Dual na Referência (LC 214)
-                </span>
-                <p className="text-[11px] text-slate-500 mb-2">
-                  CBS Federal (União) vs. IBS (Estados e Municípios)
-                </p>
-              </div>
-              <div className="h-56 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={[
-                        { name: 'IBS (Estados e Municípios)', value: 18.7, fill: '#0284c7' },
-                        { name: 'CBS (União Federal)', value: 11.3, fill: '#4f46e5' },
-                      ]}
-                      dataKey="value"
-                      nameKey="name"
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={80}
-                      label={({ percent }: { percent?: number }) =>
-                        `${((percent || 0) * 100).toFixed(0)}%`
-                      }
-                    />
-                    <RechartsTooltip
-                      formatter={(val: unknown) => [
-                        `${Number(val).toFixed(2).replace('.', ',')}%`,
-                        'Alíquota Estimada',
-                      ]}
-                      contentStyle={{
-                        backgroundColor: '#0f172a',
-                        borderColor: '#334155',
-                        color: '#f8fafc',
-                        borderRadius: '8px',
-                        fontSize: '12px',
-                      }}
-                    />
-                    <RechartsLegend wrapperStyle={{ fontSize: '11px' }} />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-              <div className="text-[10.5px] text-slate-500 bg-white p-2 rounded border border-slate-200">
-                A CBS é gerida pela Receita Federal; o IBS é arrecadado e distribuído pelo Comitê
-                Gestor do IBS (CGIBS).
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* 5. Tabela Comparativa de Alíquotas e Cálculos */}
-        <div className="space-y-3 pt-2 border-t border-slate-200">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-700">
-              <FileSpreadsheet className="w-4 h-4 text-emerald-700" />
-              <span>5. Tabela de Comparativos e Cálculos de Alíquotas</span>
-            </div>
-            <button
-              onClick={handleExportarCsv}
-              className="text-xs font-bold text-emerald-700 hover:text-emerald-900 flex items-center gap-1 cursor-pointer"
-            >
-              <Download className="w-3.5 h-3.5" />
-              Baixar planilha
-            </button>
-          </div>
-
-          <div className="overflow-x-auto rounded-xl border border-slate-200">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead>
-                <tr className="bg-slate-100 text-slate-700 font-bold border-b border-slate-200 uppercase text-[11px]">
-                  <th className="py-2.5 px-3">Regime / Setor</th>
-                  <th className="py-2.5 px-2 text-center">CBS (Federal)</th>
-                  <th className="py-2.5 px-2 text-center">IBS (Est./Mun.)</th>
-                  <th className="py-2.5 px-2 text-center">Total IVA Dual</th>
-                  <th className="py-2.5 px-2 text-center">Variação vs. Teto</th>
-                  <th className="py-2.5 px-3">Capitulação Legal</th>
-                  <th className="py-2.5 px-3">Observações Práticas</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {tabelaComparativa.map((linha, idx) => (
-                  <tr key={idx} className="hover:bg-slate-50 transition-colors">
-                    <td className="py-2.5 px-3 font-semibold text-slate-900">{linha.regime}</td>
-                    <td className="py-2.5 px-2 text-center font-mono font-bold text-indigo-700">
-                      {linha.cbs.toFixed(2).replace('.', ',')}%
-                    </td>
-                    <td className="py-2.5 px-2 text-center font-mono font-bold text-sky-700">
-                      {linha.ibs.toFixed(2).replace('.', ',')}%
-                    </td>
-                    <td className="py-2.5 px-2 text-center font-mono font-black text-slate-900">
-                      {linha.total.toFixed(2).replace('.', ',')}%
-                    </td>
-                    <td className="py-2.5 px-2 text-center">
-                      <span
-                        className={`inline-block px-1.5 py-0.5 rounded text-[10.5px] font-mono font-bold ${
-                          linha.diferencaRef === 0
-                            ? 'bg-slate-100 text-slate-700'
-                            : 'bg-emerald-100 text-emerald-800'
-                        }`}
-                      >
-                        {linha.diferencaRef > 0 ? '+' : ''}
-                        {linha.diferencaRef.toFixed(2).replace('.', ',')}%
-                      </span>
-                    </td>
-                    <td className="py-2.5 px-3 text-slate-600 font-mono text-[11px]">
-                      {linha.baseLegal}
-                    </td>
-                    <td className="py-2.5 px-3 text-slate-500 text-[11.5px]">{linha.observacao}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Rodapé do Relatório com a Marca ADECONT */}
-        <div className="pt-4 border-t-2 border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-500">
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-slate-800">ADECONT</span>
-            <span>· Assessoria Contábil e Administrativa</span>
-            <span>· Diretoria Executiva / CEO</span>
-          </div>
-          <span className="font-mono text-[11px]">
-            Emitido em {new Date().toLocaleDateString('pt-BR')} via Diagnóstico Tributário Nativo
-          </span>
-        </div>
-      </div>
+      {/* ── RELATÓRIO DESCRITIVO SIMPLIFICADO FORMATADO PARA ENVIO (LAYOUT MODERNO) ── */}
+      <RelatorioDiagnosticoModerno
+        titulo={relatorioTitulo}
+        atoOuTema={relatorioAto}
+        parecerResumido={parecerResumido}
+        pontosAtencao={pontosAtencao}
+        passoAPasso={passoAPasso}
+        linhasTabela={tabelaComparativa}
+        sessaoSalvaId={sessaoSalvaId}
+        salvandoSessao={salvandoSessao}
+        onSalvarSessao={handleSalvarSessao}
+        onExportarCsv={handleExportarCsv}
+        onAtualizarTitulo={setRelatorioTitulo}
+        onAtualizarAto={setRelatorioAto}
+        onAtualizarParecer={setParecerResumido}
+        onAtualizarPontosAtencao={setPontosAtencao}
+        onAtualizarPassoAPasso={setPassoAPasso}
+      />
 
       {/* ── HISTÓRICO DE SESSÕES GRAVADAS NO BANCO ── */}
       {sessoesSalvas.length > 0 && (
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
+        <div className="secao-diagnostico-historico rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <History className="w-4 h-4 text-indigo-700" />
