@@ -30,6 +30,12 @@ export interface ModalBuscaAvancadaProps {
   isOpen: boolean
   onClose: () => void
   termoInicial?: string
+  contextoInicial?: {
+    termo?: string
+    anexoFiltro?: string
+    categoriaEspecial?: string
+    totalRegistros?: number
+  }
 }
 
 export interface ClienteOption {
@@ -58,11 +64,13 @@ export function ModalBuscaAvancada({
   isOpen,
   onClose,
   termoInicial = '',
+  contextoInicial,
 }: ModalBuscaAvancadaProps) {
   const [activeTab, setActiveTab] = useState<'gerar_enviar' | 'depositar' | 'historico'>(
     'gerar_enviar',
   )
-  const [termoBusca, setTermoBusca] = useState(termoInicial)
+  const initialTerm = contextoInicial?.termo ?? termoInicial
+  const [termoBusca, setTermoBusca] = useState(initialTerm)
   const [clientes, setClientes] = useState<ClienteOption[]>([])
   const [clienteSelecionadoId, setClienteSelecionadoId] = useState<string>('')
   const [shortcuts, setShortcuts] = useState<InstallShortcutItem[]>([])
@@ -84,10 +92,11 @@ export function ModalBuscaAvancada({
   }, [isOpen])
 
   useEffect(() => {
-    if (termoInicial) {
-      setTermoBusca(termoInicial)
+    const novoTermo = contextoInicial?.termo ?? termoInicial
+    if (novoTermo !== undefined) {
+      setTermoBusca(novoTermo)
     }
-  }, [termoInicial])
+  }, [termoInicial, contextoInicial?.termo])
 
   async function carregarHistorico() {
     setLoadingShortcuts(true)
@@ -164,8 +173,30 @@ export function ModalBuscaAvancada({
       ? `Prezado(a) ${clienteAtual.nome}${clienteAtual.empresa ? ` (${clienteAtual.empresa})` : ''},`
       : 'Prezado cliente,'
 
+    const temContextoExtra =
+      contextoInicial &&
+      ((contextoInicial.anexoFiltro && contextoInicial.anexoFiltro !== 'TODOS') ||
+        (contextoInicial.categoriaEspecial && contextoInicial.categoriaEspecial !== 'TODAS') ||
+        typeof contextoInicial.totalRegistros === 'number')
+
     const detalheTermo = termoBusca.trim()
-      ? `\n🔎 *Termo sugerido para consulta:* "${termoBusca.trim()}" (a pesquisa abrirá já pré-filtrada com todas as normas e impactos correspondentes).\n`
+      ? `\n🔎 *Matéria / Informação pesquisada:* "${termoBusca.trim()}"` +
+        (temContextoExtra
+          ? `\n📊 *Filtros e abrangência:* ${[
+              contextoInicial.anexoFiltro && contextoInicial.anexoFiltro !== 'TODOS'
+                ? `Anexo: ${contextoInicial.anexoFiltro}`
+                : null,
+              contextoInicial.categoriaEspecial && contextoInicial.categoriaEspecial !== 'TODAS'
+                ? `Grupo Especial: ${contextoInicial.categoriaEspecial}`
+                : null,
+              typeof contextoInicial.totalRegistros === 'number'
+                ? `${contextoInicial.totalRegistros.toLocaleString('pt-BR')} registros correlacionados`
+                : null,
+            ]
+              .filter(Boolean)
+              .join(' • ')}`
+          : '') +
+        `\n(Ao acessar o link oficial abaixo, a Busca Avançada abrirá já pré-filtrada com todas as normas, NCMs e impactos correspondentes).\n`
       : ''
 
     return `*ADECONT — Assessoria Contábil e Administrativa*

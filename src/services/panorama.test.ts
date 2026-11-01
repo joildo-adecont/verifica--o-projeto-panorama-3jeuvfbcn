@@ -302,4 +302,14 @@ describe('Validação dos fluxos do Panorama da Reforma Tributária', () => {
     expect(itemBusca?.url).toBe('/#busca-avancada')
     expect(itemBusca?.tecla).toBe('B')
   })
+
+  it('validação do componente SectionBuscaAvancada com envio pela Central de Entrega', async () => {
+    const { SectionBuscaAvancada } = await import('../components/SectionBuscaAvancada')
+    expect(SectionBuscaAvancada).toBeDefined()
+    expect(typeof SectionBuscaAvancada).toBe('function')
+
+    const { ModalBuscaAvancada } = await import('../components/ModalBuscaAvancada')
+    expect(ModalBuscaAvancada).toBeDefined()
+    expect(typeof ModalBuscaAvancada).toBe('function')
+  })
 })

@@ -846,10 +846,41 @@
               </select>
             </div>
             <div>
-              <label>Termo de Pesquisa Pré-Preenchido (Opcional)</label>
+              <div style="display: flex; justify-content: space-between; align-items: center">
+                <label>Termo de Pesquisa Pré-Preenchido (Opcional)</label>
+                <div style="font-size: 0.72rem; display: flex; gap: 4px">
+                  <a
+                    href="javascript:void(0)"
+                    onclick="setTermoBuscaPainel('cesta básica')"
+                    style="color: #0f294a; text-decoration: underline"
+                    >cesta básica</a
+                  >
+                  ·
+                  <a
+                    href="javascript:void(0)"
+                    onclick="setTermoBuscaPainel('Simples Nacional')"
+                    style="color: #0f294a; text-decoration: underline"
+                    >Simples Nacional</a
+                  >
+                  ·
+                  <a
+                    href="javascript:void(0)"
+                    onclick="setTermoBuscaPainel('insumo agropecuário')"
+                    style="color: #0f294a; text-decoration: underline"
+                    >insumos</a
+                  >
+                  ·
+                  <a
+                    href="javascript:void(0)"
+                    onclick="setTermoBuscaPainel('')"
+                    style="color: #b91c1c; text-decoration: underline"
+                    >limpar</a
+                  >
+                </div>
+              </div>
               <input
                 id="busca_termo_input"
-                placeholder="Ex.: cesta básica, Simples Nacional, agropecuário, alíquota zero..."
+                placeholder="Digite ou escolha um termo (ex.: cesta básica, Simples Nacional, insumo agropecuário)..."
                 oninput="atualizarDadosBusca()"
               />
             </div>
@@ -1744,6 +1775,14 @@
           .catch(function () {
             renderTabelaHistBusca()
           })
+      }
+
+      function setTermoBuscaPainel(valor) {
+        var input = document.getElementById('busca_termo_input')
+        if (input) {
+          input.value = valor
+          atualizarDadosBusca()
+        }
       }
 
       function getUrlBuscaAvancada(termo) {

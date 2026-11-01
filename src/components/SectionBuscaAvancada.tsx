@@ -37,9 +37,11 @@ import {
 } from '@/services/buscaAvancada'
 import { downloadOfficialDocViaProxy } from '@/services/panorama'
 import { OPCOES_TABELAS_CLASSIFICACOES } from '@/components/ModalBaseClassificacoes'
+import { ModalBuscaAvancada } from '@/components/ModalBuscaAvancada'
 import { GraficosBusca } from '@/components/GraficosBusca'
 import { ConsultaCompletaAnexos } from '@/components/ConsultaCompletaAnexos'
 import { toast } from '@/hooks/use-toast'
+import { Send, Share2 } from 'lucide-react'
 
 const SUGESTOES_RAPIDAS = [
   'insumo agropecuário',
@@ -138,9 +140,22 @@ export function SectionBuscaAvancada() {
   const [resultado, setResultado] = useState<ResultadoBuscaAvancada | null>(null)
   const [carregando, setCarregando] = useState<boolean>(true)
   const [baixandoId, setBaixandoId] = useState<string | null>(null)
+  const [modalEnvioAberto, setModalEnvioAberto] = useState<boolean>(false)
   const [, startTransition] = useTransition()
 
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const handleAbrirEnvio = () => {
+    const termoLimpo = termo.trim()
+    if (!termoLimpo) {
+      toast({
+        title: 'Dica de envio da Busca Avançada',
+        description:
+          'Nenhum termo foi digitado. Abrindo o envio do link geral — se desejar pesquisar uma matéria específica, você pode digitar no campo.',
+      })
+    }
+    setModalEnvioAberto(true)
+  }
 
   const executarBusca = async (params: ParametrosBuscaAvancada) => {
     setCarregando(true)
@@ -226,10 +241,21 @@ export function SectionBuscaAvancada() {
           </div>
 
           <div className="flex md:flex-col items-center md:items-end justify-between border-t md:border-t-0 pt-3 md:pt-0 border-white/10">
-            <AdecontLogo variant="white" className="h-10 w-auto scale-95 origin-right" />
-            <span className="text-[11px] text-slate-400 mt-1">
-              Assessoria Contábil e Administrativa
-            </span>
+            <div className="flex flex-col items-end gap-2.5">
+              <AdecontLogo variant="white" className="h-10 w-auto scale-95 origin-right" />
+              <button
+                type="button"
+                onClick={handleAbrirEnvio}
+                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-panorama-gold via-amber-300 to-panorama-gold-dark text-panorama-navy font-bold text-xs shadow-md hover:brightness-105 active:scale-98 transition-all cursor-pointer"
+                title="Enviar matéria pesquisada ao cliente cadastrado através da Central de Entrega"
+              >
+                <Send className="w-3.5 h-3.5 text-panorama-navy" />
+                <span>Enviar pela Central</span>
+              </button>
+              <span className="text-[10.5px] text-slate-400">
+                Assessoria Contábil e Administrativa
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -251,18 +277,34 @@ export function SectionBuscaAvancada() {
             className="w-full pl-12 pr-10 py-3.5 bg-slate-50 border-2 border-slate-200 focus:border-panorama-navy rounded-xl text-base sm:text-lg font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none transition-colors"
             autoFocus
           />
-          {termo && (
+          <div className="absolute inset-y-0 right-0 pr-2 flex items-center gap-1">
+            {termo && (
+              <button
+                type="button"
+                onClick={() => {
+                  setTermo('')
+                  setClassifPage(1)
+                }}
+                className="p-1.5 text-slate-400 hover:text-slate-600 cursor-pointer"
+                title="Limpar pesquisa"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            )}
             <button
-              onClick={() => {
-                setTermo('')
-                setClassifPage(1)
-              }}
-              className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
-              title="Limpar pesquisa"
+              type="button"
+              onClick={handleAbrirEnvio}
+              className="px-3 py-1.5 rounded-lg bg-panorama-navy hover:bg-panorama-navy-light text-panorama-gold-light border border-panorama-gold/40 text-xs font-bold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+              title={
+                termo.trim()
+                  ? `Enviar matéria pesquisada "${termo.trim()}" ao cliente pela Central de Entrega`
+                  : 'Enviar Busca Avançada ao cliente pela Central de Entrega'
+              }
             >
-              <X className="w-5 h-5" />
+              <Send className="w-3.5 h-3.5 text-panorama-gold" />
+              <span className="hidden sm:inline">Enviar ao Cliente</span>
             </button>
-          )}
+          </div>
         </div>
 
         {/* Sugestões Rápidas de Pesquisa */}
@@ -1353,10 +1395,33 @@ export function SectionBuscaAvancada() {
             ADECONT · Assessoria Contábil e Administrativa · Panorama da Reforma Tributária
           </span>
         </div>
-        <span className="text-[11px] text-slate-400">
-          Pesquisa automatizada sobre bases federais, estaduais e municipais
-        </span>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={handleAbrirEnvio}
+            className="text-[11px] font-bold text-panorama-navy hover:text-panorama-navy-light flex items-center gap-1 cursor-pointer underline"
+          >
+            <Share2 className="w-3 h-3 text-panorama-gold-dark" />
+            Enviar resultados desta consulta pela Central
+          </button>
+          <span className="text-[11px] text-slate-400">
+            Pesquisa automatizada sobre bases federais, estaduais e municipais
+          </span>
+        </div>
       </div>
+
+      {/* Modal da Central de Entrega integrado diretamente na Busca Avançada */}
+      <ModalBuscaAvancada
+        isOpen={modalEnvioAberto}
+        onClose={() => setModalEnvioAberto(false)}
+        termoInicial={termo.trim()}
+        contextoInicial={{
+          termo: termo.trim(),
+          anexoFiltro: filtroAnexo,
+          categoriaEspecial,
+          totalRegistros: resultado?.totalGeralEncontrado,
+        }}
+      />
     </div>
   )
 }
