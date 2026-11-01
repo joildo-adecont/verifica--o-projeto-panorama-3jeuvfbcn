@@ -134,8 +134,13 @@ export default function Index() {
       <PainelAtalhos />
 
       {/* coluna da direita: header e trilha fixos, miolo da aba rolando */}
-      <div className="lg:pl-60 flex flex-col h-screen min-h-0 flex-1">
-        <div className="shrink-0">
+      {/* min-w-0 é OBRIGATÓRIO aqui: por padrão um item flex tem min-width:auto,
+          ou seja, nunca encolhe abaixo do conteúdo. Era esta a causa de o
+          cabeçalho medir 518px numa tela de 440px — o `Header` ficava com a
+          largura do seu conteúdo mais largo e saía 78px para fora da tela,
+          sem rolagem possível. Medido no iPhone 18 Pro Max em 02/11/2026. */}
+      <div className="flex h-screen min-h-0 min-w-0 flex-1 flex-col lg:pl-60">
+        <div className="min-w-0 shrink-0">
           <PanoramaHeader
             searchTerm={searchTerm}
             setSearchTerm={setSearchTerm}
