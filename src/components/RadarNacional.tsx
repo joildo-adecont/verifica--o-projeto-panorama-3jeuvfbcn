@@ -4,18 +4,17 @@ import {
   X,
   MapPin,
   Building2,
-  Landmark,
   ChevronDown,
   ChevronRight,
   ExternalLink,
   Loader2,
   FileText,
-  Filter,
-  CheckCircle2,
   Globe2,
-  Radar,
+  SlidersHorizontal,
+  RotateCcw,
+  Check,
+  Scale,
   ShieldAlert,
-  AlertTriangle,
 } from 'lucide-react'
 import {
   UFS_BRASIL,
@@ -29,6 +28,13 @@ import {
   type RadarAtoItem,
   type RadarEstatisticasNacionais,
 } from '@/services/radarMunicipios'
+import {
+  OPCOES_NIVEIS_RADAR,
+  filtrarAtosRadar,
+  contarFiltrosRadarAtivos,
+  type NivelAtoRadar,
+  type FiltrosRadarState,
+} from '@/services/radarFilters'
 
 const NAVY = 'bg-panorama-navy'
 
@@ -37,9 +43,11 @@ export interface RadarNacionalProps {
 }
 
 export function RadarNacional({ initialUf = '' }: RadarNacionalProps) {
-  // Filtros combinados
+  // Filtros combinados com painel facetado institucional ADECONT
+  const [painelFiltrosAberto, setPainelFiltrosAberto] = useState<boolean>(true)
   const [selectedUf, setSelectedUf] = useState<string>(initialUf)
   const [selectedMunicipio, setSelectedMunicipio] = useState<RadarMunicipioItem | null>(null)
+  const [niveisSelecionados, setNiveisSelecionados] = useState<NivelAtoRadar[]>([])
   const [nivel, setNivel] = useState<'todos' | 'municipal' | 'estadual' | 'federal'>('todos')
   const [termoBusca, setTermoBusca] = useState<string>('')
   const [debouncedTermo, setDebouncedTermo] = useState<string>('')
@@ -153,48 +161,58 @@ export function RadarNacional({ initialUf = '' }: RadarNacionalProps) {
     }
   }
 
-  // Limpar todos os filtros
+  // Alterna nível selecionado no painel facetado
+  const toggleNivel = (nId: NivelAtoRadar) => {
+    setNiveisSelecionados((prev) => {
+      const exists = prev.includes(nId)
+      const novo = exists ? prev.filter((x) => x !== nId) : [...prev, nId]
+      // Sincroniza com o seletor rápido
+      if (novo.length === 1) {
+        setNivel(novo[0])
+      } else {
+        setNivel('todos')
+      }
+      return novo
+    })
+  }
+
+  // Seleciona nível via seletor rápido
+  const handleSelectNivelRapido = (optId: 'todos' | 'municipal' | 'estadual' | 'federal') => {
+    setNivel(optId)
+    if (optId === 'todos') {
+      setNiveisSelecionados([])
+    } else {
+      setNiveisSelecionados([optId])
+    }
+  }
+
+  // Estado consolidado de filtros para o serviço puro radarFilters.ts
+  const filtrosState: FiltrosRadarState = useMemo(() => {
+    return {
+      termo: debouncedTermo,
+      uf: selectedUf,
+      municipio: selectedMunicipio,
+      niveis: niveisSelecionados,
+    }
+  }, [debouncedTermo, selectedUf, selectedMunicipio, niveisSelecionados])
+
+  const totalAtivos = useMemo(() => contarFiltrosRadarAtivos(filtrosState), [filtrosState])
+
+  // Limpar todos os filtros com um clique
   const handleLimparFiltros = () => {
     setSelectedUf('')
     setSelectedMunicipio(null)
     setNivel('todos')
+    setNiveisSelecionados([])
     setTermoBusca('')
     setDebouncedTermo('')
     setPage(1)
   }
 
-  // Lista consolidada de atos filtrados segundo UF + município + nível
+  // Lista consolidada de atos filtrados via serviço puro radarFilters.ts
   const atosFiltrados = useMemo(() => {
-    return atosMap.todos.filter((ato) => {
-      // Filtro de nível (federal / estadual / municipal)
-      if (nivel !== 'todos' && ato.nivel !== nivel) {
-        return false
-      }
-
-      // Filtro de UF
-      if (selectedUf && ato.uf.toUpperCase() !== selectedUf.toUpperCase()) {
-        return false
-      }
-
-      // Filtro de município selecionado
-      if (selectedMunicipio && ato.codigo_ibge !== selectedMunicipio.codigo_ibge) {
-        return false
-      }
-
-      // Filtro de busca textual no título ou município
-      if (debouncedTermo) {
-        const q = debouncedTermo.toLowerCase().trim()
-        const matchTitulo = ato.titulo.toLowerCase().includes(q)
-        const matchMuni = (ato.municipio_nome || '').toLowerCase().includes(q)
-        const matchIbge = (ato.codigo_ibge || '').includes(q)
-        if (!matchTitulo && !matchMuni && !matchIbge) {
-          return false
-        }
-      }
-
-      return true
-    })
-  }, [atosMap.todos, nivel, selectedUf, selectedMunicipio, debouncedTermo])
+    return filtrarAtosRadar(atosMap.todos, filtrosState)
+  }, [atosMap.todos, filtrosState])
 
   return (
     <div className="space-y-4">
@@ -263,117 +281,317 @@ export function RadarNacional({ initialUf = '' }: RadarNacionalProps) {
         </div>
       </div>
 
-      {/* BARRA DE FILTROS COMBINADOS: UF + NÍVEL + BUSCA DE MUNICÍPIO */}
-      <div className="rounded-xl border border-slate-200 bg-white p-3.5 space-y-3 shadow-xs">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2 border-b border-slate-100">
-          <div className="flex items-center gap-1.5">
-            <Filter className="w-4 h-4 text-panorama-navy" />
-            <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wide">
-              Filtros Combinados — Federação, Estado &amp; Município
-            </h3>
-          </div>
-
-          {(selectedUf || selectedMunicipio || nivel !== 'todos' || termoBusca) && (
+      {/* PAINEL DE FILTROS FACETADOS PADRÃO INSTITUCIONAL ADECONT */}
+      <div className="space-y-3">
+        {/* Barra de Ações: Botão Expandir/Recolher + Limpar + Seletor rápido + Campo de Busca */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
+          <div className="flex items-center gap-2 flex-wrap">
             <button
-              onClick={handleLimparFiltros}
-              className="text-[10px] font-bold text-panorama-navy bg-panorama-gold hover:bg-panorama-gold-dark rounded px-2 py-1 transition-colors self-start sm:self-auto cursor-pointer"
+              type="button"
+              onClick={() => setPainelFiltrosAberto((prev) => !prev)}
+              className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer shadow-2xs ${
+                totalAtivos > 0
+                  ? 'bg-panorama-navy text-panorama-gold-light border-panorama-navy'
+                  : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+              }`}
+              title="Expandir/recolher painel de filtros facetados do Radar Nacional"
             >
-              Limpar todos os filtros
+              <SlidersHorizontal className="w-3.5 h-3.5 text-panorama-gold" />
+              <span>Filtros do Radar</span>
+              {totalAtivos > 0 && (
+                <span className="px-1.5 py-0.2 rounded-full text-[10px] font-black bg-panorama-gold text-panorama-navy">
+                  {totalAtivos}
+                </span>
+              )}
             </button>
-          )}
-        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-2.5 items-center">
-          {/* Seletor de Nível */}
-          <div className="md:col-span-4 flex items-center gap-1 bg-slate-100 p-1 rounded-lg">
-            {(
-              [
-                { id: 'todos', label: 'Todos' },
-                { id: 'federal', label: 'Federal' },
-                { id: 'estadual', label: 'Estadual' },
-                { id: 'municipal', label: 'Municipal' },
-              ] as const
-            ).map((opt) => (
+            {totalAtivos > 0 && (
               <button
-                key={opt.id}
-                onClick={() => setNivel(opt.id)}
-                className={`flex-1 text-[10px] font-bold py-1 px-1.5 rounded transition-all cursor-pointer ${
-                  nivel === opt.id
-                    ? 'bg-panorama-navy text-white shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
+                type="button"
+                onClick={handleLimparFiltros}
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-semibold cursor-pointer transition-colors"
+                title="Limpar todos os filtros selecionados"
               >
-                {opt.label}
+                <RotateCcw className="w-3 h-3" />
+                <span>Limpar todos os filtros ({totalAtivos})</span>
               </button>
-            ))}
+            )}
+
+            {/* Seletor rápido por Nível */}
+            <div className="hidden sm:flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-xs">
+              <span className="text-[10px] font-bold text-slate-500 uppercase px-1.5">Nível:</span>
+              {(
+                [
+                  { id: 'todos', label: 'Todos' },
+                  { id: 'federal', label: 'Federal' },
+                  { id: 'estadual', label: 'Estadual' },
+                  { id: 'municipal', label: 'Municipal' },
+                ] as const
+              ).map((opt) => (
+                <button
+                  key={opt.id}
+                  onClick={() => handleSelectNivelRapido(opt.id)}
+                  className={`text-[10px] font-bold py-1 px-2 rounded-md transition-all cursor-pointer ${
+                    nivel === opt.id
+                      ? 'bg-panorama-navy text-white shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
           </div>
 
-          {/* Campo de Busca textual por município ou código IBGE */}
-          <div className="md:col-span-8 relative">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+          {/* Campo de Busca textual rápida */}
+          <div className="relative w-full sm:w-80">
+            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
               value={termoBusca}
               onChange={(e) => setTermoBusca(e.target.value)}
-              placeholder="Buscar município por nome ou código IBGE de 7 dígitos (ex: 3304557, Niterói, Joinville, Porto Alegre)..."
-              className="w-full text-xs pl-8 pr-7 py-2 rounded-lg border border-slate-300 focus:border-panorama-navy focus:ring-1 focus:ring-panorama-gold focus:outline-none transition-all"
+              placeholder="Buscar ato, município ou código IBGE..."
+              className="w-full text-xs pl-8 pr-7 py-1.5 rounded-xl border border-slate-300 bg-white placeholder:text-slate-400 focus:outline-none focus:border-panorama-navy focus:ring-1 focus:ring-panorama-navy"
             />
             {termoBusca && (
               <button
+                type="button"
                 onClick={() => setTermoBusca('')}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
                 title="Limpar busca"
               >
-                <X className="w-3 h-3" />
+                <X className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
         </div>
 
-        {/* Feedback visual dos filtros ativos */}
-        <div className="flex flex-wrap items-center gap-1.5 pt-1 text-[10.5px]">
-          <span className="text-slate-500 font-semibold">Filtros ativos:</span>
-          <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded border border-slate-200">
-            Nível: <strong>{nivel.toUpperCase()}</strong>
-          </span>
-          {selectedUf ? (
-            <span className="bg-blue-50 text-blue-800 px-2 py-0.5 rounded border border-blue-200 flex items-center gap-1">
-              <span>
-                Estado: <strong>{selectedUf}</strong>
+        {/* PAINEL COMPLETO DE FILTROS FACETADOS (ESTILO INSTITUCIONAL ADECONT) */}
+        {painelFiltrosAberto && (
+          <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-slate-50 via-white to-blue-50/20 border-2 border-slate-200 space-y-4 animate-in fade-in duration-200 shadow-inner">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-200/80">
+              <span className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                <SlidersHorizontal className="w-3.5 h-3.5 text-panorama-navy" />
+                Painel de Filtros Facetados do Radar Nacional
               </span>
-              <button
-                onClick={() => setSelectedUf('')}
-                className="hover:text-blue-950 font-bold ml-1"
-                title="Remover filtro de UF"
-              >
-                ×
-              </button>
-            </span>
-          ) : (
-            <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded">Todas as 27 UFs</span>
-          )}
-          {selectedMunicipio && (
-            <span className="bg-amber-50 text-amber-900 px-2 py-0.5 rounded border border-amber-300 flex items-center gap-1 font-semibold">
-              <MapPin className="w-3 h-3 text-amber-700" />
-              <span>
-                {selectedMunicipio.nome} ({selectedMunicipio.uf}) — IBGE:{' '}
-                {selectedMunicipio.codigo_ibge}
+              <span className="text-[11px] text-slate-500">
+                {totalAtivos > 0
+                  ? `${totalAtivos} dimensão(ões) ativa(s)`
+                  : 'Nenhum filtro aplicado'}
               </span>
-              <button
-                onClick={() => setSelectedMunicipio(null)}
-                className="hover:text-amber-950 font-bold ml-1"
-                title="Remover município"
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* 1. Nível do Ato Normativo */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                    <Scale className="w-3.5 h-3.5 text-blue-600" />
+                    1. Nível do Ato
+                  </span>
+                  {niveisSelecionados.length > 0 && (
+                    <span className="text-[10px] font-bold text-blue-700 bg-blue-100 px-1.5 rounded">
+                      {niveisSelecionados.length}
+                    </span>
+                  )}
+                </div>
+                <div className="flex flex-col gap-1">
+                  {OPCOES_NIVEIS_RADAR.map((opt) => {
+                    const ativo = niveisSelecionados.includes(opt.id)
+                    return (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => toggleNivel(opt.id)}
+                        className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-colors cursor-pointer text-left ${
+                          ativo
+                            ? 'bg-blue-50 border-blue-400 text-blue-950 font-bold'
+                            : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                        }`}
+                        title={opt.descricao}
+                      >
+                        <span className="truncate">{opt.label}</span>
+                        {ativo ? (
+                          <Check className="w-3.5 h-3.5 text-blue-700 shrink-0 ml-1" />
+                        ) : (
+                          <span className="w-3.5 h-3.5 rounded border border-slate-300 shrink-0 ml-1" />
+                        )}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* 2. Unidade Federativa (UF) */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                    <Globe2 className="w-3.5 h-3.5 text-indigo-600" />
+                    2. Unidade Federativa
+                  </span>
+                  {selectedUf && (
+                    <span className="text-[10px] font-bold text-indigo-700 bg-indigo-100 px-1.5 rounded">
+                      {selectedUf}
+                    </span>
+                  )}
+                </div>
+                <p className="text-[10.5px] text-slate-500 leading-tight">
+                  Selecione no grid de 27 UFs abaixo ou filtre rapidamente pela sigla:
+                </p>
+                <div className="flex flex-wrap gap-1 max-h-36 overflow-y-auto pr-1">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedUf('')}
+                    className={`px-2 py-0.5 rounded text-[10.5px] font-bold border cursor-pointer ${
+                      !selectedUf
+                        ? 'bg-panorama-navy text-white border-panorama-navy'
+                        : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
+                    }`}
+                  >
+                    Todas
+                  </button>
+                  {UFS_BRASIL.map((ufCode) => {
+                    const isSel = selectedUf === ufCode
+                    return (
+                      <button
+                        key={`filtro-uf-${ufCode}`}
+                        type="button"
+                        onClick={() => setSelectedUf(isSel ? '' : ufCode)}
+                        className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-bold border cursor-pointer transition-colors ${
+                          isSel
+                            ? 'bg-indigo-100 text-indigo-950 border-indigo-400 font-bold'
+                            : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                        }`}
+                      >
+                        {ufCode}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* 3. Município Ativo */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-amber-600" />
+                    3. Município Selecionado
+                  </span>
+                  {selectedMunicipio && (
+                    <span className="text-[10px] font-bold text-amber-800 bg-amber-100 px-1.5 rounded">
+                      1 ativo
+                    </span>
+                  )}
+                </div>
+                {selectedMunicipio ? (
+                  <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-300 text-xs space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-slate-900 truncate">
+                        {selectedMunicipio.nome} ({selectedMunicipio.uf})
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedMunicipio(null)}
+                        className="text-amber-800 hover:text-rose-600 p-0.5 cursor-pointer font-bold"
+                        title="Remover seleção de município"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                    <p className="text-[10px] font-mono text-slate-600">
+                      Código IBGE: <strong>{selectedMunicipio.codigo_ibge}</strong>
+                    </p>
+                  </div>
+                ) : (
+                  <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-[11px] text-slate-500">
+                    Nenhum município selecionado. Clique em qualquer chip no catálogo de municípios
+                    abaixo para isolar seus atos normativos.
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* CHIPS DE FILTROS ATIVOS REMOVÍVEIS */}
+        {totalAtivos > 0 && (
+          <div className="flex items-center gap-1.5 flex-wrap pt-1 text-xs">
+            <span className="text-slate-500 font-semibold text-[11px]">Filtros ativos:</span>
+
+            {debouncedTermo && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-800 border border-slate-300 text-[11px] font-semibold">
+                <span>Busca: &ldquo;{debouncedTermo}&rdquo;</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setTermoBusca('')
+                    setDebouncedTermo('')
+                  }}
+                  className="hover:text-rose-600 cursor-pointer"
+                  title="Remover filtro de termo"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            )}
+
+            {selectedUf && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-900 border border-indigo-300 text-[11px] font-semibold">
+                <span>UF: {selectedUf}</span>
+                <button
+                  type="button"
+                  onClick={() => setSelectedUf('')}
+                  className="hover:text-indigo-950 cursor-pointer"
+                  title="Remover filtro de estado"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            )}
+
+            {selectedMunicipio && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 text-[11px] font-semibold">
+                <MapPin className="w-3 h-3 text-amber-700" />
+                <span>
+                  {selectedMunicipio.nome} ({selectedMunicipio.uf})
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setSelectedMunicipio(null)}
+                  className="hover:text-amber-950 cursor-pointer"
+                  title="Remover filtro de município"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            )}
+
+            {niveisSelecionados.map((nId) => (
+              <span
+                key={`chip-nivel-${nId}`}
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-100 text-blue-900 border border-blue-300 text-[11px] font-semibold"
               >
-                ×
-              </button>
-            </span>
-          )}
-          {debouncedTermo && (
-            <span className="bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded border border-emerald-200">
-              Termo: &quot;{debouncedTermo}&quot;
-            </span>
-          )}
-        </div>
+                <span>Nível: {nId.toUpperCase()}</span>
+                <button
+                  type="button"
+                  onClick={() => toggleNivel(nId)}
+                  className="hover:text-blue-950 cursor-pointer"
+                  title="Remover filtro de nível"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            ))}
+
+            <button
+              type="button"
+              onClick={handleLimparFiltros}
+              className="text-[11px] font-bold text-rose-600 hover:underline cursor-pointer ml-1"
+            >
+              Limpar todos
+            </button>
+          </div>
+        )}
       </div>
 
       {/* SELETOR DE UFS COM EXPANSÃO (CHEVRON) E CONTAGEM OFICIAL */}
@@ -609,11 +827,31 @@ export function RadarNacional({ initialUf = '' }: RadarNacionalProps) {
 
         <div className="divide-y divide-slate-100 max-h-[460px] overflow-y-auto">
           {atosFiltrados.length === 0 ? (
-            <div className="p-8 text-center text-slate-500 text-xs">
-              <p>Nenhum ato normativo municipal cadastrado com os filtros selecionados.</p>
-              <p className="text-[10px] text-slate-400 mt-1">
-                Tente selecionar outra UF ou limpar o filtro de município para ver todos os atos.
-              </p>
+            <div className="p-10 text-center">
+              <div className="max-w-md mx-auto space-y-3">
+                <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
+                  <ShieldAlert className="w-6 h-6 text-amber-600" />
+                </div>
+                <h3 className="text-sm font-bold text-slate-800">
+                  Nenhum ato normativo encontrado para os filtros selecionados
+                </h3>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  Não localizamos matérias oficiais que correspondam à combinação de estado,
+                  município e nível federativo escolhida.
+                </p>
+                {totalAtivos > 0 && (
+                  <div className="pt-2">
+                    <button
+                      type="button"
+                      onClick={handleLimparFiltros}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-panorama-navy text-panorama-gold-light hover:bg-panorama-navy-light text-xs font-bold transition-all shadow-xs cursor-pointer"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5 text-panorama-gold" />
+                      <span>Limpar todos os filtros ({totalAtivos})</span>
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           ) : (
             atosFiltrados.map((ato) => (

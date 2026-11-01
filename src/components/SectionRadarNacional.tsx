@@ -3958,6 +3958,70 @@ const DADOS = {
       nivel: 'estadual',
     },
     {
+      uf: 'SE',
+      titulo:
+        'Art. 2º Este Decreto entra em vigor na data de sua publicação, produzindo efeitos a partir de 1º de julho de 2026, exceto quanto aos seguintes dispositivos do R',
+      url: 'https://iose.se.gov.br/diario-oficial',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'SE',
+      titulo:
+        'Diário Oficial segunda-feira, 30 de Março de 2026 Aracaju - Sergipe Nº 29.857 12 RELATÓRIO FISCAL 2026 GOVERNO DE SERGIPE RELATÓRIO RESUMIDO DA EXECUÇÃO ORÇAMEN',
+      url: 'https://iose.se.gov.br/diario-oficial',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'SE',
+      titulo:
+        'Diário Oficial sexta-feira, 29 de Maio de 2026 Aracaju - Sergipe 18 Nº 29.897 RELATÓRIO FISCAL 2026 GOVERNO DE SERGIPE RELATÓRIO RESUMIDO DA EXECUÇÃO ORÇAMENTÁR',
+      url: 'https://iose.se.gov.br/diario-oficial',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'SE',
+      titulo:
+        'ambiental, em conformidade com a Lei nº 8.628, de 05 de dezembro de 2019, bem como no atendimento às disposições da Emenda Constitucional (Federal) nº 132, de 2',
+      url: 'https://iose.se.gov.br/diario-oficial',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'SE',
+      titulo:
+        'quinta-feira, 15 de Outubro de 2026 Aracaju - Sergipe Diário Oficial DESTAQUES DE SERGIPE Simples Nacional A Secretaria de Estado da Fazenda (Sefaz) alerta a em',
+      url: 'https://iose.se.gov.br/diario-oficial',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'SE',
+      titulo:
+        'segunda-feira, 02 de Março de 2026 Aracaju - Sergipe Diário Oficial 7 GOVERNO DE SERGIPE SECRETARIA DE ESTADO DA FAZENDA PORTARIA SEFAZ Nº 0057 DE 19 DE FEVEREI',
+      url: 'https://iose.se.gov.br/diario-oficial',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'SE',
+      titulo:
+        'segunda-feira, 30 de Março de 2026 Aracaju - Sergipe Diário Oficial Nº 29.857 14 RELATÓRIO FISCAL 2026 GOVERNO DE SERGIPE RELATÓRIO RESUMIDO DA EXECUÇÃO ORÇAMEN',
+      url: 'https://iose.se.gov.br/diario-oficial',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
+      uf: 'SE',
+      titulo:
+        'sexta-feira, 29 de Maio de 2026 Aracaju - Sergipe Diário Oficial Nº 29.897 RELATÓRIO FISCAL 20 2026 GOVERNO DE SERGIPE RELATÓRIO RESUMIDO DA EXECUÇÃO ORÇAMENTÁR',
+      url: 'https://iose.se.gov.br/diario-oficial',
+      assoc: 'estadual',
+      nivel: 'estadual',
+    },
+    {
       uf: 'SP',
       titulo: 'ALTERAÇÃO, DE 14 DE OUTUBRO DE 2026',
       url: 'https://doe.sp.gov.br/empresarial/alteracoes-de-sociedades-limitadas/alteracao-de-14-de-outubro-de-2026-202610144225102205055',
@@ -4080,7 +4144,7 @@ const DADOS = {
       uf: 'RS',
       nome: 'DOE/RS',
       ativo: true,
-      modo: 'API textual (atas) + PDF integral',
+      modo: 'API textual + PDF',
       hits: 3,
       amostra: ['CGIBS'],
     },
@@ -4163,6 +4227,18 @@ const DADOS = {
       modo: 'JSON diário completo (parte→seção→atos com texto integral), cobre o ano corrente',
       hits: 230,
       amostra: ['I - Portaria', 'II - Pareceres', 'I - Edital'],
+    },
+    {
+      uf: 'SE',
+      nome: 'Diário Oficial de Sergipe (IOSE)',
+      ativo: true,
+      modo: 'Elasticsearch com texto completo (mesma plataforma do PR, com documentos)',
+      hits: 8,
+      amostra: [
+        'sexta-feira, 29 de Maio de 2026 Aracaju ',
+        'Diário Oficial sexta-feira, 29 de Maio d',
+        'segunda-feira, 30 de Março de 2026 Araca',
+      ],
     },
   ],
 }
