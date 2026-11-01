@@ -60,7 +60,7 @@ export function SectionControleVersao() {
   // Filtros de visualização e plataforma
   const [filtroPlataforma, setFiltroPlataforma] = useState<'todas' | 'desktop' | 'celular'>('todas')
 
-  // Formulário de cadastro de nova versão pelo COU
+  // Formulário de cadastro de nova versão pelo CEO
   const [novaVersaoNum, setNovaVersaoNum] = useState('')
   const [novaPlataforma, setNovaPlataforma] = useState<'desktop' | 'celular'>('celular')
   const [novaDataAtualizacao, setNovaDataAtualizacao] = useState(() =>
@@ -72,8 +72,8 @@ export function SectionControleVersao() {
   const [salvandoVersao, setSalvandoVersao] = useState(false)
   const [feedbackVersao, setFeedbackVersao] = useState<{ texto: string; ok: boolean } | null>(null)
 
-  // Token do COU (padrão de autorização do projeto via localStorage)
-  const [tokenCou, setTokenCou] = useState<string>(() =>
+  // Token do CEO (padrão de autorização do projeto via localStorage)
+  const [tokenCeo, setTokenCeo] = useState<string>(() =>
     typeof window !== 'undefined' ? window.localStorage.getItem('simul_painel_token') || '' : '',
   )
   const [editandoToken, setEditandoToken] = useState(false)
@@ -139,7 +139,7 @@ export function SectionControleVersao() {
   const urlInstaladorFinal = useMemo(() => {
     const vParam = versaoAtiva?.versao ? `&v=${encodeURIComponent(versaoAtiva.versao)}` : ''
     const platParam = versaoAtiva?.plataforma === 'celular' ? '&tipo=celular' : ''
-    return `${baseOrigin}/#instalador-versao?origem=cou${platParam}${vParam}`
+    return `${baseOrigin}/#instalador-versao?origem=ceo${platParam}${vParam}`
   }, [baseOrigin, versaoAtiva])
 
   // QR Code da instalação
@@ -194,7 +194,7 @@ export function SectionControleVersao() {
         status: 'ENVIADO',
         mensagem: mensagemFormatada,
         url_instalador_enviada: urlInstaladorFinal,
-        enviado_por: 'COU — Centro de Operações Unificadas ADECONT',
+        enviado_por: 'CEO — Direção Executiva ADECONT',
       })
 
       setEnvios((prev) => [novoRegistro, ...prev])
@@ -209,7 +209,7 @@ export function SectionControleVersao() {
           : `https://wa.me/?text=${encodeURIComponent(mensagemFormatada)}`
         window.open(waLink, '_blank')
       } else if (canalEscolhido === 'email') {
-        const subject = `Instalação do Programa Panorama (${versaoAtiva.versao}) — ADECONT COU`
+        const subject = `Instalação do Programa Panorama (${versaoAtiva.versao}) — ADECONT CEO`
         const mailto = `mailto:${encodeURIComponent(emailDest)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(mensagemFormatada)}`
         window.location.href = mailto
       }
@@ -242,11 +242,11 @@ export function SectionControleVersao() {
         url_instalador:
           novaPlataforma === 'celular' ? '/#instalador-versao?tipo=celular' : '/#instalador-versao',
         canal_distribuicao: novoCanalDist.trim(),
-        controlado_por: 'COU — Centro de Operações Unificadas ADECONT',
+        controlado_por: 'CEO — Direção Executiva ADECONT',
       })
 
       setFeedbackVersao({
-        texto: `✔ Versão ${versaoSalva.versao} cadastrada com sucesso e controlada pelo COU!`,
+        texto: `✔ Versão ${versaoSalva.versao} cadastrada com sucesso e controlada pelo CEO!`,
         ok: true,
       })
       setNovaVersaoNum('')
@@ -280,16 +280,16 @@ export function SectionControleVersao() {
     }
   }
 
-  function salvarTokenCou() {
+  function salvarTokenCeo() {
     if (typeof window !== 'undefined') {
-      window.localStorage.setItem('simul_painel_token', tokenCou.trim())
+      window.localStorage.setItem('simul_painel_token', tokenCeo.trim())
     }
     setEditandoToken(false)
   }
 
   return (
     <section id="instalador-versao" className="scroll-mt-24 space-y-6">
-      {/* CABEÇALHO PROEMINENTE DO COU — DESTAQUE VISUAL MÁXIMO ADECONT */}
+      {/* CABEÇALHO PROEMINENTE DO CEO — DESTAQUE VISUAL MÁXIMO ADECONT */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-panorama-navy via-[#1B365D] to-[#0A192F] text-white p-6 sm:p-7 shadow-xl border-2 border-panorama-gold/70">
         <div className="absolute -right-10 -bottom-10 w-64 h-64 bg-panorama-gold/10 rounded-full blur-3xl pointer-events-none" />
 
@@ -302,7 +302,7 @@ export function SectionControleVersao() {
             <div className="space-y-1.5">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-black bg-gradient-to-r from-panorama-gold via-amber-300 to-panorama-gold-dark text-panorama-navy uppercase tracking-wider shadow-sm">
-                  #1 CONTROLE GERAL COU
+                  #1 CONTROLE GERAL CEO
                 </span>
                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
                   <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
@@ -315,10 +315,10 @@ export function SectionControleVersao() {
               </h2>
 
               <p className="text-xs sm:text-sm text-slate-200 leading-relaxed max-w-3xl">
-                Painel central do <strong>COU (Centro de Operações Unificadas)</strong> para
-                organizar o envio da instalação do programa via e-mail e plataformas digitais para
-                usuários e clientes cadastrados com as devidas permissões, controlando rigorosamente
-                as versões, a data de cada atualização e os registros de envio.
+                Painel central do <strong>CEO (Direção Executiva ADECONT)</strong> para organizar o
+                envio da instalação do programa via e-mail e plataformas digitais para usuários e
+                clientes cadastrados com as devidas permissões, controlando rigorosamente as
+                versões, a data de cada atualização e os registros de envio.
               </p>
             </div>
           </div>
@@ -328,21 +328,21 @@ export function SectionControleVersao() {
               <AdecontLogo className="h-7 w-auto" />
             </div>
 
-            {/* Chave de controle do COU */}
+            {/* Chave de controle do CEO */}
             <div className="flex items-center gap-1.5 text-xs text-slate-300 bg-white/10 px-2.5 py-1 rounded-lg border border-white/15">
               <KeyRound className="w-3.5 h-3.5 text-panorama-gold-light" />
-              <span>Chave COU:</span>
+              <span>Chave CEO:</span>
               {editandoToken ? (
                 <div className="flex items-center gap-1">
                   <input
                     type="password"
-                    value={tokenCou}
-                    onChange={(e) => setTokenCou(e.target.value)}
-                    placeholder="Token do COU"
+                    value={tokenCeo}
+                    onChange={(e) => setTokenCeo(e.target.value)}
+                    placeholder="Token do CEO"
                     className="px-1.5 py-0.5 text-[11px] bg-slate-900 border border-panorama-gold rounded text-white w-28 focus:outline-none"
                   />
                   <button
-                    onClick={salvarTokenCou}
+                    onClick={salvarTokenCeo}
                     className="text-[10px] font-bold px-1.5 py-0.5 bg-panorama-gold text-panorama-navy rounded hover:brightness-110"
                   >
                     Salvar
@@ -352,9 +352,9 @@ export function SectionControleVersao() {
                 <button
                   onClick={() => setEditandoToken(true)}
                   className="font-mono text-panorama-gold-light hover:underline text-[11px]"
-                  title="Clique para configurar token administrativo do COU"
+                  title="Clique para configurar token administrativo do CEO"
                 >
-                  {tokenCou ? '•••••••• (Ativo)' : 'Configurar Token'}
+                  {tokenCeo ? '•••••••• (Ativo)' : 'Configurar Token'}
                 </button>
               )}
             </div>
@@ -385,7 +385,7 @@ export function SectionControleVersao() {
           }`}
         >
           <Layers className="w-4 h-4 text-emerald-400" />
-          <span>2. Gestão de Versões pelo COU ({versoes.length})</span>
+          <span>2. Gestão de Versões pelo CEO ({versoes.length})</span>
         </button>
 
         <button
@@ -415,7 +415,7 @@ export function SectionControleVersao() {
                   ) : (
                     <Monitor className="w-4 h-4 text-panorama-navy" />
                   )}
-                  1. Versão do Programa Homologada pelo COU:
+                  1. Versão do Programa Homologada pelo CEO:
                 </label>
                 <div className="flex items-center gap-1.5">
                   {versaoAtiva?.plataforma === 'celular' ? (
@@ -592,7 +592,7 @@ export function SectionControleVersao() {
                     </div>
                   </div>
                   <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-200 text-emerald-900 uppercase">
-                    Homologado COU
+                    Homologado CEO
                   </span>
                 </div>
               ) : (
@@ -670,7 +670,7 @@ export function SectionControleVersao() {
                   <div className="flex items-center gap-2">
                     <FileText className="w-4 h-4 text-panorama-navy" />
                     <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-                      Mensagem Institucional do COU para o Envio
+                      Mensagem Institucional do CEO para o Envio
                     </span>
                   </div>
                   <span className="text-[11px] font-bold text-panorama-gold-dark">
@@ -686,7 +686,7 @@ export function SectionControleVersao() {
               {/* Botões de Ação Imediata */}
               <div className="space-y-3 pt-2 border-t border-slate-200">
                 <div className="flex items-center justify-between text-xs font-bold text-slate-700">
-                  <span>Disparar Envio pelo COU:</span>
+                  <span>Disparar Envio pelo CEO:</span>
                   <span className="text-[11px] text-slate-500 font-normal">
                     Registrado automaticamente no banco de dados
                   </span>
@@ -715,13 +715,13 @@ export function SectionControleVersao() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <button
                     onClick={() => {
-                      copiarParaClipboard(mensagemFormatada, 'msg_completa_cou')
+                      copiarParaClipboard(mensagemFormatada, 'msg_completa_ceo')
                       handleDispararEnvio('link_direto')
                     }}
                     disabled={disparando}
                     className="py-2.5 px-3 rounded-xl bg-panorama-navy hover:bg-panorama-navy-light text-white font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition-colors cursor-pointer disabled:opacity-50"
                   >
-                    {copiedKey === 'msg_completa_cou' ? (
+                    {copiedKey === 'msg_completa_ceo' ? (
                       <>
                         <Check className="w-4 h-4 text-panorama-gold" />
                         <span>Mensagem Copiada & Registrada!</span>
@@ -767,17 +767,17 @@ export function SectionControleVersao() {
               de instalação são servidos diretamente pelo proxy e roteador do próprio sistema
               ADECONT, sem redirecionamentos externos que possam ser bloqueados por filtros
               corporativos ou navegadores (política institucional de integridade anti-bloqueio). O
-              COU centraliza todas as versões e garante que os clientes recebam a compilação oficial
+              CEO centraliza todas as versões e garante que os clientes recebam a compilação oficial
               homologada.
             </div>
           </div>
         </div>
       )}
 
-      {/* ABA 2: GESTÃO DE VERSÕES PELO COU (CADASTRO E HISTÓRICO) */}
+      {/* ABA 2: GESTÃO DE VERSÕES PELO CEO (CADASTRO E HISTÓRICO) */}
       {abaAtiva === 'versoes' && (
         <div className="space-y-6">
-          {/* Formulário de Cadastro de Versão pelo COU */}
+          {/* Formulário de Cadastro de Versão pelo CEO */}
           <form
             onSubmit={handleCadastrarVersao}
             className="p-5 sm:p-6 rounded-2xl border border-slate-200 bg-white shadow-xs space-y-4"
@@ -786,11 +786,11 @@ export function SectionControleVersao() {
               <div className="flex items-center gap-2">
                 <PlusCircle className="w-5 h-5 text-emerald-600" />
                 <h3 className="text-sm sm:text-base font-bold text-slate-900">
-                  Cadastrar Nova Versão do Programa (Ação do COU)
+                  Cadastrar Nova Versão do Programa (Ação do CEO)
                 </h3>
               </div>
               <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-panorama-navy text-white">
-                Controle COU
+                Controle CEO
               </span>
             </div>
 
@@ -892,7 +892,7 @@ export function SectionControleVersao() {
                 <input
                   type="text"
                   readOnly
-                  value="COU — Centro de Operações Unificadas ADECONT"
+                  value="CEO — Direção Executiva ADECONT"
                   className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-100 text-xs text-slate-600 font-semibold"
                 />
               </div>
@@ -919,7 +919,7 @@ export function SectionControleVersao() {
                 <PlusCircle className="w-4 h-4 text-panorama-gold" />
                 <span>
                   {salvandoVersao
-                    ? 'Registrando no Banco pelo COU...'
+                    ? 'Registrando no Banco pelo CEO...'
                     : 'Salvar Versão no Histórico'}
                 </span>
               </button>
@@ -935,7 +935,7 @@ export function SectionControleVersao() {
                   Histórico de Versões do Programa (Ordenado por Data de Atualização)
                 </h3>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Registro cronológico controlado pelo COU com número da versão, data da atualização
+                  Registro cronológico controlado pelo CEO com número da versão, data da atualização
                   e notas oficiais.
                 </p>
               </div>
@@ -1024,7 +1024,7 @@ export function SectionControleVersao() {
                           <strong>
                             {isCelular ? 'Celular (Android/iOS)' : 'Desktop/Computador'}
                           </strong>{' '}
-                          • Controlado por: <strong>{item.controlado_por || 'COU ADECONT'}</strong>{' '}
+                          • Controlado por: <strong>{item.controlado_por || 'CEO ADECONT'}</strong>{' '}
                           • Canais: {item.canal_distribuicao || 'E-mail, WhatsApp e PWA'}
                         </div>
                       </div>
@@ -1036,7 +1036,7 @@ export function SectionControleVersao() {
                               handlePromoverAtual(item.id, item.plataforma || 'desktop')
                             }
                             className="px-3 py-1.5 rounded-lg border border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors"
-                            title={`Definir como a versão atual homologada pelo COU para ${isCelular ? 'celular' : 'desktop'}`}
+                            title={`Definir como a versão atual homologada pelo CEO para ${isCelular ? 'celular' : 'desktop'}`}
                           >
                             <Check className="w-3.5 h-3.5" />
                             <span>Definir como Atual ({isCelular ? 'Celular' : 'Desktop'})</span>
@@ -1075,7 +1075,7 @@ export function SectionControleVersao() {
             <div>
               <h3 className="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
                 <History className="w-4 h-4 text-blue-600" />
-                Histórico de Envios de Instalação (Controlado pelo COU)
+                Histórico de Envios de Instalação (Controlado pelo CEO)
               </h3>
               <p className="text-xs text-slate-500 mt-0.5">
                 Rastreabilidade completa: registro de para quem foi enviado, qual versão, data do

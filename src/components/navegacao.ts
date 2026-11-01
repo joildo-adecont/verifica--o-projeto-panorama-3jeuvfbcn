@@ -699,7 +699,7 @@ const SISTEMA: LinkNavegacao[] = [
   },
 ]
 
-/* ───────────── GRUPO 0 — CONTROLE COU & INDICADORES (acesso de topo) ───────────── */
+/* ───────────── GRUPO 0 — CONTROLE CEO & INDICADORES (acesso de topo) ───────────── */
 const DESTAQUE_TOPO: LinkNavegacao[] = [
   {
     href: '#instalador-versao',
@@ -712,13 +712,13 @@ const DESTAQUE_TOPO: LinkNavegacao[] = [
     bg: 'bg-gradient-to-r from-amber-100 via-amber-50 to-blue-50',
     borda: 'border-amber-400',
     descricao:
-      'Organização de envios de instalação por e-mail/WhatsApp para clientes, gestão de versões e datas pelo COU',
+      'Organização de envios de instalação por e-mail/WhatsApp para clientes, gestão de versões e datas pelo CEO',
     tags: [
       'instalador',
       'versao',
       'controle de versao',
       'versoes',
-      'cou',
+      'ceo',
       'atualizacao',
       'atualizacoes',
       'envio',
@@ -802,7 +802,7 @@ const DESTAQUE_TOPO: LinkNavegacao[] = [
 export const GRUPOS: GrupoNavegacao[] = [
   {
     id: 'indicadores',
-    nome: 'Controle COU & Indicadores',
+    nome: 'Controle CEO & Indicadores',
     proposito: 'Instalação, controle de versão e visão executiva do sistema',
     Icon: Gauge,
     cor: 'text-amber-700',

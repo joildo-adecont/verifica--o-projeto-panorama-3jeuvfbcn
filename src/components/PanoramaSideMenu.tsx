@@ -164,7 +164,7 @@ export function PanoramaSideMenu() {
                     ? 'bg-gradient-to-r from-panorama-navy via-slate-900 to-[#0F294A] text-white border-panorama-gold shadow-md'
                     : 'bg-gradient-to-r from-amber-500/15 via-amber-500/10 to-blue-500/10 text-slate-900 border-panorama-gold/80 hover:border-panorama-gold hover:bg-amber-100/50 hover:shadow-md'
                 }`}
-                title="Atalho: Tecla U — Instalador e Controle de Versão (COU)"
+                title="Atalho: Tecla U — Instalador e Controle de Versão (CEO)"
               >
                 <div
                   className={`inline-flex items-center justify-center w-8 h-8 shrink-0 rounded-lg shadow-sm border ${
@@ -179,7 +179,7 @@ export function PanoramaSideMenu() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5">
                     <span className="inline-flex items-center px-1.5 py-0.2 rounded text-[9px] font-black uppercase tracking-wider bg-panorama-gold text-panorama-navy">
-                      #1 COU
+                      #1 CEO
                     </span>
                     <span
                       className={`text-[9px] font-bold ${

@@ -86,24 +86,24 @@ const FALLBACK_VERSOES: ProgramaVersaoItem[] = [
     plataforma: 'desktop',
     data_atualizacao: '2026-10-31',
     notas_versao:
-      'Lançamento do Módulo Central do COU: Instalador e Controle de Versão, Radar Nacional (três níveis federativos), Busca Avançada NCM com mais de 15.240 classificações e política anti-bloqueio institucional ADECONT.',
+      'Lançamento do Módulo Central do CEO: Instalador e Controle de Versão, Radar Nacional (três níveis federativos), Busca Avançada NCM com mais de 15.240 classificações e política anti-bloqueio institucional ADECONT.',
     status: 'atual',
     url_instalador: '/#instalador-versao',
     canal_distribuicao: 'E-mail, WhatsApp e QR Code Seguro',
-    controlado_por: 'COU — Centro de Operações Unificadas ADECONT',
+    controlado_por: 'CEO — Direção Executiva ADECONT',
     created: '2026-10-31T12:00:00.000Z',
   },
   {
-    id: 'local-v284m',
-    versao: 'v2.8.4-m',
+    id: 'local-v290m',
+    versao: 'v2.9.0-m',
     plataforma: 'celular',
     data_atualizacao: '2026-10-31',
     notas_versao:
-      'Versão para Celular (PWA Mobile) homologada pelo COU: interface adaptada para toque, leitor de Classificações NCM no bolso, simuladores setoriais da Reforma Tributária otimizados para smartphone e atalho seguro na tela inicial.',
+      'Versão para Celular (PWA Mobile) homologada pelo CEO: interface adaptada para toque, leitor de Classificações NCM no bolso, simuladores setoriais da Reforma Tributária otimizados para smartphone e atalho seguro na tela inicial.',
     status: 'atual',
     url_instalador: '/#instalador-versao?tipo=celular',
     canal_distribuicao: 'WhatsApp, QR Code Celular e E-mail',
-    controlado_por: 'COU — Centro de Operações Unificadas ADECONT',
+    controlado_por: 'CEO — Direção Executiva ADECONT',
     created: '2026-10-31T12:30:00.000Z',
   },
   {
@@ -116,7 +116,7 @@ const FALLBACK_VERSOES: ProgramaVersaoItem[] = [
     status: 'anterior',
     url_instalador: '/#instalador-versao',
     canal_distribuicao: 'E-mail Oficial e PWA',
-    controlado_por: 'COU — Centro de Operações Unificadas ADECONT',
+    controlado_por: 'CEO — Direção Executiva ADECONT',
     created: '2026-10-15T12:00:00.000Z',
   },
   {
@@ -129,7 +129,7 @@ const FALLBACK_VERSOES: ProgramaVersaoItem[] = [
     status: 'anterior',
     url_instalador: '/#instalador-versao?tipo=celular',
     canal_distribuicao: 'PWA Mobile e QR Code',
-    controlado_por: 'COU — Centro de Operações Unificadas ADECONT',
+    controlado_por: 'CEO — Direção Executiva ADECONT',
     created: '2026-10-10T12:00:00.000Z',
   },
 ]
@@ -150,7 +150,7 @@ export async function fetchProgramaVersoes(): Promise<ProgramaVersaoItem[]> {
   }
 }
 
-/** Cadastra nova versão pelo COU. Se o status for "atual", desmarca versões anteriores que estavam como "atual" na mesma plataforma */
+/** Cadastra nova versão pelo CEO. Se o status for "atual", desmarca versões anteriores que estavam como "atual" na mesma plataforma */
 export async function createProgramaVersao(input: CreateVersaoInput): Promise<ProgramaVersaoItem> {
   const plataforma = input.plataforma || 'desktop'
   try {
@@ -167,16 +167,16 @@ export async function createProgramaVersao(input: CreateVersaoInput): Promise<Pr
     const record = await pb.collection('programa_versoes').create<ProgramaVersaoItem>({
       ...input,
       plataforma,
-      controlado_por: input.controlado_por || 'COU — Centro de Operações Unificadas ADECONT',
+      controlado_por: input.controlado_por || 'CEO — Direção Executiva ADECONT',
     })
     return record
   } catch (err) {
-    console.error('[programaVersoes] Erro ao cadastrar versão pelo COU:', err)
+    console.error('[programaVersoes] Erro ao cadastrar versão pelo CEO:', err)
     throw err
   }
 }
 
-/** Altera status da versão (ex.: marcar como atual pelo COU) respeitando a plataforma */
+/** Altera status da versão (ex.: marcar como atual pelo CEO) respeitando a plataforma */
 export async function setVersaoComoAtual(id: string, plataforma?: PlataformaVersao): Promise<void> {
   try {
     // Descobre a plataforma do registro se não for informada
@@ -239,7 +239,7 @@ export async function registrarEnvioInstalacao(
       plataforma: input.plataforma || 'desktop',
       protocolo,
       status: input.status || 'ENVIADO',
-      enviado_por: input.enviado_por || 'COU — Centro de Operações Unificadas ADECONT',
+      enviado_por: input.enviado_por || 'CEO — Direção Executiva ADECONT',
       data_envio: input.data_envio || dataEnvioStr,
     })
     return record
@@ -296,10 +296,10 @@ export function formatarMensagemInstalacao(params: {
   const cabecalho = isCelular
     ? `*ADECONT — Assessoria Contábil e Administrativa*
 📱 *Instalador Oficial para Celular — Programa Panorama Mobile*
-🛡️ _Gerenciado e Controlado pelo COU (Centro de Operações Unificadas)_`
+🛡️ _Gerenciado e Controlado pelo CEO (Direção Executiva ADECONT)_`
     : `*ADECONT — Assessoria Contábil e Administrativa*
 💻 *Instalador e Controle de Versão do Programa Panorama (Desktop)*
-🛡️ _Gerenciado e Controlado pelo COU (Centro de Operações Unificadas)_`
+🛡️ _Gerenciado e Controlado pelo CEO (Direção Executiva ADECONT)_`
 
   const infoPlataforma = isCelular
     ? `• *Plataforma:* 📱 Celular (Smartphone Android & Apple iOS)`
@@ -322,11 +322,11 @@ ${saudacao}
 
 Informamos a disponibilização do link oficial para instalação e atualização ${isCelular ? 'da *Versão para Celular*' : 'do sistema'} *Panorama da Reforma Tributária*.
 
-📌 *Dados da Versão Homologada pelo COU:*
+📌 *Dados da Versão Homologada pelo CEO:*
 • *Versão do Programa:* ${versao}
 ${infoPlataforma}
 • *Data da Atualização:* ${dataFmt}
-• *Responsável pelo Controle:* COU — Centro de Operações Unificadas ADECONT
+• *Responsável pelo Controle:* CEO — Direção Executiva ADECONT
 
 ${notasVersao ? `📝 *O que mudou nesta atualização:*\n${notasVersao}\n\n` : ''}🔗 *Link Direto de Instalação (Anti-bloqueio Seguro):*
 ${urlInstalador}

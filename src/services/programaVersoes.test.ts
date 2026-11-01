@@ -3,7 +3,7 @@ import { formatarMensagemInstalacao } from './programaVersoes'
 import { NAVEGACAO, GRUPOS } from '@/components/navegacao'
 import { resolverRota, ABAS } from '@/lib/rotas'
 
-describe('Instalador e Controle de Versão (COU)', () => {
+describe('Instalador e Controle de Versão (CEO)', () => {
   it('o item de menu Instalador e Controle de Versão está no topo absoluto da navegação', () => {
     expect(NAVEGACAO.length).toBeGreaterThan(0)
     const primeiro = NAVEGACAO[0]
@@ -30,7 +30,7 @@ describe('Instalador e Controle de Versão (COU)', () => {
     const msg = formatarMensagemInstalacao({
       versao: 'v2.8.4',
       dataAtualizacao: '2026-10-31',
-      notasVersao: 'Módulo Central do COU com controle de versão e envios.',
+      notasVersao: 'Módulo Central do CEO com controle de versão e envios.',
       destinatarioNome: 'Dr. Roberto Silveira',
       destinatarioEmpresa: 'Silveira Contabilidade',
       urlInstalador: 'https://verificacao-projeto-panorama-18549.goskip.app/#instalador-versao',
@@ -38,7 +38,7 @@ describe('Instalador e Controle de Versão (COU)', () => {
     })
 
     expect(msg).toContain('ADECONT — Assessoria Contábil e Administrativa')
-    expect(msg).toContain('COU (Centro de Operações Unificadas)')
+    expect(msg).toContain('CEO (Direção Executiva ADECONT)')
     expect(msg).toContain('v2.8.4')
     expect(msg).toContain('31/10/2026')
     expect(msg).toContain('Dr. Roberto Silveira')
@@ -63,7 +63,7 @@ describe('Instalador e Controle de Versão (COU)', () => {
 
     expect(msg).toContain('ADECONT — Assessoria Contábil e Administrativa')
     expect(msg).toContain('Instalador Oficial para Celular — Programa Panorama Mobile')
-    expect(msg).toContain('COU (Centro de Operações Unificadas)')
+    expect(msg).toContain('CEO (Direção Executiva ADECONT)')
     expect(msg).toContain('v2.8.4-m')
     expect(msg).toContain('Plataforma:* 📱 Celular (Smartphone Android & Apple iOS)')
     expect(msg).toContain('31/10/2026')
