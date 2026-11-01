@@ -4282,6 +4282,14 @@ const DADOS = {
       amostra: ['PORTARIA N° 3724 de 26/10/2026 A SECRETÁ'],
     },
     {
+      uf: 'PI',
+      nome: 'Diário Oficial do Piauí',
+      ativo: true,
+      modo: 'Busca textual real (~22 s) · devolve nº da edição, caderno e PDF · 47 atos com IBS',
+      hits: 47,
+      amostra: [],
+    },
+    {
       uf: 'PR',
       nome: 'Diário Oficial do PR (DIOE)',
       ativo: true,

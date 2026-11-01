@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-01T19:15:14.449Z",
+  "generatedAt": "2026-11-01T19:23:15.361Z",
   "collections": [
     {
       "name": "users",
@@ -1582,11 +1582,19 @@
           "required": false,
           "system": false,
           "autodateTriggers": ["onCreate", "onUpdate"]
+        },
+        {
+          "name": "plataforma",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": ["desktop", "celular"]
         }
       ],
       "indexes": [
         "CREATE INDEX idx_programa_versoes_data ON programa_versoes (data_atualizacao DESC)",
-        "CREATE INDEX idx_programa_versoes_status ON programa_versoes (status)"
+        "CREATE INDEX idx_programa_versoes_status ON programa_versoes (status)",
+        "CREATE INDEX `idx_programa_versoes_plataforma` ON `programa_versoes` (plataforma)"
       ]
     },
     {
@@ -1693,11 +1701,19 @@
           "required": false,
           "system": false,
           "autodateTriggers": ["onCreate", "onUpdate"]
+        },
+        {
+          "name": "plataforma",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": ["desktop", "celular"]
         }
       ],
       "indexes": [
         "CREATE INDEX idx_programa_envios_versao ON programa_envios (versao_ref)",
-        "CREATE INDEX idx_programa_envios_created ON programa_envios (created DESC)"
+        "CREATE INDEX idx_programa_envios_created ON programa_envios (created DESC)",
+        "CREATE INDEX `idx_programa_envios_plataforma` ON `programa_envios` (plataforma)"
       ]
     }
   ]
