@@ -355,7 +355,7 @@ export function SectionResponsividade() {
           <button
             onClick={auditar}
             disabled={auditando}
-            className="p-1.5 rounded-lg border border-white/30 text-white hover:bg-white/10 disabled:opacity-50"
+            className="flex min-h-[40px] min-w-[40px] items-center justify-center rounded-lg border border-white/30 p-1.5 text-white hover:bg-white/10 disabled:opacity-50"
             title="Reauditar"
           >
             <RefreshCw className={`w-4 h-4 ${auditando ? 'animate-spin' : ''}`} />
