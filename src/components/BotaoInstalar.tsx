@@ -113,7 +113,10 @@ export function BotaoInstalar() {
            02/11/2026: em bottom:14px o botão ficava exatamente sobre o selo.
            Aqui sobe para 52px + safe-area, e no desktop ancora no canto
            esquerdo, onde não há nada do host. */
-        className="fixed z-40 right-3 bottom-[calc(env(safe-area-inset-bottom,0px)+52px)] flex items-center gap-2 rounded-full border border-panorama-gold/40 bg-panorama-navy px-3 py-2 shadow-lg shadow-black/30 print:hidden md:left-4 md:right-auto"
+        /* z-50: acima do painel lateral e do selo do host. Medido em 02/11/2026:
+           em tela baixa (iPhone SE, 667px) com z-40 o botão ficava ATRÁS do
+           menu aberto e não aparecia para o usuário. */
+        className="fixed z-50 right-3 bottom-[calc(env(safe-area-inset-bottom,0px)+52px)] flex items-center gap-2 rounded-full border border-panorama-gold/40 bg-panorama-navy px-3 py-2 shadow-lg shadow-black/30 print:hidden md:left-4 md:right-auto"
       >
         <button
           type="button"
