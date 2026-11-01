@@ -72,6 +72,19 @@ const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
     data: '31/10/2026',
+    hora: '16:15',
+    titulo:
+      'Padronização do painel de filtros facetados institucional ADECONT nas seções Radar Nacional e Agregadores',
+    conteudo:
+      'Conforme pedido: replicar em todas as seções o mesmo padrão de painel de filtros facetados institucional da Busca Avançada (v0.0.315) e de Normas (v0.0.317). Implementado no Radar Nacional (Seção 19) e nos Agregadores / Buscador de Classificações (Seção 11): painel expandível/retrátil com gradiente e identidade visual ADECONT, botão principal com contador em tempo real de filtros ativos, seletores rápidos por chips/badges, filtros combináveis sem recarga, chips removíveis individuais com "x" em cada um, botão "Limpar todos os filtros ({total})" e estado vazio amigável com atalho para restaurar. Módulos de filtragem puros com testes unitários e de integração adicionados: src/services/radarFilters.ts (UF, município IBGE, nível federal/estadual/municipal) e src/services/agregadoresFilters.ts (as 11 tabelas oficiais, 6 fontes oficiais RFB/CGIBS/CONFAZ/IBGE/MDIC/SVRS e esfera). Preservados intactos a busca server-side dos 5.570 municípios, os 250ms de debounce, paginação de 50 e downloads em CSV.',
+    fontes: [],
+    caminho:
+      'src/services/radarFilters.ts + src/services/radarFilters.test.ts + src/services/agregadoresFilters.ts + src/services/agregadoresFilters.test.ts + src/components/RadarNacional.tsx + src/components/SectionRadarNacional.tsx + src/components/SectionFontesAgregador.tsx + src/services/panorama.test.ts',
+    versao: 'v0.0.318',
+    bloco: 'sistema',
+  },
+  {
+    data: '31/10/2026',
     hora: '14:32',
     titulo: 'DOU formalizado como FONTE MESTRA do sistema — a Lefisc é radar e se curva a ele',
     conteudo:

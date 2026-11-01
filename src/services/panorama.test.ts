@@ -474,4 +474,110 @@ describe('Validação dos fluxos do Panorama da Reforma Tributária', () => {
     })
     expect(totalContador).toBe(5)
   })
+
+  it('padronização dos filtros facetados do Radar Nacional (radarFilters.ts)', async () => {
+    const {
+      filtrarAtosRadar,
+      contarFiltrosRadarAtivos,
+      FILTROS_RADAR_INICIAIS,
+      OPCOES_NIVEIS_RADAR,
+    } = await import('./radarFilters')
+
+    const atosAmostra = [
+      {
+        id: 'ato-sp',
+        codigo_ibge: '3550308',
+        uf: 'SP',
+        municipio_nome: 'São Paulo',
+        titulo: 'Decreto SP Regulamentador do IBS',
+        data: '2026-03-15',
+        nivel: 'municipal' as const,
+      },
+      {
+        id: 'ato-rs',
+        codigo_ibge: '4314902',
+        uf: 'RS',
+        municipio_nome: 'Porto Alegre',
+        titulo: 'Ato Estadual SEFAZ RS',
+        data: '2026-02-20',
+        nivel: 'estadual' as const,
+      },
+      {
+        id: 'ato-fed',
+        codigo_ibge: '5300108',
+        uf: 'DF',
+        municipio_nome: 'Brasília',
+        titulo: 'Ato Federal CGIBS DOU',
+        data: '2025-11-01',
+        nivel: 'federal' as const,
+      },
+    ]
+
+    // 1. Sem filtros
+    expect(filtrarAtosRadar(atosAmostra, FILTROS_RADAR_INICIAIS)).toHaveLength(3)
+
+    // 2. Filtro por nível
+    const municipais = filtrarAtosRadar(atosAmostra, {
+      ...FILTROS_RADAR_INICIAIS,
+      niveis: ['municipal'],
+    })
+    expect(municipais).toHaveLength(1)
+    expect(municipais[0].id).toBe('ato-sp')
+
+    // 3. Filtro por UF
+    const rs = filtrarAtosRadar(atosAmostra, {
+      ...FILTROS_RADAR_INICIAIS,
+      uf: 'RS',
+    })
+    expect(rs).toHaveLength(1)
+    expect(rs[0].id).toBe('ato-rs')
+
+    // 4. Contador de ativos
+    expect(
+      contarFiltrosRadarAtivos({
+        termo: 'IBS',
+        uf: 'SP',
+        municipio: null,
+        niveis: ['municipal', 'estadual'],
+      }),
+    ).toBe(4)
+
+    expect(OPCOES_NIVEIS_RADAR).toHaveLength(3)
+  })
+
+  it('padronização dos filtros facetados dos Agregadores (agregadoresFilters.ts)', async () => {
+    const {
+      filtrarClassificacoes,
+      contarFiltrosAgregadoresAtivos,
+      FILTROS_AGREGADORES_INICIAIS,
+      OPCOES_TABELAS_AGREGADOR,
+      OPCOES_FONTES_AGREGADOR,
+      OPCOES_ESFERAS_AGREGADOR,
+    } = await import('./agregadoresFilters')
+    const { FALLBACK_CLASSIFICATIONS } = await import('./classifications')
+
+    // 1. As 11 tabelas de classificação oficiais presentes
+    expect(OPCOES_TABELAS_AGREGADOR).toHaveLength(11)
+
+    // 2. Fontes oficiais presentes
+    expect(OPCOES_FONTES_AGREGADOR.length).toBeGreaterThanOrEqual(6)
+    expect(OPCOES_ESFERAS_AGREGADOR).toHaveLength(3)
+
+    // 3. Filtrar por tabela
+    const ncmItens = filtrarClassificacoes(FALLBACK_CLASSIFICATIONS, {
+      ...FILTROS_AGREGADORES_INICIAIS,
+      tabelas: ['NCM'],
+    })
+    expect(ncmItens.length).toBeGreaterThan(0)
+    expect(ncmItens.every((it) => it.tipo === 'NCM')).toBe(true)
+
+    // 4. Contador de ativos
+    const totalAtivos = contarFiltrosAgregadoresAtivos({
+      termo: 'arroz',
+      tabelas: ['NCM'],
+      fontes: ['Siscomex/MDIC'],
+      esferas: ['federal'],
+    })
+    expect(totalAtivos).toBe(4)
+  })
 })
