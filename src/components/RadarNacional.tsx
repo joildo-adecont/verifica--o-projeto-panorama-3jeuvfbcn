@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import {
   Search,
   X,
@@ -15,6 +15,8 @@ import {
   Check,
   Scale,
   ShieldAlert,
+  ArrowRight,
+  Filter,
 } from 'lucide-react'
 import {
   UFS_BRASIL,
@@ -38,8 +40,46 @@ import {
 
 const NAVY = 'bg-panorama-navy'
 
+export const NOMES_UFS: Record<string, string> = {
+  AC: 'Acre',
+  AL: 'Alagoas',
+  AM: 'Amazonas',
+  AP: 'Amapá',
+  BA: 'Bahia',
+  CE: 'Ceará',
+  DF: 'Distrito Federal',
+  ES: 'Espírito Santo',
+  GO: 'Goiás',
+  MA: 'Maranhão',
+  MG: 'Minas Gerais',
+  MS: 'Mato Grosso do Sul',
+  MT: 'Mato Grosso',
+  PA: 'Pará',
+  PB: 'Paraíba',
+  PE: 'Pernambuco',
+  PI: 'Piauí',
+  PR: 'Paraná',
+  RJ: 'Rio de Janeiro',
+  RN: 'Rio Grande do Norte',
+  RO: 'Rondônia',
+  RR: 'Roraima',
+  RS: 'Rio Grande do Sul',
+  SC: 'Santa Catarina',
+  SE: 'Sergipe',
+  SP: 'São Paulo',
+  TO: 'Tocantins',
+}
+
 export interface RadarNacionalProps {
   initialUf?: string
+}
+
+interface UfDataState {
+  items: RadarMunicipioItem[]
+  page: number
+  totalPages: number
+  totalItems: number
+  loading: boolean
 }
 
 export function RadarNacional({ initialUf = '' }: RadarNacionalProps) {
@@ -52,16 +92,25 @@ export function RadarNacional({ initialUf = '' }: RadarNacionalProps) {
   const [termoBusca, setTermoBusca] = useState<string>('')
   const [debouncedTermo, setDebouncedTermo] = useState<string>('')
 
-  // Estado de expansão das UFs (chevron)
-  const [expandedUfs, setExpandedUfs] = useState<Record<string, boolean>>({})
+  // Atalho 1: Busca rápida por Estado (Nome completo ou Sigla ex: 'MG' ou 'Minas Gerais')
+  const [buscaEstado, setBuscaEstado] = useState<string>('')
 
-  // Paginação e lista de municípios server-side
-  const [municipios, setMunicipios] = useState<RadarMunicipioItem[]>([])
-  const [page, setPage] = useState<number>(1)
-  const [totalPages, setTotalPages] = useState<number>(1)
-  const [totalMunicipiosEncontrados, setTotalMunicipiosEncontrados] = useState<number>(0)
-  const [loadingMunicipios, setLoadingMunicipios] = useState<boolean>(false)
-  const [sourceMode, setSourceMode] = useState<'database' | 'fallback'>('database')
+  // Atalho 2: Busca rápida por Município (Nome ou Código IBGE)
+  const [buscaMunicipio, setBuscaMunicipio] = useState<string>('')
+  const [sugestoesMunicipios, setSugestoesMunicipios] = useState<RadarMunicipioItem[]>([])
+  const [buscandoSugestoes, setBuscandoSugestoes] = useState<boolean>(false)
+
+  // Estado de expansão das UFs (accordion sob demanda)
+  const [expandedUfs, setExpandedUfs] = useState<Record<string, boolean>>(() => {
+    if (initialUf) return { [initialUf]: true }
+    return {}
+  })
+
+  // Cache e paginação lazy de municípios por UF { [UF]: UfDataState }
+  const [ufData, setUfData] = useState<Record<string, UfDataState>>({})
+
+  // Referência para scroll até o grupo da UF
+  const ufRefs = useRef<Record<string, HTMLDivElement | null>>({})
 
   // Estatísticas e atos normativos carregados
   const [stats, setStats] = useState<RadarEstatisticasNacionais>({
@@ -71,6 +120,7 @@ export function RadarNacional({ initialUf = '' }: RadarNacionalProps) {
     municipiosPorUf: TOTAL_OFICIAL_MUNICIPIOS_POR_UF,
     atosPorUf: {},
   })
+
   const [atosMap, setAtosMap] = useState<{
     porIbge: Record<string, RadarAtoItem[]>
     porUf: Record<string, RadarAtoItem[]>
@@ -81,76 +131,212 @@ export function RadarNacional({ initialUf = '' }: RadarNacionalProps) {
     todos: [],
   })
 
-  // Debounce do termo de busca (250ms conforme padrão da Seção 11)
+  // Debounce do termo geral de busca
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedTermo(termoBusca)
-      setPage(1)
     }, 250)
     return () => clearTimeout(timer)
   }, [termoBusca])
 
-  // Carga inicial de estatísticas e atos
+  // Carga inicial de estatísticas e atos normativos
   useEffect(() => {
     fetchRadarEstatisticas().then((res) => setStats(res))
     fetchAtosMunicipaisPorCodigo().then((res) => setAtosMap(res))
   }, [])
 
-  // Sincroniza expansão ao selecionar UF via filtro externo
+  // Sincroniza estado inicial se prop mudar
   useEffect(() => {
-    if (selectedUf) {
-      setExpandedUfs((prev) => ({ ...prev, [selectedUf]: true }))
+    if (initialUf) {
+      setSelectedUf(initialUf)
+      setExpandedUfs((prev) => ({ ...prev, [initialUf]: true }))
     }
-  }, [selectedUf])
+  }, [initialUf])
 
-  // Busca server-side de municípios ao alterar UF, termo ou página
-  const carregarMunicipios = useCallback(async () => {
-    setLoadingMunicipios(true)
-    try {
-      const res = await fetchMunicipiosPaginados({
-        uf: selectedUf || undefined,
-        termo: debouncedTermo || undefined,
-        page,
-        perPage: 30,
-      })
+  // Função lazy para carregar municípios de uma UF específica sob demanda
+  const carregarMunicipiosDaUf = useCallback(
+    async (ufCode: string, pagina: number = 1, termoLocal?: string) => {
+      setUfData((prev) => ({
+        ...prev,
+        [ufCode]: {
+          items: prev[ufCode]?.items || [],
+          page: pagina,
+          totalPages: prev[ufCode]?.totalPages || 1,
+          totalItems: prev[ufCode]?.totalItems || TOTAL_OFICIAL_MUNICIPIOS_POR_UF[ufCode] || 0,
+          loading: true,
+        },
+      }))
 
-      // Injeta contagem de atos vinculados em cada município
-      const itemsComAtos = res.items.map((m) => {
-        const atos = atosMap.porIbge[m.codigo_ibge] || []
-        return {
-          ...m,
-          atosCount: atos.length,
+      try {
+        const res = await fetchMunicipiosPaginados({
+          uf: ufCode,
+          termo: termoLocal || debouncedTermo || undefined,
+          page: pagina,
+          perPage: 24,
+        })
+
+        // Injeta contagem de atos vinculados em cada município
+        const itemsComAtos = res.items.map((m) => {
+          const atos = atosMap.porIbge[m.codigo_ibge] || []
+          return {
+            ...m,
+            atosCount: atos.length,
+          }
+        })
+
+        setUfData((prev) => ({
+          ...prev,
+          [ufCode]: {
+            items: itemsComAtos,
+            page: res.page,
+            totalPages: res.totalPages,
+            totalItems: res.totalItems,
+            loading: false,
+          },
+        }))
+      } catch (err) {
+        console.error(`Erro ao carregar municípios da UF ${ufCode}:`, err)
+        setUfData((prev) => ({
+          ...prev,
+          [ufCode]: {
+            items: prev[ufCode]?.items || [],
+            page: pagina,
+            totalPages: prev[ufCode]?.totalPages || 1,
+            totalItems: prev[ufCode]?.totalItems || 0,
+            loading: false,
+          },
+        }))
+      }
+    },
+    [atosMap.porIbge, debouncedTermo],
+  )
+
+  // Ao expandir uma UF, se ainda não tiver dados ou se filtros mudarem, carrega lazy sob demanda
+  const toggleExpandUf = useCallback(
+    (ufCode: string) => {
+      const proximoEstado = !expandedUfs[ufCode]
+      setExpandedUfs((prev) => ({
+        ...prev,
+        [ufCode]: proximoEstado,
+      }))
+
+      if (proximoEstado && (!ufData[ufCode] || ufData[ufCode].items.length === 0)) {
+        carregarMunicipiosDaUf(ufCode, 1)
+      }
+    },
+    [expandedUfs, ufData, carregarMunicipiosDaUf],
+  )
+
+  // Recarrega UFs expandidas quando o termo geral ou mapa de atos muda
+  useEffect(() => {
+    Object.keys(expandedUfs).forEach((ufCode) => {
+      if (expandedUfs[ufCode]) {
+        carregarMunicipiosDaUf(ufCode, 1)
+      }
+    })
+  }, [debouncedTermo, atosMap.porIbge, carregarMunicipiosDaUf])
+
+  // Atalho 1: Saltar direto para a UF por sigla ou nome (ex.: 'MG' ou 'Minas Gerais')
+  const saltarParaUf = useCallback(
+    (ufCode: string) => {
+      const ufNorm = ufCode.toUpperCase().trim()
+      if (!UFS_BRASIL.includes(ufNorm as (typeof UFS_BRASIL)[number])) return
+
+      // Expande a UF
+      setExpandedUfs((prev) => ({ ...prev, [ufNorm]: true }))
+      setSelectedUf(ufNorm)
+
+      // Carrega sob demanda se ainda não carregou
+      if (!ufData[ufNorm] || ufData[ufNorm].items.length === 0) {
+        carregarMunicipiosDaUf(ufNorm, 1)
+      }
+
+      // Rola suavemente até o elemento da UF
+      setTimeout(() => {
+        const el = ufRefs.current[ufNorm]
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' })
         }
-      })
+      }, 100)
+    },
+    [ufData, carregarMunicipiosDaUf],
+  )
 
-      setMunicipios(itemsComAtos)
-      setTotalPages(res.totalPages)
-      setTotalMunicipiosEncontrados(res.totalItems)
-      setSourceMode(res.source)
-    } finally {
-      setLoadingMunicipios(false)
+  // Manipulador da busca por estado (reconhece sigla de 2 letras ou correspondência de nome)
+  const handleBuscaEstadoSubmit = (e?: React.FormEvent) => {
+    if (e) e.preventDefault()
+    const q = buscaEstado.trim().toLowerCase()
+    if (!q) return
+
+    // Busca exata por sigla
+    const siglaExata = q.toUpperCase()
+    if (UFS_BRASIL.includes(siglaExata as (typeof UFS_BRASIL)[number])) {
+      saltarParaUf(siglaExata)
+      return
     }
-  }, [selectedUf, debouncedTermo, page, atosMap.porIbge])
 
-  useEffect(() => {
-    carregarMunicipios()
-  }, [carregarMunicipios])
+    // Busca por nome do estado
+    const ufEncontrada = UFS_BRASIL.find((uf) => {
+      const nome = NOMES_UFS[uf]?.toLowerCase() || ''
+      return (
+        nome.includes(q) ||
+        nome
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .includes(q.normalize('NFD').replace(/[\u0300-\u036f]/g, ''))
+      )
+    })
 
-  // Alterna expansão de uma UF
-  const toggleExpandUf = (ufCode: string) => {
-    setExpandedUfs((prev) => ({
-      ...prev,
-      [ufCode]: !prev[ufCode],
-    }))
-    if (selectedUf !== ufCode) {
-      setSelectedUf(ufCode)
-      setSelectedMunicipio(null)
-      setPage(1)
+    if (ufEncontrada) {
+      saltarParaUf(ufEncontrada)
     }
   }
 
-  // Seleciona/deseleciona chip de município
-  const handleSelectMunicipio = (m: RadarMunicipioItem) => {
+  // Atalho 2: Busca rápida de municípios por nome ou código IBGE com debounce para sugestões
+  useEffect(() => {
+    const q = buscaMunicipio.trim()
+    if (q.length < 2) {
+      setSugestoesMunicipios([])
+      return
+    }
+
+    const timer = setTimeout(async () => {
+      setBuscandoSugestoes(true)
+      try {
+        const res = await fetchMunicipiosPaginados({
+          termo: q,
+          page: 1,
+          perPage: 8,
+        })
+        const comAtos = res.items.map((m) => ({
+          ...m,
+          atosCount: (atosMap.porIbge[m.codigo_ibge] || []).length,
+        }))
+        setSugestoesMunicipios(comAtos)
+      } catch (err) {
+        console.error('Erro na busca de sugestões de municípios:', err)
+      } finally {
+        setBuscandoSugestoes(false)
+      }
+    }, 200)
+
+    return () => clearTimeout(timer)
+  }, [buscaMunicipio, atosMap.porIbge])
+
+  // Ao selecionar um município da sugestão rápida
+  const handleSelecionarSugestaoMunicipio = (m: RadarMunicipioItem) => {
+    setSelectedMunicipio(m)
+    setBuscaMunicipio('')
+    setSugestoesMunicipios([])
+
+    if (m.uf) {
+      setSelectedUf(m.uf)
+      saltarParaUf(m.uf)
+    }
+  }
+
+  // Alterna seleção de município individual
+  const handleToggleSelectMunicipio = (m: RadarMunicipioItem) => {
     if (selectedMunicipio?.codigo_ibge === m.codigo_ibge) {
       setSelectedMunicipio(null)
     } else {
@@ -161,12 +347,11 @@ export function RadarNacional({ initialUf = '' }: RadarNacionalProps) {
     }
   }
 
-  // Alterna nível selecionado no painel facetado
+  // Alterna nível federativo no painel facetado
   const toggleNivel = (nId: NivelAtoRadar) => {
     setNiveisSelecionados((prev) => {
       const exists = prev.includes(nId)
       const novo = exists ? prev.filter((x) => x !== nId) : [...prev, nId]
-      // Sincroniza com o seletor rápido
       if (novo.length === 1) {
         setNivel(novo[0])
       } else {
@@ -176,7 +361,7 @@ export function RadarNacional({ initialUf = '' }: RadarNacionalProps) {
     })
   }
 
-  // Seleciona nível via seletor rápido
+  // Seletor rápido de nível
   const handleSelectNivelRapido = (optId: 'todos' | 'municipal' | 'estadual' | 'federal') => {
     setNivel(optId)
     if (optId === 'todos') {
@@ -206,7 +391,9 @@ export function RadarNacional({ initialUf = '' }: RadarNacionalProps) {
     setNiveisSelecionados([])
     setTermoBusca('')
     setDebouncedTermo('')
-    setPage(1)
+    setBuscaEstado('')
+    setBuscaMunicipio('')
+    setSugestoesMunicipios([])
   }
 
   // Lista consolidada de atos filtrados via serviço puro radarFilters.ts
@@ -214,9 +401,17 @@ export function RadarNacional({ initialUf = '' }: RadarNacionalProps) {
     return filtrarAtosRadar(atosMap.todos, filtrosState)
   }, [atosMap.todos, filtrosState])
 
+  // Lista de UFs a renderizar (se filtro de UF estiver ativo, isola apenas a UF correspondente)
+  const ufsVisiveis = useMemo(() => {
+    if (selectedUf) {
+      return UFS_BRASIL.filter((u) => u === selectedUf)
+    }
+    return UFS_BRASIL
+  }, [selectedUf])
+
   return (
     <div className="space-y-4">
-      {/* PAINEL DE ESTATÍSTICAS NACIONAIS (5.570 municípios, 27 UFs) */}
+      {/* 1. PAINEL DE ESTATÍSTICAS NACIONAIS (5.570 municípios, 27 UFs) */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
         <div className="rounded-xl overflow-hidden ring-1 ring-panorama-gold/40 shadow-xs bg-white">
           <div className={NAVY + ' px-3 py-2'}>
@@ -243,7 +438,7 @@ export function RadarNacional({ initialUf = '' }: RadarNacionalProps) {
             </p>
           </div>
           <div className="px-3 py-1.5 bg-slate-50 flex items-center justify-between text-[9px] text-slate-600">
-            <span>Nível estadual/municipal</span>
+            <span>Grupos expansíveis por UF</span>
             <span className="font-semibold text-blue-700">Brasil integral</span>
           </div>
         </div>
@@ -266,24 +461,148 @@ export function RadarNacional({ initialUf = '' }: RadarNacionalProps) {
         <div className="rounded-xl overflow-hidden ring-1 ring-panorama-gold/40 shadow-xs bg-white">
           <div className={NAVY + ' px-3 py-2'}>
             <p className="text-xl font-bold text-white tabular-nums leading-none">
-              {totalMunicipiosEncontrados.toLocaleString('pt-BR')}
+              {ufsVisiveis.length}
             </p>
             <p className="text-[8.5px] font-semibold uppercase tracking-wide text-panorama-gold-light/90 mt-0.5">
-              Municípios na consulta
+              {selectedUf ? `UF Ativa: ${selectedUf}` : 'UFs em Exibição'}
             </p>
           </div>
           <div className="px-3 py-1.5 bg-slate-50 flex items-center justify-between text-[9px] text-slate-600">
-            <span>Modo: {sourceMode === 'database' ? 'PocketBase API' : 'Fallback'}</span>
-            <span className="font-semibold text-slate-700">
-              Pág. {page}/{totalPages}
-            </span>
+            <span>Navegação agrupada</span>
+            <span className="font-semibold text-slate-700">Lazy load sob demanda</span>
           </div>
         </div>
       </div>
 
-      {/* PAINEL DE FILTROS FACETADOS PADRÃO INSTITUCIONAL ADECONT */}
+      {/* 2. ATALHOS RÁPIDOS DE BUSCA (ESTADO E MUNICÍPIO) */}
+      <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 grid grid-cols-1 md:grid-cols-2 gap-3 shadow-2xs">
+        {/* Atalho A: Busca por Estado (Nome ou Sigla) que salta direto ao grupo */}
+        <form onSubmit={handleBuscaEstadoSubmit} className="space-y-1">
+          <label
+            htmlFor="busca-estado-input"
+            className="text-[11px] font-bold text-slate-700 flex items-center justify-between"
+          >
+            <span className="flex items-center gap-1.5">
+              <Globe2 className="w-3.5 h-3.5 text-indigo-700" />
+              <span>Atalho de Busca por Estado (UF):</span>
+            </span>
+            <span className="text-[10px] text-slate-500 font-normal">
+              Nome ou sigla (ex.: &ldquo;MG&rdquo; ou &ldquo;Minas Gerais&rdquo;)
+            </span>
+          </label>
+          <div className="relative flex items-center">
+            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 pointer-events-none" />
+            <input
+              id="busca-estado-input"
+              type="text"
+              value={buscaEstado}
+              onChange={(e) => setBuscaEstado(e.target.value)}
+              placeholder="Digite a sigla ou nome do estado (ex.: MG, SP, Bahia)..."
+              className="w-full text-xs pl-8 pr-16 py-1.5 rounded-lg border border-slate-300 bg-white placeholder:text-slate-400 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
+            />
+            {buscaEstado ? (
+              <button
+                type="button"
+                onClick={() => setBuscaEstado('')}
+                className="absolute right-12 text-slate-400 hover:text-slate-600 cursor-pointer p-1"
+                title="Limpar busca de estado"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            ) : null}
+            <button
+              type="submit"
+              className="absolute right-1 px-2 py-0.5 rounded-md bg-indigo-700 hover:bg-indigo-800 text-white text-[10.5px] font-bold cursor-pointer transition-colors"
+            >
+              Ir
+            </button>
+          </div>
+        </form>
+
+        {/* Atalho B: Busca por Município (Nome ou Código IBGE) com badge de estado */}
+        <div className="space-y-1 relative">
+          <label
+            htmlFor="busca-municipio-input"
+            className="text-[11px] font-bold text-slate-700 flex items-center justify-between"
+          >
+            <span className="flex items-center gap-1.5">
+              <Building2 className="w-3.5 h-3.5 text-amber-700" />
+              <span>Atalho de Busca por Município:</span>
+            </span>
+            <span className="text-[10px] text-slate-500 font-normal">
+              Nome ou código IBGE de 7 dígitos
+            </span>
+          </label>
+          <div className="relative flex items-center">
+            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 pointer-events-none" />
+            <input
+              id="busca-municipio-input"
+              type="text"
+              value={buscaMunicipio}
+              onChange={(e) => setBuscaMunicipio(e.target.value)}
+              placeholder="Digite o nome ou código IBGE (ex.: Uberlândia, 3170206)..."
+              className="w-full text-xs pl-8 pr-8 py-1.5 rounded-lg border border-slate-300 bg-white placeholder:text-slate-400 focus:outline-none focus:border-amber-600 focus:ring-1 focus:ring-amber-600"
+            />
+            {buscaMunicipio && (
+              <button
+                type="button"
+                onClick={() => {
+                  setBuscaMunicipio('')
+                  setSugestoesMunicipios([])
+                }}
+                className="absolute right-2 text-slate-400 hover:text-slate-600 cursor-pointer p-1"
+                title="Limpar busca de município"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            )}
+            {buscandoSugestoes && (
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-600 absolute right-8" />
+            )}
+          </div>
+
+          {/* Dropdown de sugestões indicando claramente a qual UF cada resultado pertence */}
+          {sugestoesMunicipios.length > 0 && (
+            <div className="absolute left-0 right-0 top-full mt-1 z-30 bg-white rounded-lg border border-slate-300 shadow-lg overflow-hidden divide-y divide-slate-100 max-h-56 overflow-y-auto">
+              <div className="px-3 py-1 bg-slate-100 text-[10px] font-bold text-slate-600 uppercase flex items-center justify-between">
+                <span>Resultados ({sugestoesMunicipios.length})</span>
+                <span>Clique para saltar ao grupo da UF</span>
+              </div>
+              {sugestoesMunicipios.map((item) => (
+                <button
+                  key={item.codigo_ibge}
+                  type="button"
+                  onClick={() => handleSelecionarSugestaoMunicipio(item)}
+                  className="w-full px-3 py-2 text-left hover:bg-amber-50 flex items-center justify-between gap-2 transition-colors cursor-pointer text-xs"
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="font-bold text-slate-900 truncate">{item.nome}</span>
+                    <span className="font-mono text-[10.5px] text-slate-500">
+                      IBGE: {item.codigo_ibge}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {/* Badge destacado da UF */}
+                    <span className="px-1.5 py-0.5 rounded text-[10px] font-bold font-mono bg-indigo-100 text-indigo-900 border border-indigo-200">
+                      UF: {item.uf}
+                    </span>
+                    {(item.atosCount || 0) > 0 && (
+                      <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                        {item.atosCount} ato{item.atosCount === 1 ? '' : 's'}
+                      </span>
+                    )}
+                    <ArrowRight className="w-3 h-3 text-slate-400" />
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 3. PAINEL DE FILTROS FACETADOS PADRÃO INSTITUCIONAL ADECONT */}
       <div className="space-y-3">
-        {/* Barra de Ações: Botão Expandir/Recolher + Limpar + Seletor rápido + Campo de Busca */}
+        {/* Barra de Ações: Botão Expandir/Recolher + Limpar + Seletor rápido + Campo de Busca Geral */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
           <div className="flex items-center gap-2 flex-wrap">
             <button
@@ -343,14 +662,14 @@ export function RadarNacional({ initialUf = '' }: RadarNacionalProps) {
             </div>
           </div>
 
-          {/* Campo de Busca textual rápida */}
+          {/* Campo de Busca textual livre combinável */}
           <div className="relative w-full sm:w-80">
             <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
               value={termoBusca}
               onChange={(e) => setTermoBusca(e.target.value)}
-              placeholder="Buscar ato, município ou código IBGE..."
+              placeholder="Filtrar por texto, termo ou diário..."
               className="w-full text-xs pl-8 pr-7 py-1.5 rounded-xl border border-slate-300 bg-white placeholder:text-slate-400 focus:outline-none focus:border-panorama-navy focus:ring-1 focus:ring-panorama-navy"
             />
             {termoBusca && (
@@ -427,7 +746,7 @@ export function RadarNacional({ initialUf = '' }: RadarNacionalProps) {
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
                     <Globe2 className="w-3.5 h-3.5 text-indigo-600" />
-                    2. Unidade Federativa
+                    2. Unidade Federativa (UF)
                   </span>
                   {selectedUf && (
                     <span className="text-[10px] font-bold text-indigo-700 bg-indigo-100 px-1.5 rounded">
@@ -436,19 +755,22 @@ export function RadarNacional({ initialUf = '' }: RadarNacionalProps) {
                   )}
                 </div>
                 <p className="text-[10.5px] text-slate-500 leading-tight">
-                  Selecione no grid de 27 UFs abaixo ou filtre rapidamente pela sigla:
+                  Filtrar por UF isola o grupo correspondente e oculta os demais:
                 </p>
                 <div className="flex flex-wrap gap-1 max-h-36 overflow-y-auto pr-1">
                   <button
                     type="button"
-                    onClick={() => setSelectedUf('')}
+                    onClick={() => {
+                      setSelectedUf('')
+                      setSelectedMunicipio(null)
+                    }}
                     className={`px-2 py-0.5 rounded text-[10.5px] font-bold border cursor-pointer ${
                       !selectedUf
                         ? 'bg-panorama-navy text-white border-panorama-navy'
                         : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
                     }`}
                   >
-                    Todas
+                    Todas (27)
                   </button>
                   {UFS_BRASIL.map((ufCode) => {
                     const isSel = selectedUf === ufCode
@@ -456,12 +778,19 @@ export function RadarNacional({ initialUf = '' }: RadarNacionalProps) {
                       <button
                         key={`filtro-uf-${ufCode}`}
                         type="button"
-                        onClick={() => setSelectedUf(isSel ? '' : ufCode)}
+                        onClick={() => {
+                          if (isSel) {
+                            setSelectedUf('')
+                          } else {
+                            saltarParaUf(ufCode)
+                          }
+                        }}
                         className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-bold border cursor-pointer transition-colors ${
                           isSel
                             ? 'bg-indigo-100 text-indigo-950 border-indigo-400 font-bold'
                             : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
                         }`}
+                        title={`${ufCode} - ${NOMES_UFS[ufCode]}`}
                       >
                         {ufCode}
                       </button>
@@ -504,8 +833,8 @@ export function RadarNacional({ initialUf = '' }: RadarNacionalProps) {
                   </div>
                 ) : (
                   <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-[11px] text-slate-500">
-                    Nenhum município selecionado. Clique em qualquer chip no catálogo de municípios
-                    abaixo para isolar seus atos normativos.
+                    Nenhum município isolado. Clique em qualquer município dentro dos grupos de UF
+                    abaixo ou use o atalho de busca acima.
                   </div>
                 )}
               </div>
@@ -537,7 +866,9 @@ export function RadarNacional({ initialUf = '' }: RadarNacionalProps) {
 
             {selectedUf && (
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-900 border border-indigo-300 text-[11px] font-semibold">
-                <span>UF: {selectedUf}</span>
+                <span>
+                  UF: {selectedUf} ({NOMES_UFS[selectedUf]})
+                </span>
                 <button
                   type="button"
                   onClick={() => setSelectedUf('')}
@@ -553,7 +884,8 @@ export function RadarNacional({ initialUf = '' }: RadarNacionalProps) {
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 text-[11px] font-semibold">
                 <MapPin className="w-3 h-3 text-amber-700" />
                 <span>
-                  {selectedMunicipio.nome} ({selectedMunicipio.uf})
+                  {selectedMunicipio.nome} ({selectedMunicipio.uf}) - IBGE{' '}
+                  {selectedMunicipio.codigo_ibge}
                 </span>
                 <button
                   type="button"
@@ -594,235 +926,277 @@ export function RadarNacional({ initialUf = '' }: RadarNacionalProps) {
         )}
       </div>
 
-      {/* SELETOR DE UFS COM EXPANSÃO (CHEVRON) E CONTAGEM OFICIAL */}
-      <div className="rounded-xl border-2 border-slate-200 bg-white overflow-hidden shadow-xs">
-        <div className="bg-panorama-navy px-3 py-2 border-b-2 border-panorama-gold flex items-center justify-between">
+      {/* 4. GRUPOS DE MUNICÍPIOS POR ESTADO (UF) — EXPANSÍVEIS COM LAZY LOAD */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Globe2 className="w-3.5 h-3.5 text-panorama-gold" />
-            <h3 className="text-xs font-bold text-white">
-              Expansão por Estado — 27 Unidades Federativas (Oficial IBGE)
+            <Globe2 className="w-4 h-4 text-panorama-navy" />
+            <h3 className="text-sm font-bold text-slate-900">
+              Municípios Agrupados por Estado (UF) — 5.570 Censo IBGE
             </h3>
           </div>
-          <span className="text-[9.5px] text-panorama-gold-light/90">
-            Clique na UF para expandir municípios reais do banco
+          <span className="text-[11px] text-slate-500">
+            {selectedUf ? `Mostrando grupo de ${selectedUf}` : '27 UFs expansíveis'} · Carregamento
+            sob demanda
           </span>
         </div>
 
-        <div className="p-3">
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-9 gap-1.5">
-            {UFS_BRASIL.map((ufCode) => {
-              const isSelected = selectedUf === ufCode
-              const isExpanded = !!expandedUfs[ufCode]
-              const totalUfMuni = TOTAL_OFICIAL_MUNICIPIOS_POR_UF[ufCode] || 0
-              const totalAtosUf = stats.atosPorUf[ufCode] || 0
+        <div className="space-y-2">
+          {ufsVisiveis.map((ufCode) => {
+            const nomeEstado = NOMES_UFS[ufCode] || ufCode
+            const isExpanded = !!expandedUfs[ufCode]
+            const isSelectedUf = selectedUf === ufCode
+            const totalOficialUf = TOTAL_OFICIAL_MUNICIPIOS_POR_UF[ufCode] || 0
+            const totalAtosUf = stats.atosPorUf[ufCode] || 0
+            const stateData = ufData[ufCode] || {
+              items: [],
+              page: 1,
+              totalPages: 1,
+              totalItems: totalOficialUf,
+              loading: false,
+            }
 
-              return (
+            return (
+              <div
+                key={ufCode}
+                ref={(el) => {
+                  ufRefs.current[ufCode] = el
+                }}
+                className={`rounded-xl border transition-all duration-200 overflow-hidden bg-white shadow-xs ${
+                  isSelectedUf
+                    ? 'border-panorama-gold ring-2 ring-panorama-gold/40'
+                    : isExpanded
+                      ? 'border-slate-300'
+                      : 'border-slate-200 hover:border-slate-300'
+                }`}
+              >
+                {/* Cabeçalho da UF (Botão Acordeom) */}
                 <button
-                  key={ufCode}
+                  type="button"
                   onClick={() => toggleExpandUf(ufCode)}
-                  className={`text-left p-2 rounded-lg border transition-all cursor-pointer flex flex-col justify-between ${
-                    isSelected
-                      ? 'border-panorama-navy bg-panorama-navy text-white ring-2 ring-panorama-gold/70 shadow-xs'
-                      : 'border-slate-200 bg-slate-50/70 hover:bg-white hover:border-slate-300 text-slate-800'
+                  className={`w-full px-3.5 py-2.5 flex items-center justify-between gap-3 text-left transition-colors cursor-pointer ${
+                    isExpanded
+                      ? 'bg-slate-50/90 border-b border-slate-200'
+                      : 'hover:bg-slate-50/50 bg-white'
                   }`}
                 >
-                  <div className="flex items-center justify-between w-full">
-                    <span className="text-xs font-bold font-mono">{ufCode}</span>
-                    {isExpanded ? (
-                      <ChevronDown className="w-3 h-3 text-panorama-gold" />
-                    ) : (
-                      <ChevronRight className="w-3 h-3 text-slate-400" />
-                    )}
-                  </div>
-                  <div className="mt-1 flex items-center justify-between text-[8.5px] text-slate-500 w-full">
-                    <span className={isSelected ? 'text-slate-200' : 'text-slate-600'}>
-                      {totalUfMuni} mun.
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <span
+                      className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold font-mono text-xs shrink-0 ${
+                        isExpanded || isSelectedUf
+                          ? 'bg-panorama-navy text-white'
+                          : 'bg-slate-100 text-slate-700'
+                      }`}
+                    >
+                      {ufCode}
                     </span>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h4 className="text-xs font-bold text-slate-900 truncate">{nomeEstado}</h4>
+                        <span className="text-[10px] text-slate-500 font-medium">
+                          ({totalOficialUf} municípios IBGE)
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-slate-500">
+                        {totalAtosUf > 0
+                          ? `${totalAtosUf} ato(s) normativo(s) localizado(s)`
+                          : 'Nenhum ato direto registrado nesta UF'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0">
                     {totalAtosUf > 0 && (
-                      <span
-                        className={`font-bold px-1 rounded ${
-                          isSelected
-                            ? 'bg-panorama-gold text-panorama-navy'
-                            : 'bg-emerald-100 text-emerald-800'
-                        }`}
-                        title={`${totalAtosUf} atos vinculados nesta UF`}
-                      >
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
                         {totalAtosUf} atos
                       </span>
                     )}
+
+                    <span className="text-[11px] font-semibold text-slate-600 hidden sm:inline">
+                      {isExpanded ? 'Recolher' : 'Expandir municípios'}
+                    </span>
+
+                    {isExpanded ? (
+                      <ChevronDown className="w-4 h-4 text-slate-600" />
+                    ) : (
+                      <ChevronRight className="w-4 h-4 text-slate-400" />
+                    )}
                   </div>
                 </button>
-              )
-            })}
-          </div>
-        </div>
-      </div>
 
-      {/* CATÁLOGO DE MUNICÍPIOS COM BUSCA E PAGINAÇÃO SERVER-SIDE (CHIPS SELECIONÁVEIS) */}
-      <div className="rounded-xl border-2 border-slate-200 bg-white overflow-hidden shadow-xs">
-        <div className="bg-panorama-navy px-3 py-2 border-b-2 border-panorama-gold flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <Building2 className="w-3.5 h-3.5 text-panorama-gold" />
-            <h3 className="text-xs font-bold text-white">
-              Municípios Oficiais IBGE — Consulta no Servidor (5.570 registros)
-            </h3>
-            {selectedUf && (
-              <span className="text-[10px] font-bold bg-panorama-gold text-panorama-navy px-1.5 py-0.2 rounded">
-                UF: {selectedUf}
-              </span>
-            )}
-          </div>
+                {/* Conteúdo Expansível: Municípios daquela UF carregados sob demanda */}
+                {isExpanded && (
+                  <div className="p-3.5 bg-slate-50/40 space-y-3 animate-in fade-in duration-150">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                      <p className="text-[11px] text-slate-600">
+                        Municípios oficiais de <strong>{nomeEstado}</strong> ({ufCode}) com código
+                        IBGE de 7 dígitos e contador de atos vigentes:
+                      </p>
 
-          <div className="flex items-center gap-2 text-[10px] text-panorama-gold-light">
-            {loadingMunicipios ? (
-              <span className="flex items-center gap-1 text-white">
-                <Loader2 className="w-3 h-3 animate-spin" />
-                <span>Carregando do banco...</span>
-              </span>
-            ) : (
-              <span>
-                {totalMunicipiosEncontrados.toLocaleString('pt-BR')} municípios encontrados
-              </span>
-            )}
-          </div>
-        </div>
-
-        <div className="p-3.5 space-y-3">
-          {/* Instrução visual */}
-          <p className="text-[10.5px] text-slate-600 leading-relaxed">
-            Selecione um município abaixo para isolar seus atos normativos municipais vinculados.
-            Cada chip exibe a denominação oficial, a UF, o código IBGE de 7 dígitos e a contagem de
-            atos vigentes.
-          </p>
-
-          {/* Grid de Chips de Municípios */}
-          {loadingMunicipios ? (
-            <div className="p-8 text-center flex flex-col items-center justify-center gap-2 text-slate-500">
-              <Loader2 className="w-5 h-5 animate-spin text-panorama-navy" />
-              <span className="text-xs">
-                Consultando base oficial de municípios no PocketBase...
-              </span>
-            </div>
-          ) : municipios.length === 0 ? (
-            <div className="p-6 text-center rounded-lg border border-dashed border-slate-300 bg-slate-50 text-slate-500 text-xs">
-              Nenhum município encontrado com os filtros atuais.
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-              {municipios.map((m) => {
-                const isSelected = selectedMunicipio?.codigo_ibge === m.codigo_ibge
-                const temAtos = (m.atosCount || 0) > 0
-
-                return (
-                  <button
-                    key={m.codigo_ibge}
-                    onClick={() => handleSelectMunicipio(m)}
-                    className={`text-left p-2 rounded-lg border transition-all cursor-pointer flex items-center justify-between gap-1.5 ${
-                      isSelected
-                        ? 'border-panorama-navy bg-panorama-navy text-white shadow-xs ring-2 ring-panorama-gold/70'
-                        : temAtos
-                          ? 'border-emerald-300 bg-emerald-50/50 hover:bg-emerald-50 text-slate-900'
-                          : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-800'
-                    }`}
-                  >
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5">
-                        <MapPin
-                          className={`w-3 h-3 shrink-0 ${
-                            isSelected
-                              ? 'text-panorama-gold'
-                              : temAtos
-                                ? 'text-emerald-700'
-                                : 'text-slate-400'
-                          }`}
-                        />
-                        <span className="text-[11px] font-bold truncate">{m.nome}</span>
-                      </div>
-                      <div className="flex items-center gap-2 mt-0.5 text-[9px]">
-                        <span
-                          className={`font-semibold ${
-                            isSelected ? 'text-slate-200' : 'text-slate-500'
-                          }`}
-                        >
-                          {m.uf}
-                        </span>
-                        <span
-                          className={`font-mono ${
-                            isSelected ? 'text-panorama-gold-light' : 'text-slate-400'
-                          }`}
-                        >
-                          IBGE: {m.codigo_ibge}
-                        </span>
+                      <div className="flex items-center gap-2 shrink-0 text-[11px]">
+                        {stateData.loading ? (
+                          <span className="flex items-center gap-1 text-slate-500">
+                            <Loader2 className="w-3 h-3 animate-spin text-panorama-navy" />
+                            <span>Carregando do banco...</span>
+                          </span>
+                        ) : (
+                          <span className="text-slate-500 font-mono">
+                            Exibindo {stateData.items.length} de {stateData.totalItems} mun.
+                          </span>
+                        )}
                       </div>
                     </div>
 
-                    {temAtos && (
-                      <span
-                        className={`text-[9px] font-bold px-1.5 py-0.5 rounded shrink-0 ${
-                          isSelected
-                            ? 'bg-panorama-gold text-panorama-navy'
-                            : 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                        }`}
-                        title={`${m.atosCount} ato(s) normativo(s) vinculado(s)`}
-                      >
-                        {m.atosCount} ato{m.atosCount === 1 ? '' : 's'}
-                      </span>
+                    {stateData.loading && stateData.items.length === 0 ? (
+                      <div className="p-8 text-center flex flex-col items-center justify-center gap-2 text-slate-500">
+                        <Loader2 className="w-5 h-5 animate-spin text-panorama-navy" />
+                        <span className="text-xs">
+                          Consultando municípios de {nomeEstado} no PocketBase...
+                        </span>
+                      </div>
+                    ) : stateData.items.length === 0 ? (
+                      <div className="p-5 text-center rounded-lg border border-dashed border-slate-300 bg-white text-slate-500 text-xs">
+                        Nenhum município encontrado em {nomeEstado} com os filtros atuais.
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                        {stateData.items.map((m) => {
+                          const isMunSelected = selectedMunicipio?.codigo_ibge === m.codigo_ibge
+                          const temAtos = (m.atosCount || 0) > 0
+
+                          return (
+                            <button
+                              key={m.codigo_ibge}
+                              type="button"
+                              onClick={() => handleToggleSelectMunicipio(m)}
+                              className={`text-left p-2 rounded-lg border transition-all cursor-pointer flex items-center justify-between gap-1.5 ${
+                                isMunSelected
+                                  ? 'border-panorama-navy bg-panorama-navy text-white shadow-xs ring-2 ring-panorama-gold/70'
+                                  : temAtos
+                                    ? 'border-emerald-300 bg-emerald-50/50 hover:bg-emerald-50 text-slate-900'
+                                    : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-800'
+                              }`}
+                              title={`Código IBGE: ${m.codigo_ibge} · Clique para isolar atos`}
+                            >
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-1.5">
+                                  <MapPin
+                                    className={`w-3 h-3 shrink-0 ${
+                                      isMunSelected
+                                        ? 'text-panorama-gold'
+                                        : temAtos
+                                          ? 'text-emerald-700'
+                                          : 'text-slate-400'
+                                    }`}
+                                  />
+                                  <span className="text-[11px] font-bold truncate">{m.nome}</span>
+                                </div>
+                                <div className="flex items-center gap-2 mt-0.5 text-[9px]">
+                                  <span
+                                    className={`font-semibold ${
+                                      isMunSelected ? 'text-slate-200' : 'text-slate-500'
+                                    }`}
+                                  >
+                                    {m.uf}
+                                  </span>
+                                  <span
+                                    className={`font-mono ${
+                                      isMunSelected ? 'text-panorama-gold-light' : 'text-slate-400'
+                                    }`}
+                                  >
+                                    IBGE: {m.codigo_ibge}
+                                  </span>
+                                </div>
+                              </div>
+
+                              {temAtos && (
+                                <span
+                                  className={`text-[9px] font-bold px-1.5 py-0.5 rounded shrink-0 ${
+                                    isMunSelected
+                                      ? 'bg-panorama-gold text-panorama-navy'
+                                      : 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                                  }`}
+                                  title={`${m.atosCount} ato(s) normativo(s) vinculado(s)`}
+                                >
+                                  {m.atosCount} ato{m.atosCount === 1 ? '' : 's'}
+                                </span>
+                              )}
+                            </button>
+                          )
+                        })}
+                      </div>
                     )}
-                  </button>
-                )
-              })}
-            </div>
-          )}
 
-          {/* Controles de Paginação Server-side */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
-              <span className="text-slate-500 text-[11px]">
-                Página <strong>{page}</strong> de <strong>{totalPages}</strong> (
-                {totalMunicipiosEncontrados} no total)
-              </span>
+                    {/* Paginação sob demanda dentro do grupo da UF */}
+                    {stateData.totalPages > 1 && (
+                      <div className="flex items-center justify-between pt-2 border-t border-slate-200 text-xs">
+                        <span className="text-slate-500 text-[11px]">
+                          Página <strong>{stateData.page}</strong> de{' '}
+                          <strong>{stateData.totalPages}</strong> ({stateData.totalItems} municípios
+                          em {ufCode})
+                        </span>
 
-              <div className="flex items-center gap-1.5">
-                <button
-                  disabled={page <= 1 || loadingMunicipios}
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  className="px-2.5 py-1 rounded border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer text-[11px] font-semibold"
-                >
-                  ← Anterior
-                </button>
-                <button
-                  disabled={page >= totalPages || loadingMunicipios}
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  className="px-2.5 py-1 rounded border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer text-[11px] font-semibold"
-                >
-                  Próxima →
-                </button>
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            disabled={stateData.page <= 1 || stateData.loading}
+                            onClick={() =>
+                              carregarMunicipiosDaUf(ufCode, Math.max(1, stateData.page - 1))
+                            }
+                            className="px-2 py-0.5 rounded border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer text-[10.5px] font-semibold"
+                          >
+                            ← Anterior
+                          </button>
+                          <button
+                            type="button"
+                            disabled={stateData.page >= stateData.totalPages || stateData.loading}
+                            onClick={() =>
+                              carregarMunicipiosDaUf(
+                                ufCode,
+                                Math.min(stateData.totalPages, stateData.page + 1),
+                              )
+                            }
+                            className="px-2 py-0.5 rounded border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer text-[10.5px] font-semibold"
+                          >
+                            Próxima →
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
-            </div>
-          )}
+            )
+          })}
         </div>
       </div>
 
-      {/* PAINEL DE ATOS NORMATIVOS MUNICIPAIS VINCULADOS AO RADAR */}
+      {/* 5. PAINEL DE ATOS NORMATIVOS MUNICIPAIS VINCULADOS */}
       <div className="rounded-xl border-2 border-slate-200 bg-white overflow-hidden shadow-xs">
         <div className="bg-panorama-navy px-3 py-2 border-b-2 border-panorama-gold flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <FileText className="w-3.5 h-3.5 text-panorama-gold" />
             <h3 className="text-xs font-bold text-white">
-              Atos Normativos Municipais Vinculados por Código IBGE
+              Atos Normativos Municipais e Estaduais Vinculados
             </h3>
             <span className="text-[10px] text-panorama-gold-light/90">
-              ({atosFiltrados.length} ato{atosFiltrados.length === 1 ? '' : 's'} filtrado
+              ({atosFiltrados.length} ato{atosFiltrados.length === 1 ? '' : 's'} localizado
               {atosFiltrados.length === 1 ? '' : 's'})
             </span>
           </div>
 
-          {selectedMunicipio && (
-            <span className="text-[9.5px] font-bold bg-panorama-gold text-panorama-navy px-2 py-0.5 rounded">
-              {selectedMunicipio.nome}/{selectedMunicipio.uf} (IBGE: {selectedMunicipio.codigo_ibge}
-              )
-            </span>
-          )}
+          <div className="flex items-center gap-1.5 text-[9.5px]">
+            {selectedUf && (
+              <span className="font-bold bg-panorama-gold text-panorama-navy px-2 py-0.5 rounded">
+                UF: {selectedUf}
+              </span>
+            )}
+            {selectedMunicipio && (
+              <span className="font-bold bg-white text-panorama-navy px-2 py-0.5 rounded border border-panorama-gold">
+                {selectedMunicipio.nome} (IBGE: {selectedMunicipio.codigo_ibge})
+              </span>
+            )}
+          </div>
         </div>
 
         <div className="divide-y divide-slate-100 max-h-[460px] overflow-y-auto">

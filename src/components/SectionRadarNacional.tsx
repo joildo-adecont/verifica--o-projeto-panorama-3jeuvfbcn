@@ -12,6 +12,7 @@ import {
   MapPin,
   ShieldAlert,
 } from 'lucide-react'
+import { RadarNacional } from './RadarNacional'
 
 /**
  * SEÇÃO 19 — RADAR NACIONAL: FEDERAL, ESTADUAL E MUNICIPAL
@@ -4749,6 +4750,11 @@ export function SectionRadarNacional() {
           </div>
         </div>
       )}
+
+      {/* MUNICÍPIOS AGRUPADOS POR UF — 5.570 IBGE COM CARREGAMENTO SOB DEMANDA */}
+      <div className="pt-2">
+        <RadarNacional initialUf={uf} />
+      </div>
 
       {/* CAPITULAÇÃO */}
       <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">

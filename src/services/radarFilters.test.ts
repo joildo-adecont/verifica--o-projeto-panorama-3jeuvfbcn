@@ -141,4 +141,16 @@ describe('Filtros facetados do Radar Nacional (radarFilters.ts)', () => {
     expect(ids).toContain('estadual')
     expect(ids).toContain('municipal')
   })
+
+  it('navegação por grupos e busca por estado/município mantêm integridade com os filtros', () => {
+    // Busca por termo no município refina atos mesmo com UF ativa
+    const res = filtrarAtosRadar(ATOS_MOCK, {
+      ...FILTROS_RADAR_INICIAIS,
+      uf: 'RJ',
+      termo: '8.900',
+    })
+    expect(res).toHaveLength(1)
+    expect(res[0].codigo_ibge).toBe('3304557')
+    expect(res[0].uf).toBe('RJ')
+  })
 })
