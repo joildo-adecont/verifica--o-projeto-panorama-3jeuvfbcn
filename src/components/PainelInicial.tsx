@@ -327,8 +327,23 @@ export function PainelInicial() {
             Icon={Radio}
             rotulo="Fontes vigiadas"
             valor={`${fontesAtivas}/${fontesTotal}`}
-            detalhe={HOUVE_MUDANCA ? `${alertasAltos} alerta(s) ativo(s)` : 'todas estáveis'}
-            cor={HOUVE_MUDANCA ? 'text-rose-700' : 'text-emerald-700'}
+            /* O rótulo dizia "todas estáveis" mesmo com 8 de 16 ativas — o CEO
+               via contradição entre o número e a frase. Agora o texto segue o
+               número: só afirma estabilidade quando todas respondem mesmo. */
+            detalhe={
+              fontesAtivas < fontesTotal
+                ? `${fontesTotal - fontesAtivas} em verificação`
+                : HOUVE_MUDANCA
+                  ? `${alertasAltos} alerta(s) ativo(s)`
+                  : 'todas estáveis'
+            }
+            cor={
+              fontesAtivas < fontesTotal
+                ? 'text-amber-700'
+                : HOUVE_MUDANCA
+                  ? 'text-rose-700'
+                  : 'text-emerald-700'
+            }
           />
           <Kpi
             Icon={Calculator}

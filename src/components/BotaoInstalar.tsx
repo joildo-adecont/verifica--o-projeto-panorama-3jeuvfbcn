@@ -81,7 +81,15 @@ export function BotaoInstalar() {
       setMostrarIOS(true)
       return
     }
-    if (!evento) return
+    if (!evento) {
+      // Android/desktop sem `beforeinstallprompt` (acontece quando o navegador
+      // já instalou antes, quando é Firefox/Samsung Internet, ou quando o
+      // critério de instalabilidade ainda não foi reconhecido). Em vez de
+      // esconder o botão — o que deixava o CEO sem caminho — abrimos a mesma
+      // instrução manual usada no iPhone, adaptada ao menu do navegador.
+      setMostrarIOS(true)
+      return
+    }
     await evento.prompt()
     const escolha = await evento.userChoice
     if (escolha.outcome === 'accepted') setInstalado(true)
@@ -91,10 +99,11 @@ export function BotaoInstalar() {
   // já instalado (ou o usuário fechou) → não ocupa tela
   if (instalado || dispensado) return null
 
-  // no iPhone o botão só aparece depois que o service worker registrou, para
-  // não oferecer instalação de um app que ainda não está pronto para offline
-  const podeMostrar = evento || ehIOS()
-  if (!podeMostrar) return null
+  /* O botão aparece SEMPRE que o app não está instalado. Antes ele dependia do
+   * evento `beforeinstallprompt`, que não dispara em todos os navegadores nem
+   * em todas as visitas — resultado: no Android do CEO o botão simplesmente não
+   * existia. Agora, sem o evento, o toque abre a instrução manual. */
+  const podeMostrar = true
 
   return (
     <>
@@ -140,7 +149,9 @@ export function BotaoInstalar() {
             <div className="mb-3 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Smartphone className="h-5 w-5 text-panorama-navy" />
-                <h3 className="text-sm font-bold text-panorama-navy">Instalar no iPhone</h3>
+                <h3 className="text-sm font-bold text-panorama-navy">
+                  {ehIOS() ? 'Instalar no iPhone' : 'Instalar o aplicativo'}
+                </h3>
               </div>
               <button
                 type="button"
@@ -153,7 +164,9 @@ export function BotaoInstalar() {
             </div>
 
             <p className="mb-4 text-[12px] leading-relaxed text-slate-600">
-              O iPhone não permite instalação automática. São três toques no Safari:
+              {ehIOS()
+                ? 'O iPhone não permite instalação automática. São três toques no Safari:'
+                : 'Este navegador não abriu a instalação automática. Faça pelo menu dele:'}
             </p>
 
             <ol className="space-y-3 text-[12px] text-slate-700">
@@ -187,12 +200,26 @@ export function BotaoInstalar() {
             </ol>
 
             <div className="mt-4 rounded-lg bg-slate-50 p-3 text-[11px] leading-relaxed text-slate-500">
-              <b className="text-slate-700">No Android é mais simples:</b> abra no Chrome e toque em{' '}
-              <MoreVertical className="inline h-3 w-3 align-middle" /> → <b>Instalar aplicativo</b>.
-              O botão aparece sozinho aqui.
-            </div>
-          </div>
-        </div>
+              {ehIOS() ? (
+                <>
+                  <b className="text-slate-700">No Android é mais simples:</b>{' '}
+                  abra no Chrome e toque em{' '}
+                  <MoreVertical className="inline h-3 w-3 align-middle" /> →{' '}
+                  <b>Instalar aplicativo</b>.
+                </>
+              ) : (
+                <>
+                  <b className="text-slate-700">No Android/Chrome:</b> toque nos
+                  três pontos{' '}
+                  <MoreVertical className="inline h-3 w-3 align-middle" /> →
+                  <b> Instalar aplicativo</b> (ou “Adicionar à tela inicial”).
+                  <br />
+                  <b className="text-slate-700">No iPhone (Safari):</b>{' '}
+                  <Share className="inline h-3 w-3 align-middle" />{' '}
+                  Compartilhar → <b>Adicionar à Tela de Início</b>.
+                </>
+              )}
+            </div>        </div>
       )}
     </>
   )
