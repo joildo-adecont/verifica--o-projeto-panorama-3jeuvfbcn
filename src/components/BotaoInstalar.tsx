@@ -108,15 +108,20 @@ export function BotaoInstalar() {
   return (
     <>
       <div
-        className="fixed z-40 right-3 flex items-center gap-2 rounded-full border border-panorama-gold/40 bg-panorama-navy px-3 py-2 shadow-lg shadow-black/30 print:hidden"
-        style={{
-          bottom: 'calc(env(safe-area-inset-bottom, 0px) + 14px)',
-        }}
+        /* Posição: ACIMA do selo "Criado com o Skip", que o host fixa no canto
+           inferior direito (18px de altura + ~14px de margem). Medido em
+           02/11/2026: em bottom:14px o botão ficava exatamente sobre o selo.
+           Aqui sobe para 52px + safe-area, e no desktop ancora no canto
+           esquerdo, onde não há nada do host. */
+        className="fixed z-40 right-3 bottom-[calc(env(safe-area-inset-bottom,0px)+52px)] flex items-center gap-2 rounded-full border border-panorama-gold/40 bg-panorama-navy px-3 py-2 shadow-lg shadow-black/30 print:hidden md:left-4 md:right-auto"
       >
         <button
           type="button"
           onClick={instalar}
-          className="flex items-center gap-2 text-[12px] font-semibold text-white"
+          /* min-h-[44px]: alvo de toque mínimo recomendado (Apple HIG / Google).
+             Medido antes: 18px de altura, abaixo do mínimo — difícil de acertar
+             com o dedo. */
+          className="flex min-h-[44px] items-center gap-2 px-1 text-[13px] font-semibold text-white"
           aria-label="Instalar o Panorama no celular"
         >
           <Download className="h-4 w-4 text-panorama-gold" />
@@ -127,9 +132,9 @@ export function BotaoInstalar() {
           type="button"
           onClick={() => setDispensado(true)}
           aria-label="Dispensar aviso de instalação"
-          className="text-white/50 hover:text-white"
+          className="flex min-h-[44px] min-w-[32px] items-center justify-center text-white/50 hover:text-white"
         >
-          <X className="h-3.5 w-3.5" />
+          <X className="h-4 w-4" />
         </button>
       </div>
 
