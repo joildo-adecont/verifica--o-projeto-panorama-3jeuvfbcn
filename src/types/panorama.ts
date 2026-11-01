@@ -91,6 +91,9 @@ export interface SourceStatusItem {
   last_checked_at?: string
   message?: string
   order?: number
+  coverage_status?: string
+  alternative_source?: string
+  unblock_channel?: string
   created?: string
   updated?: string
 }
@@ -98,11 +101,14 @@ export interface SourceStatusItem {
 export interface ContentReviewSourceItem {
   key: string
   name: string
-  url: string
+  url?: string
   status: 'active' | 'offline' | 'warning'
   http_status?: number
   response_time_ms?: number
   message?: string
+  coverage_status?: string
+  alternative_source?: string
+  unblock_channel?: string
 }
 
 export interface ContentReviewItem {

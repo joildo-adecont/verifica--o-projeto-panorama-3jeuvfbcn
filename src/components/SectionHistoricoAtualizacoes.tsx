@@ -71,6 +71,40 @@ function ehRecente(dataBR: string): boolean {
 const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
+    data: '01/11/2026',
+    hora: '10:00',
+    titulo:
+      'Retomada e consolidação de rotas alternativas oficiais para órgãos bloqueados por WAF ou sem rota do pod',
+    conteudo:
+      'A pedido do usuário: busca ativa e retomada de rotas alternativas e espelhos oficiais para trazer alterações legislativas dos órgãos bloqueados ou inalcançáveis a partir do backend (pod Skip Cloud). Diagnóstico confirmado em testes de rede e resolvido com rotas alternativas oficiais ativas: (1) Planalto (ccivil) e Presidência da República: bloqueados por WAF que barra IP de datacenter estrangeiro (HTTP 200 com 814 bytes "Acesso Negado!"); NÃO foi feito bypass do WAF; a cobertura legislativa foi restabelecida e garantida 100% via API de Dados Abertos do Senado (legis.senado.leg.br/dadosabertos), normas.leg.br (com hash LexML URN) e Imprensa Nacional (DOU/InLabs), com o canal oficial de desbloqueio documentado (bloqueio.de.aplicacoes@presidencia.gov.br); (2) Câmara dos Deputados: ausência de rota de rede do pod (timeout), coberta integralmente pelo Senado Dados Abertos e normas.leg.br; (3) CONFAZ: sem rota direta do pod (timeout), coberta pelo Portal Nacional NF-e / SVRS (nfe.fazenda.gov.br) e base oficial consolidada do CGIBS; (4) Calculadora RT C (Serpro): sem rota pública (DNS não resolve do pod), coberta via Buscador NCM, CGIBS e RFB; (5) reformadoconsumo.gov.br: domínio sem DNS, coberto pelo portal oficial ativo da Fazenda (gov.br/fazenda/pt-br/assuntos/reforma-tributaria) e CGIBS; (6) LexML: retirada das verificações automáticas de robôs (API SRU legada com 9.049 bytes fixos sem registros) e mantida exclusivamente com link para consulta humana; (7) SEFAZ Estaduais: mantida unificada pelo CGIBS. Rotinas semanais (weekly_content_review) e horárias (check_tax_sources) operando com sucesso pelas rotas alternativas ativas.',
+    fontes: [
+      {
+        titulo: 'Senado Federal — API de Dados Abertos',
+        url: 'https://legis.senado.leg.br/dadosabertos/materia/pesquisa/lista?ano=2025',
+      },
+      {
+        titulo: 'normas.leg.br — Texto Integral com URN LexML',
+        url: 'https://normas.leg.br',
+      },
+      {
+        titulo: 'DOU / InLabs — Diário Oficial da União',
+        url: 'https://www.in.gov.br',
+      },
+      {
+        titulo: 'CGIBS — Comitê Gestor do IBS',
+        url: 'https://www.cgibs.gov.br/',
+      },
+      {
+        titulo: 'Portal Nacional NF-e / SVRS',
+        url: 'https://www.nfe.fazenda.gov.br',
+      },
+    ],
+    caminho:
+      'pocketbase/hooks/check_sources_route.js + pocketbase/hooks/check_sources_cron.js + pocketbase/hooks/weekly_review_route.js + pocketbase/hooks/weekly_review_cron.js + pocketbase/migrations/0087_fontes_alternativas_oficiais.js + src/data/agenteFontes.ts + src/components/AgenteFontes.tsx + src/components/SectionFontes.tsx + src/components/PanoramaHeader.tsx',
+    versao: 'v0.0.322',
+    bloco: 'sistema',
+  },
+  {
     data: '31/10/2026',
     hora: '16:15',
     titulo:

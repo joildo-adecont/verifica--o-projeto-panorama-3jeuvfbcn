@@ -293,9 +293,22 @@ export function AgenteFontes() {
                   {f.status !== 'ativa' && f.motivo && (
                     <p className="text-[10px] text-rose-700 leading-snug">{f.motivo}</p>
                   )}
+                  {f.status !== 'ativa' && f.canalDesbloqueio && (
+                    <p className="text-[10px] text-slate-600 leading-snug mt-0.5 font-mono">
+                      <span className="font-semibold text-slate-800">
+                        Canal oficial de desbloqueio:
+                      </span>{' '}
+                      <a
+                        href={`mailto:${f.canalDesbloqueio}`}
+                        className="text-blue-700 underline hover:text-blue-900"
+                      >
+                        {f.canalDesbloqueio}
+                      </a>
+                    </p>
+                  )}
                   {f.status !== 'ativa' && f.substituto && f.substituto.length > 0 && (
                     <p className="text-[10px] text-emerald-700 leading-snug mt-0.5">
-                      <ArrowRight className="inline w-2.5 h-2.5" /> coberta por:{' '}
+                      <ArrowRight className="inline w-2.5 h-2.5" /> rota alternativa oficial:{' '}
                       {f.substituto.join(', ')}
                     </p>
                   )}

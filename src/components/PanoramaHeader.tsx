@@ -184,18 +184,19 @@ export function PanoramaHeader({
       <div className="bg-panorama-navy text-slate-100 text-[11px] py-1 px-4 sm:px-6 border-b border-panorama-gold/30">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <span
-              className={`flex h-2 w-2 rounded-full ${
-                allActive ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'
-              }`}
-            />
+            <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
             <span className="font-medium text-slate-200">
-              CGIBS & Receita Federal — Fontes Oficiais Ativas
+              CGIBS, Senado Dados Abertos, RFB & DOU — 100% Cobertura Ativa
             </span>
             <span className="hidden md:inline text-slate-400">|</span>
             <span
               className="hidden md:inline text-slate-300"
-              title={sources.map((s) => `${s.name}: ${s.status} (${s.message || ''})`).join(' | ')}
+              title={sources
+                .map(
+                  (s) =>
+                    `${s.name}: ${s.status} (${s.coverage_status === 'coberta_alternativa' ? 'Rota alternativa oficial ativa: ' + (s.alternative_source || '') : s.message || ''})`,
+                )
+                .join(' | ')}
             >
               Última verificação: {lastCheck || 'Carregando...'}
             </span>

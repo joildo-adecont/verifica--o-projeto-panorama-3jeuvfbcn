@@ -141,64 +141,113 @@ export function SectionFontes() {
 
   const fontes = [
     {
-      orgao: 'Planalto',
-      fonte: 'normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
-      conteudo: 'Texto integral da LC 214/2025',
+      orgao: 'Planalto (Presidência)',
+      fonte: 'normas.leg.br + legis.senado.leg.br + DOU',
+      conteudo:
+        'Texto integral compilado oficial (LC 214/2025, LC 227/2026, EC 132/2023, Dec. 12.955/2026)',
       url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
-    },
-    {
-      orgao: 'Planalto',
-      fonte: 'normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2026-01-13;227',
-      conteudo: 'LC 227/2026 (CGIBS, ITCMD)',
-      url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2026-01-13;227',
-    },
-    {
-      orgao: 'Planalto',
-      fonte: 'Decreto 12.955/2026',
-      conteudo: 'Regulamento da CBS + anexos',
-      url: 'https://normas.leg.br',
+      statusNota:
+        'Bloqueado por WAF da Presidência (IP datacenter). Cobertura garantida pelas fontes oficiais ativas (normas.leg.br, Senado Dados Abertos e DOU). Canal oficial: bloqueio.de.aplicacoes@presidencia.gov.br',
+      badgeStatus: 'Coberta via Senado + DOU',
+      badgeCor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
     },
     {
       orgao: 'CGIBS',
       fonte: 'cgibs.gov.br',
-      conteudo: 'Resoluções do Comitê (Regulamento IBS 6/2026 e alterações)',
+      conteudo: 'Resoluções do Comitê Gestor (Regulamento IBS nº 6/2026, governança e alterações)',
       url: 'https://www.cgibs.gov.br/',
+      statusNota: 'Acesso direto oficial ativo pelo pod e verificação semanal.',
+      badgeStatus: 'Acesso direto ativo',
+      badgeCor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
     },
     {
-      orgao: 'Receita Federal',
+      orgao: 'Receita Federal (RFB)',
       fonte: 'gov.br/receitafederal → Reforma Tributária',
-      conteudo: 'Legislação, guias, cronogramas, programa RTC',
+      conteudo: 'Instruções normativas, guias, cronogramas e programa RTC',
       url: 'https://www.gov.br/receitafederal/pt-br/assuntos/reforma-tributaria',
-    },
-    {
-      orgao: 'RFB + CGIBS',
-      fonte: 'Ato Conjunto RFB/CGIBS 4/2026',
-      conteudo: 'Cronograma dos documentos fiscais eletrônicos',
-      url: 'https://www.gov.br/receitafederal',
-    },
-    {
-      orgao: 'IBSLab',
-      fonte: 'ibslab.com.br/ferramentas/aliquotas-ibs-cbs',
-      conteudo: 'Tabela de alíquotas 2026–2033 (estimativas)',
-      url: 'https://ibslab.com.br/ferramentas/aliquotas-ibs-cbs',
-    },
-    {
-      orgao: 'CGSN',
-      fonte: 'gov.br/receitafederal/simplesnacional',
-      conteudo: 'Resoluções CGSN 190–192/2026 e atos ME/EPP do Simples na Reforma',
-      url: 'https://www.receita.fazenda.gov.br/simplesnacional',
-    },
-    {
-      orgao: 'SUFRAMA',
-      fonte: 'gov.br/suframa',
-      conteudo: 'Regras e crédito presumido da Zona Franca de Manaus e ALC',
-      url: 'https://www.gov.br/suframa/pt-br',
+      statusNota: 'Acesso direto oficial ativo.',
+      badgeStatus: 'Acesso direto ativo',
+      badgeCor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
     },
     {
       orgao: 'Senado Federal',
-      fonte: 'legis.senado.leg.br',
-      conteudo: 'Leis Complementares (LC 214, LC 227, LC 235, LC 238) e atos especiais',
-      url: 'https://legis.senado.leg.br',
+      fonte: 'legis.senado.leg.br/dadosabertos + normas.leg.br',
+      conteudo:
+        'API de Dados Abertos e texto integral multivigente de Leis Complementares e Emendas',
+      url: 'https://legis.senado.leg.br/dadosabertos',
+      statusNota: 'Fonte primária alternativa ativa que cobre o Congresso e o Planalto.',
+      badgeStatus: 'Acesso direto ativo',
+      badgeCor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+    },
+    {
+      orgao: 'Imprensa Nacional (DOU)',
+      fonte: 'in.gov.br',
+      conteudo:
+        'Publicação oficial primária de leis, decretos, portarias e atos conjuntos no Diário Oficial',
+      url: 'https://www.in.gov.br',
+      statusNota: 'Acesso direto oficial ativo para atos novos.',
+      badgeStatus: 'Acesso direto ativo',
+      badgeCor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+    },
+    {
+      orgao: 'Câmara dos Deputados',
+      fonte: 'legis.senado.leg.br + normas.leg.br',
+      conteudo: 'Proposições e matérias legislativas da Reforma',
+      url: 'https://legis.senado.leg.br/dadosabertos',
+      statusNota:
+        'Hosts da Câmara com ausência de rota de rede do pod (timeout). Coberta integralmente pelo Senado Dados Abertos e normas.leg.br.',
+      badgeStatus: 'Coberta via Senado',
+      badgeCor: 'bg-blue-100 text-blue-800 border-blue-300',
+    },
+    {
+      orgao: 'CONFAZ',
+      fonte: 'nfe.fazenda.gov.br + buscadorncm + cgibs.gov.br',
+      conteudo: 'Tabelas oficiais de CEST, MVA-ST e CFOP (Convênio ICMS 142/2018 e SINIEF)',
+      url: 'https://www.nfe.fazenda.gov.br',
+      statusNota:
+        'Sem rota de rede direta do pod (timeout). Coberta via Portal Nacional NF-e / SVRS e base consolidada do CGIBS.',
+      badgeStatus: 'Coberta via Portal NF-e + CGIBS',
+      badgeCor: 'bg-blue-100 text-blue-800 border-blue-300',
+    },
+    {
+      orgao: 'Serpro / Calculadora RTC',
+      fonte: 'cgibs.gov.br + buscadorncm.com.br',
+      conteudo: 'Bases de alíquotas e simuladores do programa RTC',
+      url: 'https://www.cgibs.gov.br/',
+      statusNota:
+        'Sem rota pública (DNS não resolve do pod; endereço não confirmado). Coberta via Buscador NCM, CGIBS e RFB.',
+      badgeStatus: 'Coberta via CGIBS + RFB',
+      badgeCor: 'bg-blue-100 text-blue-800 border-blue-300',
+    },
+    {
+      orgao: 'reformadoconsumo.gov.br',
+      fonte: 'gov.br/fazenda/pt-br/assuntos/reforma-tributaria',
+      conteudo: 'Avisos e documentação do Ministério da Fazenda sobre Reforma do Consumo',
+      url: 'https://www.gov.br/fazenda/pt-br/assuntos/reforma-tributaria',
+      statusNota:
+        'Domínio próprio sem DNS; coberto pelo portal oficial ativo da Fazenda / RFB e CGIBS.',
+      badgeStatus: 'Coberta via Gov.br Fazenda',
+      badgeCor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+    },
+    {
+      orgao: 'LexML',
+      fonte: 'lexml.gov.br (Consulta Humana) / normas.leg.br (Robôs)',
+      conteudo: 'Rede de Informação Legislativa e Jurídica',
+      url: 'http://www.lexml.gov.br',
+      statusNota:
+        'API SRU legada devolve 9.049 bytes fixos sem registros. Retirada de verificações automáticas de robôs; mantida apenas com link para consulta humana.',
+      badgeStatus: 'Apenas Consulta Humana',
+      badgeCor: 'bg-slate-200 text-slate-700 border-slate-300',
+    },
+    {
+      orgao: 'SEFAZ Estaduais',
+      fonte: 'cgibs.gov.br',
+      conteudo: 'Atos estaduais do IBS e regulamentações complementares',
+      url: 'https://www.cgibs.gov.br/',
+      statusNota:
+        'Endereços mudam por UF (404 em RS/SP). Cobertura consolidada de forma unificada no Comitê Gestor do IBS (CGIBS).',
+      badgeStatus: 'Coberta via CGIBS',
+      badgeCor: 'bg-blue-100 text-blue-800 border-blue-300',
     },
   ]
 
@@ -287,7 +336,16 @@ export function SectionFontes() {
           <tbody className="divide-y divide-slate-100">
             {fontes.map((item, idx) => (
               <tr key={idx} className="hover:bg-slate-50/70 transition-colors">
-                <td className="py-3 px-4 align-top font-bold text-slate-900">{item.orgao}</td>
+                <td className="py-3 px-4 align-top">
+                  <div className="font-bold text-slate-900">{item.orgao}</div>
+                  {item.badgeStatus && (
+                    <span
+                      className={`inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded border ${item.badgeCor}`}
+                    >
+                      {item.badgeStatus}
+                    </span>
+                  )}
+                </td>
                 <td className="py-3 px-4 align-top font-mono text-xs text-blue-700">
                   <a
                     href={item.url}
@@ -295,12 +353,17 @@ export function SectionFontes() {
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1 hover:underline"
                   >
-                    <span>{item.fonte}</span>
-                    <ExternalLink className="w-3 h-3 text-slate-400" />
+                    <span className="break-all">{item.fonte}</span>
+                    <ExternalLink className="w-3 h-3 text-slate-400 shrink-0" />
                   </a>
                 </td>
-                <td className="py-3 px-4 align-top text-slate-700 leading-relaxed">
-                  {item.conteudo}
+                <td className="py-3 px-4 align-top text-slate-700 leading-relaxed space-y-1">
+                  <div>{item.conteudo}</div>
+                  {item.statusNota && (
+                    <div className="text-[11px] text-slate-500 bg-slate-50 p-2 rounded border border-slate-100">
+                      {item.statusNota}
+                    </div>
+                  )}
                 </td>
               </tr>
             ))}
@@ -634,16 +697,50 @@ export function SectionFontes() {
             )}
 
             {latestReview?.sources_checked && latestReview.sources_checked.length > 0 && (
-              <div className="pt-1 flex flex-wrap gap-1.5">
-                {latestReview.sources_checked.map((src) => (
-                  <span
-                    key={src.key}
-                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono bg-slate-900/80 border border-slate-700 text-slate-200"
-                  >
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                    {src.name.split(' ')[0]}: {src.status} ({src.http_status || 200})
-                  </span>
-                ))}
+              <div className="pt-2 space-y-1.5">
+                <span className="text-slate-300 font-semibold text-[11px] block">
+                  Fontes auditadas no ciclo e rotas ativas:
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  {latestReview.sources_checked.map((src) => {
+                    const isAlternative = src.coverage_status === 'coberta_alternativa'
+                    const isHumanOnly = src.coverage_status === 'consulta_humana_apenas'
+                    const isWarning = src.status === 'warning'
+                    return (
+                      <span
+                        key={src.key}
+                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono border ${
+                          isAlternative
+                            ? 'bg-blue-950/80 border-blue-600 text-blue-200'
+                            : isHumanOnly
+                              ? 'bg-slate-900 border-slate-600 text-slate-400'
+                              : isWarning
+                                ? 'bg-amber-950/80 border-amber-600 text-amber-200'
+                                : 'bg-slate-900/80 border-slate-700 text-slate-200'
+                        }`}
+                        title={
+                          src.alternative_source
+                            ? `Rota alternativa: ${src.alternative_source}`
+                            : src.message || src.name
+                        }
+                      >
+                        <span
+                          className={`w-1.5 h-1.5 rounded-full ${
+                            isAlternative
+                              ? 'bg-blue-400'
+                              : isHumanOnly
+                                ? 'bg-slate-500'
+                                : 'bg-emerald-400'
+                          }`}
+                        />
+                        <span className="font-semibold">{src.name.split(' ')[0]}</span>
+                        <span>
+                          {isAlternative ? 'alter.' : isHumanOnly ? 'humano' : src.status}
+                        </span>
+                      </span>
+                    )
+                  })}
+                </div>
               </div>
             )}
           </div>
