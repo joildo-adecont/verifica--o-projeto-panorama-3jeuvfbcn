@@ -152,9 +152,13 @@ export default function Index() {
         {rota && (
           <div className="w-full border-b border-slate-200 bg-white shrink-0">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 py-1.5 flex items-center gap-1.5 flex-wrap">
+              {/* min-h-[40px]: a auditoria da Seção 17 media 17px aqui — abaixo
+                  do mínimo de toque. O ícone e o texto continuam pequenos de
+                  propósito (é trilha, não ação principal); o que cresce é a
+                  ÁREA clicável, sem mexer no visual. */}
               <button
                 onClick={() => navegar(ID_INICIO)}
-                className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-500 hover:text-panorama-navy cursor-pointer"
+                className="inline-flex min-h-[40px] cursor-pointer items-center gap-1 text-[11px] font-bold text-slate-500 hover:text-panorama-navy"
               >
                 <HomeIcon className="w-3 h-3" />
                 Início
@@ -176,7 +180,7 @@ export default function Index() {
               )}
               <button
                 onClick={() => navegar(ID_INICIO)}
-                className="ml-auto text-[10px] font-bold text-slate-400 hover:text-panorama-navy cursor-pointer"
+                className="ml-auto inline-flex min-h-[40px] cursor-pointer items-center text-[10px] font-bold text-slate-400 hover:text-panorama-navy"
               >
                 ← voltar ao painel
               </button>

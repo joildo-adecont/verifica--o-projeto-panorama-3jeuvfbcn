@@ -669,6 +669,53 @@ routerAdd('GET', '/backend/v1/simul-confirmar', (e) => {
   })
 })
 
+// ---------- 0. Validação rápida de token do painel ----------
+routerAdd('GET', '/backend/v1/simul-validar-token', (e) => {
+  var esperado = $secrets.get('SIMUL_PAINEL_TOKEN') || ''
+  var recebido = e.request.header.get('X-Painel-Token') || ''
+  if (!recebido) {
+    var qToken = e.requestInfo().query.token || ''
+    if (qToken) recebido = qToken
+  }
+  var valido = Boolean(esperado && recebido && recebido === esperado)
+  if (!valido && !(e.auth && e.auth.id)) {
+    return e.json(401, {
+      success: false,
+      valido: false,
+      message: 'Token inválido ou expirado — cole novamente.',
+    })
+  }
+  return e.json(200, {
+    success: true,
+    valido: true,
+    message: 'Token válido e autenticado com sucesso.',
+  })
+})
+
+routerAdd('POST', '/backend/v1/simul-validar-token', (e) => {
+  var esperado = $secrets.get('SIMUL_PAINEL_TOKEN') || ''
+  var recebido = e.request.header.get('X-Painel-Token') || ''
+  if (!recebido) {
+    try {
+      var body = e.requestInfo().body || {}
+      if (body.token) recebido = String(body.token).trim()
+    } catch (_) {}
+  }
+  var valido = Boolean(esperado && recebido && recebido === esperado)
+  if (!valido && !(e.auth && e.auth.id)) {
+    return e.json(401, {
+      success: false,
+      valido: false,
+      message: 'Token inválido ou expirado — cole novamente.',
+    })
+  }
+  return e.json(200, {
+    success: true,
+    valido: true,
+    message: 'Token válido e autenticado com sucesso.',
+  })
+})
+
 // ---------- 4. Consulta de protocolo (autenticado) ----------
 routerAdd('GET', '/backend/v1/simul-protocolo', (e) => {
   // --- validação de token do painel (inline) ---

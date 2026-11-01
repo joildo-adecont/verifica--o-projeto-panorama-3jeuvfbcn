@@ -17,6 +17,7 @@ import {
   Users,
   X,
 } from 'lucide-react'
+import { AdecontLogo } from '@/components/AdecontLogo'
 import { CBS_REF, IBS_REF, REF_TOTAL, pct, totalDoAno } from '@/data/aliquotas'
 
 /**
@@ -48,7 +49,9 @@ import { CBS_REF, IBS_REF, REF_TOTAL, pct, totalDoAno } from '@/data/aliquotas'
  */
 
 const TOKEN_KEY = 'adecont_painel_token'
-const BACKEND = 'https://verificacao-projeto-panorama-18549.shrd00.internal.goskip.dev'
+const BACKEND =
+  import.meta.env.VITE_POCKETBASE_URL ||
+  'https://verificacao-projeto-panorama-18549.shrd00.internal.goskip.dev'
 
 type Aba = 'lista' | 'novo' | 'importar' | 'comparativo'
 
@@ -146,24 +149,67 @@ export function SectionCadastroEnvios() {
   const [carregando, setCarregando] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
   const [token, setToken] = useState('')
+  const [tokenInput, setTokenInput] = useState('')
+  const [tokenValidado, setTokenValidado] = useState(false)
+  const [validandoToken, setValidandoToken] = useState(false)
   const [busca, setBusca] = useState('')
   const [msg, setMsg] = useState<{ tipo: 'ok' | 'erro'; txt: string } | null>(null)
 
-  // formulário
+  // formulário — dados NUNCA são apagados quando o token expira ou falha
   const [form, setForm] = useState<Record<string, string>>({})
   const [tributos, setTributos] = useState<string[]>([])
+  const [salvando, setSalvando] = useState(false)
 
   // importação
   const [textoImport, setTextoImport] = useState('')
   const [previa, setPrevia] = useState<Record<string, string>[]>([])
 
-  useEffect(() => {
+  const validarTokenContraBackend = useCallback(async (tok: string): Promise<boolean> => {
+    if (!tok) return false
     try {
-      setToken(window.localStorage.getItem(TOKEN_KEY) || '')
-    } catch (_) {
-      setToken('')
+      const r = await fetch(`${BACKEND}/backend/v1/simul-validar-token`, {
+        method: 'GET',
+        headers: { 'X-Painel-Token': tok },
+      })
+      return r.ok
+    } catch {
+      // Se a rota nova falhar por rede/proxy, tenta uma leitura simples
+      try {
+        const r2 = await fetch(`${BACKEND}/backend/v1/painel-cliente`, {
+          method: 'GET',
+          headers: { 'X-Painel-Token': tok },
+        })
+        return r2.ok
+      } catch {
+        return false
+      }
     }
   }, [])
+
+  useEffect(() => {
+    let tokSalvo = ''
+    try {
+      tokSalvo =
+        window.localStorage.getItem(TOKEN_KEY) ||
+        window.localStorage.getItem('simul_painel_token') ||
+        ''
+    } catch (_) {
+      tokSalvo = ''
+    }
+    if (tokSalvo) {
+      setToken(tokSalvo)
+      setTokenInput(tokSalvo)
+      validarTokenContraBackend(tokSalvo).then((valido) => {
+        setTokenValidado(valido)
+        if (!valido) {
+          setMsg({
+            tipo: 'erro',
+            txt: 'Token inválido ou expirado — cole novamente.',
+          })
+        }
+      })
+    }
+  }, [validarTokenContraBackend])
 
   const carregar = useCallback(async (tok: string) => {
     if (!tok) return
@@ -175,11 +221,12 @@ export function SectionCadastroEnvios() {
         { headers: { 'X-Painel-Token': tok } },
       )
       if (!r.ok) {
-        setErro(
-          r.status === 401
-            ? 'Token recusado. Informe o token do painel abaixo.'
-            : `O servidor respondeu ${r.status}.`,
-        )
+        if (r.status === 401) {
+          setTokenValidado(false)
+          setErro('Token inválido ou expirado — cole novamente.')
+        } else {
+          setErro(`O servidor respondeu ${r.status}.`)
+        }
         return
       }
       const j = await r.json()
@@ -192,13 +239,53 @@ export function SectionCadastroEnvios() {
   }, [])
 
   useEffect(() => {
-    if (token) carregar(token)
-  }, [token, carregar])
+    if (token && tokenValidado) carregar(token)
+  }, [token, tokenValidado, carregar])
 
   const set = (k: string, v: string) => setForm((f) => ({ ...f, [k]: v }))
 
-  const salvar = async () => {
+  const aplicarToken = async (tokParaTestar?: string, autoReenviarForm = false) => {
+    const val = (tokParaTestar !== undefined ? tokParaTestar : tokenInput).trim()
+    if (!val) {
+      setMsg({ tipo: 'erro', txt: 'Informe o token do painel para salvar' })
+      return
+    }
+    setValidandoToken(true)
     setMsg(null)
+    setErro(null)
+    try {
+      const valido = await validarTokenContraBackend(val)
+      if (valido) {
+        setToken(val)
+        setTokenValidado(true)
+        try {
+          window.localStorage.setItem(TOKEN_KEY, val)
+          window.localStorage.setItem('simul_painel_token', val)
+        } catch {
+          /* intentionally ignored */
+        }
+        setMsg({ tipo: 'ok', txt: 'Token do painel validado com sucesso!' })
+        carregar(val)
+        if (autoReenviarForm && form.nome && form.email) {
+          // Reenvia automaticamente os dados já preenchidos
+          await executarSalvar(val)
+        }
+      } else {
+        setTokenValidado(false)
+        setMsg({ tipo: 'erro', txt: 'Token inválido ou expirado — cole novamente' })
+      }
+    } finally {
+      setValidandoToken(false)
+    }
+  }
+
+  const executarSalvar = async (tokUsar: string) => {
+    setMsg(null)
+    if (!tokUsar) {
+      setTokenValidado(false)
+      setMsg({ tipo: 'erro', txt: 'Informe o token do painel para salvar' })
+      return
+    }
     if (!form.nome || !form.email) {
       setMsg({ tipo: 'erro', txt: 'Nome e e-mail são obrigatórios.' })
       return
@@ -226,27 +313,48 @@ export function SectionCadastroEnvios() {
       carga_atual_pct: form.carga_atual_pct || '',
       tributos_atuais: tributos,
     }
+    setSalvando(true)
     try {
       const r = await fetch(`${BACKEND}/backend/v1/simul-importar`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-Painel-Token': token },
+        headers: { 'Content-Type': 'application/json', 'X-Painel-Token': tokUsar },
         body: JSON.stringify({ clientes: [corpo] }),
       })
       if (!r.ok) {
-        setMsg({ tipo: 'erro', txt: `O servidor respondeu ${r.status}. Confira o token.` })
+        if (r.status === 401) {
+          // NUNCA apagar dados do form: reexibe o box do token com mensagem clara
+          setTokenValidado(false)
+          setMsg({
+            tipo: 'erro',
+            txt: 'Token inválido ou expirado — cole novamente para concluir o salvamento deste cliente.',
+          })
+          return
+        }
+        setMsg({ tipo: 'erro', txt: `Falha no cadastro (código ${r.status}). Verifique os dados.` })
         return
       }
       const j = await r.json()
       setMsg({
         tipo: 'ok',
-        txt: `Cliente salvo (${j.inseridos ? 'novo' : 'atualizado'}).`,
+        txt: `Cliente salvo (${j.inseridos ? 'novo' : 'atualizado'}) com sucesso.`,
       })
+      // Só limpa após o sucesso confirmado
       setForm({})
       setTributos([])
-      carregar(token)
+      carregar(tokUsar)
     } catch {
-      setMsg({ tipo: 'erro', txt: 'Falha ao salvar. Verifique a conexão e o token.' })
+      setMsg({ tipo: 'erro', txt: 'Falha ao salvar. Verifique a conexão com a internet.' })
+    } finally {
+      setSalvando(false)
     }
+  }
+
+  const salvar = async () => {
+    if (!token || !tokenValidado) {
+      setMsg({ tipo: 'erro', txt: 'Informe o token do painel para salvar' })
+      return
+    }
+    await executarSalvar(token)
   }
 
   /** Pré-visualização da planilha colada: primeira linha é o cabeçalho. */
@@ -275,6 +383,10 @@ export function SectionCadastroEnvios() {
 
   const importar = async () => {
     setMsg(null)
+    if (!token || !tokenValidado) {
+      setMsg({ tipo: 'erro', txt: 'Informe o token do painel para salvar' })
+      return
+    }
     if (!previa.length) {
       setMsg({ tipo: 'erro', txt: 'Cole a planilha com cabeçalho antes de importar.' })
       return
@@ -286,6 +398,11 @@ export function SectionCadastroEnvios() {
         body: JSON.stringify({ clientes: previa }),
       })
       if (!r.ok) {
+        if (r.status === 401) {
+          setTokenValidado(false)
+          setMsg({ tipo: 'erro', txt: 'Token inválido ou expirado — cole novamente.' })
+          return
+        }
         setMsg({ tipo: 'erro', txt: `O servidor respondeu ${r.status}.` })
         return
       }
@@ -349,9 +466,14 @@ export function SectionCadastroEnvios() {
         {/* cabeçalho */}
         <header className="bg-panorama-navy px-4 sm:px-5 py-4 border-b-2 border-panorama-gold/60">
           <div className="flex items-start gap-3 flex-wrap">
-            <span className="flex items-center justify-center w-12 h-12 rounded-xl bg-panorama-gold/15 text-panorama-gold-light ring-1 ring-panorama-gold/50 shrink-0">
-              <Building2 className="w-6 h-6" />
-            </span>
+            <div className="flex items-center gap-3 shrink-0">
+              <span className="flex items-center justify-center w-12 h-12 rounded-xl bg-panorama-gold/15 text-panorama-gold-light ring-1 ring-panorama-gold/50 shrink-0">
+                <Building2 className="w-6 h-6" />
+              </span>
+              <div className="bg-white/95 rounded-lg px-2 py-1 shadow-sm border border-panorama-gold/40 flex items-center">
+                <AdecontLogo variant="color" className="h-7 w-auto" />
+              </div>
+            </div>
             <div className="flex-1 min-w-[220px]">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-panorama-navy bg-panorama-gold rounded px-1.5 py-0.5">
@@ -411,40 +533,56 @@ export function SectionCadastroEnvios() {
         </header>
 
         <div className="p-3.5 sm:p-4">
-          {/* token / erro */}
-          {!token && (
-            <div className="rounded-xl border-2 border-amber-300 bg-amber-50 p-3 mb-3">
-              <p className="flex items-center gap-1.5 text-[11px] font-bold text-amber-900 mb-1.5">
-                <KeyRound className="w-3.5 h-3.5" />
-                Token do painel necessário
-              </p>
-              <div className="flex gap-1.5">
+          {/* token do painel — exibido sempre que o token não existir ou não estiver validado */}
+          {(!token || !tokenValidado) && (
+            <div className="rounded-xl border-2 border-amber-300 bg-amber-50 p-4 mb-4 shadow-xs">
+              <div className="flex items-start gap-2.5 mb-2">
+                <div className="rounded-lg bg-amber-100 p-1.5 text-amber-800 shrink-0">
+                  <KeyRound className="w-4 h-4" />
+                </div>
+                <div>
+                  <p className="text-[12px] font-bold text-amber-900 leading-tight">
+                    Token do painel necessário
+                  </p>
+                  <p className="text-[10.5px] text-amber-800 mt-0.5 leading-snug">
+                    Para cadastrar, editar e gerenciar clientes, informe a chave de acesso do painel
+                    ADECONT. O formulário será liberado imediatamente após a validação.
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-2 mt-3">
                 <input
                   type="password"
                   id="tok-cad"
-                  placeholder="cole o token"
-                  className="flex-1 rounded-lg border-2 border-amber-300 px-2 py-1.5 text-[11px] font-mono bg-white"
-                />
-                <button
-                  onClick={() => {
-                    const el = document.getElementById('tok-cad') as HTMLInputElement | null
-                    const v = el?.value.trim() || ''
-                    if (v) {
-                      try {
-                        window.localStorage.setItem(TOKEN_KEY, v)
-                      } catch (_) {
-                        // localStorage bloqueado: vale só nesta sessão
-                      }
-                      setToken(v)
+                  value={tokenInput}
+                  onChange={(e) => setTokenInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      aplicarToken(tokenInput, true)
                     }
                   }}
-                  className="rounded-lg bg-amber-600 text-white px-3 py-1.5 text-[11px] font-bold hover:bg-amber-700 cursor-pointer shrink-0"
+                  placeholder="Cole o token do painel (SIMUL_PAINEL_TOKEN)"
+                  className="flex-1 rounded-lg border-2 border-amber-300 px-3 py-2 text-xs font-mono bg-white focus:outline-none focus:border-amber-600"
+                />
+                <button
+                  type="button"
+                  onClick={() => aplicarToken(tokenInput, true)}
+                  disabled={validandoToken || !tokenInput.trim()}
+                  className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white px-5 py-2 text-xs font-bold shadow-xs transition-colors cursor-pointer shrink-0"
                 >
-                  Usar
+                  <KeyRound className={`w-3.5 h-3.5 ${validandoToken ? 'animate-spin' : ''}`} />
+                  {validandoToken ? 'Validando…' : 'Usar'}
                 </button>
               </div>
+              {Object.keys(form).some((k) => !!form[k]) && (
+                <p className="text-[10px] text-amber-900 font-semibold mt-2 bg-amber-100/70 rounded-md p-1.5">
+                  🛡️ Seus dados digitados continuam intactos abaixo. Ao validar o token, o cadastro
+                  será concluído sem que você precise digitar nada novamente.
+                </p>
+              )}
             </div>
           )}
+
           {erro && (
             <div className="rounded-xl border-2 border-rose-300 bg-rose-50 p-2.5 mb-3 flex items-start gap-2">
               <BadgeAlert className="w-4 h-4 text-rose-700 shrink-0 mt-0.5" />
@@ -489,7 +627,7 @@ export function SectionCadastroEnvios() {
                 </div>
                 <button
                   onClick={() => carregar(token)}
-                  disabled={carregando}
+                  disabled={carregando || !tokenValidado}
                   className="inline-flex items-center gap-1.5 rounded-lg bg-panorama-navy text-panorama-gold-light px-3 py-1.5 text-[11px] font-bold disabled:opacity-50 cursor-pointer"
                 >
                   <RefreshCw className={`w-3 h-3 ${carregando ? 'animate-spin' : ''}`} />
@@ -583,269 +721,291 @@ export function SectionCadastroEnvios() {
 
           {/* ───────────── NOVO CADASTRO ───────────── */}
           {aba === 'novo' && (
-            <div className="space-y-3">
-              {/* identificação */}
-              <div className="rounded-xl border-2 border-slate-200 bg-slate-50/60 p-3">
-                <p className="text-[11px] font-bold text-slate-900 mb-2 flex items-center gap-1.5">
-                  <Building2 className="w-3.5 h-3.5 text-slate-600" />
-                  Identificação
-                </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
-                  <label>
-                    <span className={rotulo}>Tipo *</span>
-                    <select
-                      value={form.tipo_pessoa ?? ''}
-                      onChange={(e) => set('tipo_pessoa', e.target.value)}
-                      className={campo}
-                    >
-                      <option value="">—</option>
-                      <option value="PJ">Pessoa jurídica</option>
-                      <option value="PF">Pessoa física</option>
-                    </select>
-                  </label>
-                  <label className="lg:col-span-2">
-                    <span className={rotulo}>Nome do contato *</span>
-                    <input
-                      value={form.nome ?? ''}
-                      onChange={(e) => set('nome', e.target.value)}
-                      className={campo}
-                      placeholder="Quem atende"
-                    />
-                  </label>
-                  <label>
-                    <span className={rotulo}>E-mail *</span>
-                    <input
-                      type="email"
-                      value={form.email ?? ''}
-                      onChange={(e) => set('email', e.target.value)}
-                      className={campo}
-                      placeholder="cliente@empresa.com.br"
-                    />
-                  </label>
-                  <label className="lg:col-span-2">
-                    <span className={rotulo}>Razão social</span>
-                    <input
-                      value={form.razao_social ?? ''}
-                      onChange={(e) => set('razao_social', e.target.value)}
-                      className={campo}
-                    />
-                  </label>
-                  <label>
-                    <span className={rotulo}>Nome fantasia</span>
-                    <input
-                      value={form.nome_fantasia ?? ''}
-                      onChange={(e) => set('nome_fantasia', e.target.value)}
-                      className={campo}
-                    />
-                  </label>
-                  <label>
-                    <span className={rotulo}>CPF / CNPJ</span>
-                    <input
-                      value={form.documento ?? ''}
-                      onChange={(e) => set('documento', e.target.value)}
-                      className={campo}
-                    />
-                  </label>
-                  <label>
-                    <span className={rotulo}>CNAE principal</span>
-                    <input
-                      value={form.cnae ?? ''}
-                      onChange={(e) => set('cnae', e.target.value)}
-                      className={campo}
-                      placeholder="ex.: 4711-3/02"
-                    />
-                  </label>
-                  <label>
-                    <span className={rotulo}>Segmento</span>
-                    <select
-                      value={form.segmento ?? ''}
-                      onChange={(e) => set('segmento', e.target.value)}
-                      className={campo}
-                    >
-                      <option value="">—</option>
-                      {SEGMENTOS.map(([v, n]) => (
-                        <option key={v} value={v}>
-                          {n}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label>
-                    <span className={rotulo}>Atividade</span>
-                    <select
-                      value={form.atividade ?? ''}
-                      onChange={(e) => set('atividade', e.target.value)}
-                      className={campo}
-                    >
-                      <option value="">—</option>
-                      <option value="comercio">Comércio</option>
-                      <option value="industria">Indústria</option>
-                      <option value="servicos">Serviços</option>
-                      <option value="imobiliario">Imobiliário</option>
-                      <option value="agropecuaria">Agropecuária</option>
-                      <option value="financeiro">Financeiro</option>
-                      <option value="construcao">Construção</option>
-                      <option value="saude">Saúde</option>
-                      <option value="educacao">Educação</option>
-                      <option value="tecnologia">Tecnologia</option>
-                      <option value="outro">Outro</option>
-                    </select>
-                  </label>
-                  <label>
-                    <span className={rotulo}>Município</span>
-                    <input
-                      value={form.municipio ?? ''}
-                      onChange={(e) => set('municipio', e.target.value)}
-                      className={campo}
-                    />
-                  </label>
-                  <label>
-                    <span className={rotulo}>UF</span>
-                    <input
-                      maxLength={2}
-                      value={form.uf ?? ''}
-                      onChange={(e) => set('uf', e.target.value.toUpperCase())}
-                      className={campo}
-                      placeholder="RS"
-                    />
-                  </label>
-                  <label>
-                    <span className={rotulo}>CEP</span>
-                    <input
-                      value={form.cep ?? ''}
-                      onChange={(e) => set('cep', e.target.value)}
-                      className={campo}
-                      placeholder="00000-000"
-                    />
-                  </label>
-                  <label>
-                    <span className={rotulo}>Telefone</span>
-                    <input
-                      value={form.telefone ?? ''}
-                      onChange={(e) => set('telefone', e.target.value)}
-                      className={campo}
-                    />
-                  </label>
-                  <label>
-                    <span className={rotulo}>WhatsApp</span>
-                    <input
-                      value={form.whatsapp ?? ''}
-                      onChange={(e) => set('whatsapp', e.target.value)}
-                      className={campo}
-                    />
-                  </label>
-                  <label>
-                    <span className={rotulo}>Funcionários</span>
-                    <input
-                      inputMode="numeric"
-                      value={form.num_funcionarios ?? ''}
-                      onChange={(e) => set('num_funcionarios', e.target.value)}
-                      className={campo}
-                    />
-                  </label>
+            <div className="space-y-3 relative">
+              {/* Bloqueio visual do formulário se não houver token válido */}
+              {(!token || !tokenValidado) && (
+                <div className="rounded-xl border border-amber-300 bg-amber-50/60 p-3 mb-2 flex items-center justify-between">
+                  <p className="text-xs font-semibold text-amber-900">
+                    🔒 Formulário bloqueado: informe o token do painel no box acima para preencher
+                    ou salvar.
+                  </p>
                 </div>
-              </div>
+              )}
 
-              {/* situação atual */}
-              <div className="rounded-xl border-2 border-panorama-gold/50 bg-amber-50/40 p-3">
-                <p className="text-[11px] font-bold text-slate-900 mb-2 flex items-center gap-1.5">
-                  <Calculator className="w-3.5 h-3.5 text-amber-700" />
-                  Situação atual — o lado de hoje do comparativo
-                </p>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                  <label>
-                    <span className={rotulo}>Regime hoje</span>
-                    <select
-                      value={form.regime_tributario ?? ''}
-                      onChange={(e) => set('regime_tributario', e.target.value)}
-                      className={campo}
-                    >
-                      <option value="">— não informado —</option>
-                      <option value="regular">Regime regular</option>
-                      <option value="simples">Simples Nacional</option>
-                      <option value="mei">MEI</option>
-                      <option value="imobiliario">Imobiliário</option>
-                      <option value="agro">Agronegócio</option>
-                      <option value="consorcios">Consórcios</option>
-                      <option value="financeiro">Serviços financeiros</option>
-                      <option value="profissional">Profissão regulamentada</option>
-                    </select>
-                  </label>
-                  <label>
-                    <span className={rotulo}>Receita mensal (R$)</span>
-                    <input
-                      inputMode="numeric"
-                      value={form.receita_mensal ?? ''}
-                      onChange={(e) => set('receita_mensal', e.target.value)}
-                      className={campo}
-                      placeholder="ex.: 150000"
-                    />
-                  </label>
-                  <label>
-                    <span className={rotulo}>Carga tributária atual (%)</span>
-                    <input
-                      inputMode="decimal"
-                      value={form.carga_atual_pct ?? ''}
-                      onChange={(e) => set('carga_atual_pct', e.target.value)}
-                      className={campo}
-                      placeholder="ex.: 12,5"
-                    />
-                  </label>
-                </div>
-                <p className="text-[9.5px] text-amber-900 leading-snug mt-1.5">
-                  A carga atual é o percentual da receita que a empresa paga hoje em tributos. Esse
-                  número vem da apuração contábil — o sistema <b>não o calcula</b>, para não
-                  comparar a reforma com uma premissa inventada. Deixe vazio se não souber.
-                </p>
-
-                <p className={`${rotulo} mt-2.5`}>Tributos que recolhe hoje</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {TRIBUTOS.map((t) => {
-                    const on = tributos.includes(t.id)
-                    return (
-                      <button
-                        key={t.id}
-                        onClick={() =>
-                          setTributos((v) => (on ? v.filter((x) => x !== t.id) : [...v, t.id]))
-                        }
-                        className={`rounded-lg border px-2 py-1 text-[10.5px] font-bold cursor-pointer transition-colors ${
-                          on
-                            ? 'bg-panorama-navy text-panorama-gold-light border-panorama-navy'
-                            : 'bg-white text-slate-600 border-slate-300 hover:border-slate-400'
-                        }`}
+              <fieldset
+                disabled={!token || !tokenValidado}
+                className={
+                  !token || !tokenValidado
+                    ? 'opacity-60 pointer-events-none select-none space-y-3'
+                    : 'space-y-3'
+                }
+              >
+                {/* identificação */}
+                <div className="rounded-xl border-2 border-slate-200 bg-slate-50/60 p-3">
+                  <p className="text-[11px] font-bold text-slate-900 mb-2 flex items-center gap-1.5">
+                    <Building2 className="w-3.5 h-3.5 text-slate-600" />
+                    Identificação
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+                    <label>
+                      <span className={rotulo}>Tipo *</span>
+                      <select
+                        value={form.tipo_pessoa ?? ''}
+                        onChange={(e) => set('tipo_pessoa', e.target.value)}
+                        className={campo}
                       >
-                        {t.nome}
-                      </button>
-                    )
-                  })}
+                        <option value="">—</option>
+                        <option value="PJ">Pessoa jurídica</option>
+                        <option value="PF">Pessoa física</option>
+                      </select>
+                    </label>
+                    <label className="lg:col-span-2">
+                      <span className={rotulo}>Nome do contato *</span>
+                      <input
+                        value={form.nome ?? ''}
+                        onChange={(e) => set('nome', e.target.value)}
+                        className={campo}
+                        placeholder="Quem atende"
+                      />
+                    </label>
+                    <label>
+                      <span className={rotulo}>E-mail *</span>
+                      <input
+                        type="email"
+                        value={form.email ?? ''}
+                        onChange={(e) => set('email', e.target.value)}
+                        className={campo}
+                        placeholder="cliente@empresa.com.br"
+                      />
+                    </label>
+                    <label className="lg:col-span-2">
+                      <span className={rotulo}>Razão social</span>
+                      <input
+                        value={form.razao_social ?? ''}
+                        onChange={(e) => set('razao_social', e.target.value)}
+                        className={campo}
+                      />
+                    </label>
+                    <label>
+                      <span className={rotulo}>Nome fantasia</span>
+                      <input
+                        value={form.nome_fantasia ?? ''}
+                        onChange={(e) => set('nome_fantasia', e.target.value)}
+                        className={campo}
+                      />
+                    </label>
+                    <label>
+                      <span className={rotulo}>CPF / CNPJ</span>
+                      <input
+                        value={form.documento ?? ''}
+                        onChange={(e) => set('documento', e.target.value)}
+                        className={campo}
+                      />
+                    </label>
+                    <label>
+                      <span className={rotulo}>CNAE principal</span>
+                      <input
+                        value={form.cnae ?? ''}
+                        onChange={(e) => set('cnae', e.target.value)}
+                        className={campo}
+                        placeholder="ex.: 4711-3/02"
+                      />
+                    </label>
+                    <label>
+                      <span className={rotulo}>Segmento</span>
+                      <select
+                        value={form.segmento ?? ''}
+                        onChange={(e) => set('segmento', e.target.value)}
+                        className={campo}
+                      >
+                        <option value="">—</option>
+                        {SEGMENTOS.map(([v, n]) => (
+                          <option key={v} value={v}>
+                            {n}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label>
+                      <span className={rotulo}>Atividade</span>
+                      <select
+                        value={form.atividade ?? ''}
+                        onChange={(e) => set('atividade', e.target.value)}
+                        className={campo}
+                      >
+                        <option value="">—</option>
+                        <option value="comercio">Comércio</option>
+                        <option value="industria">Indústria</option>
+                        <option value="servicos">Serviços</option>
+                        <option value="imobiliario">Imobiliário</option>
+                        <option value="agropecuaria">Agropecuária</option>
+                        <option value="financeiro">Financeiro</option>
+                        <option value="construcao">Construção</option>
+                        <option value="saude">Saúde</option>
+                        <option value="educacao">Educação</option>
+                        <option value="tecnologia">Tecnologia</option>
+                        <option value="outro">Outro</option>
+                      </select>
+                    </label>
+                    <label>
+                      <span className={rotulo}>Município</span>
+                      <input
+                        value={form.municipio ?? ''}
+                        onChange={(e) => set('municipio', e.target.value)}
+                        className={campo}
+                      />
+                    </label>
+                    <label>
+                      <span className={rotulo}>UF</span>
+                      <input
+                        maxLength={2}
+                        value={form.uf ?? ''}
+                        onChange={(e) => set('uf', e.target.value.toUpperCase())}
+                        className={campo}
+                        placeholder="RS"
+                      />
+                    </label>
+                    <label>
+                      <span className={rotulo}>CEP</span>
+                      <input
+                        value={form.cep ?? ''}
+                        onChange={(e) => set('cep', e.target.value)}
+                        className={campo}
+                        placeholder="00000-000"
+                      />
+                    </label>
+                    <label>
+                      <span className={rotulo}>Telefone</span>
+                      <input
+                        value={form.telefone ?? ''}
+                        onChange={(e) => set('telefone', e.target.value)}
+                        className={campo}
+                      />
+                    </label>
+                    <label>
+                      <span className={rotulo}>WhatsApp</span>
+                      <input
+                        value={form.whatsapp ?? ''}
+                        onChange={(e) => set('whatsapp', e.target.value)}
+                        className={campo}
+                      />
+                    </label>
+                    <label>
+                      <span className={rotulo}>Funcionários</span>
+                      <input
+                        inputMode="numeric"
+                        value={form.num_funcionarios ?? ''}
+                        onChange={(e) => set('num_funcionarios', e.target.value)}
+                        className={campo}
+                      />
+                    </label>
+                  </div>
                 </div>
-              </div>
 
-              <div className="flex gap-2 items-center flex-wrap">
-                <button
-                  onClick={salvar}
-                  disabled={!token}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-panorama-navy text-panorama-gold-light px-4 py-2 text-[12px] font-bold hover:bg-panorama-navy/90 disabled:opacity-40 cursor-pointer"
-                >
-                  <Save className="w-3.5 h-3.5" />
-                  Salvar cliente
-                </button>
-                <button
-                  onClick={() => {
-                    setForm({})
-                    setTributos([])
-                    setMsg(null)
-                  }}
-                  className="rounded-lg border border-slate-300 px-3 py-2 text-[11px] font-bold text-slate-600 hover:bg-slate-50 cursor-pointer"
-                >
-                  Limpar
-                </button>
-                {!token && (
-                  <span className="text-[10px] text-amber-800">
-                    Informe o token do painel para salvar.
-                  </span>
-                )}
-              </div>
+                {/* situação atual */}
+                <div className="rounded-xl border-2 border-panorama-gold/50 bg-amber-50/40 p-3">
+                  <p className="text-[11px] font-bold text-slate-900 mb-2 flex items-center gap-1.5">
+                    <Calculator className="w-3.5 h-3.5 text-amber-700" />
+                    Situação atual — o lado de hoje do comparativo
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <label>
+                      <span className={rotulo}>Regime hoje</span>
+                      <select
+                        value={form.regime_tributario ?? ''}
+                        onChange={(e) => set('regime_tributario', e.target.value)}
+                        className={campo}
+                      >
+                        <option value="">— não informado —</option>
+                        <option value="regular">Regime regular</option>
+                        <option value="simples">Simples Nacional</option>
+                        <option value="mei">MEI</option>
+                        <option value="imobiliario">Imobiliário</option>
+                        <option value="agro">Agronegócio</option>
+                        <option value="consorcios">Consórcios</option>
+                        <option value="financeiro">Serviços financeiros</option>
+                        <option value="profissional">Profissão regulamentada</option>
+                      </select>
+                    </label>
+                    <label>
+                      <span className={rotulo}>Receita mensal (R$)</span>
+                      <input
+                        inputMode="numeric"
+                        value={form.receita_mensal ?? ''}
+                        onChange={(e) => set('receita_mensal', e.target.value)}
+                        className={campo}
+                        placeholder="ex.: 150000"
+                      />
+                    </label>
+                    <label>
+                      <span className={rotulo}>Carga tributária atual (%)</span>
+                      <input
+                        inputMode="decimal"
+                        value={form.carga_atual_pct ?? ''}
+                        onChange={(e) => set('carga_atual_pct', e.target.value)}
+                        className={campo}
+                        placeholder="ex.: 12,5"
+                      />
+                    </label>
+                  </div>
+                  <p className="text-[9.5px] text-amber-900 leading-snug mt-1.5">
+                    A carga atual é o percentual da receita que a empresa paga hoje em tributos.
+                    Esse número vem da apuração contábil — o sistema <b>não o calcula</b>, para não
+                    comparar a reforma com uma premissa inventada. Deixe vazio se não souber.
+                  </p>
+
+                  <p className={`${rotulo} mt-2.5`}>Tributos que recolhe hoje</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {TRIBUTOS.map((t) => {
+                      const on = tributos.includes(t.id)
+                      return (
+                        <button
+                          key={t.id}
+                          type="button"
+                          onClick={() =>
+                            setTributos((v) => (on ? v.filter((x) => x !== t.id) : [...v, t.id]))
+                          }
+                          className={`rounded-lg border px-2 py-1 text-[10.5px] font-bold cursor-pointer transition-colors ${
+                            on
+                              ? 'bg-panorama-navy text-panorama-gold-light border-panorama-navy'
+                              : 'bg-white text-slate-600 border-slate-300 hover:border-slate-400'
+                          }`}
+                        >
+                          {t.nome}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                <div className="flex gap-2 items-center flex-wrap pt-1">
+                  <button
+                    type="button"
+                    onClick={salvar}
+                    disabled={!token || !tokenValidado || salvando}
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-panorama-navy text-panorama-gold-light px-4 py-2 text-[12px] font-bold hover:bg-panorama-navy/90 disabled:opacity-40 cursor-pointer shadow-xs"
+                  >
+                    <Save className={`w-3.5 h-3.5 ${salvando ? 'animate-spin' : ''}`} />
+                    {salvando ? 'Salvando cliente…' : 'Salvar cliente'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setForm({})
+                      setTributos([])
+                      setMsg(null)
+                    }}
+                    className="rounded-lg border border-slate-300 px-3 py-2 text-[11px] font-bold text-slate-600 hover:bg-slate-50 cursor-pointer"
+                  >
+                    Limpar
+                  </button>
+                  {(!token || !tokenValidado) && (
+                    <span className="text-[10px] text-amber-800 font-semibold">
+                      Informe o token do painel para salvar.
+                    </span>
+                  )}
+                </div>
+              </fieldset>
             </div>
           )}
 

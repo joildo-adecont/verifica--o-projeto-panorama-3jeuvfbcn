@@ -256,7 +256,9 @@ export function SectionResponsividade() {
       <div className="mt-6 rounded-xl border border-slate-200 bg-white p-4">
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <div className="rounded-lg bg-slate-50 border border-slate-200 p-3">
-            <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500">Aparelho</p>
+            <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500">
+              Dispositivo detectado (apenas nesta seção de responsividade)
+            </p>
             <p className="text-sm font-bold text-slate-800 mt-1">
               {aparelho?.modelo || 'detectando…'}
             </p>
