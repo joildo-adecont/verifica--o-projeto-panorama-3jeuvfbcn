@@ -5,6 +5,7 @@ import { PainelInicial } from '@/components/PainelInicial'
 import { PanoramaSideMenu } from '@/components/PanoramaSideMenu'
 import { SumarioFlutuante } from '@/components/SumarioFlutuante'
 import { PainelAtalhos } from '@/components/PainelAtalhos'
+import { BotaoInstalar } from '@/components/BotaoInstalar'
 import { PanoramaFooter } from '@/components/PanoramaFooter'
 import { ID_INICIO, resolverRota, vizinhas } from '@/lib/rotas'
 import { NAVEGACAO } from '@/components/navegacao'
@@ -298,6 +299,11 @@ export default function Index() {
           */}
             {!rota && <PanoramaFooter />}
           </div>
+
+          {/* Instalação do app: fora da área que rola, para o botão não
+              desaparecer quando a aba é longa. Ele mesmo decide se aparece
+              (some quando já instalado e no desktop sem suporte). */}
+          <BotaoInstalar />
         </main>
       </div>
     </div>
