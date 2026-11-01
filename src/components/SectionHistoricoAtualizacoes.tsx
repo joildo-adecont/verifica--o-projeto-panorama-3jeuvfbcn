@@ -72,6 +72,35 @@ const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
     data: '01/11/2026',
+    hora: '14:20',
+    titulo:
+      'Seção 4 (Imunidades) reconstruída com o rol integral do art. 9º — entidades religiosas e templos de qualquer culto incluídos',
+    conteudo:
+      'A pedido do CEO: conferir o ícone Imunidades e incluir igrejas e cultos, que não constavam da relação. Auditoria feita no texto oficial (LC 214/2025 integral, RIBS/Res. CGIBS 6/2026 e LC 227/2026) e reconstrução da seção em 4 abas: (1) Imunidades IBS/CBS com os 8 itens do art. 9º mais a exportação do art. 8º — agora com o inciso II (entidades religiosas e templos de qualquer culto, inclusive organizações assistenciais e beneficentes, com a definição do §2º) e os incisos III a VII que faltavam (partidos, sindicatos, educação e assistência social; livros e periódicos; fonogramas; radiodifusão gratuita; ouro como ativo financeiro); (2) Não incidência com os 11 incisos do art. 6º, que substituem o uso incorreto do art. 5º; (3) Regimes favorecidos, separando o que é benefício legal do que é imunidade constitucional; (4) Auditoria da seção. Acrescentado quadro dedicado "Igrejas e templos de qualquer culto", com o que é imune no que a entidade fornece, o que NÃO é imune nas suas aquisições (§4º do art. 9º), quem é considerado entidade religiosa (§2º, I) e organização assistencial (§2º, II), a exigência de documento fiscal (art. 60, §2º, I), o efeito sobre créditos (art. 51 e §2º, II) e a imunidade de ITCMD criada pela LC 227/2026 (art. 149, I, "c"). Corrigidos 4 erros da versão anterior: linha "Alienação de bem imóvel pelo INSS a beneficiário" removida por não ter previsão na LC 214 nem no RIBS; "arts. 419–427" da ZFM trocado por "arts. 439–457" (aqueles artigos são do Imposto Seletivo de veículos) e ALC por "arts. 458–461"; não incidência societária e inter-estabelecimentos creditada ao art. 6º (o art. 5º é de incidência); e a menção genérica a "CF art. 149, §2º I" na exportação, substituída pela base correta.',
+    fontes: [
+      {
+        titulo: 'LC 214/2025 — texto integral (normas.leg.br, Senado Federal)',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
+      },
+      {
+        titulo: 'LC 227/2026 — art. 149 (ITCMD)',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2026-01-13;227',
+      },
+      {
+        titulo: 'Resolução CGIBS 6/2026 — Regulamento do IBS (arts. 9º e 10)',
+        url: 'https://www.cgibs.gov.br/resolucoes',
+      },
+      {
+        titulo: 'DOU — Imprensa Nacional',
+        url: 'https://www.in.gov.br',
+      },
+    ],
+    caminho: 'src/components/SectionImunidades.tsx',
+    versao: 'v0.0.327',
+    bloco: 'sistema',
+  },
+  {
+    data: '01/11/2026',
     hora: '10:00',
     titulo:
       'Retomada e consolidação de rotas alternativas oficiais para órgãos bloqueados por WAF ou sem rota do pod',

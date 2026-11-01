@@ -535,7 +535,36 @@ export async function buscarAvancado(
             termoNorm === 'imunidades' ||
             termoNorm === 'livro' ||
             termoNorm === 'livros' ||
-            termoNorm === 'exportacao'
+            termoNorm === 'periodico' ||
+            termoNorm === 'periodicos' ||
+            termoNorm === 'jornal' ||
+            termoNorm === 'jornais' ||
+            termoNorm === 'exportacao' ||
+            termoNorm === 'exportacoes' ||
+            termoNorm === 'templo' ||
+            termoNorm === 'templos' ||
+            termoNorm === 'templo religioso' ||
+            termoNorm === 'igreja' ||
+            termoNorm === 'religioso' ||
+            termoNorm === 'ouro' ||
+            termoNorm === 'ativo financeiro' ||
+            termoNorm === 'reciprocidade' ||
+            termoNorm === 'partido' ||
+            termoNorm === 'partidos' ||
+            termoNorm === 'partido politico' ||
+            termoNorm === 'fundo partidario' ||
+            termoNorm === 'assistencia social' ||
+            termoNorm === 'instituicoes de educacao' ||
+            termoNorm === 'filantropia' ||
+            termoNorm === 'cebas' ||
+            termoNorm === 'nutricao enteral' ||
+            termoNorm === 'acessibilidade' ||
+            termoNorm === 'petroleo' ||
+            termoNorm === 'gas natural' ||
+            termoNorm === 'horticolas' ||
+            termoNorm === 'hortifruti' ||
+            termoNorm === 'frutas' ||
+            termoNorm === 'ovos'
           ) {
             return (
               item.categoria === 'Imunidades por Produtos e Segmentos' ||

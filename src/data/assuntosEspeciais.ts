@@ -1084,4 +1084,635 @@ export const ASSUNTOS_ESPECIAIS_CATALOGO: AssuntoEspecialItem[] = [
       'Imunidade Plena (0%) + Manutenção e Restituição Integral de Créditos em até 60 dias',
     destaqueBusca: true,
   },
+
+  // 10. ITENS ADICIONAIS DO CATÁLOGO DE IMUNIDADES, ALÍQUOTAS ZERO E NÃO INCIDÊNCIAS (ART. 145 E SEGUINTES DA LC 214/2025 E EC 132/2023)
+  {
+    id: 'esp-imunidade-04',
+    titulo: 'Imunidades por Segmentos: Templos de Qualquer Culto e Organizações Religiosas',
+    categoria: 'Imunidades por Produtos e Segmentos',
+    subtitulo:
+      'Imunidade constitucional e não incidência estendida a entidades de culto e assistência correlata',
+    foraTributacaoGeral: true,
+    badgeExcecao: 'Fora da Tributação Geral · Imunidade Constitucional Subjetiva',
+    descricao:
+      'Imunidade subjetiva plena de IBS e CBS assegurada pelo art. 150, VI, "b" e art. 156-A, § 5º da CF/88 c/c art. 6º e art. 145 da LC 214/2025 para templos de qualquer culto, organizações religiosas, congregações, seminários e entidades beneficentes a eles vinculadas em suas atividades essenciais.',
+    oQueMuda:
+      'Dízimos, ofertas, coletas, doações, vendas de livros doutrinários e celebrações religiosas não sofrem incidência de IBS nem de CBS. A EC 132/2023 e a LC 214/2025 pacificaram que a imunidade abrange organizações religiosas, creches e asilos mantidos pela igreja, mantendo direito a crédito nas aquisições essenciais.',
+    baseLegal: 'CF/88 art. 150 VI b e art. 156-A § 5º; LC 214/2025 arts. 6º e 145; RIBS art. 198',
+    artigosRelevantes: [
+      'Art. 150, VI, "b" da CF/88',
+      'Art. 156-A, § 5º da CF/88',
+      'Arts. 6º e 145 da LC 214/2025',
+      'Art. 198 do Regulamento do IBS (Res. CGIBS 6/2026)',
+    ],
+    fontesOficiais: [
+      {
+        nome: 'Portal da Legislação — Planalto: CF/88 Art. 150 e LC 214/2025',
+        orgao: 'Planalto',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
+        tipo: 'lei',
+      },
+      {
+        nome: 'Comitê Gestor do IBS — Regulamento do IBS (RIBS)',
+        orgao: 'CGIBS',
+        url: 'https://www.cgibs.gov.br/',
+        tipo: 'resolucao',
+      },
+    ],
+    conexoesNormativas: [
+      {
+        codigoNorma: 'LC 214/2025',
+        titulo: 'LC 214/2025 Livro I Título I Capítulo II (Das Imunidades)',
+        dispositivo: 'Arts. 6º e 145',
+        efeitoOuTratamento:
+          'Não incidência de IBS e CBS sobre receitas e serviços de finalidade religiosa',
+        linkProxyPdf: '/backend/v1/download-resolution?id=LC-214-2025',
+      },
+      {
+        codigoNorma: 'EC 132/2023',
+        titulo: 'Emenda Constitucional nº 132/2023',
+        dispositivo: 'Art. 156-A, § 5º da CF',
+        efeitoOuTratamento:
+          'Extensão das imunidades constitucionais aos novos tributos sobre o consumo',
+        linkProxyPdf: '/backend/v1/download-resolution?id=EC-132-2023',
+      },
+    ],
+    termosChave: [
+      'templo',
+      'templos',
+      'templo religioso',
+      'igreja',
+      'culto',
+      'organizacoes religiosas',
+      'dizimo',
+      'oferta',
+      'religioso',
+      'imunidade religiosa',
+      'art 150 vi b',
+    ],
+    produtosOuSegmentosAfetados: [
+      'Igrejas e templos de qualquer culto',
+      'Organizações religiosas e congregações',
+      'Centros espíritas, terreiros e comunidades religiosas',
+      'Seminários e instituições teológicas sem fins lucrativos',
+    ],
+    aliquotaOuTratamento: 'Imunidade Constitucional Total (0,00% IBS / 0,00% CBS)',
+    destaqueBusca: true,
+  },
+  {
+    id: 'esp-imunidade-05',
+    titulo:
+      'Imunidades por Segmentos: Reciprocidade entre Entes Federativos (União, Estados, DF e Municípios)',
+    categoria: 'Imunidades por Produtos e Segmentos',
+    subtitulo:
+      'Imunidade recíproca assegurada pelo art. 150, VI, "a" da CF e art. 145 da LC 214/2025',
+    foraTributacaoGeral: true,
+    badgeExcecao: 'Fora da Tributação Geral · Imunidade Recíproca Federativa',
+    descricao:
+      'Imunidade tributária recíproca que veda à União, aos Estados, ao Distrito Federal e aos Municípios instituir e cobrar IBS ou CBS sobre o patrimônio, renda e serviços uns dos outros, aplicando o art. 150, VI, "a" da CF/88 c/c art. 145 da LC 214/2025, estendida às autarquias e fundações públicas vinculadas às suas finalidades essenciais.',
+    oQueMuda:
+      'Prefeituras, governos estaduais, órgãos federais, autarquias e fundações públicas não pagam IBS nem CBS em suas operações estatais e serviços públicos indelegáveis. Em compras governamentais, aplica-se a alíquota zero com compensação financeira regulada pelo CGIBS.',
+    baseLegal: 'CF/88 art. 150 VI a e art. 156-A § 5º; LC 214/2025 arts. 6º e 145; RIBS art. 198',
+    artigosRelevantes: [
+      'Art. 150, VI, "a" da CF/88',
+      'Art. 150, § 2º da CF/88 (Autarquias e Fundações)',
+      'Art. 145 da LC 214/2025',
+    ],
+    fontesOficiais: [
+      {
+        nome: 'Portal da Legislação — Presidência da República: CF/88 e LC 214/2025',
+        orgao: 'Planalto',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
+        tipo: 'lei',
+      },
+      {
+        nome: 'Senado Federal — Texto Compilado Oficial da Reforma Tributária',
+        orgao: 'Senado Federal',
+        url: 'https://normas.leg.br',
+        tipo: 'lei',
+      },
+    ],
+    conexoesNormativas: [
+      {
+        codigoNorma: 'LC 214/2025',
+        titulo: 'LC 214/2025',
+        dispositivo: 'Art. 145',
+        efeitoOuTratamento:
+          'Imunidade recíproca entre entes e desoneração nas compras governamentais',
+        linkProxyPdf: '/backend/v1/download-resolution?id=LC-214-2025',
+      },
+    ],
+    termosChave: [
+      'reciprocidade',
+      'imunidade reciproca',
+      'entes federativos',
+      'uniao',
+      'estados',
+      'municipios',
+      'prefeitura',
+      'governo',
+      'autarquia',
+      'fundacao publica',
+      'art 150 vi a',
+    ],
+    produtosOuSegmentosAfetados: [
+      'Administração Pública Direta da União, Estados, DF e Municípios',
+      'Autarquias e Fundações Públicas de direito público',
+      'Serviços públicos indelegáveis',
+    ],
+    aliquotaOuTratamento: 'Imunidade Constitucional Recíproca (Não Incidência 0,00%)',
+    destaqueBusca: true,
+  },
+  {
+    id: 'esp-imunidade-06',
+    titulo: 'Imunidades por Segmentos: Partidos Políticos, Fundações e Fundos Partidários',
+    categoria: 'Imunidades por Produtos e Segmentos',
+    subtitulo: 'Não incidência sobre receitas partidárias, doações eleitorais e fundos públicos',
+    foraTributacaoGeral: true,
+    badgeExcecao: 'Fora da Tributação Geral · Imunidade Partidária Constitucional',
+    descricao:
+      'Imunidade constitucional e não incidência de IBS e CBS sobre patrimônio, receitas, doações eleitorais, recursos do Fundo Partidário e do Fundo Especial de Financiamento de Campanha (FEFC) dos partidos políticos e suas fundações doutrinárias (art. 150, VI, "c" da CF/88 c/c art. 145 da LC 214/2025).',
+    oQueMuda:
+      'Atividades institucionais dos diretórios partidários, campanhas eleitorais e cursos das fundações partidárias estão plenamente imunes de tributação sobre o consumo.',
+    baseLegal: 'CF/88 art. 150 VI c; LC 214/2025 arts. 6º e 145; Lei 9.096/1995',
+    artigosRelevantes: [
+      'Art. 150, VI, "c" da CF/88',
+      'Art. 145 da LC 214/2025',
+      'Art. 198 do RIBS',
+    ],
+    fontesOficiais: [
+      {
+        nome: 'Planalto — Texto Compilado Oficial LC 214/2025',
+        orgao: 'Planalto',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
+        tipo: 'lei',
+      },
+      {
+        nome: 'Tribunal Superior Eleitoral / Planalto — Legislação Partidária',
+        orgao: 'Planalto',
+        url: 'https://www.tse.jus.br',
+        tipo: 'portal',
+      },
+    ],
+    conexoesNormativas: [
+      {
+        codigoNorma: 'LC 214/2025',
+        titulo: 'LC 214/2025',
+        dispositivo: 'Arts. 6º e 145',
+        efeitoOuTratamento: 'Imunidade objetiva e subjetiva para partidos e fundações',
+        linkProxyPdf: '/backend/v1/download-resolution?id=LC-214-2025',
+      },
+    ],
+    termosChave: [
+      'partido politico',
+      'partidos politicos',
+      'fundo partidario',
+      'fundacoes partidarias',
+      'fefc',
+      'doacao eleitoral',
+      'campanha eleitoral',
+      'imunidade partidaria',
+    ],
+    produtosOuSegmentosAfetados: [
+      'Partidos políticos registrados no TSE',
+      'Fundações e institutos partidários de formação política',
+      'Fundos partidários e eleitorais',
+    ],
+    aliquotaOuTratamento: 'Imunidade Constitucional Absoluta (0,00%)',
+    destaqueBusca: false,
+  },
+  {
+    id: 'esp-imunidade-07',
+    titulo:
+      'Imunidades por Segmentos: Instituições de Educação e Assistência Social (com Condicionantes)',
+    categoria: 'Imunidades por Produtos e Segmentos',
+    subtitulo:
+      'Imunidade para entidades sem fins lucrativos que atendem aos requisitos do art. 14 do CTN e art. 145 da LC 214',
+    foraTributacaoGeral: true,
+    badgeExcecao: 'Fora da Tributação Geral · Imunidade Condicionada (CEBAS / CTN)',
+    descricao:
+      'Imunidade subjetiva de IBS e CBS para instituições de educação e de assistência social sem fins lucrativos (art. 150, VI, "c" e art. 195, § 7º da CF/88 c/c arts. 6º, 7º e 145 da LC 214/2025), desde que não distribuam lucros, apliquem seus recursos integralmente no país e mantenham escrituração contábil regular.',
+    oQueMuda:
+      'Mensalidades escolares de entidades filantrópicas certificadas (CEBAS), serviços assistenciais hospitalares do SUS e ações sociais gratuitas não sofrem IBS nem CBS. Se venderem produtos em regime de concorrência de mercado desvinculados de sua finalidade, incidirá o tributo sobre a fração concorrencial.',
+    baseLegal:
+      'CF/88 art. 150 VI c e art. 195 § 7º; LC 214/2025 arts. 6º, 7º e 145; LC 187/2021 (CEBAS)',
+    artigosRelevantes: [
+      'Art. 150, VI, "c" da CF/88',
+      'Art. 195, § 7º da CF/88',
+      'Arts. 6º, 7º e 145 da LC 214/2025',
+      'LC 187/2021 (Certificação Beneficente)',
+    ],
+    fontesOficiais: [
+      {
+        nome: 'Portal da Legislação — Planalto: LC 214/2025 e LC 187/2021',
+        orgao: 'Planalto',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
+        tipo: 'lei',
+      },
+      {
+        nome: 'Ministério da Fazenda / Receita Federal — Filantropia e Imunidade',
+        orgao: 'RFB',
+        url: 'https://www.receita.fazenda.gov.br',
+        tipo: 'portal',
+      },
+    ],
+    conexoesNormativas: [
+      {
+        codigoNorma: 'LC 214/2025',
+        titulo: 'LC 214/2025 Título I Capítulo II e Art. 145',
+        dispositivo: 'Arts. 6º, 7º e 145',
+        efeitoOuTratamento:
+          'Não incidência condicionada à observância das exigências estatutárias e filantrópicas',
+        linkProxyPdf: '/backend/v1/download-resolution?id=LC-214-2025',
+      },
+    ],
+    termosChave: [
+      'instituicoes de educacao',
+      'assistencia social',
+      'educacao filantropica',
+      'filantropia',
+      'cebas',
+      'sem fins lucrativos',
+      'entidade beneficente',
+      'hospital filantropico',
+      'imunidade educacional',
+      'art 150 vi c',
+    ],
+    produtosOuSegmentosAfetados: [
+      'Escolas e universidades comunitárias e filantrópicas',
+      'Hospitais beneficentes e Santas Casas',
+      'Entidades de acolhimento e assistência social',
+    ],
+    aliquotaOuTratamento: 'Imunidade Constitucional Subjetiva Condicionada (0,00%)',
+    destaqueBusca: true,
+  },
+  {
+    id: 'esp-imunidade-08',
+    titulo: 'Não Incidências Específicas: Ouro como Ativo Financeiro ou Instrumento Cambial',
+    categoria: 'Imunidades por Produtos e Segmentos',
+    subtitulo: 'Não incidência de IBS e CBS quando o ouro atua como ativo financeiro de reserva',
+    foraTributacaoGeral: true,
+    badgeExcecao: 'Fora da Tributação Geral · Ativo Financeiro / Reserva de Valor',
+    descricao:
+      'Não incidência de IBS e CBS sobre operações com ouro quando definido por lei como ativo financeiro ou instrumento cambial (art. 153, § 5º da CF/88 c/c arts. 5º, 145 e 185 da LC 214/2025), destinando-se a reservas internacionais e transações no mercado financeiro.',
+    oQueMuda:
+      'O ouro negociado como ativo financeiro entre instituições autorizadas pelo Banco Central e custodiado em reservas não sofre IBS nem CBS (permanece sob o regime próprio do IOF e ativos financeiros). Já o ouro vendido como mercadoria ou matéria-prima industrial (joalheria, eletrônica) segue o regime comercial regular.',
+    baseLegal: 'CF/88 art. 153 § 5º; LC 214/2025 arts. 5º, 145 e 185; Lei 7.766/1989',
+    artigosRelevantes: [
+      'Art. 153, § 5º da CF/88',
+      'Arts. 5º, 145 e 185 da LC 214/2025',
+      'Art. 1º da Lei 7.766/1989',
+    ],
+    fontesOficiais: [
+      {
+        nome: 'Banco Central do Brasil — Diretrizes do Ouro como Ativo de Reserva',
+        orgao: 'Planalto',
+        url: 'https://www.bcb.gov.br',
+        tipo: 'portal',
+      },
+      {
+        nome: 'Planalto — Texto Compilado Oficial LC 214/2025',
+        orgao: 'Planalto',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
+        tipo: 'lei',
+      },
+    ],
+    conexoesNormativas: [
+      {
+        codigoNorma: 'LC 214/2025',
+        titulo: 'LC 214/2025',
+        dispositivo: 'Arts. 5º e 145',
+        efeitoOuTratamento:
+          'Não incidência sobre operações de ativo financeiro e transferências decorrentes',
+        linkProxyPdf: '/backend/v1/download-resolution?id=LC-214-2025',
+      },
+    ],
+    termosChave: [
+      'ouro',
+      'ouro ativo financeiro',
+      'ativo financeiro',
+      'reserva internacional',
+      'instrumento cambial',
+      'banco central',
+      'ativo de reserva',
+      'lingote de ouro',
+    ],
+    produtosOuSegmentosAfetados: [
+      'Instituições financeiras custodiantes de ouro',
+      'Banco Central do Brasil e reservas soberanas',
+      'Corretoras e distribuidores de títulos e valores mobiliários (DTVM)',
+    ],
+    aliquotaOuTratamento: 'Não Incidência de IBS e CBS (Regime de Ativo Financeiro)',
+    destaqueBusca: true,
+  },
+  {
+    id: 'esp-imunidade-09',
+    titulo:
+      'Não Incidências Específicas: Petróleo, Gás Natural e Energia Elétrica Destinados ao Exterior',
+    categoria: 'Imunidades por Produtos e Segmentos',
+    subtitulo:
+      'Desoneração plena nas exportações energéticas com preservação de créditos de exploração',
+    foraTributacaoGeral: true,
+    badgeExcecao: 'Fora da Tributação Geral · Imunidade Exportadora Energética',
+    descricao:
+      'Não incidência de IBS e CBS sobre as exportações de petróleo bruto, derivados de petróleo, gás natural liquefeito/gasoso e energia elétrica destinados ao exterior, aplicando o princípio do destino internacional e art. 155, § 2º, X, "b" da CF/88 c/c arts. 8º e 145 da LC 214/2025 e Decreto 12.955/2026.',
+    oQueMuda:
+      'Garante desoneração completa nas vendas externas de hidrocarbonetos e eletricidade para países vizinhos ou mercado global, assegurando apropriação e ressarcimento dos créditos acumulados da fase de prospecção, perfuração e refino (Repetro/RIBS).',
+    baseLegal:
+      'CF/88 art. 155 § 2º X b e art. 156-A § 5º I; LC 214/2025 arts. 8º e 145; RIBS Anexo IV',
+    artigosRelevantes: [
+      'Art. 155, § 2º, X, "b" da CF/88',
+      'Art. 156-A, § 5º, I da CF/88',
+      'Arts. 8º e 145 da LC 214/2025',
+    ],
+    fontesOficiais: [
+      {
+        nome: 'Agência Nacional do Petróleo (ANP) / Planalto — Regras de Exportação',
+        orgao: 'Planalto',
+        url: 'https://www.gov.br/anp/pt-br',
+        tipo: 'portal',
+      },
+      {
+        nome: 'CGIBS — Regulamento do IBS: Regime Aduaneiro de Óleo e Gás',
+        orgao: 'CGIBS',
+        url: 'https://www.cgibs.gov.br/',
+        tipo: 'resolucao',
+      },
+    ],
+    conexoesNormativas: [
+      {
+        codigoNorma: 'LC 214/2025',
+        titulo: 'LC 214/2025',
+        dispositivo: 'Arts. 8º e 145',
+        efeitoOuTratamento: 'Desoneração total na saída ao exterior de hidrocarbonetos e energia',
+        linkProxyPdf: '/backend/v1/download-resolution?id=LC-214-2025',
+      },
+    ],
+    termosChave: [
+      'petroleo',
+      'petroleo bruto',
+      'gas natural',
+      'gnl',
+      'energia eletrica',
+      'combustiveis destinados ao exterior',
+      'exportacao de petroleo',
+      'hidrocarbonetos',
+    ],
+    produtosOuSegmentosAfetados: [
+      'Produtores e refinarias de petróleo (offshore/onshore)',
+      'Exportadores de gás natural',
+      'Comercializadoras de energia elétrica internacional',
+    ],
+    aliquotaOuTratamento: 'Imunidade / Desoneração Plena com Manutenção de Créditos (0,00%)',
+    destaqueBusca: false,
+  },
+  {
+    id: 'esp-imunidade-10',
+    titulo: 'Alíquotas Zero e Desonerações: Medicamentos, Dispositivos Médicos e Fórmulas Enterais',
+    categoria: 'Imunidades por Produtos e Segmentos',
+    subtitulo:
+      'Isenção e alíquota zero para fármacos oncológicos, hemoderivados e nutrição enteral',
+    foraTributacaoGeral: true,
+    badgeExcecao: 'Fora da Tributação Geral · Alíquota Zero de Saúde Pública',
+    descricao:
+      'Alíquota zero integral de IBS e CBS conferida aos medicamentos essenciais, vacinas, terapias oncológicas, hemoderivados, dispositivos médicos adquiridos pelo SUS e fórmulas de nutrição enteral e parenteral, conforme art. 143, art. 144 e Anexos VI e XII da LC 214/2025.',
+    oQueMuda:
+      'Garante acesso universal e custo reduzido em tratamentos de câncer, hemodiálise, doenças raras e suporte nutricional hospitalar, zerando tanto a CBS federal quanto o IBS de estados e municípios em toda a cadeia distributiva.',
+    baseLegal: 'LC 214/2025 arts. 143, 144 e Anexos VI e XII; RIBS arts. 219 e 220; Anvisa RDC',
+    artigosRelevantes: [
+      'Art. 143 da LC 214/2025 (Medicamentos)',
+      'Art. 144 e Anexo XII da LC 214/2025 (Dispositivos Médicos)',
+      'Arts. 219 e 220 da Resolução CGIBS 6/2026',
+    ],
+    fontesOficiais: [
+      {
+        nome: 'Planalto — LC 214/2025 Anexos VI e XII (Listas Oficiais de Saúde Zero)',
+        orgao: 'Planalto',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
+        tipo: 'lei',
+      },
+      {
+        nome: 'Ministério da Saúde / ANVISA — Relação Nacional de Medicamentos',
+        orgao: 'Planalto',
+        url: 'https://www.gov.br/anvisa/pt-br',
+        tipo: 'portal',
+      },
+    ],
+    conexoesNormativas: [
+      {
+        codigoNorma: 'LC 214/2025',
+        titulo: 'LC 214/2025',
+        dispositivo: 'Arts. 143, 144 e Anexos VI e XII',
+        efeitoOuTratamento:
+          'Desoneração de 100% de IBS e CBS para itens de saúde pública essencial',
+        linkProxyPdf: '/backend/v1/download-resolution?id=LC-214-2025',
+      },
+    ],
+    termosChave: [
+      'medicamento',
+      'medicamentos',
+      'remedio',
+      'vacina',
+      'dispositivo medico',
+      'nutricao enteral',
+      'nutricao parenteral',
+      'oncologico',
+      'hemoderivado',
+      'aliquota zero saude',
+    ],
+    produtosOuSegmentosAfetados: [
+      'Indústria farmacêutica e laboratórios',
+      'Distribuidores de medicamentos essenciais',
+      'Hospitais públicos e privados',
+      'Pacientes do SUS e clínicas oncológicas',
+    ],
+    aliquotaOuTratamento: 'Alíquota Zero Plena (0,00% IBS / 0,00% CBS)',
+    destaqueBusca: true,
+  },
+  {
+    id: 'esp-imunidade-11',
+    titulo:
+      'Alíquotas Zero e Desonerações: Dispositivos de Acessibilidade para Pessoas com Deficiência (PCD)',
+    categoria: 'Imunidades por Produtos e Segmentos',
+    subtitulo:
+      'Desoneração total para cadeiras de rodas, aparelhos auditivos, próteses e tecnologias assistivas',
+    foraTributacaoGeral: true,
+    badgeExcecao: 'Fora da Tributação Geral · Acessibilidade Plena PCD (0%)',
+    descricao:
+      'Alíquota zero integral de IBS e CBS sobre o fornecimento de dispositivos de acessibilidade para pessoas com deficiência relacionados no Anexo XIII da LC 214/2025 e art. 145 c/c art. 221 do RIBS, incluindo cadeiras de rodas, próteses auditivas, implantes cocleares, barras de apoio e leitores táteis.',
+    oQueMuda:
+      'Garante que equipamentos de autonomia e inclusão física, sensorial e motora não sofram qualquer tributo sobre o consumo na fabricação, importação ou revenda no território nacional.',
+    baseLegal:
+      'LC 214/2025 art. 145 e Anexo XIII; RIBS art. 221; Estatuto da Pessoa com Deficiência',
+    artigosRelevantes: [
+      'Art. 145 e Anexo XIII da LC 214/2025',
+      'Art. 221 do Regulamento do IBS (Res. CGIBS 6/2026)',
+      'Lei 13.146/2015 (Estatuto da PCD)',
+    ],
+    fontesOficiais: [
+      {
+        nome: 'Planalto — LC 214/2025 Anexo XIII (Lista de Acessibilidade Alíquota Zero)',
+        orgao: 'Planalto',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
+        tipo: 'lei',
+      },
+      {
+        nome: 'CGIBS — Resolução CGIBS 6/2026 Art. 221 e Tabelas de Desoneração',
+        orgao: 'CGIBS',
+        url: 'https://www.cgibs.gov.br/',
+        tipo: 'resolucao',
+      },
+    ],
+    conexoesNormativas: [
+      {
+        codigoNorma: 'LC 214/2025',
+        titulo: 'LC 214/2025',
+        dispositivo: 'Art. 145 e Anexo XIII',
+        efeitoOuTratamento:
+          'Alíquota zero sobre fornecimento de tecnologia assistiva e acessibilidade',
+        linkProxyPdf: '/backend/v1/download-resolution?id=LC-214-2025',
+      },
+    ],
+    termosChave: [
+      'acessibilidade',
+      'pcd',
+      'cadeira de rodas',
+      'protese',
+      'aparelho auditivo',
+      'implante coclear',
+      'barra de apoio',
+      'tecnologia assistiva',
+      'deficiencia',
+      'aliquota zero pcd',
+    ],
+    produtosOuSegmentosAfetados: [
+      'Fabricantes de cadeiras de rodas e órteses/próteses',
+      'Importadores de tecnologia assistiva e leitores em braille',
+      'Clínicas de reabilitação e lojas de produtos ortopédicos',
+    ],
+    aliquotaOuTratamento: 'Alíquota Zero Plena (0,00% de IBS e CBS)',
+    destaqueBusca: true,
+  },
+  {
+    id: 'esp-imunidade-12',
+    titulo: 'Alíquotas Zero e Reduções: Produtos Hortícolas, Frutas Frescas e Ovos in Natura',
+    categoria: 'Imunidades por Produtos e Segmentos',
+    subtitulo:
+      'Desoneração de produtos hortifrutícolas frescos essenciais para nutrição da população',
+    foraTributacaoGeral: true,
+    badgeExcecao: 'Fora da Tributação Geral · Hortifrúti e Ovos Desonerados',
+    descricao:
+      'Alíquota zero integral de IBS e CBS para produtos hortícolas, frutas frescas e ovos in natura relacionados no Anexo XV da LC 214/2025 c/c art. 144 e art. 222 do RIBS, garantindo desoneração do campo até a mesa do consumidor final.',
+    oQueMuda:
+      'Hortaliças, legumes, tubérculos, frutas in natura e ovos de galinha e codorna não sofrem IBS nem CBS em feiras, supermercados e distribuição atacadista.',
+    baseLegal: 'LC 214/2025 art. 144 e Anexo XV; RIBS art. 222; Portarias MAPA',
+    artigosRelevantes: ['Art. 144 e Anexo XV da LC 214/2025', 'Art. 222 da Resolução CGIBS 6/2026'],
+    fontesOficiais: [
+      {
+        nome: 'Planalto — LC 214/2025 Anexo XV (Produtos Hortícolas, Frutas e Ovos)',
+        orgao: 'Planalto',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
+        tipo: 'lei',
+      },
+      {
+        nome: 'Ministério da Agricultura e Pecuária (MAPA) — Normas de Hortifrúti',
+        orgao: 'Planalto',
+        url: 'https://www.gov.br/agricultura/pt-br',
+        tipo: 'portal',
+      },
+    ],
+    conexoesNormativas: [
+      {
+        codigoNorma: 'LC 214/2025',
+        titulo: 'LC 214/2025',
+        dispositivo: 'Art. 144 e Anexo XV',
+        efeitoOuTratamento: 'Desoneração total de IBS/CBS sobre hortifrúti fresco e ovos',
+        linkProxyPdf: '/backend/v1/download-resolution?id=LC-214-2025',
+      },
+    ],
+    termosChave: [
+      'horticolas',
+      'hortifruti',
+      'frutas',
+      'fruta fresca',
+      'legumes',
+      'verduras',
+      'ovos',
+      'ovo',
+      'tomate',
+      'alface',
+      'maca',
+      'banana',
+    ],
+    produtosOuSegmentosAfetados: [
+      'Produtores rurais familiares e hortifrutigranjeiros',
+      'CEASAs e entrepostos de distribuição de alimentos',
+      'Supermercados, feiras e sacolões',
+    ],
+    aliquotaOuTratamento: 'Alíquota Zero Plena (0,00% de IBS e CBS)',
+    destaqueBusca: true,
+  },
+  {
+    id: 'esp-imunidade-13',
+    titulo:
+      'Tratamentos Específicos: Serviços Educacionais, Serviços de Saúde e Planos de Saúde (Prouni / Deduções)',
+    categoria: 'Imunidades por Produtos e Segmentos',
+    subtitulo:
+      'Regime de alíquota reduzida de 60% e alíquota zero nos programas Prouni e atendimento público',
+    foraTributacaoGeral: true,
+    badgeExcecao: 'Fora da Tributação Geral · Regime Social de Saúde e Educação',
+    descricao:
+      'Regime de redução de 60% na alíquota geral com hipóteses de alíquota zero para bolsas do Prouni, serviços do SUS e convênios públicos, c/c regime específico de planos privados de assistência à saúde com dedução de repasses a médicos e hospitais (arts. 129, 130, 144 e 212 a 221 da LC 214/2025).',
+    oQueMuda:
+      'Universidades que aderem ao Prouni mantêm isenção/alíquota zero correspondente às bolsas integrais concedidas. Hospitais que prestam serviços ao SUS são desonerados, e operadoras de planos de saúde apuram IBS/CBS apenas sobre o valor líquido de administração, sem bitributação sobre os repasses à rede credenciada.',
+    baseLegal: 'LC 214/2025 arts. 129, 130, 144, 212 a 221 e Anexos II, III; RIBS arts. 204–206',
+    artigosRelevantes: [
+      'Arts. 129 e 130 da LC 214/2025',
+      'Arts. 212 a 221 da LC 214/2025 (Planos de Saúde)',
+      'Lei 11.096/2005 (Prouni)',
+    ],
+    fontesOficiais: [
+      {
+        nome: 'Planalto — LC 214/2025 Regras de Educação e Saúde',
+        orgao: 'Planalto',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
+        tipo: 'lei',
+      },
+      {
+        nome: 'Agência Nacional de Saúde Suplementar (ANS) / RFB',
+        orgao: 'RFB',
+        url: 'https://www.gov.br/ans/pt-br',
+        tipo: 'portal',
+      },
+    ],
+    conexoesNormativas: [
+      {
+        codigoNorma: 'LC 214/2025',
+        titulo: 'LC 214/2025',
+        dispositivo: 'Arts. 129, 130, 144 e 212 a 221',
+        efeitoOuTratamento:
+          'Redução de 60%, alíquota zero no Prouni e tributação da margem em planos',
+        linkProxyPdf: '/backend/v1/download-resolution?id=LC-214-2025',
+      },
+    ],
+    termosChave: [
+      'servicos educacionais',
+      'servicos de saude',
+      'planos de saude',
+      'plano de saude',
+      'prouni',
+      'bolsa de estudo',
+      'sus',
+      'atendimento publico',
+      'convenio medico',
+      'deducao de repasses',
+    ],
+    produtosOuSegmentosAfetados: [
+      'Faculdades e instituições participantes do Prouni',
+      'Operadoras de planos e seguros de saúde suplementar',
+      'Hospitais, clínicas e laboratórios credenciados',
+    ],
+    aliquotaOuTratamento: 'Redução de 60% (12,00%) e Alíquota Zero em bolsas Prouni/SUS',
+    destaqueBusca: true,
+  },
 ]
