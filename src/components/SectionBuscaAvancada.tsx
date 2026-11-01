@@ -38,6 +38,7 @@ import {
 import { downloadOfficialDocViaProxy } from '@/services/panorama'
 import { OPCOES_TABELAS_CLASSIFICACOES } from '@/components/ModalBaseClassificacoes'
 import { GraficosBusca } from '@/components/GraficosBusca'
+import { ConsultaCompletaAnexos } from '@/components/ConsultaCompletaAnexos'
 import { toast } from '@/hooks/use-toast'
 
 const SUGESTOES_RAPIDAS = [
@@ -102,6 +103,7 @@ export function SectionBuscaAvancada() {
   const [classifPage, setClassifPage] = useState<number>(1)
   const [abaAtiva, setAbaAtiva] = useState<
     | 'tudo'
+    | 'consulta-anexos'
     | 'anexos-reforma'
     | 'assuntos-especiais'
     | 'classificacoes'
@@ -378,6 +380,21 @@ export function SectionBuscaAvancada() {
           </button>
 
           <button
+            onClick={() => setAbaAtiva('consulta-anexos')}
+            className={`px-4 py-2.5 rounded-t-lg transition-colors border-b-2 whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
+              abaAtiva === 'consulta-anexos'
+                ? 'border-emerald-700 text-emerald-950 bg-emerald-50/70 shadow-xs font-black'
+                : 'border-transparent text-slate-600 hover:text-emerald-900 hover:bg-emerald-50/40'
+            }`}
+          >
+            <FileSpreadsheet className="w-4 h-4 text-emerald-700" />
+            <span>Consulta Completa dos Anexos</span>
+            <span className="ml-1 px-2 py-0.5 rounded-full text-[10.5px] font-extrabold bg-emerald-700 text-white shadow-2xs">
+              TODOS OS ITENS
+            </span>
+          </button>
+
+          <button
             onClick={() => setAbaAtiva('anexos-reforma')}
             className={`px-4 py-2.5 rounded-t-lg transition-colors border-b-2 whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
               abaAtiva === 'anexos-reforma'
@@ -386,7 +403,7 @@ export function SectionBuscaAvancada() {
             }`}
           >
             <FileSpreadsheet className="w-4 h-4 text-blue-600" />
-            <span>Anexos da Reforma (LC 214)</span>
+            <span>Cards dos Anexos (LC 214)</span>
             <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-blue-600 text-white">
               {resultado?.anexosReforma.total || 0}
             </span>
@@ -484,7 +501,10 @@ export function SectionBuscaAvancada() {
         </nav>
       </div>
 
-      {/* BLOCO 0A: ANEXOS DA REFORMA TRIBUTÁRIA (LC 214/2025 E REGIMES ESPECÍFICOS) */}
+      {/* BLOCO NOVO: CONSULTA COMPLETA DOS ANEXOS DA LC 214/2025 (LISTA DE TODOS OS ITENS SEM PRECISAR DIGITAR BUSCA) */}
+      {(abaAtiva === 'tudo' || abaAtiva === 'consulta-anexos') && <ConsultaCompletaAnexos />}
+
+      {/* BLOCO 0A: ANEXOS DA REFORMA TRIBUTÁRIA (LC 214/2025 E REGIMES ESPECÍFICOS - VISÃO EM CARDS) */}
       {(abaAtiva === 'tudo' || abaAtiva === 'anexos-reforma') &&
         resultado &&
         resultado.anexosReforma.items.length > 0 && (
