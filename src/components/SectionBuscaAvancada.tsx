@@ -92,8 +92,30 @@ const CATEGORIAS_ESPECIAIS_FILTRO = [
   'Imunidades por Produtos e Segmentos',
 ]
 
+function extrairTermoInicialUrl(): string {
+  if (typeof window === 'undefined') return 'cigarro'
+  try {
+    // 1. Tenta query param no search (?q=... ou ?busca=...)
+    const urlParams = new URLSearchParams(window.location.search)
+    const qSearch = urlParams.get('q') || urlParams.get('busca') || urlParams.get('termo')
+    if (qSearch && qSearch.trim()) return qSearch.trim()
+
+    // 2. Tenta query param dentro do hash (ex.: #busca-avancada?q=cesta%20basica)
+    const hash = window.location.hash || ''
+    if (hash.includes('?')) {
+      const hashQuery = hash.substring(hash.indexOf('?') + 1)
+      const hashParams = new URLSearchParams(hashQuery)
+      const qHash = hashParams.get('q') || hashParams.get('busca') || hashParams.get('termo')
+      if (qHash && qHash.trim()) return qHash.trim()
+    }
+  } catch {
+    /* intentionally ignored */
+  }
+  return 'cigarro'
+}
+
 export function SectionBuscaAvancada() {
-  const [termo, setTermo] = useState<string>('cigarro')
+  const [termo, setTermo] = useState<string>(() => extrairTermoInicialUrl())
   const [tipoClassif, setTipoClassif] = useState<string>('TODOS')
   const [atosNivel, setAtosNivel] = useState<'todos' | 'federal' | 'estadual' | 'municipal'>(
     'todos',

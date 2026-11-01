@@ -293,4 +293,13 @@ describe('Validação dos fluxos do Panorama da Reforma Tributária', () => {
     // 5. Validação dos resumos de reduções para gráficos
     expect(resInsumo.anexosReforma.resumoReducoes.length).toBe(resInsumo.anexosReforma.total)
   })
+
+  it('validação da Central de Entrega: item e link oficial da Busca Avançada', async () => {
+    const { ITENS_ENTREGA } = await import('../components/SectionCentralEntrega')
+    const itemBusca = ITENS_ENTREGA.find((i) => i.id === 'leg-busca-avancada')
+    expect(itemBusca).toBeDefined()
+    expect(itemBusca?.titulo).toContain('Busca Avançada')
+    expect(itemBusca?.url).toBe('/#busca-avancada')
+    expect(itemBusca?.tecla).toBe('B')
+  })
 })

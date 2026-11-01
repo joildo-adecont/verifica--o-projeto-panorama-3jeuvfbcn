@@ -16,13 +16,14 @@ import {
 } from 'lucide-react'
 import { ModalAtalhosInstalacao } from '@/components/ModalAtalhosInstalacao'
 import { ModalBaseClassificacoes } from '@/components/ModalBaseClassificacoes'
+import { ModalBuscaAvancada } from '@/components/ModalBuscaAvancada'
 import { FileSpreadsheet } from 'lucide-react'
 
 const SIM_URL = '/simulador.html'
 const ENVIOS_URL = '/envios.html'
 const CONSOLIDADO_URL = '/consolidado.html'
 
-type Item = {
+export type ItemEntrega = {
   id: string
   titulo: string
   desc: string
@@ -32,7 +33,7 @@ type Item = {
   acoes: ('print' | 'wa' | 'mail' | 'enviar')[]
 }
 
-const ITENS: Item[] = [
+export const ITENS_ENTREGA: ItemEntrega[] = [
   // ===== SIMULADORES =====
   {
     id: 'sim-geral',
@@ -124,6 +125,15 @@ const ITENS: Item[] = [
     acoes: ['print'],
   },
   // ===== LEGISLAÇÃO =====
+  {
+    id: 'leg-busca-avancada',
+    titulo: 'Busca Avançada da Reforma Tributária (Pesquisa Correlacionada)',
+    desc: 'Motor integrado de pesquisa de normas, classificações (15.240+ NCMs, cClassTrib, CST, NBS, CNAE), anexos, regimes, gráficos e análises. Tecla: B.',
+    categoria: 'legislacao',
+    tecla: 'B',
+    url: '/#busca-avancada',
+    acoes: ['print', 'wa', 'mail', 'enviar'],
+  },
   {
     id: 'leg-panorama',
     titulo: 'Panorama completo da Reforma (legislação)',
@@ -223,6 +233,8 @@ const ITENS: Item[] = [
   },
 ]
 
+type Item = ItemEntrega
+
 const CATS: { id: Item['categoria'] | 'todos'; label: string; cor: string }[] = [
   {
     id: 'todos',
@@ -265,10 +277,11 @@ export function SectionCentralEntrega() {
   const [cat, setCat] = useState<Item['categoria'] | 'todos'>('todos')
   const [modalAtalhosAberto, setModalAtalhosAberto] = useState(false)
   const [modalBaseAberto, setModalBaseAberto] = useState(false)
+  const [modalBuscaAberto, setModalBuscaAberto] = useState(false)
 
   const filtrados = useMemo(() => {
     const t = norm(busca.trim())
-    return ITENS.filter((i) => {
+    return ITENS_ENTREGA.filter((i) => {
       if (cat !== 'todos' && i.categoria !== cat) return false
       if (!t) return true
       const alvo = norm(i.titulo + ' ' + i.desc + ' ' + i.categoria)
@@ -304,10 +317,44 @@ export function SectionCentralEntrega() {
         </p>
       </div>
 
-      {/* BANNERS DESTACADOS ADECONT — Atalhos de Instalação & Base de Classificações */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* BANNER 1: Base de Classificações (NCM e tabelas oficiais) */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#0F294A] via-[#12315E] to-[#1A4A8C] text-white p-4 sm:p-5 shadow-md border-2 border-emerald-400/50 flex flex-col justify-between gap-4">
+      {/* BANNERS DESTACADOS ADECONT — Busca Avançada, Base NCM & Atalhos de Instalação */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* BANNER 1: Busca Avançada da Reforma Tributária (Novo) */}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#0F294A] via-[#1B365D] to-[#25467A] text-white p-4 sm:p-5 shadow-md border-2 border-panorama-gold/60 flex flex-col justify-between gap-4">
+          <div className="flex items-start gap-3.5 z-10">
+            <div className="p-3 bg-white/10 rounded-xl backdrop-blur-xs border border-white/20 shrink-0 text-panorama-gold-light">
+              <Search className="w-6 h-6 sm:w-7 sm:h-7" />
+            </div>
+            <div className="space-y-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-sm sm:text-base font-bold text-white tracking-tight flex items-center gap-1.5">
+                  🔍 Busca Avançada da Reforma Tributária
+                </span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-panorama-gold text-panorama-navy uppercase tracking-wider">
+                  Enviar ao Cliente
+                </span>
+              </div>
+              <p className="text-xs text-slate-200 leading-relaxed">
+                Envie link direto e QR Code da Busca Avançada (pesquisa correlacionada de normas,
+                15.240+ classificações NCM/cClassTrib/CST, alíquotas, anexos e gráficos), com termo
+                pré-preenchido e seleção de cliente cadastrado para WhatsApp e E-mail.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 z-10 pt-1">
+            <button
+              onClick={() => setModalBuscaAberto(true)}
+              className="flex-1 px-4 py-2.5 rounded-xl bg-gradient-to-r from-panorama-gold via-amber-300 to-panorama-gold-dark text-panorama-navy font-bold text-xs sm:text-sm shadow-lg hover:brightness-105 active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <Search className="w-4 h-4" />
+              <span>Abrir Envio da Busca Avançada</span>
+            </button>
+          </div>
+        </div>
+
+        {/* BANNER 2: Base de Classificações (NCM e tabelas oficiais) */}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#0A2647] via-[#123863] to-[#1A4A8C] text-white p-4 sm:p-5 shadow-md border-2 border-emerald-400/50 flex flex-col justify-between gap-4">
           <div className="flex items-start gap-3.5 z-10">
             <div className="p-3 bg-white/10 rounded-xl backdrop-blur-xs border border-white/20 shrink-0 text-emerald-300">
               <FileSpreadsheet className="w-6 h-6 sm:w-7 sm:h-7" />
@@ -315,7 +362,7 @@ export function SectionCentralEntrega() {
             <div className="space-y-1">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-sm sm:text-base font-bold text-white tracking-tight flex items-center gap-1.5">
-                  📊 Base de Classificações (NCM e tabelas oficiais)
+                  📊 Base de Classificações (NCM e tabelas)
                 </span>
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-400 text-slate-950 uppercase tracking-wider">
                   Download &amp; Envio
@@ -324,8 +371,7 @@ export function SectionCentralEntrega() {
               <p className="text-xs text-slate-200 leading-relaxed">
                 Deposite e envie aos clientes o link de download direto da base oficial NCM completa
                 (15.240 itens Siscomex/MDIC) e demais tabelas (CEST, cClassTrib, CST, cCredPres,
-                CFOP, NBS, CNAE, cBenef, MVA-ST). Pronto para abrir no Excel (CSV UTF-8) com QR Code
-                e disparo WhatsApp/E-mail.
+                CFOP, NBS, CNAE, cBenef, MVA-ST). Pronto para Excel com QR Code e disparo.
               </p>
             </div>
           </div>
@@ -341,18 +387,18 @@ export function SectionCentralEntrega() {
           </div>
         </div>
 
-        {/* BANNER 2: Atalhos de Instalação do Sistema (Celular e PC) */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-panorama-navy via-[#2E2260] to-[#1E1643] text-white p-4 sm:p-5 shadow-md border-2 border-panorama-gold/40 flex flex-col justify-between gap-4">
+        {/* BANNER 3: Atalhos de Instalação do Sistema (Celular e PC) */}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-panorama-navy via-[#2E2260] to-[#1E1643] text-white p-4 sm:p-5 shadow-md border-2 border-indigo-400/40 flex flex-col justify-between gap-4">
           <div className="flex items-start gap-3.5 z-10">
-            <div className="p-3 bg-white/10 rounded-xl backdrop-blur-xs border border-white/20 shrink-0 text-panorama-gold-light">
+            <div className="p-3 bg-white/10 rounded-xl backdrop-blur-xs border border-white/20 shrink-0 text-indigo-300">
               <Smartphone className="w-6 h-6 sm:w-7 sm:h-7" />
             </div>
             <div className="space-y-1">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-sm sm:text-base font-bold text-white tracking-tight flex items-center gap-1.5">
-                  📲 Atalhos de Instalação do Sistema (Celular &amp; PC)
+                  📲 Atalhos de Instalação (Celular &amp; PC)
                 </span>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-panorama-gold text-panorama-navy uppercase tracking-wider">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-indigo-300 text-slate-950 uppercase tracking-wider">
                   Entrega Rápida
                 </span>
               </div>
@@ -367,7 +413,7 @@ export function SectionCentralEntrega() {
           <div className="flex flex-wrap items-center gap-2 z-10 pt-1">
             <button
               onClick={() => setModalAtalhosAberto(true)}
-              className="flex-1 px-4 py-2.5 rounded-xl bg-gradient-to-r from-panorama-gold via-amber-400 to-panorama-gold-dark text-panorama-navy font-bold text-xs sm:text-sm shadow-lg hover:brightness-105 active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer"
+              className="flex-1 px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-300 via-indigo-200 to-indigo-400 text-slate-950 font-bold text-xs sm:text-sm shadow-lg hover:brightness-105 active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
               <QrCode className="w-4 h-4" />
               <span>Abrir Painel de Instalação</span>
@@ -417,7 +463,7 @@ export function SectionCentralEntrega() {
             </button>
           ))}
           <span className="text-[11px] text-slate-500 self-center ml-1">
-            {filtrados.length} de {ITENS.length} itens
+            {filtrados.length} de {ITENS_ENTREGA.length} itens
           </span>
         </div>
       </div>
@@ -515,6 +561,9 @@ export function SectionCentralEntrega() {
         legislação e os tópicos refletem a última atualização da rotina semanal (seg 11h) —
         registrada na Seção 13.
       </div>
+
+      {/* Modal de Busca Avançada da Reforma Tributária (Novo) */}
+      <ModalBuscaAvancada isOpen={modalBuscaAberto} onClose={() => setModalBuscaAberto(false)} />
 
       {/* Modal de Atalhos e Instalação do Sistema */}
       <ModalAtalhosInstalacao

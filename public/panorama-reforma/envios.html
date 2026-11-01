@@ -207,7 +207,7 @@
     <header>
       <h1>📇 Cadastro de Clientes & Protocolo de Envios — Simulador de Transição</h1>
       <p>ADECONT • Panorama da Reforma Tributária • controle de entrega com capitulação legal</p>
-      <div style="margin-top: 8px">
+      <div style="margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap; align-items: center">
         <a class="btn btn-voltar" href="./simulador.html">← Voltar ao Simulador</a>
         <a class="btn btn-voltar" href="/">← Voltar ao Panorama</a>
         <button
@@ -217,6 +217,27 @@
         >
           🔑 Token
         </button>
+        <button
+          class="btn"
+          onclick="aba('busca')"
+          style="background: #0f294a; color: #ffd66b; border: 1px solid #ffd66b"
+        >
+          🔍 Busca Avançada
+        </button>
+        <button
+          class="btn"
+          onclick="aba('base')"
+          style="background: #0f4c3a; color: #a7f3d0; border: 1px solid #34d399"
+        >
+          📊 Base de Classificações (NCM)
+        </button>
+        <button
+          class="btn"
+          onclick="aba('inst')"
+          style="background: #2e2260; color: #ffd66b; border: 1px solid #ffd66b"
+        >
+          📲 Atalhos de Instalação (Celular/PC)
+        </button>
       </div>
     </header>
     <main>
@@ -224,6 +245,35 @@
         <button class="tab on" data-tab="cad" onclick="aba('cad')">1. Cadastro de Clientes</button>
         <button class="tab" data-tab="imp" onclick="aba('imp')">2. Importação</button>
         <button class="tab" data-tab="env" onclick="aba('env')">3. Envio & Protocolo</button>
+        <button
+          class="tab"
+          data-tab="base"
+          onclick="aba('base')"
+          style="background: #e6f7f2; color: #064e3b; font-weight: 700"
+        >
+          📊 4. Base de Classificações (NCM)
+        </button>
+        <button
+          class="tab"
+          data-tab="busca"
+          onclick="aba('busca')"
+          style="
+            background: #eff6ff;
+            color: #0f294a;
+            font-weight: 700;
+            border-top: 2px solid #0f294a;
+          "
+        >
+          🔍 5. Busca Avançada
+        </button>
+        <button
+          class="tab"
+          data-tab="inst"
+          onclick="aba('inst')"
+          style="background: #e8e2f8; color: #2e2260; font-weight: 700"
+        >
+          📲 6. Instalação do Sistema
+        </button>
       </div>
 
       <!-- ABA CADASTRO -->
@@ -275,7 +325,7 @@
                 <option value="simples">Simples Nacional</option>
                 <option value="mei">MEI</option>
                 <option value="imobiliario">Imobiliário</option>
-                <option value="agro">Agronegócio</option>
+                <option value="agro">Agro</option>
                 <option value="consorcios">Consórcios</option>
                 <option value="financeiro">Serviços financeiros</option>
                 <option value="profissional">Profissão regulamentada</option>
@@ -335,6 +385,7 @@
                 <th>E-mail</th>
                 <th>Empresa</th>
                 <th>WhatsApp</th>
+                <th>Perfil</th>
                 <th></th>
               </tr>
             </thead>
@@ -419,10 +470,505 @@
           </table>
         </div>
       </div>
+
+      <!-- ABA INSTALACAO DO SISTEMA -->
+      <div class="card" id="tab-inst" style="display: none">
+        <div
+          style="
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+            border-bottom: 2px solid #2e2260;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+          "
+        >
+          <div>
+            <h2 style="margin: 0; color: #2e2260; border: none; padding: 0">
+              📲 Central de Entrega — Instalação do Sistema
+            </h2>
+            <p class="nota">
+              Deposite novos atalhos no banco e envie links e instruções prontas para Android,
+              iPhone e computadores com a marca ADECONT.
+            </p>
+          </div>
+          <img src="/logo-adecont.png" alt="ADECONT" style="height: 34px; width: auto" />
+        </div>
+
+        <div
+          style="
+            background: #f8fafc;
+            border: 1px solid #c9d4e0;
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 14px;
+          "
+        >
+          <h3 style="font-size: 0.9rem; color: #2e2260; margin-bottom: 8px">
+            1. Enviar atalho ao cliente (WhatsApp ou E-mail)
+          </h3>
+          <div class="row">
+            <div>
+              <label>Formato do atalho / dispositivo</label>
+              <select id="inst_dev_select" onchange="selecionarAtalhoParaEnvio()">
+                <option value="todos">Universal (Android, iPhone e Computadores)</option>
+                <option value="android">Android (Google Chrome — Tela inicial)</option>
+                <option value="iphone">iPhone (Apple Safari — Tela de Início)</option>
+                <option value="computador">Computadores (Chrome/Edge — App Desktop)</option>
+              </select>
+            </div>
+            <div>
+              <label>Link oficial do sistema</label>
+              <input id="inst_url_view" readonly style="background: #eef2f6" />
+            </div>
+          </div>
+
+          <label style="margin-top: 10px">Mensagem formatada com instruções e marca ADECONT:</label>
+          <textarea
+            id="inst_msg_preview"
+            rows="7"
+            style="font-family: monospace; font-size: 0.8rem"
+          ></textarea>
+
+          <div style="display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap">
+            <button class="btn btn-verde" onclick="enviarAtalhoWa()">💬 Enviar no WhatsApp</button>
+            <button class="btn btn-azul" onclick="enviarAtalhoEmail()">✉️ Enviar por E-mail</button>
+            <button class="btn btn-cinza" onclick="copiarMensagemAtalho()">
+              📋 Copiar mensagem
+            </button>
+          </div>
+          <span id="instMsg" class="msg"></span>
+        </div>
+
+        <!-- Bloco para DEPOSITAR novo atalho -->
+        <div
+          style="
+            background: #fff;
+            border: 1px solid #dbe3ee;
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 14px;
+          "
+        >
+          <h3 style="font-size: 0.9rem; color: #2e2260; margin-bottom: 8px">
+            2. Depositar novo atalho no banco de dados
+          </h3>
+          <div class="row">
+            <div>
+              <label>Título do atalho *</label>
+              <input id="dep_titulo" placeholder="Ex.: Instalação Corporativa Cliente VIP" />
+            </div>
+            <div>
+              <label>Tipo de dispositivo *</label>
+              <select id="dep_device">
+                <option value="todos">Universal (Todos)</option>
+                <option value="android">Android</option>
+                <option value="iphone">iPhone</option>
+                <option value="computador">Computador</option>
+              </select>
+            </div>
+          </div>
+          <label style="margin-top: 8px">URL do sistema *</label>
+          <input id="dep_url" placeholder="https://..." />
+          <label style="margin-top: 8px">Instruções de instalação passo a passo *</label>
+          <textarea
+            id="dep_inst"
+            rows="3"
+            placeholder="1. Abra o link...&#10;2. Clique em adicionar à tela inicial..."
+          ></textarea>
+          <div class="row" style="margin-top: 8px">
+            <div>
+              <label>Observações</label>
+              <input id="dep_obs" placeholder="Opcional" />
+            </div>
+            <div>
+              <label>Criado por</label>
+              <input id="dep_autor" value="Equipe ADECONT" />
+            </div>
+          </div>
+          <button
+            class="btn"
+            style="background: #2e2260; color: #fff; margin-top: 10px"
+            onclick="depositarAtalho()"
+          >
+            📥 Salvar e Depositar no Banco
+          </button>
+          <span id="depMsg" class="msg"></span>
+        </div>
+
+        <!-- Histórico de atalhos -->
+        <h3 style="font-size: 0.9rem; color: #2e2260; margin-top: 14px; margin-bottom: 6px">
+          3. Histórico de atalhos depositados <span class="count-badge" id="cntAtalhos">0</span>
+        </h3>
+        <div style="overflow-x: auto">
+          <table id="tblAtalhos">
+            <thead>
+              <tr>
+                <th>Título</th>
+                <th>Dispositivo</th>
+                <th>URL</th>
+                <th>Instruções</th>
+                <th>Data</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ABA BASE DE CLASSIFICACOES (NCM e tabelas) -->
+      <div class="card" id="tab-base" style="display: none">
+        <div
+          style="
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+            border-bottom: 2px solid #0f4c3a;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+          "
+        >
+          <div>
+            <h2 style="margin: 0; color: #0f4c3a; border: none; padding: 0">
+              📊 Central de Entrega — Base de Classificações (NCM e Tabelas Oficiais)
+            </h2>
+            <p class="nota">
+              Gere o link seguro de download e envie aos clientes a base NCM completa (15.240 itens
+              oficiais do Siscomex/MDIC) e as demais 10 tabelas oficiais com formato Excel (CSV
+              UTF-8 com BOM) ou JSON.
+            </p>
+          </div>
+          <img src="/logo-adecont.png" alt="ADECONT" style="height: 34px; width: auto" />
+        </div>
+
+        <div
+          style="
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 14px;
+          "
+        >
+          <h3 style="font-size: 0.9rem; color: #065f46; margin-bottom: 8px">
+            1. Envio da Base aos Clientes (Link Oficial, WhatsApp e E-mail)
+          </h3>
+          <div class="row">
+            <div>
+              <label>Tabela de Classificação Oficial</label>
+              <select id="base_tab_select" onchange="atualizarDadosBase()">
+                <option value="NCM">2. NCM — 15.240 itens oficiais (Siscomex / MDIC / RFB)</option>
+                <option value="CEST">6. CEST — Substituição Tributária Estadual (CONFAZ)</option>
+                <option value="cClassTrib">
+                  3. cClassTrib — Classificação Tributária IBS/CBS (CGIBS/RFB)
+                </option>
+                <option value="CST">4. CST — Situação Tributária IBS/CBS (RFB/SPED)</option>
+                <option value="cCredPres">5. cCredPres — Crédito Presumido (SVRS/CGIBS)</option>
+                <option value="CFOP">8. CFOP — Operações e Prestações (CONFAZ/SINIEF)</option>
+                <option value="NBS">9. NBS — Serviços e Intangíveis (MDIC/RFB)</option>
+                <option value="CNAE 2.3">10. CNAE 2.3 — Atividades Econômicas (IBGE/CONCLA)</option>
+                <option value="cBenef">11. cBenef — Benefícios Fiscais (Sefaz UFs)</option>
+                <option value="MVA-ST">7. MVA-ST — Margem de Valor Agregado (CONFAZ)</option>
+                <option value="Nome">1. Nome — Especificação Usual de Produtos (RFB/MAPA)</option>
+                <option value="TODOS">Todos — Consolidado de 11 Tabelas Oficiais</option>
+              </select>
+            </div>
+            <div>
+              <label>Formato do Arquivo</label>
+              <select id="base_formato_select" onchange="atualizarDadosBase()">
+                <option value="csv">CSV (Padrão Excel BR com BOM UTF-8 e ponto-e-vírgula)</option>
+                <option value="json">JSON (Estruturado UTF-8 para ERP / Integrações)</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="margin-top: 10px">
+            <label
+              >Link direto de download (servido pelo sistema ADECONT — política
+              anti-bloqueio)</label
+            >
+            <div style="display: flex; gap: 6px">
+              <input
+                id="base_url_view"
+                readonly
+                style="background: #eef2f6; font-family: monospace; font-size: 0.78rem"
+              />
+              <button class="btn btn-cinza" onclick="copiarLinkBase()" style="white-space: nowrap">
+                📋 Copiar Link
+              </button>
+              <a
+                id="base_link_baixar"
+                class="btn btn-verde"
+                href="#"
+                target="_blank"
+                download
+                style="white-space: nowrap"
+              >
+                ⬇ Baixar Agora
+              </a>
+            </div>
+          </div>
+
+          <label style="margin-top: 10px"
+            >Mensagem institucional ADECONT pronta para envio ao cliente:</label
+          >
+          <textarea
+            id="base_msg_preview"
+            rows="8"
+            style="font-family: monospace; font-size: 0.8rem"
+          ></textarea>
+
+          <div style="display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap">
+            <button class="btn btn-verde" onclick="enviarBaseWa()">💬 Enviar no WhatsApp</button>
+            <button class="btn btn-azul" onclick="enviarBaseEmail()">✉️ Enviar por E-mail</button>
+            <button class="btn btn-cinza" onclick="copiarMensagemBase()">📋 Copiar mensagem</button>
+          </div>
+          <span id="baseMsg" class="msg"></span>
+        </div>
+
+        <!-- Bloco de Depósito no Banco de Dados -->
+        <div
+          style="
+            background: #fff;
+            border: 1px solid #dbe3ee;
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 14px;
+          "
+        >
+          <h3 style="font-size: 0.9rem; color: #0f4c3a; margin-bottom: 8px">
+            2. Depositar link da base no banco de dados da Central
+          </h3>
+          <p class="nota" style="margin-bottom: 8px">
+            Registra na coleção de atalhos e entregas do sistema (<code>install_shortcuts</code>)
+            para ficar acessível no Histórico da Central, registrando autor e contador de envios.
+          </p>
+          <div class="row">
+            <div>
+              <label>Título do Envio *</label>
+              <input
+                id="dep_base_titulo"
+                placeholder="Ex.: Base NCM Completa (15.240 itens) — Download Excel"
+              />
+            </div>
+            <div>
+              <label>Autor / Responsável</label>
+              <input id="dep_base_autor" value="Equipe ADECONT" />
+            </div>
+          </div>
+          <div style="margin-top: 8px">
+            <label>Observações internas</label>
+            <input
+              id="dep_base_obs"
+              placeholder="Ex.: Base oficial 01/10/2026 para parametrização fiscal de clientes"
+            />
+          </div>
+          <button
+            class="btn"
+            style="background: #0f4c3a; color: #fff; margin-top: 10px"
+            onclick="depositarBaseNoBanco()"
+          >
+            📥 Salvar e Depositar Link no Banco
+          </button>
+          <span id="depBaseMsg" class="msg"></span>
+        </div>
+
+        <!-- Histórico unificado -->
+        <h3 style="font-size: 0.9rem; color: #0f4c3a; margin-top: 14px; margin-bottom: 6px">
+          3. Histórico de envios e depósitos da Central
+          <span class="count-badge" id="cntHistBase">0</span>
+        </h3>
+        <div style="overflow-x: auto">
+          <table id="tblHistBase">
+            <thead>
+              <tr>
+                <th>Título</th>
+                <th>Tipo / Tabela</th>
+                <th>URL</th>
+                <th>Autor</th>
+                <th>Envios</th>
+                <th>Data</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ABA 5: BUSCA AVANÇADA DA REFORMA TRIBUTÁRIA -->
+      <div class="card" id="tab-busca" style="display: none">
+        <div
+          style="
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+            border-bottom: 2px solid #0f294a;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+          "
+        >
+          <div>
+            <h2 style="margin: 0; color: #0f294a; border: none; padding: 0">
+              🔍 Central de Entrega — Busca Avançada da Reforma Tributária
+            </h2>
+            <p class="nota">
+              Gere e envie links diretos para a Busca Avançada do sistema ADECONT, com termo de
+              pesquisa opcional pré-preenchido, seleção de cliente cadastrado e mensagem
+              institucional completa para WhatsApp e E-mail.
+            </p>
+          </div>
+          <img src="/logo-adecont.png" alt="ADECONT" style="height: 34px; width: auto" />
+        </div>
+
+        <div
+          style="
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 14px;
+          "
+        >
+          <h3 style="font-size: 0.9rem; color: #0f294a; margin-bottom: 8px">
+            1. Envio da Busca Avançada ao Cliente Cadastrado
+          </h3>
+          <div class="row">
+            <div>
+              <label>Cliente Destinatário (Cadastrado)</label>
+              <select id="busca_cli_select" onchange="atualizarDadosBusca()">
+                <option value="">— Envio Geral (Sem cliente específico) —</option>
+              </select>
+            </div>
+            <div>
+              <label>Termo de Pesquisa Pré-Preenchido (Opcional)</label>
+              <input
+                id="busca_termo_input"
+                placeholder="Ex.: cesta básica, Simples Nacional, agropecuário, alíquota zero..."
+                oninput="atualizarDadosBusca()"
+              />
+            </div>
+          </div>
+
+          <div style="margin-top: 10px">
+            <label>Link direto gerado para a Busca Avançada (funciona no domínio atual)</label>
+            <div style="display: flex; gap: 6px">
+              <input
+                id="busca_url_view"
+                readonly
+                style="background: #eef2f6; font-family: monospace; font-size: 0.78rem"
+              />
+              <button class="btn btn-cinza" onclick="copiarLinkBusca()" style="white-space: nowrap">
+                📋 Copiar Link
+              </button>
+              <a
+                id="busca_link_abrir"
+                class="btn"
+                href="/#busca-avancada"
+                target="_blank"
+                style="white-space: nowrap; background: #0f294a; color: #fff"
+              >
+                ↗ Abrir no Sistema
+              </a>
+            </div>
+          </div>
+
+          <label style="margin-top: 10px">
+            Mensagem institucional ADECONT pronta para envio ao cliente:
+          </label>
+          <textarea
+            id="busca_msg_preview"
+            rows="9"
+            style="font-family: monospace; font-size: 0.8rem"
+          ></textarea>
+
+          <div style="display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap">
+            <button class="btn btn-verde" onclick="enviarBuscaWa()">💬 Enviar no WhatsApp</button>
+            <button class="btn btn-azul" onclick="enviarBuscaEmail()">✉️ Enviar por E-mail</button>
+            <button class="btn btn-cinza" onclick="copiarMensagemBusca()">
+              📋 Copiar mensagem
+            </button>
+          </div>
+          <span id="buscaMsg" class="msg"></span>
+        </div>
+
+        <!-- Bloco de Depósito no Banco de Dados -->
+        <div
+          style="
+            background: #fff;
+            border: 1px solid #dbe3ee;
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 14px;
+          "
+        >
+          <h3 style="font-size: 0.9rem; color: #0f294a; margin-bottom: 8px">
+            2. Depositar link da Busca Avançada no banco de dados da Central
+          </h3>
+          <p class="nota" style="margin-bottom: 8px">
+            Registra na coleção <code>install_shortcuts</code> com instruções completas, registrando
+            autor e contador de envios.
+          </p>
+          <div class="row">
+            <div>
+              <label>Título do Envio *</label>
+              <input
+                id="dep_busca_titulo"
+                placeholder="Ex.: 🔍 Busca Avançada — Pesquisa: 'cesta básica'"
+              />
+            </div>
+            <div>
+              <label>Autor / Responsável</label>
+              <input id="dep_busca_autor" value="Equipe ADECONT" />
+            </div>
+          </div>
+          <div style="margin-top: 8px">
+            <label>Observações internas</label>
+            <input
+              id="dep_busca_obs"
+              placeholder="Ex.: Link direto de consulta correlacionada para cliente"
+            />
+          </div>
+          <button
+            class="btn"
+            style="background: #0f294a; color: #fff; margin-top: 10px"
+            onclick="depositarBuscaNoBanco()"
+          >
+            📥 Salvar e Depositar Link no Banco
+          </button>
+          <span id="depBuscaMsg" class="msg"></span>
+        </div>
+
+        <!-- Histórico da Central para Busca Avançada -->
+        <h3 style="font-size: 0.9rem; color: #0f294a; margin-top: 14px; margin-bottom: 6px">
+          3. Histórico de envios e depósitos da Central
+          <span class="count-badge" id="cntHistBusca">0</span>
+        </h3>
+        <div style="overflow-x: auto">
+          <table id="tblHistBusca">
+            <thead>
+              <tr>
+                <th>Título</th>
+                <th>Dispositivo / Tipo</th>
+                <th>URL</th>
+                <th>Autor</th>
+                <th>Envios</th>
+                <th>Data</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
     </main>
     <script>
       // ---------- infra ----------
-      var PB_URL = 'https://verificacao-projeto-panorama-18549.shrd00.internal.goskip.dev'
+      var PB_URL = window.location.origin
       var TOKEN = localStorage.getItem('simul_painel_token') || ''
 
       function pb(path, opts) {
@@ -460,14 +1006,18 @@
         }, 6000)
       }
       function aba(t) {
-        ;['cad', 'imp', 'env'].forEach(function (x) {
-          document.getElementById('tab-' + x).style.display = x === t ? 'block' : 'none'
+        ;['cad', 'imp', 'env', 'inst', 'base', 'busca'].forEach(function (x) {
+          var el = document.getElementById('tab-' + x)
+          if (el) el.style.display = x === t ? 'block' : 'none'
         })
         document.querySelectorAll('.tab').forEach(function (b) {
           b.classList.toggle('on', b.dataset.tab === t)
         })
         if (t === 'cad') carregarClientes()
         if (t === 'env') carregarEnvios()
+        if (t === 'inst') carregarAtalhos()
+        if (t === 'base') carregarBaseClassificacoes()
+        if (t === 'busca') carregarBuscaAvancada()
       }
 
       // ---------- cadastro ----------
@@ -512,6 +1062,42 @@
         document.getElementById('c_regime').value = ''
         document.getElementById('c_atividade').value = ''
       }
+      // mostra, na lista, se o cadastro já tem o perfil de análise
+      function perfilBadge(c) {
+        var rot = {
+          regular: 'Regular',
+          simples: 'Simples',
+          mei: 'MEI',
+          imobiliario: 'Imobiliário',
+          agro: 'Agro',
+          consorcios: 'Consórcios',
+          financeiro: 'Financeiro',
+          profissional: 'Profissional',
+        }
+        if (!c.regime_tributario) {
+          return '<span style="font-size:10px;color:#b45309;background:#fef3c7;border:1px solid #fcd34d;border-radius:4px;padding:1px 5px">⚠ sem regime</span>'
+        }
+        var r = rot[c.regime_tributario] || c.regime_tributario
+        var rec = c.receita_mensal
+          ? 'R$ ' + Number(c.receita_mensal).toLocaleString('pt-BR')
+          : 'sem receita'
+        var cor = c.receita_mensal ? '#065f46' : '#b45309'
+        var bgc = c.receita_mensal ? '#d1fae5' : '#fef3c7'
+        var bd = c.receita_mensal ? '#6ee7b7' : '#fcd34d'
+        return (
+          '<span style="font-size:10px;color:' +
+          cor +
+          ';background:' +
+          bgc +
+          ';border:1px solid ' +
+          bd +
+          ';border-radius:4px;padding:1px 5px">' +
+          r +
+          ' · ' +
+          rec +
+          '</span>'
+        )
+      }
       function carregarClientes() {
         pb('/api/collections/simul_clientes/records?perPage=500&sort=nome')
           .then(function (r) {
@@ -528,6 +1114,9 @@
                 (c.empresa || '—') +
                 '</td><td>' +
                 (c.whatsapp || '—') +
+                '</td>' +
+                '<td>' +
+                perfilBadge(c) +
                 '</td>' +
                 '<td><button class="btn btn-verm" style="padding:3px 8px;font-size:.68rem" onclick="excluirCliente(\'' +
                 c.id +
@@ -741,6 +1330,626 @@
           return s
         }
       }
+      // ---------- atalhos de instalacao ----------
+      var listaAtalhos = []
+      function carregarAtalhos() {
+        var baseLocalUrl = window.location.origin
+        document.getElementById('inst_url_view').value = baseLocalUrl
+        document.getElementById('dep_url').value = baseLocalUrl
+
+        pb('/api/collections/install_shortcuts/records?perPage=100&sort=-created')
+          .then(function (r) {
+            listaAtalhos = r.items || []
+            renderTabelaAtalhos()
+            selecionarAtalhoParaEnvio()
+          })
+          .catch(function (e) {
+            console.warn('[atalhos] usando padroes:', e)
+            renderTabelaAtalhos()
+            selecionarAtalhoParaEnvio()
+          })
+      }
+
+      function selecionarAtalhoParaEnvio() {
+        var dev = document.getElementById('inst_dev_select').value
+        var item = listaAtalhos.find(function (s) {
+          return s.device_type === dev
+        }) ||
+          listaAtalhos.find(function (s) {
+            return s.device_type === 'todos'
+          }) || {
+            titulo: 'Atalho Universal ADECONT',
+            url: window.location.origin,
+            instrucoes:
+              '1. Celulares (Android): Menu (⋮) → Adicionar à tela inicial.\n2. iPhone: Compartilhar → Adicionar à Tela de Início.\n3. Computadores: Menu do Chrome/Edge → Instalar aplicativo.',
+          }
+        document.getElementById('inst_url_view').value = item.url || window.location.origin
+
+        var msgTxt =
+          '*ADECONT — Assessoria Contábil e Administrativa*\n' +
+          '📱 *' +
+          (item.titulo || 'Instalação do Sistema') +
+          '*\n\n' +
+          'Prezado cliente,\n' +
+          'Acesse com praticidade o *Panorama da Reforma Tributária* instalando o atalho oficial:\n\n' +
+          '🔗 *Link de Instalação:*\n' +
+          (item.url || window.location.origin) +
+          '\n\n' +
+          '📋 *Instruções passo a passo:*\n' +
+          (item.instrucoes || '') +
+          '\n\n' +
+          '🛡️ _ADECONT: atualização semanal contínua e fontes primárias oficiais._'
+
+        document.getElementById('inst_msg_preview').value = msgTxt
+      }
+
+      function enviarAtalhoWa() {
+        var txt = document.getElementById('inst_msg_preview').value
+        window.open('https://wa.me/?text=' + encodeURIComponent(txt), '_blank')
+      }
+
+      function enviarAtalhoEmail() {
+        var txt = document.getElementById('inst_msg_preview').value
+        var subject = 'Atalho de Instalação — ADECONT Panorama da Reforma Tributária'
+        window.location.href =
+          'mailto:?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(txt)
+      }
+
+      function copiarMensagemAtalho() {
+        var el = document.getElementById('inst_msg_preview')
+        el.select()
+        navigator.clipboard.writeText(el.value).then(function () {
+          msg('instMsg', 'Mensagem copiada para a área de transferência!', true)
+        })
+      }
+
+      function depositarAtalho() {
+        var tit = document.getElementById('dep_titulo').value.trim()
+        var dev = document.getElementById('dep_device').value
+        var url = document.getElementById('dep_url').value.trim()
+        var ins = document.getElementById('dep_inst').value.trim()
+        var obs = document.getElementById('dep_obs').value.trim()
+        var aut = document.getElementById('dep_autor').value.trim() || 'Equipe ADECONT'
+
+        if (!tit || !url || !ins) {
+          msg('depMsg', 'Preencha título, URL e instruções.', false)
+          return
+        }
+
+        pb('/api/collections/install_shortcuts/records', {
+          method: 'POST',
+          body: JSON.stringify({
+            titulo: tit,
+            device_type: dev,
+            url: url,
+            instrucoes: ins,
+            observacoes: obs,
+            criado_por: aut,
+            envios_count: 0,
+          }),
+        })
+          .then(function () {
+            msg('depMsg', 'Atalho depositado com sucesso no banco!', true)
+            document.getElementById('dep_titulo').value = ''
+            document.getElementById('dep_obs').value = ''
+            carregarAtalhos()
+          })
+          .catch(function (err) {
+            msg('depMsg', 'Erro ao salvar: verifique permissões ou token.', false)
+          })
+      }
+
+      function renderTabelaAtalhos() {
+        var tb = document.querySelector('#tblAtalhos tbody')
+        tb.innerHTML = ''
+        listaAtalhos.forEach(function (s) {
+          var tr = document.createElement('tr')
+          tr.innerHTML =
+            '<td><b>' +
+            s.titulo +
+            '</b></td>' +
+            '<td><span class="tag t-enviado">' +
+            s.device_type +
+            '</span></td>' +
+            '<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis">' +
+            s.url +
+            '</td>' +
+            '<td style="max-width:300px;font-size:0.72rem;white-space:pre-line">' +
+            (s.instrucoes || '—') +
+            '</td>' +
+            '<td>' +
+            fmtData(s.created) +
+            '</td>'
+          tb.appendChild(tr)
+        })
+        document.getElementById('cntAtalhos').textContent = listaAtalhos.length
+      }
+
+      // ---------- base de classificacoes (NCM e tabelas) ----------
+      var META_TABELAS = {
+        NCM: {
+          label: 'NCM (Nomenclatura Comum Mercosul)',
+          orgao: 'Siscomex / MDIC / RFB',
+          volume: '15.240 itens oficiais do Siscomex/MDIC (referência 01/10/2026)',
+        },
+        CEST: {
+          label: 'CEST (Substituição Tributária)',
+          orgao: 'CONFAZ (Conv. 142/18)',
+          volume: '100+ itens oficiais',
+        },
+        cClassTrib: {
+          label: 'cClassTrib (Classificação Tributária IBS/CBS)',
+          orgao: 'CGIBS / RFB / ENCAT',
+          volume: '15 itens oficiais',
+        },
+        CST: {
+          label: 'CST (Situação Tributária IBS/CBS)',
+          orgao: 'RFB / CGIBS / SPED',
+          volume: '10 itens oficiais',
+        },
+        cCredPres: {
+          label: 'cCredPres (Crédito Presumido)',
+          orgao: 'SVRS / RFB / CGIBS',
+          volume: '7 itens oficiais',
+        },
+        CFOP: {
+          label: 'CFOP (Operações e Prestações)',
+          orgao: 'CONFAZ / SINIEF',
+          volume: '17 itens oficiais',
+        },
+        NBS: {
+          label: 'NBS (Nomenclatura de Serviços)',
+          orgao: 'RFB / MDIC / Codex',
+          volume: '10 itens oficiais',
+        },
+        'CNAE 2.3': {
+          label: 'CNAE 2.3 (Atividades Econômicas)',
+          orgao: 'IBGE / CONCLA',
+          volume: '13 itens oficiais',
+        },
+        cBenef: {
+          label: 'cBenef (Benefícios Fiscais)',
+          orgao: 'Sefaz Estaduais',
+          volume: '8 itens oficiais',
+        },
+        'MVA-ST': {
+          label: 'MVA-ST (Margem de Valor Agregado)',
+          orgao: 'CONFAZ / Sefaz UFs',
+          volume: '10 itens oficiais',
+        },
+        Nome: {
+          label: 'Nome / Especificação de Itens',
+          orgao: 'RFB / MAPA / CFC',
+          volume: '12 itens oficiais',
+        },
+        TODOS: {
+          label: 'Consolidado de 11 Tabelas Oficiais',
+          orgao: 'Consolidado Oficial',
+          volume: '15.350+ registros oficiais',
+        },
+      }
+
+      function getUrlExportacao(tipo, formato) {
+        var base = window.location.origin
+        var cleanBase = base.endsWith('/') ? base.slice(0, -1) : base
+        return (
+          cleanBase +
+          '/backend/v1/export-classifications?tipo=' +
+          encodeURIComponent(tipo || 'NCM') +
+          '&formato=' +
+          (formato || 'csv')
+        )
+      }
+
+      function carregarBaseClassificacoes() {
+        atualizarDadosBase()
+        pb('/api/collections/install_shortcuts/records?perPage=100&sort=-created')
+          .then(function (r) {
+            listaAtalhos = r.items || []
+            renderTabelaHistBase()
+          })
+          .catch(function () {
+            renderTabelaHistBase()
+          })
+      }
+
+      function atualizarDadosBase() {
+        var tipo = document.getElementById('base_tab_select').value || 'NCM'
+        var formato = document.getElementById('base_formato_select').value || 'csv'
+        var url = getUrlExportacao(tipo, formato)
+        var meta = META_TABELAS[tipo] || META_TABELAS['NCM']
+
+        document.getElementById('base_url_view').value = url
+        document.getElementById('base_link_baixar').href = url
+
+        var formatoDesc =
+          formato === 'csv'
+            ? 'Arquivo CSV com BOM UTF-8 e separador ponto-e-vírgula (;), abrindo diretamente no Microsoft Excel e Google Planilhas.'
+            : 'Arquivo JSON estruturado para integrações em sistemas ERP e fiscais.'
+
+        var msgTxt =
+          '*ADECONT — Assessoria Contábil e Administrativa*\n' +
+          '📊 *Base Oficial de Classificações (' +
+          tipo +
+          ')*\n\n' +
+          'Prezado cliente,\n' +
+          'Disponibilizamos o download da base oficial completa de classificações do *Panorama da Reforma Tributária*:\n\n' +
+          '📁 *Tabela:* ' +
+          meta.label +
+          '\n' +
+          '🏛️ *Fonte Oficial:* ' +
+          meta.orgao +
+          '\n' +
+          '📦 *Volume:* ' +
+          meta.volume +
+          '\n' +
+          '⚙️ *Compatibilidade:* ' +
+          formatoDesc +
+          '\n\n' +
+          '🔗 *Link Oficial de Download Direto:*\n' +
+          url +
+          '\n\n' +
+          '🛡️ *Segurança ADECONT:*\n' +
+          '- Download direto do sistema da ADECONT (política anti-bloqueio, sem linkar direto em cgibs.gov.br).\n' +
+          '- Atualização contínua pelas normas da Reforma Tributária (LC 214/2025).\n\n' +
+          'Assessoria Contábil e Administrativa ADECONT à disposição.'
+
+        document.getElementById('base_msg_preview').value = msgTxt
+
+        // Atualiza sugestão de título no formulário de depósito
+        if (!document.getElementById('dep_base_titulo').value) {
+          document.getElementById('dep_base_titulo').placeholder =
+            'Base ' + tipo + ' Completa (' + formato.toUpperCase() + ') — ' + meta.volume
+        }
+      }
+
+      function copiarLinkBase() {
+        var el = document.getElementById('base_url_view')
+        el.select()
+        navigator.clipboard.writeText(el.value).then(function () {
+          msg('baseMsg', 'Link de download copiado com sucesso!', true)
+        })
+      }
+
+      function copiarMensagemBase() {
+        var el = document.getElementById('base_msg_preview')
+        el.select()
+        navigator.clipboard.writeText(el.value).then(function () {
+          msg('baseMsg', 'Mensagem institucional completa copiada!', true)
+        })
+      }
+
+      function enviarBaseWa() {
+        var txt = document.getElementById('base_msg_preview').value
+        window.open('https://wa.me/?text=' + encodeURIComponent(txt), '_blank')
+      }
+
+      function enviarBaseEmail() {
+        var tipo = document.getElementById('base_tab_select').value || 'NCM'
+        var txt = document.getElementById('base_msg_preview').value
+        var subject = 'Base Oficial de Classificações (' + tipo + ') — ADECONT'
+        window.location.href =
+          'mailto:?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(txt)
+      }
+
+      function depositarBaseNoBanco() {
+        var tipo = document.getElementById('base_tab_select').value || 'NCM'
+        var formato = document.getElementById('base_formato_select').value || 'csv'
+        var meta = META_TABELAS[tipo] || META_TABELAS['NCM']
+        var url = getUrlExportacao(tipo, formato)
+
+        var tit =
+          document.getElementById('dep_base_titulo').value.trim() ||
+          'Base ' + tipo + ' Completa (' + formato.toUpperCase() + ') — ' + meta.volume
+        var aut = document.getElementById('dep_base_autor').value.trim() || 'Equipe ADECONT'
+        var obs =
+          document.getElementById('dep_base_obs').value.trim() ||
+          'Download da base oficial ' + tipo + ' com ' + meta.volume
+
+        var inst =
+          '1. Baixe o arquivo ' +
+          formato.toUpperCase() +
+          ' no link oficial.\n' +
+          '2. No Excel: Arquivo -> Abrir (arquivo codificado com BOM UTF-8 e ponto-e-virgula).\n' +
+          '3. Fonte: ' +
+          meta.orgao +
+          ' — ADECONT Assessoria Contábil e Administrativa.'
+
+        pb('/api/collections/install_shortcuts/records', {
+          method: 'POST',
+          body: JSON.stringify({
+            titulo: tit,
+            device_type: 'todos',
+            url: url,
+            instrucoes: inst,
+            observacoes: obs,
+            criado_por: aut,
+            envios_count: 0,
+          }),
+        })
+          .then(function () {
+            msg('depBaseMsg', 'Link da base oficial depositado com sucesso no banco!', true)
+            document.getElementById('dep_base_titulo').value = ''
+            document.getElementById('dep_base_obs').value = ''
+            carregarBaseClassificacoes()
+          })
+          .catch(function (err) {
+            msg('depBaseMsg', 'Erro ao salvar no banco. Verifique token ou permissões.', false)
+          })
+      }
+
+      function renderTabelaHistBase() {
+        var tb = document.querySelector('#tblHistBase tbody')
+        if (!tb) return
+        tb.innerHTML = ''
+        listaAtalhos.forEach(function (s) {
+          var isBase =
+            (s.url && s.url.indexOf('export-classifications') >= 0) ||
+            (s.titulo && (s.titulo.indexOf('Base') >= 0 || s.titulo.indexOf('NCM') >= 0))
+          var tr = document.createElement('tr')
+          tr.style.background = isBase ? '#f0fdf4' : ''
+          tr.innerHTML =
+            '<td><b>' +
+            s.titulo +
+            '</b>' +
+            (isBase ? ' <span class="tag t-recebido">Base Oficial</span>' : '') +
+            '</td>' +
+            '<td>' +
+            (isBase ? 'Exportação' : s.device_type) +
+            '</td>' +
+            '<td style="max-width:220px;overflow:hidden;text-overflow:ellipsis"><a href="' +
+            s.url +
+            '" target="_blank" style="color:#0f4c3a;font-weight:600">' +
+            s.url +
+            '</a></td>' +
+            '<td>' +
+            (s.criado_por || 'Sistema ADECONT') +
+            '</td>' +
+            '<td>' +
+            (s.envios_count || 0) +
+            '</td>' +
+            '<td>' +
+            fmtData(s.created) +
+            '</td>'
+          tb.appendChild(tr)
+        })
+        document.getElementById('cntHistBase').textContent = listaAtalhos.length
+      }
+
+      // ---------- busca avançada ----------
+      var listaClientesCache = []
+      function carregarBuscaAvancada() {
+        pb('/api/collections/simul_clientes/records?perPage=500&sort=nome')
+          .then(function (r) {
+            listaClientesCache = r.items || []
+            var sel = document.getElementById('busca_cli_select')
+            sel.innerHTML = '<option value="">— Envio Geral (Sem cliente específico) —</option>'
+            listaClientesCache.forEach(function (c) {
+              var o = document.createElement('option')
+              o.value = c.id
+              o.textContent = c.nome + (c.empresa ? ' • ' + c.empresa : '') + ' (' + c.email + ')'
+              sel.appendChild(o)
+            })
+            atualizarDadosBusca()
+          })
+          .catch(function () {
+            atualizarDadosBusca()
+          })
+
+        pb('/api/collections/install_shortcuts/records?perPage=100&sort=-created')
+          .then(function (r) {
+            listaAtalhos = r.items || []
+            renderTabelaHistBusca()
+          })
+          .catch(function () {
+            renderTabelaHistBusca()
+          })
+      }
+
+      function getUrlBuscaAvancada(termo) {
+        var base = window.location.origin
+        var cleanBase = base.endsWith('/') ? base.slice(0, -1) : base
+        var t = (termo || '').trim()
+        if (t) {
+          return cleanBase + '/#busca-avancada?q=' + encodeURIComponent(t)
+        }
+        return cleanBase + '/#busca-avancada'
+      }
+
+      function atualizarDadosBusca() {
+        var termo = document.getElementById('busca_termo_input').value.trim()
+        var cliId = document.getElementById('busca_cli_select').value
+        var cliente =
+          listaClientesCache.find(function (c) {
+            return c.id === cliId
+          }) || null
+        var url = getUrlBuscaAvancada(termo)
+
+        document.getElementById('busca_url_view').value = url
+        document.getElementById('busca_link_abrir').href = url
+
+        var saudacao = cliente
+          ? 'Prezado(a) ' +
+            cliente.nome +
+            (cliente.empresa ? ' (' + cliente.empresa + ')' : '') +
+            ','
+          : 'Prezado cliente,'
+
+        var detalheTermo = termo
+          ? '\n🔎 *Termo sugerido para consulta:* "' +
+            termo +
+            '" (a pesquisa abrirá já pré-filtrada com todas as normas e impactos correspondentes).\n'
+          : ''
+
+        var tit = termo
+          ? 'Busca Avançada da Reforma Tributária — Pesquisa: "' + termo + '"'
+          : 'Busca Avançada da Reforma Tributária — Pesquisa Correlacionada Completa'
+
+        var msgTxt =
+          '*ADECONT — Assessoria Contábil e Administrativa*\n' +
+          '🔍 *' +
+          tit +
+          '*\n\n' +
+          saudacao +
+          '\n' +
+          'Disponibilizamos o acesso direto ao *Motor Integrado de Busca Avançada da Reforma Tributária* do sistema ADECONT:' +
+          detalheTermo +
+          '\n' +
+          '🔗 *Link Direto da Busca Avançada:*\n' +
+          url +
+          '\n\n' +
+          '📋 *O que você encontrará no sistema:*\n' +
+          '• Pesquisa correlacionada e simultânea em todas as fontes oficiais da Reforma Tributária.\n' +
+          '• Normas e atos atualizados: Emenda Constitucional 132/2023, Lei Complementar 214/2025, Resoluções CGIBS, Decretos federais, convênios estaduais e atos municipais.\n' +
+          '• Base de classificações oficiais: 15.240+ NCMs, cClassTrib, CSTs, cCredPres, CEST, CFOP, NBS e CNAE.\n' +
+          '• Análise completa de tratamentos diferenciados: alíquotas de referência, reduções de 60% e 30%, isenções, alíquota zero e imunidades constitucionais.\n' +
+          '• Gráficos comparativos de desoneração, tabelas correlacionadas e pareceres práticos de aplicação contábil.\n\n' +
+          '🛡️ *Segurança & Garantia:*\n' +
+          '- Sistema atualizado semanalmente pela equipe de especialistas da ADECONT.\n' +
+          '- Navegação otimizada para celulares e computadores.\n\n' +
+          'Assessoria Contábil e Administrativa ADECONT à disposição.'
+
+        document.getElementById('busca_msg_preview').value = msgTxt
+
+        if (!document.getElementById('dep_busca_titulo').value) {
+          document.getElementById('dep_busca_titulo').placeholder = termo
+            ? '🔍 Busca Avançada — Pesquisa: "' + termo + '"'
+            : '🔍 Busca Avançada da Reforma Tributária (Pesquisa Correlacionada)'
+        }
+      }
+
+      function copiarLinkBusca() {
+        var el = document.getElementById('busca_url_view')
+        el.select()
+        navigator.clipboard.writeText(el.value).then(function () {
+          msg('buscaMsg', 'Link da Busca Avançada copiado!', true)
+        })
+      }
+
+      function copiarMensagemBusca() {
+        var el = document.getElementById('busca_msg_preview')
+        el.select()
+        navigator.clipboard.writeText(el.value).then(function () {
+          msg('buscaMsg', 'Mensagem institucional completa copiada!', true)
+        })
+      }
+
+      function enviarBuscaWa() {
+        var cliId = document.getElementById('busca_cli_select').value
+        var cliente =
+          listaClientesCache.find(function (c) {
+            return c.id === cliId
+          }) || null
+        var phone = cliente && cliente.whatsapp ? cliente.whatsapp.replace(/\D/g, '') : ''
+        var txt = document.getElementById('busca_msg_preview').value
+        var waUrl = phone
+          ? 'https://wa.me/' + phone + '?text=' + encodeURIComponent(txt)
+          : 'https://wa.me/?text=' + encodeURIComponent(txt)
+        window.open(waUrl, '_blank')
+      }
+
+      function enviarBuscaEmail() {
+        var cliId = document.getElementById('busca_cli_select').value
+        var cliente =
+          listaClientesCache.find(function (c) {
+            return c.id === cliId
+          }) || null
+        var email = cliente && cliente.email ? encodeURIComponent(cliente.email) : ''
+        var termo = document.getElementById('busca_termo_input').value.trim()
+        var txt = document.getElementById('busca_msg_preview').value
+        var subject = termo
+          ? 'Busca Avançada da Reforma Tributária: "' + termo + '" — ADECONT'
+          : 'Busca Avançada da Reforma Tributária — ADECONT'
+        window.location.href =
+          'mailto:' +
+          email +
+          '?subject=' +
+          encodeURIComponent(subject) +
+          '&body=' +
+          encodeURIComponent(txt)
+      }
+
+      function depositarBuscaNoBanco() {
+        var termo = document.getElementById('busca_termo_input').value.trim()
+        var urlRel = termo ? '/#busca-avancada?q=' + encodeURIComponent(termo) : '/#busca-avancada'
+        var tit =
+          document.getElementById('dep_busca_titulo').value.trim() ||
+          (termo
+            ? '🔍 Busca Avançada — Pesquisa: "' + termo + '"'
+            : '🔍 Busca Avançada da Reforma Tributária (Pesquisa Correlacionada)')
+        var aut = document.getElementById('dep_busca_autor').value.trim() || 'Equipe ADECONT'
+        var obs =
+          document.getElementById('dep_busca_obs').value.trim() ||
+          'Link direto da Busca Avançada ADECONT com pesquisa correlacionada'
+
+        var inst =
+          '1. Acesse o link oficial para abrir o Motor Integrado de Busca Avançada da Reforma Tributária.\n' +
+          (termo
+            ? '2. Pesquisa correlacionada pré-configurada para o termo "' + termo + '".\n'
+            : '2. Pesquise por qualquer ato, classificação NCM, alíquota ou produto.\n') +
+          '3. ADECONT — Assessoria Contábil e Administrativa.'
+
+        pb('/api/collections/install_shortcuts/records', {
+          method: 'POST',
+          body: JSON.stringify({
+            titulo: tit,
+            device_type: 'todos',
+            url: urlRel,
+            instrucoes: inst,
+            observacoes: obs,
+            criado_por: aut,
+            envios_count: 0,
+          }),
+        })
+          .then(function () {
+            msg('depBuscaMsg', 'Link da Busca Avançada depositado com sucesso no banco!', true)
+            document.getElementById('dep_busca_titulo').value = ''
+            document.getElementById('dep_busca_obs').value = ''
+            carregarBuscaAvancada()
+          })
+          .catch(function () {
+            msg('depBuscaMsg', 'Erro ao depositar no banco. Verifique token ou permissões.', false)
+          })
+      }
+
+      function renderTabelaHistBusca() {
+        var tb = document.querySelector('#tblHistBusca tbody')
+        if (!tb) return
+        tb.innerHTML = ''
+        listaAtalhos.forEach(function (s) {
+          var isBusca =
+            (s.url && s.url.indexOf('busca-avancada') >= 0) ||
+            (s.titulo && s.titulo.toLowerCase().indexOf('busca avançada') >= 0)
+          var tr = document.createElement('tr')
+          tr.style.background = isBusca ? '#eff6ff' : ''
+          tr.innerHTML =
+            '<td><b>' +
+            s.titulo +
+            '</b>' +
+            (isBusca ? ' <span class="tag t-recebido">Busca Avançada</span>' : '') +
+            '</td>' +
+            '<td>' +
+            (isBusca ? 'Motor Integrado' : s.device_type) +
+            '</td>' +
+            '<td style="max-width:220px;overflow:hidden;text-overflow:ellipsis"><a href="' +
+            s.url +
+            '" target="_blank" style="color:#0f294a;font-weight:600">' +
+            s.url +
+            '</a></td>' +
+            '<td>' +
+            (s.criado_por || 'Sistema ADECONT') +
+            '</td>' +
+            '<td>' +
+            (s.envios_count || 0) +
+            '</td>' +
+            '<td>' +
+            fmtData(s.created) +
+            '</td>'
+          tb.appendChild(tr)
+        })
+        document.getElementById('cntHistBusca').textContent = listaAtalhos.length
+      }
+
       carregarClientes()
     </script>
   </body>

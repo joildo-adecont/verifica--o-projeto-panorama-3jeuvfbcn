@@ -219,6 +219,13 @@
         </button>
         <button
           class="btn"
+          onclick="aba('busca')"
+          style="background: #0f294a; color: #ffd66b; border: 1px solid #ffd66b"
+        >
+          🔍 Busca Avançada
+        </button>
+        <button
+          class="btn"
           onclick="aba('base')"
           style="background: #0f4c3a; color: #a7f3d0; border: 1px solid #34d399"
         >
@@ -248,11 +255,24 @@
         </button>
         <button
           class="tab"
+          data-tab="busca"
+          onclick="aba('busca')"
+          style="
+            background: #eff6ff;
+            color: #0f294a;
+            font-weight: 700;
+            border-top: 2px solid #0f294a;
+          "
+        >
+          🔍 5. Busca Avançada
+        </button>
+        <button
+          class="tab"
           data-tab="inst"
           onclick="aba('inst')"
           style="background: #e8e2f8; color: #2e2260; font-weight: 700"
         >
-          📲 5. Instalação do Sistema
+          📲 6. Instalação do Sistema
         </button>
       </div>
 
@@ -778,6 +798,173 @@
           </table>
         </div>
       </div>
+
+      <!-- ABA 5: BUSCA AVANÇADA DA REFORMA TRIBUTÁRIA -->
+      <div class="card" id="tab-busca" style="display: none">
+        <div
+          style="
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+            border-bottom: 2px solid #0f294a;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+          "
+        >
+          <div>
+            <h2 style="margin: 0; color: #0f294a; border: none; padding: 0">
+              🔍 Central de Entrega — Busca Avançada da Reforma Tributária
+            </h2>
+            <p class="nota">
+              Gere e envie links diretos para a Busca Avançada do sistema ADECONT, com termo de
+              pesquisa opcional pré-preenchido, seleção de cliente cadastrado e mensagem
+              institucional completa para WhatsApp e E-mail.
+            </p>
+          </div>
+          <img src="/logo-adecont.png" alt="ADECONT" style="height: 34px; width: auto" />
+        </div>
+
+        <div
+          style="
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 14px;
+          "
+        >
+          <h3 style="font-size: 0.9rem; color: #0f294a; margin-bottom: 8px">
+            1. Envio da Busca Avançada ao Cliente Cadastrado
+          </h3>
+          <div class="row">
+            <div>
+              <label>Cliente Destinatário (Cadastrado)</label>
+              <select id="busca_cli_select" onchange="atualizarDadosBusca()">
+                <option value="">— Envio Geral (Sem cliente específico) —</option>
+              </select>
+            </div>
+            <div>
+              <label>Termo de Pesquisa Pré-Preenchido (Opcional)</label>
+              <input
+                id="busca_termo_input"
+                placeholder="Ex.: cesta básica, Simples Nacional, agropecuário, alíquota zero..."
+                oninput="atualizarDadosBusca()"
+              />
+            </div>
+          </div>
+
+          <div style="margin-top: 10px">
+            <label>Link direto gerado para a Busca Avançada (funciona no domínio atual)</label>
+            <div style="display: flex; gap: 6px">
+              <input
+                id="busca_url_view"
+                readonly
+                style="background: #eef2f6; font-family: monospace; font-size: 0.78rem"
+              />
+              <button class="btn btn-cinza" onclick="copiarLinkBusca()" style="white-space: nowrap">
+                📋 Copiar Link
+              </button>
+              <a
+                id="busca_link_abrir"
+                class="btn"
+                href="/#busca-avancada"
+                target="_blank"
+                style="white-space: nowrap; background: #0f294a; color: #fff"
+              >
+                ↗ Abrir no Sistema
+              </a>
+            </div>
+          </div>
+
+          <label style="margin-top: 10px">
+            Mensagem institucional ADECONT pronta para envio ao cliente:
+          </label>
+          <textarea
+            id="busca_msg_preview"
+            rows="9"
+            style="font-family: monospace; font-size: 0.8rem"
+          ></textarea>
+
+          <div style="display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap">
+            <button class="btn btn-verde" onclick="enviarBuscaWa()">💬 Enviar no WhatsApp</button>
+            <button class="btn btn-azul" onclick="enviarBuscaEmail()">✉️ Enviar por E-mail</button>
+            <button class="btn btn-cinza" onclick="copiarMensagemBusca()">
+              📋 Copiar mensagem
+            </button>
+          </div>
+          <span id="buscaMsg" class="msg"></span>
+        </div>
+
+        <!-- Bloco de Depósito no Banco de Dados -->
+        <div
+          style="
+            background: #fff;
+            border: 1px solid #dbe3ee;
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 14px;
+          "
+        >
+          <h3 style="font-size: 0.9rem; color: #0f294a; margin-bottom: 8px">
+            2. Depositar link da Busca Avançada no banco de dados da Central
+          </h3>
+          <p class="nota" style="margin-bottom: 8px">
+            Registra na coleção <code>install_shortcuts</code> com instruções completas, registrando
+            autor e contador de envios.
+          </p>
+          <div class="row">
+            <div>
+              <label>Título do Envio *</label>
+              <input
+                id="dep_busca_titulo"
+                placeholder="Ex.: 🔍 Busca Avançada — Pesquisa: 'cesta básica'"
+              />
+            </div>
+            <div>
+              <label>Autor / Responsável</label>
+              <input id="dep_busca_autor" value="Equipe ADECONT" />
+            </div>
+          </div>
+          <div style="margin-top: 8px">
+            <label>Observações internas</label>
+            <input
+              id="dep_busca_obs"
+              placeholder="Ex.: Link direto de consulta correlacionada para cliente"
+            />
+          </div>
+          <button
+            class="btn"
+            style="background: #0f294a; color: #fff; margin-top: 10px"
+            onclick="depositarBuscaNoBanco()"
+          >
+            📥 Salvar e Depositar Link no Banco
+          </button>
+          <span id="depBuscaMsg" class="msg"></span>
+        </div>
+
+        <!-- Histórico da Central para Busca Avançada -->
+        <h3 style="font-size: 0.9rem; color: #0f294a; margin-top: 14px; margin-bottom: 6px">
+          3. Histórico de envios e depósitos da Central
+          <span class="count-badge" id="cntHistBusca">0</span>
+        </h3>
+        <div style="overflow-x: auto">
+          <table id="tblHistBusca">
+            <thead>
+              <tr>
+                <th>Título</th>
+                <th>Dispositivo / Tipo</th>
+                <th>URL</th>
+                <th>Autor</th>
+                <th>Envios</th>
+                <th>Data</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
     </main>
     <script>
       // ---------- infra ----------
@@ -819,7 +1006,7 @@
         }, 6000)
       }
       function aba(t) {
-        ;['cad', 'imp', 'env', 'inst', 'base'].forEach(function (x) {
+        ;['cad', 'imp', 'env', 'inst', 'base', 'busca'].forEach(function (x) {
           var el = document.getElementById('tab-' + x)
           if (el) el.style.display = x === t ? 'block' : 'none'
         })
@@ -830,6 +1017,7 @@
         if (t === 'env') carregarEnvios()
         if (t === 'inst') carregarAtalhos()
         if (t === 'base') carregarBaseClassificacoes()
+        if (t === 'busca') carregarBuscaAvancada()
       }
 
       // ---------- cadastro ----------
@@ -1526,6 +1714,240 @@
           tb.appendChild(tr)
         })
         document.getElementById('cntHistBase').textContent = listaAtalhos.length
+      }
+
+      // ---------- busca avançada ----------
+      var listaClientesCache = []
+      function carregarBuscaAvancada() {
+        pb('/api/collections/simul_clientes/records?perPage=500&sort=nome')
+          .then(function (r) {
+            listaClientesCache = r.items || []
+            var sel = document.getElementById('busca_cli_select')
+            sel.innerHTML = '<option value="">— Envio Geral (Sem cliente específico) —</option>'
+            listaClientesCache.forEach(function (c) {
+              var o = document.createElement('option')
+              o.value = c.id
+              o.textContent = c.nome + (c.empresa ? ' • ' + c.empresa : '') + ' (' + c.email + ')'
+              sel.appendChild(o)
+            })
+            atualizarDadosBusca()
+          })
+          .catch(function () {
+            atualizarDadosBusca()
+          })
+
+        pb('/api/collections/install_shortcuts/records?perPage=100&sort=-created')
+          .then(function (r) {
+            listaAtalhos = r.items || []
+            renderTabelaHistBusca()
+          })
+          .catch(function () {
+            renderTabelaHistBusca()
+          })
+      }
+
+      function getUrlBuscaAvancada(termo) {
+        var base = window.location.origin
+        var cleanBase = base.endsWith('/') ? base.slice(0, -1) : base
+        var t = (termo || '').trim()
+        if (t) {
+          return cleanBase + '/#busca-avancada?q=' + encodeURIComponent(t)
+        }
+        return cleanBase + '/#busca-avancada'
+      }
+
+      function atualizarDadosBusca() {
+        var termo = document.getElementById('busca_termo_input').value.trim()
+        var cliId = document.getElementById('busca_cli_select').value
+        var cliente =
+          listaClientesCache.find(function (c) {
+            return c.id === cliId
+          }) || null
+        var url = getUrlBuscaAvancada(termo)
+
+        document.getElementById('busca_url_view').value = url
+        document.getElementById('busca_link_abrir').href = url
+
+        var saudacao = cliente
+          ? 'Prezado(a) ' +
+            cliente.nome +
+            (cliente.empresa ? ' (' + cliente.empresa + ')' : '') +
+            ','
+          : 'Prezado cliente,'
+
+        var detalheTermo = termo
+          ? '\n🔎 *Termo sugerido para consulta:* "' +
+            termo +
+            '" (a pesquisa abrirá já pré-filtrada com todas as normas e impactos correspondentes).\n'
+          : ''
+
+        var tit = termo
+          ? 'Busca Avançada da Reforma Tributária — Pesquisa: "' + termo + '"'
+          : 'Busca Avançada da Reforma Tributária — Pesquisa Correlacionada Completa'
+
+        var msgTxt =
+          '*ADECONT — Assessoria Contábil e Administrativa*\n' +
+          '🔍 *' +
+          tit +
+          '*\n\n' +
+          saudacao +
+          '\n' +
+          'Disponibilizamos o acesso direto ao *Motor Integrado de Busca Avançada da Reforma Tributária* do sistema ADECONT:' +
+          detalheTermo +
+          '\n' +
+          '🔗 *Link Direto da Busca Avançada:*\n' +
+          url +
+          '\n\n' +
+          '📋 *O que você encontrará no sistema:*\n' +
+          '• Pesquisa correlacionada e simultânea em todas as fontes oficiais da Reforma Tributária.\n' +
+          '• Normas e atos atualizados: Emenda Constitucional 132/2023, Lei Complementar 214/2025, Resoluções CGIBS, Decretos federais, convênios estaduais e atos municipais.\n' +
+          '• Base de classificações oficiais: 15.240+ NCMs, cClassTrib, CSTs, cCredPres, CEST, CFOP, NBS e CNAE.\n' +
+          '• Análise completa de tratamentos diferenciados: alíquotas de referência, reduções de 60% e 30%, isenções, alíquota zero e imunidades constitucionais.\n' +
+          '• Gráficos comparativos de desoneração, tabelas correlacionadas e pareceres práticos de aplicação contábil.\n\n' +
+          '🛡️ *Segurança & Garantia:*\n' +
+          '- Sistema atualizado semanalmente pela equipe de especialistas da ADECONT.\n' +
+          '- Navegação otimizada para celulares e computadores.\n\n' +
+          'Assessoria Contábil e Administrativa ADECONT à disposição.'
+
+        document.getElementById('busca_msg_preview').value = msgTxt
+
+        if (!document.getElementById('dep_busca_titulo').value) {
+          document.getElementById('dep_busca_titulo').placeholder = termo
+            ? '🔍 Busca Avançada — Pesquisa: "' + termo + '"'
+            : '🔍 Busca Avançada da Reforma Tributária (Pesquisa Correlacionada)'
+        }
+      }
+
+      function copiarLinkBusca() {
+        var el = document.getElementById('busca_url_view')
+        el.select()
+        navigator.clipboard.writeText(el.value).then(function () {
+          msg('buscaMsg', 'Link da Busca Avançada copiado!', true)
+        })
+      }
+
+      function copiarMensagemBusca() {
+        var el = document.getElementById('busca_msg_preview')
+        el.select()
+        navigator.clipboard.writeText(el.value).then(function () {
+          msg('buscaMsg', 'Mensagem institucional completa copiada!', true)
+        })
+      }
+
+      function enviarBuscaWa() {
+        var cliId = document.getElementById('busca_cli_select').value
+        var cliente =
+          listaClientesCache.find(function (c) {
+            return c.id === cliId
+          }) || null
+        var phone = cliente && cliente.whatsapp ? cliente.whatsapp.replace(/\D/g, '') : ''
+        var txt = document.getElementById('busca_msg_preview').value
+        var waUrl = phone
+          ? 'https://wa.me/' + phone + '?text=' + encodeURIComponent(txt)
+          : 'https://wa.me/?text=' + encodeURIComponent(txt)
+        window.open(waUrl, '_blank')
+      }
+
+      function enviarBuscaEmail() {
+        var cliId = document.getElementById('busca_cli_select').value
+        var cliente =
+          listaClientesCache.find(function (c) {
+            return c.id === cliId
+          }) || null
+        var email = cliente && cliente.email ? encodeURIComponent(cliente.email) : ''
+        var termo = document.getElementById('busca_termo_input').value.trim()
+        var txt = document.getElementById('busca_msg_preview').value
+        var subject = termo
+          ? 'Busca Avançada da Reforma Tributária: "' + termo + '" — ADECONT'
+          : 'Busca Avançada da Reforma Tributária — ADECONT'
+        window.location.href =
+          'mailto:' +
+          email +
+          '?subject=' +
+          encodeURIComponent(subject) +
+          '&body=' +
+          encodeURIComponent(txt)
+      }
+
+      function depositarBuscaNoBanco() {
+        var termo = document.getElementById('busca_termo_input').value.trim()
+        var urlRel = termo ? '/#busca-avancada?q=' + encodeURIComponent(termo) : '/#busca-avancada'
+        var tit =
+          document.getElementById('dep_busca_titulo').value.trim() ||
+          (termo
+            ? '🔍 Busca Avançada — Pesquisa: "' + termo + '"'
+            : '🔍 Busca Avançada da Reforma Tributária (Pesquisa Correlacionada)')
+        var aut = document.getElementById('dep_busca_autor').value.trim() || 'Equipe ADECONT'
+        var obs =
+          document.getElementById('dep_busca_obs').value.trim() ||
+          'Link direto da Busca Avançada ADECONT com pesquisa correlacionada'
+
+        var inst =
+          '1. Acesse o link oficial para abrir o Motor Integrado de Busca Avançada da Reforma Tributária.\n' +
+          (termo
+            ? '2. Pesquisa correlacionada pré-configurada para o termo "' + termo + '".\n'
+            : '2. Pesquise por qualquer ato, classificação NCM, alíquota ou produto.\n') +
+          '3. ADECONT — Assessoria Contábil e Administrativa.'
+
+        pb('/api/collections/install_shortcuts/records', {
+          method: 'POST',
+          body: JSON.stringify({
+            titulo: tit,
+            device_type: 'todos',
+            url: urlRel,
+            instrucoes: inst,
+            observacoes: obs,
+            criado_por: aut,
+            envios_count: 0,
+          }),
+        })
+          .then(function () {
+            msg('depBuscaMsg', 'Link da Busca Avançada depositado com sucesso no banco!', true)
+            document.getElementById('dep_busca_titulo').value = ''
+            document.getElementById('dep_busca_obs').value = ''
+            carregarBuscaAvancada()
+          })
+          .catch(function () {
+            msg('depBuscaMsg', 'Erro ao depositar no banco. Verifique token ou permissões.', false)
+          })
+      }
+
+      function renderTabelaHistBusca() {
+        var tb = document.querySelector('#tblHistBusca tbody')
+        if (!tb) return
+        tb.innerHTML = ''
+        listaAtalhos.forEach(function (s) {
+          var isBusca =
+            (s.url && s.url.indexOf('busca-avancada') >= 0) ||
+            (s.titulo && s.titulo.toLowerCase().indexOf('busca avançada') >= 0)
+          var tr = document.createElement('tr')
+          tr.style.background = isBusca ? '#eff6ff' : ''
+          tr.innerHTML =
+            '<td><b>' +
+            s.titulo +
+            '</b>' +
+            (isBusca ? ' <span class="tag t-recebido">Busca Avançada</span>' : '') +
+            '</td>' +
+            '<td>' +
+            (isBusca ? 'Motor Integrado' : s.device_type) +
+            '</td>' +
+            '<td style="max-width:220px;overflow:hidden;text-overflow:ellipsis"><a href="' +
+            s.url +
+            '" target="_blank" style="color:#0f294a;font-weight:600">' +
+            s.url +
+            '</a></td>' +
+            '<td>' +
+            (s.criado_por || 'Sistema ADECONT') +
+            '</td>' +
+            '<td>' +
+            (s.envios_count || 0) +
+            '</td>' +
+            '<td>' +
+            fmtData(s.created) +
+            '</td>'
+          tb.appendChild(tr)
+        })
+        document.getElementById('cntHistBusca').textContent = listaAtalhos.length
       }
 
       carregarClientes()
