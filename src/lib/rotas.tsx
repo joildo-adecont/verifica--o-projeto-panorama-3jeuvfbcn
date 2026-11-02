@@ -30,6 +30,7 @@ import { SectionRadarNacional } from '@/components/SectionRadarNacional'
 import { SectionBuscaAvancada } from '@/components/SectionBuscaAvancada'
 import { SectionControleVersao } from '@/components/SectionControleVersao'
 import { SectionDiagnosticoTributario } from '@/components/SectionDiagnosticoTributario'
+import { SectionSetor } from '@/components/SectionSetor'
 import { NAVEGACAO } from '@/components/navegacao'
 import type { TaxNormItem } from '@/types/panorama'
 
@@ -114,6 +115,18 @@ const COMPONENTES: Record<string, ComponentType<PropsAba>> = {
   '#historico-atualizacoes': SectionHistoricoAtualizacoes,
   '#lefisc': SectionLefisc,
   '#radar-nacional': SectionRadarNacional,
+  // ── 8 SETORES NOVOS (02/11/2026) ──
+  // Cada um renderiza a MESMA base (SectionSetor) com o id do setor. Um
+  // componente só, oito conteúdos — assim um defeito de layout conserta-se
+  // num lugar e aparece nos oito de uma vez.
+  '#setor-combustiveis': () => <SectionSetor id="combustiveis" />,
+  '#setor-saude': () => <SectionSetor id="saude" />,
+  '#setor-educacao': () => <SectionSetor id="educacao" />,
+  '#setor-turismo': () => <SectionSetor id="turismo" />,
+  '#setor-cooperativas': () => <SectionSetor id="cooperativas" />,
+  '#setor-futebol': () => <SectionSetor id="futebol" />,
+  '#setor-exterior': () => <SectionSetor id="exterior" />,
+  '#setor-diplomatico': () => <SectionSetor id="diplomatico" />,
 }
 
 /**
