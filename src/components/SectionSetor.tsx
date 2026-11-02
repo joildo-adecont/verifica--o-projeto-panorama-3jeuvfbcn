@@ -206,6 +206,8 @@ const SETORES: Setor[] = [
       'Curso livre precisa verificar se está na lista — se não estiver, paga cheio.',
       'Mensalidade e material didático podem ter tratamentos diferentes na mesma nota.',
     ],
+    pendente:
+      'O enquadramento depende de o prestador cumprir os requisitos do regime. A lista de itens de material didático com tratamento próprio vem por anexo — item fora da lista não herda a redução.',
     relacionadas: [
       { label: 'Isenções e Alíquotas', href: '#secao-5' },
       { label: 'Profissionais e Plataformas', href: '#profissionais-plataformas' },
@@ -300,6 +302,8 @@ const SETORES: Setor[] = [
       'O crédito presumido só se aplica nas hipóteses expressas — não é geral.',
       'Documentar o vínculo cooperativo é o que sustenta o tratamento na fiscalização.',
     ],
+    pendente:
+      'O percentual do crédito presumido é fixado por hipótese legal — não é único para todo o setor. Confirme o percentual da sua situação antes de usar o simulador.',
     relacionadas: [
       { label: 'Agronegócio', href: '#agronegocio' },
       { label: 'Simples Nacional', href: '#simples' },
