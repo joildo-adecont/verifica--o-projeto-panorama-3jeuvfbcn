@@ -881,6 +881,116 @@ export const ITEM_INSTALADOR_CEO: LinkNavegacao = {
   setor: 'manutencao',
 }
 
+/* ══════════════════════════════════════════════════════════════════════════
+ * HIERARQUIA — domínio → setor → seção (três degraus)
+ *
+ * Pedido do CEO (02/11/2026): "remontar o sistema em degraus, partindo de um
+ * menu geral e acoplando todos os demais menus".
+ *
+ * O menu lateral lista seções; esta estrutura as ORGANIZA. Quem chega não
+ * precisa saber que existe "seção 6B" — abre Agronegócio.
+ * ══════════════════════════════════════════════════════════════════════════ */
+export interface SetorHierarquia {
+  id: string
+  nome: string
+  base: string
+  Icon: React.ComponentType<{ className?: string }>
+}
+
+export interface DominioHierarquia {
+  id: string
+  numero: string
+  nome: string
+  proposito: string
+  Icon: React.ComponentType<{ className?: string }>
+  cor: string
+  bg: string
+  borda: string
+  setores: SetorHierarquia[]
+}
+
+export const DOMINIOS_HIERARQUIA: DominioHierarquia[] = [
+  {
+    id: 'nucleo',
+    numero: '1',
+    nome: 'Núcleo Tributário',
+    proposito: 'A lei, o fato gerador e o que fica de fora',
+    Icon: Scale,
+    cor: 'text-indigo-700',
+    bg: 'bg-indigo-50',
+    borda: 'border-indigo-300',
+    setores: [],
+  },
+  {
+    id: 'setores',
+    numero: '2',
+    nome: 'Setores da Economia',
+    proposito: 'Cada setor tem regra própria — 14 setores',
+    Icon: Factory,
+    cor: 'text-rose-700',
+    bg: 'bg-rose-50',
+    borda: 'border-rose-300',
+    setores: [],
+  },
+  {
+    id: 'simulacao',
+    numero: '3',
+    nome: 'Simuladores',
+    proposito: 'Calcular o impacto antes de decidir',
+    Icon: Calculator,
+    cor: 'text-emerald-700',
+    bg: 'bg-emerald-50',
+    borda: 'border-emerald-300',
+    setores: [],
+  },
+  {
+    id: 'tabelas',
+    numero: '4',
+    nome: 'Tabelas e Anexos',
+    proposito: 'Onde o item está classificado',
+    Icon: Paperclip,
+    cor: 'text-cyan-700',
+    bg: 'bg-cyan-50',
+    borda: 'border-cyan-300',
+    setores: [],
+  },
+  {
+    id: 'fontes',
+    numero: '5',
+    nome: 'Fontes e Monitoramento',
+    proposito: 'De onde vem o dado e o que mudou',
+    Icon: Radio,
+    cor: 'text-fuchsia-700',
+    bg: 'bg-fuchsia-50',
+    borda: 'border-fuchsia-300',
+    setores: [],
+  },
+  {
+    id: 'sistema',
+    numero: '6',
+    nome: 'Sistema',
+    proposito: 'Gestão, entrega, segurança e manutenção',
+    Icon: Settings2,
+    cor: 'text-slate-700',
+    bg: 'bg-slate-100',
+    borda: 'border-slate-300',
+    setores: [
+      { id: 'gestao', nome: 'Gestão e Entrega', base: 'LC 214/2025 · EC 132/2023', Icon: Gauge },
+      { id: 'manutencao', nome: 'Manutenção', base: 'LC 214/2025 · EC 132/2023', Icon: Wrench },
+    ],
+  },
+]
+
+/** Setores de um domínio, já com as seções que pertencem a eles. */
+export function setoresDoDominio(dominioId: string) {
+  const dom = DOMINIOS_HIERARQUIA.find((d) => d.id === dominioId)
+  if (!dom) return []
+  return dom.setores.map((s) => ({
+    ...s,
+    itens: NAVEGACAO.filter((n) => n.dominio === dominioId && n.setor === s.id),
+  }))
+}
+
 /** Total de seções de conteúdo — usado no painel inicial. */
 export const TOTAL_ITENS = NAVEGACAO.length
 export const TOTAL_GRUPOS = GRUPOS.length
