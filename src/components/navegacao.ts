@@ -83,14 +83,14 @@ export interface LinkNavegacao {
    * devolve vazio para o sinônimo e o usuário conclui que o sistema não tem.
    */
   tags: string[]
-  dominio?: string
-  setor?: string
 }
 
 export interface GrupoNavegacao {
   id: string
   /** segmento para o filtro rápido do menu */
   segmentoKey?: string
+  /** domínios que este segmento agrupa (fonte única da divisão) */
+  dominios?: string[]
   nome: string
   /** frase curta: para que serve este grupo */
   proposito: string
@@ -944,83 +944,105 @@ const INDICADORES: LinkNavegacao[] = [
 ]
 
 /* ─────────────────────────── GRUPOS ─────────────────────────── */
+/**
+ * LISTA ÚNICA DE ITENS — a fonte de verdade dos quatro segmentos.
+ *
+ * Cada segmento filtra esta lista por `dominio`. A vantagem: mover uma seção de
+ * segmento é mover um domínio de lista, nunca reescrever 41 itens.
+ */
+const TODOS_ITENS: LinkNavegacao[] = [
+  ...INDICADORES,
+  ...FUNDAMENTOS,
+  ...SETORES_NOVOS,
+  ...SIMULACAO,
+  ...TABELAS,
+  ...FONTES,
+  ...SISTEMA,
+  ITEM_INSTALADOR_CEO,
+  HOME,
+]
+
 export const GRUPOS: GrupoNavegacao[] = [
+  /* ══════════════════════════════════════════════════════════════════════
+   * QUATRO SEGMENTOS (decisão do CEO, 02/11/2026)
+   *
+   * "Reestruture o menu com os quatro segmentos, estruturados. Os quais,
+   *  posteriormente, serão redefinidos e redimensionados."
+   *
+   * ── O QUE MUDOU ──
+   * Antes eram SETE grupos com tamanhos muito desiguais (1, 7, 14, 1, 3, 6, 7).
+   * Sete abas para 41 itens é menu demais: o primeiro grupo tinha UM item,
+   * enquanto outro tinha catorze. Agora são quatro, com peso equilibrado:
+   *
+   *   SEGMENTO 1 · BASE LEGAL ............  7 itens  a lei e o que ela alcança
+   *   SEGMENTO 2 · SETORES ............... 14 itens  cada regime, um setor
+   *   SEGMENTO 3 · SIMULAÇÃO E TABELAS ...  5 itens  calcular e classificar
+   *   SEGMENTO 4 · FONTES E SISTEMA ...... 14 itens  de onde vem e como se opera
+   *
+   * ── COMO REDEFINIR DEPOIS (é para isso que foi feito assim) ──
+   * Cada segmento declara apenas DUAS coisas: o nome e a lista de domínios que
+   * ele agrupa (`dominios`). Mudar o tamanho de um segmento = mover um domínio
+   * de uma lista para outra. Nenhum item precisa ser tocado, e nenhuma tecla
+   * muda, porque as teclas vivem no ITEM, não no grupo.
+   *
+   *   Para criar um 5º segmento:  acrescente um objeto neste array com nome,
+   *   proposito, ícone e a lista `dominios`. O menu e a home se ajustam.
+   * ══════════════════════════════════════════════════════════════════════ */
+
+  // ── SEGMENTO 1 — BASE LEGAL ───────────────────────────────────────────
   {
-    id: 'indicadores',
-    segmentoKey: 'sistema',
-    nome: 'Indicadores',
-    proposito: 'Bater o olho e entender o sistema',
-    Icon: Gauge,
-    cor: 'text-amber-700',
-    bg: 'bg-amber-100',
-    borda: 'border-amber-400',
-    itens: INDICADORES,
-  },
-  {
-    id: 'fundamentos',
-    segmentoKey: 'fundamentos',
-    nome: 'Fundamentos',
-    proposito: 'A lei e o que ela alcança',
-    Icon: BookOpen,
+    id: 'base-legal',
+    segmentoKey: 'base-legal',
+    nome: 'Base Legal',
+    proposito: 'A lei, o fato gerador, o que fica de fora e o cronograma',
+    Icon: Scale,
     cor: 'text-indigo-700',
     bg: 'bg-indigo-50',
     borda: 'border-indigo-300',
-    itens: FUNDAMENTOS.filter((i) => i.dominio !== 'setores'),
+    dominios: ['nucleo'],
+    itens: TODOS_ITENS.filter((i) => i.dominio === 'nucleo'),
   },
+
+  // ── SEGMENTO 2 — SETORES ──────────────────────────────────────────────
   {
     id: 'setores',
     segmentoKey: 'setores',
-    nome: 'Setores da Economia',
-    proposito: 'Cada setor tem regra própria — 14 setores',
+    nome: 'Setores',
+    proposito: 'Cada regime da LC 214 aplicado ao setor — 14 setores',
     Icon: Factory,
     cor: 'text-rose-700',
     bg: 'bg-rose-50',
     borda: 'border-rose-300',
-    itens: [...FUNDAMENTOS.filter((i) => i.dominio === 'setores'), ...SETORES_NOVOS],
+    dominios: ['setores'],
+    itens: TODOS_ITENS.filter((i) => i.dominio === 'setores'),
   },
+
+  // ── SEGMENTO 3 — SIMULAÇÃO E TABELAS ──────────────────────────────────
   {
-    id: 'simulacao',
-    segmentoKey: 'simulacao',
-    nome: 'Simulação',
-    proposito: 'Calcular por regime e por setor',
+    id: 'simulacao-tabelas',
+    segmentoKey: 'simulacao-tabelas',
+    nome: 'Simulação e Tabelas',
+    proposito: 'Calcular o impacto e achar onde cada item está classificado',
     Icon: Calculator,
     cor: 'text-emerald-700',
     bg: 'bg-emerald-50',
     borda: 'border-emerald-300',
-    itens: SIMULACAO,
+    dominios: ['simulacao', 'tabelas'],
+    itens: TODOS_ITENS.filter((i) => ['simulacao', 'tabelas'].includes(i.dominio || '')),
   },
+
+  // ── SEGMENTO 4 — FONTES E SISTEMA ─────────────────────────────────────
   {
-    id: 'tabelas',
-    segmentoKey: 'tabelas',
-    nome: 'Tabelas',
-    proposito: 'Os itens, os anexos e as datas',
-    Icon: Layers,
-    cor: 'text-rose-700',
-    bg: 'bg-rose-50',
-    borda: 'border-rose-300',
-    itens: TABELAS,
-  },
-  {
-    id: 'fontes',
-    segmentoKey: 'fontes',
-    nome: 'Fontes e Monitor',
-    proposito: 'De onde vem e o que mudou',
+    id: 'fontes-sistema',
+    segmentoKey: 'fontes-sistema',
+    nome: 'Fontes e Sistema',
+    proposito: 'De onde vem o dado, o que mudou, e a operação do programa',
     Icon: Radio,
     cor: 'text-fuchsia-700',
     bg: 'bg-fuchsia-50',
     borda: 'border-fuchsia-300',
-    itens: FONTES,
-  },
-  {
-    id: 'sistema',
-    segmentoKey: 'sistema',
-    nome: 'Sistema',
-    proposito: 'Entregar, controlar e acompanhar',
-    Icon: Settings2,
-    cor: 'text-slate-700',
-    bg: 'bg-slate-100',
-    borda: 'border-slate-300',
-    itens: SISTEMA,
+    dominios: ['fontes', 'sistema'],
+    itens: TODOS_ITENS.filter((i) => ['fontes', 'sistema'].includes(i.dominio || '')),
   },
 ]
 
@@ -1039,7 +1061,6 @@ export const HOME: LinkNavegacao = {
   bg: 'bg-slate-100',
   borda: 'border-slate-300',
   descricao: 'Painel de acompanhamento e atalhos',
-  tags: ['início', 'inicio', 'home', 'painel', 'plataforma', 'geral', 'dashboard'],
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -1073,84 +1094,53 @@ export interface SegmentoSistema {
  */
 export const SEGMENTOS_SISTEMA: SegmentoSistema[] = [
   {
-    id: 'juridico',
-    nome: 'Jurídico',
+    id: 'base-legal',
+    nome: 'Base Legal',
     descricao:
-      'Controle de legalidade, segurança jurídica, interpretação das Leis Complementares 214/2025 e 227/2026, imunidades constitucionais e limites regulatórios do CGIBS.',
+      'A lei e o que ela alcança: normas, fato gerador, cesta básica, imunidades, alíquotas e cronograma.',
     Icon: Scale,
     cor: 'text-indigo-700',
     bg: 'bg-indigo-50',
     borda: 'border-indigo-300',
-    hrefAgente: '#agente-juridico',
-    agenteNome: 'Especialista Jurídico',
-    itens: NAVEGACAO.filter(
-      (i) =>
-        ['nucleo', 'fontes'].includes(i.dominio || '') ||
-        ['#assistentes-seguranca'].includes(i.href),
-    ),
+    hrefAgente: '#secao-1',
+    agenteNome: 'Jurídico',
+    itens: TODOS_ITENS.filter((i) => i.dominio === 'nucleo'),
   },
   {
-    id: 'tributario',
-    nome: 'Tributário',
-    descricao:
-      'Apuração de IBS, CBS e Imposto Seletivo, regimes específicos e diferenciados, reduções de alíquotas (60% e 30%), cestas básicas e classificação fiscal oficial (NCM, NBS, cClassTrib).',
-    Icon: Percent,
+    id: 'setores',
+    nome: 'Setores',
+    descricao: 'Cada regime da LC 214 aplicado ao setor — 14 setores, de imóveis a combustíveis.',
+    Icon: Factory,
+    cor: 'text-rose-700',
+    bg: 'bg-rose-50',
+    borda: 'border-rose-300',
+    hrefAgente: '#setor-combustiveis',
+    agenteNome: 'Contábil',
+    itens: TODOS_ITENS.filter((i) => i.dominio === 'setores'),
+  },
+  {
+    id: 'simulacao-tabelas',
+    nome: 'Simulação e Tabelas',
+    descricao: 'Calcular o impacto antes de decidir e achar onde cada item está classificado.',
+    Icon: Calculator,
     cor: 'text-emerald-700',
     bg: 'bg-emerald-50',
     borda: 'border-emerald-300',
-    hrefAgente: '#agente-tributario',
-    agenteNome: 'Especialista Tributário',
-    itens: NAVEGACAO.filter(
-      (i) =>
-        ['setores', 'simulacao', 'tabelas'].includes(i.dominio || '') || i.href === '#indicadores',
-    ),
+    hrefAgente: '#busca-avancada',
+    agenteNome: 'Contábil',
+    itens: TODOS_ITENS.filter((i) => ['simulacao', 'tabelas'].includes(i.dominio || '')),
   },
   {
-    id: 'contabil',
-    nome: 'Contábil',
-    descricao:
-      'Lançamentos contábeis por fora do IBS/CBS, DRE e Balanço Patrimonial, plano de contas, créditos a recuperar, conciliação de split payment e adequações ao SPED.',
-    Icon: Calculator,
-    cor: 'text-blue-700',
-    bg: 'bg-blue-50',
-    borda: 'border-blue-300',
-    hrefAgente: '#agente-contabil',
-    agenteNome: 'Especialista Contábil',
-    itens: NAVEGACAO.filter(
-      (i) =>
-        ['tabelas', 'simulacao'].includes(i.dominio || '') ||
-        [
-          '#simples',
-          '#financeiros',
-          '#fontes-agregador',
-          '#secao-9',
-          '#historico-atualizacoes',
-        ].includes(i.href),
-    ),
-  },
-  {
-    id: 'administrativo',
-    nome: 'Administrativo',
-    descricao:
-      'Gestão de clientes, fluxo de cadastro e envios, comunicação institucional, rotinas da Central de Entrega, controle de acessos e protocolos com rastreabilidade.',
-    Icon: Building2,
-    cor: 'text-sky-700',
-    bg: 'bg-sky-50',
-    borda: 'border-sky-300',
-    hrefAgente: '#agente-administrativo',
-    agenteNome: 'Especialista Administrativo',
-    itens: NAVEGACAO.filter(
-      (i) =>
-        i.dominio === 'sistema' ||
-        [
-          '#cadastro-envios',
-          '#central-entrega',
-          '#controle-acesso',
-          '#responsividade-celulares',
-          '#mapa',
-          '#instalador-versao',
-        ].includes(i.href),
-    ),
+    id: 'fontes-sistema',
+    nome: 'Fontes e Sistema',
+    descricao: 'De onde vem o dado, com selo de oficialidade, e a operação do programa.',
+    Icon: Radio,
+    cor: 'text-fuchsia-700',
+    bg: 'bg-fuchsia-50',
+    borda: 'border-fuchsia-300',
+    hrefAgente: '#radar-nacional',
+    agenteNome: 'Administrativo',
+    itens: TODOS_ITENS.filter((i) => ['fontes', 'sistema'].includes(i.dominio || '')),
   },
 ]
 
