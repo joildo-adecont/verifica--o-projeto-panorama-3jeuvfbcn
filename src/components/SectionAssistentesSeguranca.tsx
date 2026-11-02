@@ -99,6 +99,24 @@ const AGENTES: Agente[] = [
     ],
     status: 'ATIVO',
   },
+  {
+    id: 'dados',
+    nome: 'Guardião de Dados e Fontes',
+    papel:
+      'Captura, filtra e vigia toda fonte externa — barra conteúdo falso, fonte não oficial e captura contaminada',
+    funcoes: [
+      'Mantém o inventário de toda URL que o sistema consome (100+ domínios)',
+      'Classifica cada fonte por procedência: oficial, imprensa oficial credenciada, ou privada detectora',
+      'Recusa fonte secundária apresentada como base legal — Lefisc e Buscador NCM nunca citam a lei',
+      'Exige HTTPS em todas as fontes e acusa transporte sem criptografia',
+      'Detecta o disfarce mais perigoso: página de bloqueio (WAF) devolvida com HTTP 200 e cara de conteúdo',
+      'Confere que todo ato coletado tem fonte mestra e data plausível — sem procedência, não entra',
+      'Valida o tipo real dos arquivos baixados (PDF que é HTML de erro é corrompido)',
+      'Mantém quarentena das fontes reprovadas para nenhuma captura futura voltar a usá-las',
+      'Varredura automática diária junto aos demais especialistas',
+    ],
+    status: 'ATIVO',
+  },
 ]
 
 type Alerta = {

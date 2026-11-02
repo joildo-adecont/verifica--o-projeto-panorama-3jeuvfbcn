@@ -28,26 +28,35 @@ export function PlataformaHome() {
   }
 
   const segmentosFiltrados = useMemo(() => {
-    if (!busca.trim()) return SEGMENTOS_SISTEMA
+    const listaBase = Array.isArray(SEGMENTOS_SISTEMA) ? SEGMENTOS_SISTEMA : []
+    if (!busca.trim()) return listaBase
     const t = busca.toLowerCase().trim()
-    return SEGMENTOS_SISTEMA.map((seg) => {
-      const itensEncontrados = seg.itens.filter(
-        (i) =>
-          i.label.toLowerCase().includes(t) ||
-          i.descricao.toLowerCase().includes(t) ||
-          i.tags.some((tag) => tag.toLowerCase().includes(t)),
-      )
-      const combinaSegmento =
-        seg.nome.toLowerCase().includes(t) ||
-        seg.descricao.toLowerCase().includes(t) ||
-        seg.agenteNome.toLowerCase().includes(t)
+    return listaBase
+      .map((seg) => {
+        const itensOriginais = Array.isArray(seg.itens) ? seg.itens : []
+        const itensEncontrados = itensOriginais.filter((i) => {
+          if (!i) return false
+          const label = i.label ? i.label.toLowerCase() : ''
+          const desc = i.descricao ? i.descricao.toLowerCase() : ''
+          const tags = Array.isArray(i.tags) ? i.tags : []
+          return (
+            label.includes(t) ||
+            desc.includes(t) ||
+            tags.some((tag) => (tag || '').toLowerCase().includes(t))
+          )
+        })
+        const nome = seg.nome ? seg.nome.toLowerCase() : ''
+        const desc = seg.descricao ? seg.descricao.toLowerCase() : ''
+        const agente = seg.agenteNome ? seg.agenteNome.toLowerCase() : ''
+        const combinaSegmento = nome.includes(t) || desc.includes(t) || agente.includes(t)
 
-      return {
-        ...seg,
-        itens: combinaSegmento && !itensEncontrados.length ? seg.itens : itensEncontrados,
-        visivel: combinaSegmento || itensEncontrados.length > 0,
-      }
-    }).filter((s) => s.visivel)
+        return {
+          ...seg,
+          itens: combinaSegmento && !itensEncontrados.length ? itensOriginais : itensEncontrados,
+          visivel: combinaSegmento || itensEncontrados.length > 0,
+        }
+      })
+      .filter((s) => s.visivel)
   }, [busca])
 
   return (
@@ -146,25 +155,32 @@ export function PlataformaHome() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {segmentosFiltrados.map((seg) => {
-            const { Icon } = seg
+          {(segmentosFiltrados || []).map((seg) => {
+            const Icon = seg.Icon || Bot
+            const itensDoSeg = Array.isArray(seg.itens) ? seg.itens : []
+            const borda = seg.borda || 'border-slate-200'
+            const bg = seg.bg || 'bg-slate-50'
+            const cor = seg.cor || 'text-slate-700'
+            const agente = seg.agenteNome || 'Especialista'
+            const hrefAgente = seg.hrefAgente || '#secao-1'
+
             return (
               <div
                 key={seg.id}
-                className={`rounded-2xl border-2 ${seg.borda} bg-white shadow-sm hover:shadow-md transition-all flex flex-col overflow-hidden group`}
+                className={`rounded-2xl border-2 ${borda} bg-white shadow-sm hover:shadow-md transition-all flex flex-col overflow-hidden group`}
               >
                 {/* Cabeçalho do Card da Área */}
-                <div className={`p-5 ${seg.bg} border-b ${seg.borda}`}>
+                <div className={`p-5 ${bg} border-b ${borda}`}>
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3">
                       <span
-                        className={`flex items-center justify-center w-12 h-12 rounded-xl border-2 ${seg.borda} bg-white shadow-xs ${seg.cor}`}
+                        className={`flex items-center justify-center w-12 h-12 rounded-xl border-2 ${borda} bg-white shadow-xs ${cor}`}
                       >
                         <Icon className="w-6 h-6" />
                       </span>
                       <div>
                         <span
-                          className={`text-[10px] font-black uppercase tracking-wider ${seg.cor} block`}
+                          className={`text-[10px] font-black uppercase tracking-wider ${cor} block`}
                         >
                           Segmento Oficial
                         </span>
@@ -175,12 +191,12 @@ export function PlataformaHome() {
                     </div>
 
                     <button
-                      onClick={() => navegarPara(seg.hrefAgente)}
-                      className={`px-2.5 py-1.5 rounded-lg bg-white border ${seg.borda} text-[11px] font-bold ${seg.cor} hover:bg-slate-50 flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer shrink-0`}
-                      title={`Conversar com o ${seg.agenteNome}`}
+                      onClick={() => navegarPara(hrefAgente)}
+                      className={`px-2.5 py-1.5 rounded-lg bg-white border ${borda} text-[11px] font-bold ${cor} hover:bg-slate-50 flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer shrink-0`}
+                      title={`Conversar com o ${agente}`}
                     >
                       <Bot className="w-3.5 h-3.5" />
-                      <span>{seg.agenteNome}</span>
+                      <span>{agente}</span>
                     </button>
                   </div>
 
@@ -191,11 +207,11 @@ export function PlataformaHome() {
                 <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
                   <div className="space-y-1.5">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block px-1">
-                      Seções deste segmento ({seg.itens.length}):
+                      Seções deste segmento ({itensDoSeg.length}):
                     </span>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-                      {seg.itens.slice(0, 6).map((item) => {
-                        const ItemIcon = item.Icon
+                      {itensDoSeg.slice(0, 6).map((item) => {
+                        const ItemIcon = item.Icon || Bot
                         return (
                           <button
                             key={item.href}
@@ -227,15 +243,15 @@ export function PlataformaHome() {
                   {/* Ação rápida para o Agente e para a Primeira Seção */}
                   <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
                     <button
-                      onClick={() => navegarPara(seg.hrefAgente)}
-                      className={`text-xs font-bold ${seg.cor} hover:underline flex items-center gap-1 cursor-pointer`}
+                      onClick={() => navegarPara(hrefAgente)}
+                      className={`text-xs font-bold ${cor} hover:underline flex items-center gap-1 cursor-pointer`}
                     >
                       <Bot className="w-3.5 h-3.5" />
-                      Abrir tela do {seg.agenteNome} →
+                      Abrir tela do {agente} →
                     </button>
 
                     <button
-                      onClick={() => navegarPara(seg.itens[0]?.href || seg.hrefAgente)}
+                      onClick={() => navegarPara(itensDoSeg[0]?.href || hrefAgente)}
                       className="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-panorama-navy text-white text-[11px] font-bold transition-colors cursor-pointer flex items-center gap-1"
                     >
                       Acessar Seções

@@ -83,6 +83,8 @@ export interface LinkNavegacao {
    * devolve vazio para o sinônimo e o usuário conclui que o sistema não tem.
    */
   tags: string[]
+  dominio?: string
+  setor?: string
 }
 
 export interface GrupoNavegacao {
@@ -1037,6 +1039,7 @@ export const HOME: LinkNavegacao = {
   bg: 'bg-slate-100',
   borda: 'border-slate-300',
   descricao: 'Painel de acompanhamento e atalhos',
+  tags: ['início', 'inicio', 'home', 'painel', 'plataforma', 'geral', 'dashboard'],
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -1070,78 +1073,84 @@ export interface SegmentoSistema {
  */
 export const SEGMENTOS_SISTEMA: SegmentoSistema[] = [
   {
-    id: 'fundamentos',
-    nome: 'Fundamentos',
+    id: 'juridico',
+    nome: 'Jurídico',
     descricao:
-      'A lei e o que ela alcança: normas, fato gerador, cesta básica, imunidades e alíquotas.',
+      'Controle de legalidade, segurança jurídica, interpretação das Leis Complementares 214/2025 e 227/2026, imunidades constitucionais e limites regulatórios do CGIBS.',
     Icon: Scale,
     cor: 'text-indigo-700',
     bg: 'bg-indigo-50',
     borda: 'border-indigo-300',
-    hrefAgente: '#secao-1',
-    agenteNome: 'Jurídico',
-    itens: NAVEGACAO.filter((i) => i.dominio === 'nucleo'),
+    hrefAgente: '#agente-juridico',
+    agenteNome: 'Especialista Jurídico',
+    itens: NAVEGACAO.filter(
+      (i) =>
+        ['nucleo', 'fontes'].includes(i.dominio || '') ||
+        ['#assistentes-seguranca'].includes(i.href),
+    ),
   },
   {
-    id: 'setores',
-    nome: 'Setores da Economia',
+    id: 'tributario',
+    nome: 'Tributário',
     descricao:
-      'Cada setor tem regra própria — 14 regimes: imóveis, agro, financeiro, combustíveis, saúde e mais.',
-    Icon: Factory,
-    cor: 'text-rose-700',
-    bg: 'bg-rose-50',
-    borda: 'border-rose-300',
-    hrefAgente: '#setor-combustiveis',
-    agenteNome: 'Contábil',
-    itens: NAVEGACAO.filter((i) => i.dominio === 'setores'),
-  },
-  {
-    id: 'simulacao',
-    nome: 'Simuladores',
-    descricao: 'Calcular o impacto antes de decidir, por regime e por setor.',
-    Icon: Calculator,
+      'Apuração de IBS, CBS e Imposto Seletivo, regimes específicos e diferenciados, reduções de alíquotas (60% e 30%), cestas básicas e classificação fiscal oficial (NCM, NBS, cClassTrib).',
+    Icon: Percent,
     cor: 'text-emerald-700',
     bg: 'bg-emerald-50',
     borda: 'border-emerald-300',
-    hrefAgente: '#busca-avancada',
-    agenteNome: 'Contábil',
-    itens: NAVEGACAO.filter((i) => i.dominio === 'simulacao'),
+    hrefAgente: '#agente-tributario',
+    agenteNome: 'Especialista Tributário',
+    itens: NAVEGACAO.filter(
+      (i) =>
+        ['setores', 'simulacao', 'tabelas'].includes(i.dominio || '') || i.href === '#indicadores',
+    ),
   },
   {
-    id: 'tabelas',
-    nome: 'Tabelas e Anexos',
-    descricao: 'Onde cada item está classificado, com NCM, tratamento e alíquota.',
-    Icon: Paperclip,
-    cor: 'text-cyan-700',
-    bg: 'bg-cyan-50',
-    borda: 'border-cyan-300',
-    hrefAgente: '#tabela-geral',
-    agenteNome: 'Contábil',
-    itens: NAVEGACAO.filter((i) => i.dominio === 'tabelas'),
+    id: 'contabil',
+    nome: 'Contábil',
+    descricao:
+      'Lançamentos contábeis por fora do IBS/CBS, DRE e Balanço Patrimonial, plano de contas, créditos a recuperar, conciliação de split payment e adequações ao SPED.',
+    Icon: Calculator,
+    cor: 'text-blue-700',
+    bg: 'bg-blue-50',
+    borda: 'border-blue-300',
+    hrefAgente: '#agente-contabil',
+    agenteNome: 'Especialista Contábil',
+    itens: NAVEGACAO.filter(
+      (i) =>
+        ['tabelas', 'simulacao'].includes(i.dominio || '') ||
+        [
+          '#simples',
+          '#financeiros',
+          '#fontes-agregador',
+          '#secao-9',
+          '#historico-atualizacoes',
+        ].includes(i.href),
+    ),
   },
   {
-    id: 'fontes',
-    nome: 'Fontes e Monitoramento',
-    descricao: 'De onde vem o dado, com selo de oficialidade, e o que mudou.',
-    Icon: Radio,
-    cor: 'text-fuchsia-700',
-    bg: 'bg-fuchsia-50',
-    borda: 'border-fuchsia-300',
-    hrefAgente: '#radar-nacional',
-    agenteNome: 'Administrativo',
-    itens: NAVEGACAO.filter((i) => i.dominio === 'fontes'),
-  },
-  {
-    id: 'sistema',
-    nome: 'Sistema',
-    descricao: 'Gestão, entrega ao cliente, segurança e manutenção do próprio programa.',
-    Icon: Settings2,
-    cor: 'text-slate-700',
-    bg: 'bg-slate-100',
-    borda: 'border-slate-300',
-    hrefAgente: '#mapa',
-    agenteNome: 'Engenheiro',
-    itens: NAVEGACAO.filter((i) => i.dominio === 'sistema'),
+    id: 'administrativo',
+    nome: 'Administrativo',
+    descricao:
+      'Gestão de clientes, fluxo de cadastro e envios, comunicação institucional, rotinas da Central de Entrega, controle de acessos e protocolos com rastreabilidade.',
+    Icon: Building2,
+    cor: 'text-sky-700',
+    bg: 'bg-sky-50',
+    borda: 'border-sky-300',
+    hrefAgente: '#agente-administrativo',
+    agenteNome: 'Especialista Administrativo',
+    itens: NAVEGACAO.filter(
+      (i) =>
+        i.dominio === 'sistema' ||
+        [
+          '#cadastro-envios',
+          '#central-entrega',
+          '#controle-acesso',
+          '#responsividade-celulares',
+          '#mapa',
+          '#instalador-versao',
+        ].includes(i.href),
+    ),
   },
 ]
 
