@@ -312,7 +312,12 @@ export default function Index() {
           {/* Instalação do app: fora da área que rola, para o botão não
               desaparecer quando a aba é longa. Ele mesmo decide se aparece
               (some quando já instalado e no desktop sem suporte). */}
-          <BotaoInstalar />
+          {/* Instalação do app: SÓ no Início. Medido em 02/11/2026: dentro de
+              uma seção com formulário (simulador de combustíveis) o botão
+              flutuante cobria o campo "Quantidade" — o usuário não conseguia
+              tocar no input. No Início não há formulário, então ele não
+              atrapalha ninguém. */}
+          {!rota && <BotaoInstalar />}
         </main>
       </div>
     </div>
