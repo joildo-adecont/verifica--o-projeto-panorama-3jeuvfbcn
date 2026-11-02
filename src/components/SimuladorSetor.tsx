@@ -1100,7 +1100,7 @@ function SimDiplomatico() {
 
 /* ══════════════════════════ registro e componente público ═════════════════ */
 
-const SIMULADORES: Record<string, () => JSX.Element> = {
+const SIMULADORES: Record<string, () => React.ReactElement> = {
   combustiveis: SimCombustiveis,
   saude: SimSaude,
   educacao: SimEducacao,

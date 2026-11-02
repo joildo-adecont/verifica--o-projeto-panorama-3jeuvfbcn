@@ -1,5 +1,5 @@
 import type { ComponentType } from 'react'
-import { SectionNorms, type SectionNormsProps } from '@/components/SectionNorms'
+import { SectionNorms } from '@/components/SectionNorms'
 import { SectionFatoGerador } from '@/components/SectionFatoGerador'
 import { SectionCestaBasica } from '@/components/SectionCestaBasica'
 import { SectionImunidades } from '@/components/SectionImunidades'

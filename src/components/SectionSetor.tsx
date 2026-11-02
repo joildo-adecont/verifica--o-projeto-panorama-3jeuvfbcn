@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { SimuladorSetor } from '@/components/SimuladorSetor'
 import {
   Fuel,
   HeartPulse,
@@ -448,7 +449,7 @@ const SETORES: Setor[] = [
 
 export function SectionSetor({ id }: { id: string }) {
   const setor = SETORES.find((s) => s.id === id)
-  const [aba, setAba] = useState<'regras' | 'pratica' | 'base'>('regras')
+  const [aba, setAba] = useState<'regras' | 'pratica' | 'simulador' | 'base'>('regras')
 
   if (!setor) return null
   const Icon = setor.Icon
@@ -488,6 +489,7 @@ export function SectionSetor({ id }: { id: string }) {
           [
             ['regras', 'Regras do regime', Layers],
             ['pratica', 'Na prática', CheckCircle2],
+            ['simulador', 'Simulador', Calculator],
             ['base', 'Base legal', BookOpen],
           ] as const
         ).map(([k, rotulo, I]) => (
@@ -535,6 +537,8 @@ export function SectionSetor({ id }: { id: string }) {
           ))}
         </ul>
       )}
+
+      {aba === 'simulador' && <SimuladorSetor id={setor.id} />}
 
       {aba === 'base' && (
         <div className="space-y-3">
