@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { X, Search, ChevronRight, ChevronDown } from 'lucide-react'
-import { GRUPOS, HOME } from '@/components/navegacao'
+import { GRUPOS, HOME, DOMINIOS_HIERARQUIA } from '@/components/navegacao'
 
 /**
  * MENU LATERAL — agora NAVEGA ENTRE ABAS (29/10/2026)
@@ -29,11 +29,19 @@ import { GRUPOS, HOME } from '@/components/navegacao'
 
 const GRUPOS_UI = GRUPOS.map((g) => ({
   ...g,
+  /* dominioId liga o grupo a um domínio da hierarquia, para o nível setor
+   * saber onde buscar o nome e o ícone de cada setor. Sem este campo o
+   * segundo nível não teria como resolver 'combustiveis' -> "Combustíveis". */
+  /* O id do grupo NÃO é sempre o id do domínio ('fundamentos' contém seções do
+   * domínio 'nucleo'). Deduzimos o domínio do próprio item — é a fonte de
+   * verdade — e o grupo só agrupa. */
+  dominioId: g.itens.find((i) => i.dominio)?.dominio || g.id,
   itens: g.itens.map((n) => ({
     id: n.href,
     tecla: n.tecla,
     numero: n.numero || '',
     label: n.label,
+    setor: n.setor,
     Icon: n.Icon,
     cor: n.cor,
     bg: n.bg,
@@ -247,7 +255,61 @@ export function PanoramaSideMenu() {
               </button>
 
               {!fechado &&
-                g.visiveis.map((item) => {
+                /* ── NÍVEL 2: SETOR (02/11/2026) ──
+                 * Antes de listar as seções, agrupa por setor. Sem isto, o
+                 * grupo "Setores da Economia" abriria 14 rótulos soltos e a
+                 * hierarquia existiria só no papel. Com isto, o usuário vê
+                 * "Combustíveis", "Saúde", "Educação"… e abre o que interessa.
+                 * Quando o grupo tem menos de 7 itens, o nível setor é omitido:
+                 * um degrau a mais para 2 itens só atrapalharia. */
+                (() => {
+                  const setoresDoGrupo = Array.from(
+                    new Set(g.visiveis.map((i) => i.setor).filter(Boolean)),
+                  ) as string[]
+                  const usarNivelSetor = setoresDoGrupo.length > 1 && g.visiveis.length >= 7
+                  const blocos: { setor: string | null; itens: typeof g.visiveis }[] = usarNivelSetor
+                    ? setoresDoGrupo.map((s) => ({
+                        setor: s,
+                        itens: g.visiveis.filter((i) => i.setor === s),
+                      }))
+                    : [{ setor: null, itens: g.visiveis }]
+
+                  return blocos.map((bloco) => {
+                    const nomeSetor = bloco.setor
+                      ? DOMINIOS_HIERARQUIA.find((d) => d.id === g.dominioId)?.setores.find(
+                          (s) => s.id === bloco.setor,
+                        )
+                      : null
+                    const SetorIcon = nomeSetor?.Icon
+                    const setorFechado = !!fechados[`${g.id}:${bloco.setor}`]
+                    return (
+                      <div key={bloco.setor || 'flat'}>
+                        {nomeSetor && (
+                          <button
+                            onClick={() =>
+                              setFechados((v) => ({
+                                ...v,
+                                [`${g.id}:${bloco.setor}`]: !v[`${g.id}:${bloco.setor}`],
+                              }))
+                            }
+                            className="flex w-full items-center gap-1.5 px-3 py-1 pl-5 text-left hover:bg-slate-50"
+                          >
+                            <ChevronDown
+                              className={`h-2.5 w-2.5 shrink-0 text-slate-400 transition-transform ${
+                                setorFechado ? '-rotate-90' : ''
+                              }`}
+                            />
+                            {SetorIcon && <SetorIcon className="h-3 w-3 shrink-0 text-slate-500" />}
+                            <span className="flex-1 truncate text-[10.5px] font-bold text-slate-600">
+                              {nomeSetor.nome}
+                            </span>
+                            <span className="font-mono text-[9px] text-slate-400">
+                              {bloco.itens.length}
+                            </span>
+                          </button>
+                        )}
+                        {(!nomeSetor || !setorFechado) &&
+                          bloco.itens.map((item) => {
                   const { Icon } = item
                   const isAtivo = ativo === item.id.replace('#', '')
                   return (
@@ -278,7 +340,11 @@ export function PanoramaSideMenu() {
                       </kbd>
                     </button>
                   )
-                })}
+                          })}
+                      </div>
+                    )
+                  })
+                })()}
             </div>
           )
         })}
