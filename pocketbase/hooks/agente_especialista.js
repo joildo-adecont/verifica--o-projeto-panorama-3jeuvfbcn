@@ -62,6 +62,31 @@ routerAdd('POST', '/backend/v1/agente-especialista/chat', (e) => {
       return e.json(500, { error: 'Usuário de serviço para o agente não encontrado.' })
     }
 
+    // Consulta em tempo real às fontes externas oficiais (Senado, DOU, normas.leg.br, Câmara, CGIBS)
+    var dadosExternos = null
+    var avisoFallback = ''
+    try {
+      if (typeof globalThis.buscarDadosExternosAgente === 'function') {
+        dadosExternos = globalThis.buscarDadosExternosAgente(message, segmentoRaw)
+      }
+    } catch (errBuscaExt) {
+      console.log('Erro ao buscar dados externos no especialista:', errBuscaExt)
+    }
+
+    var promptParaAgente = message
+    if (dadosExternos && dadosExternos.contextoFormatado) {
+      promptParaAgente = dadosExternos.contextoFormatado + '\n\nPergunta do usuário:\n' + message
+    } else if (
+      dadosExternos &&
+      dadosExternos.fontesComFalha &&
+      dadosExternos.fontesComFalha.length > 0
+    ) {
+      avisoFallback =
+        'Nota: A consulta externa em tempo real às fontes (' +
+        dadosExternos.fontesComFalha.join(', ') +
+        ') esteve temporariamente indisponível no momento; a resposta foi fundamentada na base normativa oficial interna do sistema.\n\n'
+    }
+
     const agent = $ai.agent(slug)
 
     if (stream) {
@@ -73,7 +98,7 @@ routerAdd('POST', '/backend/v1/agente-especialista/chat', (e) => {
       const iter = agent.chat({
         user_id: userId,
         conversation_id: conv.id,
-        message: message,
+        message: promptParaAgente,
         stream: true,
       })
 
@@ -88,16 +113,29 @@ routerAdd('POST', '/backend/v1/agente-especialista/chat', (e) => {
     const result = agent.chat({
       user_id: userId,
       conversation_id: conversationId,
-      message: message,
+      message: promptParaAgente,
     })
+
+    var respostaFinal = result.content
+    if (avisoFallback && !respostaFinal.includes('temporariamente indisponível')) {
+      respostaFinal = avisoFallback + respostaFinal
+    }
 
     return e.json(200, {
       conversation_id: result.conversation_id,
-      content: result.content,
+      content: respostaFinal,
       citations: result.citations || [],
       message_id: result.message_id,
       segmento: segmentoRaw,
       slug: slug,
+      dados_externos: dadosExternos
+        ? {
+            sucesso: dadosExternos.sucesso,
+            fontes_sucesso: dadosExternos.fontesComSucesso,
+            fontes_falha: dadosExternos.fontesComFalha,
+            total_itens: dadosExternos.itens?.length || 0,
+          }
+        : null,
     })
   } catch (err) {
     console.error('Erro no agente especialista:', err)

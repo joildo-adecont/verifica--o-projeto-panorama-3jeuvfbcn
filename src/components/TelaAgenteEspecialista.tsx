@@ -127,6 +127,10 @@ export function TelaAgenteEspecialista({
               <span className="px-2.5 py-0.5 rounded-full text-[11px] font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
                 Bases Oficiais Conectadas
               </span>
+              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-cyan-500/20 text-cyan-200 border border-cyan-500/30 flex items-center gap-1">
+                <CheckCircle2 className="w-3 h-3 text-cyan-300" />
+                Consulta fontes oficiais: Senado · DOU · Câmara · CGIBS
+              </span>
             </div>
 
             <div className="flex items-baseline gap-3">
@@ -188,9 +192,13 @@ export function TelaAgenteEspecialista({
                 <span className="px-1.5 py-0.2 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
                   Nativo Online
                 </span>
+                <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.2 rounded text-[10px] font-semibold bg-cyan-50 text-cyan-800 border border-cyan-200">
+                  <CheckCircle2 className="w-3 h-3 text-cyan-600" />
+                  Fontes oficiais em tempo real: Senado · DOU · Câmara · CGIBS
+                </span>
               </div>
               <p className="text-[11px] text-slate-500">
-                Respostas fundamentadas com citação de diploma legal e ato oficial
+                Respostas fundamentadas com citação de diploma legal, ato oficial e dados externos
               </p>
             </div>
           </div>

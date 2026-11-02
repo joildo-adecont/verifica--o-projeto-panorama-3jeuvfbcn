@@ -193,6 +193,31 @@ function Linha({ k, v, forte }: { k: string; v: string; forte?: boolean }) {
   )
 }
 
+/**
+ * BOTÃO DE ENVIO — o mesmo canal das Seções 6A–6F.
+ *
+ * O simulador geral (`/simulador.html`) já sabe receber `?q=termo&enviar=1`:
+ * pré-preenche a busca com o termo e abre o painel de envio, que gera o
+ * protocolo SIM-AAAAMMDD-XXXXXX e manda por e-mail ao cliente.
+ *
+ * O `q` é o termo do CATÁLOGO que representa o setor — não o nome da seção.
+ * "combustíveis" acha o item certo; "setor de combustíveis" varreria 1.002
+ * registros sem casar nada.
+ */
+function BotaoEnviar({ termo, label }: { termo: string; label: string }) {
+  const href = `/simulador.html?q=${encodeURIComponent(termo)}&enviar=1`
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-panorama-gold to-panorama-gold-dark px-4 py-3 text-[13px] font-bold text-panorama-navy shadow-md transition-shadow hover:shadow-lg"
+    >
+      📤 {label} — via Simulador Geral
+    </a>
+  )
+}
+
 function Rodape({ itens }: { itens: string[] }) {
   return (
     <div className="mt-3 flex flex-wrap gap-1.5 rounded-lg bg-slate-50 p-2">
