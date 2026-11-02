@@ -1,5 +1,5 @@
 import type { ComponentType } from 'react'
-import { SectionNorms } from '@/components/SectionNorms'
+import { SectionNorms, type SectionNormsProps } from '@/components/SectionNorms'
 import { SectionFatoGerador } from '@/components/SectionFatoGerador'
 import { SectionCestaBasica } from '@/components/SectionCestaBasica'
 import { SectionImunidades } from '@/components/SectionImunidades'
@@ -15,168 +15,329 @@ import { SectionAnexos } from '@/components/SectionAnexos'
 import { SectionTabelaGeral } from '@/components/SectionTabelaGeral'
 import { SectionCronograma } from '@/components/SectionCronograma'
 import { SectionIndicadores } from '@/components/SectionIndicadores'
-import { SectionCadastroEnvios } from '@/components/SectionCadastroEnvios'
 import { SectionFontes } from '@/components/SectionFontes'
-import { SectionFontesAgregador } from '@/components/SectionFontesAgregador'
 import { SectionFontesPrimarias } from '@/components/SectionFontesPrimarias'
+import { SectionFontesAgregador } from '@/components/SectionFontesAgregador'
 import { SectionMonitorLegislativo } from '@/components/SectionMonitorLegislativo'
+import { SectionDiagnosticoTributario } from '@/components/SectionDiagnosticoTributario'
+import { SectionHistoricoAtualizacoes } from '@/components/SectionHistoricoAtualizacoes'
+import { SectionCadastroEnvios } from '@/components/SectionCadastroEnvios'
 import { SectionCentralEntrega } from '@/components/SectionCentralEntrega'
 import { SectionAssistentesSeguranca } from '@/components/SectionAssistentesSeguranca'
 import { SectionControleAcesso } from '@/components/SectionControleAcesso'
 import { SectionResponsividade } from '@/components/SectionResponsividade'
-import { SectionHistoricoAtualizacoes } from '@/components/SectionHistoricoAtualizacoes'
 import { SectionLefisc } from '@/components/SectionLefisc'
 import { SectionRadarNacional } from '@/components/SectionRadarNacional'
+import { SectionSetor } from '@/components/SectionSetor'
 import { SectionBuscaAvancada } from '@/components/SectionBuscaAvancada'
 import { SectionControleVersao } from '@/components/SectionControleVersao'
-import { SectionDiagnosticoTributario } from '@/components/SectionDiagnosticoTributario'
-import { SectionSetor } from '@/components/SectionSetor'
-import { NAVEGACAO } from '@/components/navegacao'
-import type { TaxNormItem } from '@/types/panorama'
+import { SectionEspecialistaJuridico } from '@/components/SectionEspecialistaJuridico'
+import { SectionEspecialistaTributario } from '@/components/SectionEspecialistaTributario'
+import { SectionEspecialistaContabil } from '@/components/SectionEspecialistaContabil'
+import { SectionEspecialistaAdministrativo } from '@/components/SectionEspecialistaAdministrativo'
 
-/**
- * ROTEADOR DE ABAS — uma seção por vez
- *
- * ── O PROBLEMA QUE ISTO RESOLVE (pedido do CEO, 29/10/2026) ──
- * "Coloque em cada aba o seu conteúdo. Não necessitando de rolagem de tela.
- *  Cada aba com o seu conteúdo interno."
- *
- * Antes: as 24 seções ficavam EMPILHADAS numa página única de rolagem enorme. Clicar
- * no menu era rolar até a âncora — o conteúdo anterior continuava ali, acima e abaixo,
- * e o CEO precisava atravessar tudo para chegar no que queria. Numa página de 24
- * seções, "ir para o Simples" significava rolar por dentro de outras dez.
- *
- * Agora: cada item do menu troca a SEÇÃO RENDERIZADA. Só existe no DOM a aba aberta.
- * A página não tem mais rolagem entre assuntos: a rolagem que restar é a do conteúdo
- * daquela aba, e nada mais.
- *
- * ── POR QUE HASH E NÃO ESTADO INTERNO ──
- * Os links internos que já existem (`href="#tabela-geral"` na Central de Indicadores,
- * no Monitor e no painel inicial) continuam funcionando sem alteração: mudar o hash
- * dispara o mesmo roteador. Estado interno quebraria esses 8 links espalhados.
- * Também dá link compartilhável e o botão Voltar do navegador funciona.
- */
-
-/**
- * Props que o roteador injeta. Só a Seção 1 (Normas) precisa delas de fato — recebe
- * a lista de normas filtrada pela busca do header. As outras 25 não recebem nada, por
- * isso tudo é opcional: assim um único tipo serve para as 26 abas.
- */
-export interface PropsAba {
-  norms?: TaxNormItem[]
-  loading?: boolean
-}
-
-export interface RotaAba {
-  /** hash sem "#" — é a chave da rota */
+export interface AbaConfig {
   id: string
-  /** componente que a aba renderiza */
-  Componente: ComponentType<PropsAba>
-  /** título da aba, para trilha e navegação */
   titulo: string
-  /** número/identificação da seção, para o contexto na trilha */
   grupo: string
+  Componente: ComponentType<any>
 }
 
-/**
- * Uma entrada por item de navegação — a fonte é `navegacao.ts`, sem lista paralela.
- * SectionNorms é a única que exige `norms`; o cast alinha a assinatura ao tipo comum
- * do roteador sem mentir sobre quem usa a prop (o Index sempre a passa).
- */
-const COMPONENTES: Record<string, ComponentType<PropsAba>> = {
-  '#instalador-versao': SectionControleVersao,
-  '#busca-avancada': SectionBuscaAvancada,
-  '#secao-1': SectionNorms as ComponentType<PropsAba>,
-  '#secao-2': SectionFatoGerador,
-  '#secao-3': SectionCestaBasica,
-  '#secao-4': SectionImunidades,
-  '#secao-5': SectionIsencoesAlíquotas,
-  '#secao-6': SectionRegimesEspecificos,
-  '#regime-imobiliario': SectionRegimeImobiliario,
-  '#agronegocio': SectionAgronegocio,
-  '#consorcios': SectionConsorcios,
-  '#financeiros': SectionFinanceiros,
-  '#simples': SectionSimples,
-  '#profissionais-plataformas': SectionProfissionaisPlataformas,
-  '#secao-7': SectionAnexos,
-  '#tabela-geral': SectionTabelaGeral,
-  '#secao-8': SectionCronograma,
-  '#indicadores': SectionIndicadores,
-  '#secao-9': SectionFontes,
-  '#fontes-agregador': SectionFontesAgregador,
-  '#fontes-primarias': SectionFontesPrimarias,
-  '#monitor-legislativo': SectionMonitorLegislativo,
-  '#diagnostico-tributario': SectionDiagnosticoTributario,
-  '#cadastro-envios': SectionCadastroEnvios,
-  '#central-entrega': SectionCentralEntrega,
-  '#assistentes-seguranca': SectionAssistentesSeguranca,
-  '#controle-acesso': SectionControleAcesso,
-  '#responsividade-celulares': SectionResponsividade,
-  '#historico-atualizacoes': SectionHistoricoAtualizacoes,
-  '#lefisc': SectionLefisc,
-  '#radar-nacional': SectionRadarNacional,
-  // ── 8 SETORES NOVOS (02/11/2026) ──
-  // Cada um renderiza a MESMA base (SectionSetor) com o id do setor. Um
-  // componente só, oito conteúdos — assim um defeito de layout conserta-se
-  // num lugar e aparece nos oito de uma vez.
-  '#setor-combustiveis': () => <SectionSetor id="combustiveis" />,
-  '#setor-saude': () => <SectionSetor id="saude" />,
-  '#setor-educacao': () => <SectionSetor id="educacao" />,
-  '#setor-turismo': () => <SectionSetor id="turismo" />,
-  '#setor-cooperativas': () => <SectionSetor id="cooperativas" />,
-  '#setor-futebol': () => <SectionSetor id="futebol" />,
-  '#setor-exterior': () => <SectionSetor id="exterior" />,
-  '#setor-diplomatico': () => <SectionSetor id="diplomatico" />,
-}
-
-/**
- * Abas na ordem em que aparecem no menu — a mesma ordem de antes (grupo a grupo),
- * para o "próximo" e o "anterior" fazerem sentido.
- * Derivada de NAVEGACAO: nenhum item pode existir no menu e faltar aqui.
- */
-export const ABAS: RotaAba[] = NAVEGACAO.map((item) => {
-  const Componente = COMPONENTES[item.href]
-  return {
-    id: item.href.replace('#', ''),
-    Componente,
-    titulo: item.label,
-    grupo: item.numero || '',
-  }
-}).filter((a) => Boolean(a.Componente))
-
-/** Id da rota "Início" — painel de acompanhamento, não é uma seção de conteúdo. */
 export const ID_INICIO = 'inicio'
 
 /**
- * Âncoras internas que vivem DENTRO de uma aba. Como agora só a aba ativa é
- * montada, um link para #contato não pode abrir a seção sozinho — ele precisa
- * abrir a aba que o contém. Mapa explícito, curto, para não adivinhar.
+ * Mapeamento completo de abas do sistema Panorama ADECONT.
  */
-const DENTRO_DE_UMA_ABA: Record<string, string> = {
-  contato: 'secao-9',
-  inicio: ID_INICIO,
+export const ABAS: AbaConfig[] = [
+  // Topo CEO & Busca
+  {
+    id: 'instalador-versao',
+    titulo: 'Instalador e Controle de Versão do Programa',
+    grupo: '1',
+    Componente: SectionControleVersao,
+  },
+  {
+    id: 'busca-avancada',
+    titulo: 'Busca Avançada',
+    grupo: 'BUSCA',
+    Componente: SectionBuscaAvancada,
+  },
+
+  // Segmento Jurídico
+  {
+    id: 'agente-juridico',
+    titulo: 'Especialista Jurídico ADECONT',
+    grupo: 'JUR',
+    Componente: SectionEspecialistaJuridico,
+  },
+  {
+    id: 'secao-1',
+    titulo: 'Normas',
+    grupo: '1',
+    Componente: SectionNorms,
+  },
+  {
+    id: 'secao-4',
+    titulo: 'Imunidades',
+    grupo: '4',
+    Componente: SectionImunidades,
+  },
+  {
+    id: 'secao-9',
+    titulo: 'Fontes & Atualização',
+    grupo: '9',
+    Componente: SectionFontes,
+  },
+  {
+    id: 'fontes-primarias',
+    titulo: 'Fontes Primárias (115 Bases)',
+    grupo: '12',
+    Componente: SectionFontesPrimarias,
+  },
+  {
+    id: 'lefisc',
+    titulo: 'Acesso Lefisc',
+    grupo: '18',
+    Componente: SectionLefisc,
+  },
+
+  // Segmento Tributário
+  {
+    id: 'agente-tributario',
+    titulo: 'Especialista Tributário ADECONT',
+    grupo: 'TRIB',
+    Componente: SectionEspecialistaTributario,
+  },
+  {
+    id: 'monitor-legislativo',
+    titulo: 'Monitor Legislativo',
+    grupo: '12A',
+    Componente: SectionMonitorLegislativo,
+  },
+  {
+    id: 'diagnostico-tributario',
+    titulo: 'Diagnóstico Tributário',
+    grupo: '12B',
+    Componente: SectionDiagnosticoTributario,
+  },
+  {
+    id: 'radar-nacional',
+    titulo: 'Radar Nacional',
+    grupo: '19',
+    Componente: SectionRadarNacional,
+  },
+  {
+    id: 'secao-2',
+    titulo: 'Fato Gerador',
+    grupo: '2',
+    Componente: SectionFatoGerador,
+  },
+  {
+    id: 'secao-3',
+    titulo: 'Cesta Básica',
+    grupo: '3',
+    Componente: SectionCestaBasica,
+  },
+  {
+    id: 'secao-5',
+    titulo: 'Isenções e Alíquotas',
+    grupo: '5',
+    Componente: SectionIsencoesAlíquotas,
+  },
+  {
+    id: 'secao-6',
+    titulo: 'Regimes Específicos',
+    grupo: '6',
+    Componente: SectionRegimesEspecificos,
+  },
+  {
+    id: 'regime-imobiliario',
+    titulo: 'Regime Imobiliário',
+    grupo: '6A',
+    Componente: SectionRegimeImobiliario,
+  },
+  {
+    id: 'agronegocio',
+    titulo: 'Agronegócio',
+    grupo: '6B',
+    Componente: SectionAgronegocio,
+  },
+  {
+    id: 'consorcios',
+    titulo: 'Consórcios',
+    grupo: '6C',
+    Componente: SectionConsorcios,
+  },
+  {
+    id: 'financeiros',
+    titulo: 'Financeiros',
+    grupo: '6D',
+    Componente: SectionFinanceiros,
+  },
+  {
+    id: 'simples',
+    titulo: 'Simples Nacional',
+    grupo: '6E',
+    Componente: SectionSimples,
+  },
+  {
+    id: 'profissionais-plataformas',
+    titulo: 'Profissionais e Plataformas',
+    grupo: '6F',
+    Componente: SectionProfissionaisPlataformas,
+  },
+  {
+    id: 'setor-combustiveis',
+    titulo: 'Combustíveis e Energia',
+    grupo: '20',
+    Componente: () => <SectionSetor id="combustiveis" />,
+  },
+  {
+    id: 'setor-saude',
+    titulo: 'Saúde e Planos',
+    grupo: '21',
+    Componente: () => <SectionSetor id="saude" />,
+  },
+  {
+    id: 'setor-educacao',
+    titulo: 'Educação',
+    grupo: '22',
+    Componente: () => <SectionSetor id="educacao" />,
+  },
+  {
+    id: 'setor-turismo',
+    titulo: 'Bares, Restaurantes e Turismo',
+    grupo: '23',
+    Componente: () => <SectionSetor id="turismo" />,
+  },
+  {
+    id: 'setor-cooperativas',
+    titulo: 'Cooperativas',
+    grupo: '24',
+    Componente: () => <SectionSetor id="cooperativas" />,
+  },
+  {
+    id: 'setor-futebol',
+    titulo: 'Sociedade Anônima do Futebol',
+    grupo: '25',
+    Componente: () => <SectionSetor id="futebol" />,
+  },
+  {
+    id: 'setor-exterior',
+    titulo: 'Comércio Exterior e ZFM',
+    grupo: '26',
+    Componente: () => <SectionSetor id="exterior" />,
+  },
+  {
+    id: 'setor-diplomatico',
+    titulo: 'Missões Diplomáticas',
+    grupo: '27',
+    Componente: () => <SectionSetor id="diplomatico" />,
+  },
+
+  // Segmento Contábil
+  {
+    id: 'agente-contabil',
+    titulo: 'Especialista Contábil ADECONT',
+    grupo: 'CONT',
+    Componente: SectionEspecialistaContabil,
+  },
+  {
+    id: 'tabela-geral',
+    titulo: 'Tabela Geral dos Anexos',
+    grupo: '7A',
+    Componente: SectionTabelaGeral,
+  },
+  {
+    id: 'secao-7',
+    titulo: 'Anexos',
+    grupo: '7',
+    Componente: SectionAnexos,
+  },
+  {
+    id: 'secao-8',
+    titulo: 'Cronograma 2026–2033',
+    grupo: '8',
+    Componente: SectionCronograma,
+  },
+  {
+    id: 'indicadores',
+    titulo: 'Central de Indicadores',
+    grupo: '8A',
+    Componente: SectionIndicadores,
+  },
+  {
+    id: 'fontes-agregador',
+    titulo: 'Fontes de Referência (Agregadores)',
+    grupo: '11',
+    Componente: SectionFontesAgregador,
+  },
+
+  // Segmento Administrativo
+  {
+    id: 'agente-administrativo',
+    titulo: 'Especialista Administrativo ADECONT',
+    grupo: 'ADM',
+    Componente: SectionEspecialistaAdministrativo,
+  },
+  {
+    id: 'cadastro-envios',
+    titulo: 'Cadastro de Clientes & Envios',
+    grupo: '9A',
+    Componente: SectionCadastroEnvios,
+  },
+  {
+    id: 'central-entrega',
+    titulo: 'Central de Entrega',
+    grupo: '14',
+    Componente: SectionCentralEntrega,
+  },
+  {
+    id: 'assistentes-seguranca',
+    titulo: 'Assistentes & Segurança',
+    grupo: '15',
+    Componente: SectionAssistentesSeguranca,
+  },
+  {
+    id: 'controle-acesso',
+    titulo: 'Níveis de Acesso (CRUD)',
+    grupo: '16',
+    Componente: SectionControleAcesso,
+  },
+  {
+    id: 'responsividade-celulares',
+    titulo: 'Responsividade em Celulares',
+    grupo: '17',
+    Componente: SectionResponsividade,
+  },
+  {
+    id: 'historico-atualizacoes',
+    titulo: 'Histórico de Atualizações',
+    grupo: '13',
+    Componente: SectionHistoricoAtualizacoes,
+  },
+]
+
+/**
+ * Resolve o hash da URL (ex: '#secao-1' ou '#diagnostico-tributario') para a configuração de aba.
+ * Retorna null se for o Início ('', '#', '#inicio') ou rota desconhecida.
+ */
+export function resolverRota(hash: string): AbaConfig | null {
+  if (!hash || hash === '#' || hash === '#inicio' || hash === '#0') {
+    return null
+  }
+  const limpo = hash.startsWith('#') ? hash.slice(1) : hash
+  return ABAS.find((a) => a.id === limpo) ?? null
 }
 
 /**
- * Normaliza qualquer hash para uma rota conhecida. Desconhecida → Início, para
- * nunca deixar a tela em branco por causa de um link antigo.
+ * Retorna as abas vizinhas (anterior e próxima) para navegação sequencial no rodapé.
  */
-export function resolverRota(hash: string): RotaAba | null {
-  const limpo = (hash || '').replace(/^#/, '').split('?')[0]
-  if (!limpo || limpo === ID_INICIO) return null
-  const direto = ABAS.find((a) => a.id === limpo)
-  if (direto) return direto
-  const dono = DENTRO_DE_UMA_ABA[limpo]
-  if (dono) return ABAS.find((a) => a.id === dono) ?? null
-  return null
-}
-
-/** Vizinhos para os botões de navegação no pé de cada aba. */
-export function vizinhas(id: string): { anterior: RotaAba | null; proxima: RotaAba | null } {
-  const i = ABAS.findIndex((a) => a.id === id)
-  if (i < 0) return { anterior: null, proxima: null }
+export function vizinhas(id: string): { anterior: AbaConfig | null; proxima: AbaConfig | null } {
+  const idx = ABAS.findIndex((a) => a.id === id)
+  if (idx < 0) return { anterior: null, proxima: null }
   return {
-    anterior: i > 0 ? ABAS[i - 1] : null,
-    proxima: i < ABAS.length - 1 ? ABAS[i + 1] : null,
+    anterior: idx > 0 ? ABAS[idx - 1] : null,
+    proxima: idx < ABAS.length - 1 ? ABAS[idx + 1] : null,
   }
 }

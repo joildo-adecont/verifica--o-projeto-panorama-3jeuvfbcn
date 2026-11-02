@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { ChevronLeft, ChevronRight, Home as HomeIcon } from 'lucide-react'
 import { PanoramaHeader } from '@/components/PanoramaHeader'
-import { PainelInicial } from '@/components/PainelInicial'
+import { PlataformaHome } from '@/components/PlataformaHome'
 import { PanoramaSideMenu } from '@/components/PanoramaSideMenu'
 import { SumarioFlutuante } from '@/components/SumarioFlutuante'
 import { PainelAtalhos } from '@/components/PainelAtalhos'
@@ -220,7 +220,7 @@ export default function Index() {
               </div>
             ) : (
               <div>
-                <PainelInicial />
+                <PlataformaHome />
               </div>
             )}
 
