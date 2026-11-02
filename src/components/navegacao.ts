@@ -1046,14 +1046,104 @@ export const HOME: LinkNavegacao = {
  * só Simulação") e a lista encolhe. É o degrau 0: menos do que domínio, é um
  * recorte de conveniência sobre o que já existe.
  * ══════════════════════════════════════════════════════════════════════════ */
-export const SEGMENTOS_SISTEMA = [
-  { id: 'fundamentos', nome: 'Segmento Fundamentos' },
-  { id: 'setores', nome: 'Segmento Setores' },
-  { id: 'simulacao', nome: 'Segmento Simulação' },
-  { id: 'tabelas', nome: 'Segmento Tabelas' },
-  { id: 'fontes', nome: 'Segmento Fontes' },
-  { id: 'sistema', nome: 'Segmento Sistema' },
-] as const
+export interface SegmentoSistema {
+  id: string
+  nome: string
+  descricao: string
+  Icon: React.ComponentType<{ className?: string }>
+  cor: string
+  bg: string
+  borda: string
+  /** para onde leva o botão do agente daquele segmento */
+  hrefAgente: string
+  agenteNome: string
+  /** as seções que pertencem ao segmento */
+  itens: LinkNavegacao[]
+}
+
+/**
+ * SEGMENTOS DO SISTEMA — a porta de entrada (PlataformaHome)
+ *
+ * Este array alimenta a home: cada segmento vira um CARD com o agente da área.
+ * Os `itens` são derivados da NAVEGACAO por `dominio`, então nunca divergem do
+ * menu — mas precisam existir aqui: o card mostra as seções do segmento.
+ */
+export const SEGMENTOS_SISTEMA: SegmentoSistema[] = [
+  {
+    id: 'fundamentos',
+    nome: 'Fundamentos',
+    descricao:
+      'A lei e o que ela alcança: normas, fato gerador, cesta básica, imunidades e alíquotas.',
+    Icon: Scale,
+    cor: 'text-indigo-700',
+    bg: 'bg-indigo-50',
+    borda: 'border-indigo-300',
+    hrefAgente: '#secao-1',
+    agenteNome: 'Jurídico',
+    itens: NAVEGACAO.filter((i) => i.dominio === 'nucleo'),
+  },
+  {
+    id: 'setores',
+    nome: 'Setores da Economia',
+    descricao:
+      'Cada setor tem regra própria — 14 regimes: imóveis, agro, financeiro, combustíveis, saúde e mais.',
+    Icon: Factory,
+    cor: 'text-rose-700',
+    bg: 'bg-rose-50',
+    borda: 'border-rose-300',
+    hrefAgente: '#setor-combustiveis',
+    agenteNome: 'Contábil',
+    itens: NAVEGACAO.filter((i) => i.dominio === 'setores'),
+  },
+  {
+    id: 'simulacao',
+    nome: 'Simuladores',
+    descricao: 'Calcular o impacto antes de decidir, por regime e por setor.',
+    Icon: Calculator,
+    cor: 'text-emerald-700',
+    bg: 'bg-emerald-50',
+    borda: 'border-emerald-300',
+    hrefAgente: '#busca-avancada',
+    agenteNome: 'Contábil',
+    itens: NAVEGACAO.filter((i) => i.dominio === 'simulacao'),
+  },
+  {
+    id: 'tabelas',
+    nome: 'Tabelas e Anexos',
+    descricao: 'Onde cada item está classificado, com NCM, tratamento e alíquota.',
+    Icon: Paperclip,
+    cor: 'text-cyan-700',
+    bg: 'bg-cyan-50',
+    borda: 'border-cyan-300',
+    hrefAgente: '#tabela-geral',
+    agenteNome: 'Contábil',
+    itens: NAVEGACAO.filter((i) => i.dominio === 'tabelas'),
+  },
+  {
+    id: 'fontes',
+    nome: 'Fontes e Monitoramento',
+    descricao: 'De onde vem o dado, com selo de oficialidade, e o que mudou.',
+    Icon: Radio,
+    cor: 'text-fuchsia-700',
+    bg: 'bg-fuchsia-50',
+    borda: 'border-fuchsia-300',
+    hrefAgente: '#radar-nacional',
+    agenteNome: 'Administrativo',
+    itens: NAVEGACAO.filter((i) => i.dominio === 'fontes'),
+  },
+  {
+    id: 'sistema',
+    nome: 'Sistema',
+    descricao: 'Gestão, entrega ao cliente, segurança e manutenção do próprio programa.',
+    Icon: Settings2,
+    cor: 'text-slate-700',
+    bg: 'bg-slate-100',
+    borda: 'border-slate-300',
+    hrefAgente: '#mapa',
+    agenteNome: 'Engenheiro',
+    itens: NAVEGACAO.filter((i) => i.dominio === 'sistema'),
+  },
+]
 
 /**
  * ITEM DO TOPO DO MENU — o Instalador e Controle de Versão.
