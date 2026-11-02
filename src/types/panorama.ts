@@ -80,6 +80,8 @@ export interface InquiryItem extends InquiryInput {
   created?: string
 }
 
+export type ConfidenceTier = 'diario_oficial' | 'oficial_institucional' | 'comparacao'
+
 export interface SourceStatusItem {
   id: string
   source_key: string
@@ -92,6 +94,7 @@ export interface SourceStatusItem {
   message?: string
   order?: number
   coverage_status?: string
+  confidence_tier?: ConfidenceTier
   alternative_source?: string
   unblock_channel?: string
   created?: string
@@ -107,6 +110,7 @@ export interface ContentReviewSourceItem {
   response_time_ms?: number
   message?: string
   coverage_status?: string
+  confidence_tier?: ConfidenceTier
   alternative_source?: string
   unblock_channel?: string
 }
