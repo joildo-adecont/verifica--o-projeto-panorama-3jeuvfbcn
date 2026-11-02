@@ -51,6 +51,18 @@ import {
   Sparkles,
   PackageCheck,
   BrainCircuit,
+  Fuel,
+  HeartPulse,
+  GraduationCap,
+  UtensilsCrossed,
+  UsersRound,
+  Trophy,
+  Ship,
+  Globe,
+  Store,
+  SlidersHorizontal,
+  Wrench,
+  Users,
 } from 'lucide-react'
 
 export interface LinkNavegacao {
@@ -74,6 +86,10 @@ export interface LinkNavegacao {
    * devolve vazio para o sinônimo e o usuário conclui que o sistema não tem.
    */
   tags: string[]
+  /** DOMÍNIO da hierarquia v2 — ver DOMINIOS_HIERARQUIA no fim do arquivo. */
+  dominio?: string
+  /** SETOR dentro do domínio — é o recorte econômico. */
+  setor?: string
 }
 
 export interface GrupoNavegacao {
@@ -88,6 +104,197 @@ export interface GrupoNavegacao {
   itens: LinkNavegacao[]
 }
 
+/* ══════════════════════════════════════════════════════════════════════════
+ * SETORES NOVOS — 8 seções a construir (02/11/2026)
+ *
+ * Pedido do CEO: "Introduza as mudanças novas, construa também as oito seções
+ * setoriais". Cada setor abaixo corresponde a um regime que a própria LC
+ * 214/2025 separa em capítulo (arts. 172 a 307). Nenhum é invenção: a base
+ * legal vai no campo `descricao` e é o que a seção mostra primeiro.
+ *
+ * TEJAS: os setores novos NÃO roubam atalho de nenhuma seção existente. Como
+ * o handler do menu faz `e.key.toLowerCase()`, maiúscula colide com minúscula;
+ * por isso três deles usam tecla composta (shift+letra), que só funciona neles.
+ * ══════════════════════════════════════════════════════════════════════════ */
+const SETORES_NOVOS: LinkNavegacao[] = [
+  {
+    href: '#setor-combustiveis',
+    label: 'Combustíveis e Energia',
+    curto: 'Combustíveis',
+    tecla: 'q',
+    numero: '20',
+    dominio: 'setores',
+    setor: 'combustiveis',
+    Icon: Fuel,
+    cor: 'text-orange-700',
+    bg: 'bg-orange-50',
+    borda: 'border-orange-300',
+    descricao: 'LC 214, arts. 172-180: incidência única e alíquota ad rem por unidade',
+    tags: [
+      'combustível',
+      'combustivel',
+      'gasolina',
+      'etanol',
+      'diesel',
+      'ad rem',
+      'energia',
+      'gnv',
+    ],
+  },
+  {
+    href: '#setor-saude',
+    label: 'Saúde e Planos',
+    curto: 'Saúde',
+    tecla: 'z',
+    numero: '21',
+    Icon: HeartPulse,
+    cor: 'text-rose-700',
+    bg: 'bg-rose-50',
+    borda: 'border-rose-300',
+    descricao: 'Planos de assistência à saúde, medicamentos e dispositivos médicos',
+    tags: [
+      'saúde',
+      'saude',
+      'plano de saúde',
+      'medicamento',
+      'remédio',
+      'remedio',
+      'hospital',
+      'médico',
+    ],
+    dominio: 'setores',
+    setor: 'saude',
+  },
+  {
+    href: '#setor-educacao',
+    label: 'Educação',
+    curto: 'Educação',
+    tecla: 'y',
+    numero: '22',
+    Icon: GraduationCap,
+    cor: 'text-sky-700',
+    bg: 'bg-sky-50',
+    borda: 'border-sky-300',
+    descricao: 'Serviços de educação: redução de 60% e requisitos para escolas',
+    tags: [
+      'educação',
+      'educacao',
+      'escola',
+      'faculdade',
+      'universidade',
+      'curso',
+      'ensino',
+      'mensalidade',
+    ],
+    dominio: 'setores',
+    setor: 'educacao',
+  },
+  {
+    href: '#setor-turismo',
+    label: 'Bares, Restaurantes e Turismo',
+    curto: 'Turismo',
+    tecla: 'ñ',
+    numero: '23',
+    Icon: UtensilsCrossed,
+    cor: 'text-amber-700',
+    bg: 'bg-amber-50',
+    borda: 'border-amber-300',
+    descricao: 'Regime específico de alimentação, hotelaria, parques e agências',
+    tags: [
+      'bar',
+      'restaurante',
+      'hotel',
+      'hotelaria',
+      'turismo',
+      'parque',
+      'agência',
+      'agencia',
+      'alimentação',
+    ],
+    dominio: 'setores',
+    setor: 'turismo',
+  },
+  {
+    href: '#setor-cooperativas',
+    label: 'Cooperativas',
+    curto: 'Cooperativas',
+    tecla: 'õ',
+    numero: '24',
+    Icon: UsersRound,
+    cor: 'text-teal-700',
+    bg: 'bg-teal-50',
+    borda: 'border-teal-300',
+    descricao: 'LC 214, arts. 271-272: ato cooperativo e crédito presumido',
+    tags: ['cooperativa', 'cooperado', 'ato cooperativo', 'crédito presumido', 'credito presumido'],
+    dominio: 'setores',
+    setor: 'cooperativas',
+  },
+  {
+    href: '#setor-futebol',
+    label: 'Sociedade Anônima do Futebol',
+    curto: 'SAF',
+    tecla: 'ç',
+    numero: '25',
+    Icon: Trophy,
+    cor: 'text-emerald-700',
+    bg: 'bg-emerald-50',
+    borda: 'border-emerald-300',
+    descricao: 'Regime específico da SAF: transferência de atletas e apuração própria',
+    tags: ['futebol', 'saf', 'clube', 'atleta', 'jogador', 'transferência', 'sociedade anônima'],
+    dominio: 'setores',
+    setor: 'futebol',
+  },
+  {
+    href: '#setor-exterior',
+    label: 'Comércio Exterior e ZFM',
+    curto: 'Exterior',
+    tecla: 'shift+e',
+    numero: '26',
+    Icon: Ship,
+    cor: 'text-blue-700',
+    bg: 'bg-blue-50',
+    borda: 'border-blue-300',
+    descricao: 'LC 214, art. 93 e ss. e Dec. 12.955/2026: ZFM, REPORTO e drawback',
+    tags: [
+      'importação',
+      'importacao',
+      'exportação',
+      'exportacao',
+      'zfm',
+      'manaus',
+      'repetto',
+      'reporio',
+      'drawback',
+      'aduaneiro',
+    ],
+    dominio: 'setores',
+    setor: 'exterior',
+  },
+  {
+    href: '#setor-diplomatico',
+    label: 'Missões Diplomáticas',
+    curto: 'Diplomático',
+    tecla: 'shift+d',
+    numero: '27',
+    Icon: Globe,
+    cor: 'text-violet-700',
+    bg: 'bg-violet-50',
+    borda: 'border-violet-300',
+    descricao: 'Missões diplomáticas, repartições internacionais e tratados',
+    tags: [
+      'diplomacia',
+      'embaixada',
+      'consulado',
+      'missão',
+      'missao',
+      'tratado internacional',
+      'organismo internacional',
+    ],
+    dominio: 'setores',
+    setor: 'diplomatico',
+  },
+]
+
 /* ────────────────────────────── GRUPO 1 ────────────────────────────── */
 const FUNDAMENTOS: LinkNavegacao[] = [
   {
@@ -96,6 +303,8 @@ const FUNDAMENTOS: LinkNavegacao[] = [
     curto: 'Normas',
     tecla: '1',
     numero: '1',
+    dominio: 'nucleo',
+    setor: 'regras-gerais',
     Icon: Scale,
     cor: 'text-indigo-600',
     bg: 'bg-indigo-50',
@@ -121,6 +330,8 @@ const FUNDAMENTOS: LinkNavegacao[] = [
     curto: 'Fato gerador',
     tecla: '2',
     numero: '2',
+    dominio: 'nucleo',
+    setor: 'regras-gerais',
     Icon: Factory,
     cor: 'text-blue-600',
     bg: 'bg-blue-50',
@@ -144,6 +355,8 @@ const FUNDAMENTOS: LinkNavegacao[] = [
     curto: 'Cesta básica',
     tecla: '3',
     numero: '3',
+    dominio: 'nucleo',
+    setor: 'regras-gerais',
     Icon: ShoppingBasket,
     cor: 'text-emerald-600',
     bg: 'bg-emerald-50',
@@ -168,6 +381,8 @@ const FUNDAMENTOS: LinkNavegacao[] = [
     curto: 'Imunidades',
     tecla: '4',
     numero: '4',
+    dominio: 'nucleo',
+    setor: 'regras-gerais',
     Icon: ShieldCheck,
     cor: 'text-teal-600',
     bg: 'bg-teal-50',
@@ -190,6 +405,8 @@ const FUNDAMENTOS: LinkNavegacao[] = [
     curto: 'Isenções',
     tecla: '5',
     numero: '5',
+    dominio: 'nucleo',
+    setor: 'regras-gerais',
     Icon: Percent,
     cor: 'text-amber-600',
     bg: 'bg-amber-50',
@@ -207,6 +424,7 @@ const FUNDAMENTOS: LinkNavegacao[] = [
       'favorecido',
     ],
   },
+  ...SETORES_NOVOS,
 ]
 
 /* ────────────────────────────── GRUPO 2 ────────────────────────────── */
@@ -217,6 +435,8 @@ const SIMULACAO: LinkNavegacao[] = [
     curto: 'Visão geral',
     tecla: '6',
     numero: '6',
+    dominio: 'nucleo',
+    setor: 'regimes-especificos',
     Icon: Layers,
     cor: 'text-orange-600',
     bg: 'bg-orange-50',
@@ -230,6 +450,8 @@ const SIMULACAO: LinkNavegacao[] = [
     curto: 'Imobiliário',
     tecla: 'i',
     numero: '6A',
+    dominio: 'setores',
+    setor: 'imobiliario',
     Icon: Home,
     cor: 'text-amber-700',
     bg: 'bg-amber-50',
@@ -257,6 +479,8 @@ const SIMULACAO: LinkNavegacao[] = [
     curto: 'Agro',
     tecla: 'g',
     numero: '6B',
+    dominio: 'setores',
+    setor: 'agro',
     Icon: Tractor,
     cor: 'text-emerald-700',
     bg: 'bg-emerald-50',
@@ -281,6 +505,8 @@ const SIMULACAO: LinkNavegacao[] = [
     curto: 'Consórcios',
     tecla: 'c',
     numero: '6C',
+    dominio: 'setores',
+    setor: 'consorcios',
     Icon: Handshake,
     cor: 'text-violet-700',
     bg: 'bg-violet-50',
@@ -302,6 +528,8 @@ const SIMULACAO: LinkNavegacao[] = [
     curto: 'Financeiros',
     tecla: 'f',
     numero: '6D',
+    dominio: 'setores',
+    setor: 'financeiro',
     Icon: Landmark,
     cor: 'text-violet-700',
     bg: 'bg-violet-50',
@@ -329,6 +557,8 @@ const SIMULACAO: LinkNavegacao[] = [
     curto: 'Simples',
     tecla: 'p',
     numero: '6E',
+    dominio: 'setores',
+    setor: 'simples',
     Icon: Percent,
     cor: 'text-blue-700',
     bg: 'bg-blue-50',
@@ -352,6 +582,8 @@ const SIMULACAO: LinkNavegacao[] = [
     curto: 'Profissionais',
     tecla: 'r',
     numero: '6F',
+    dominio: 'setores',
+    setor: 'profissionais',
     Icon: Smartphone,
     cor: 'text-indigo-700',
     bg: 'bg-indigo-50',
@@ -382,6 +614,8 @@ const TABELAS: LinkNavegacao[] = [
     curto: 'Anexos',
     tecla: '7',
     numero: '7',
+    dominio: 'tabelas',
+    setor: 'anexos',
     Icon: Paperclip,
     cor: 'text-rose-600',
     bg: 'bg-rose-50',
@@ -395,6 +629,8 @@ const TABELAS: LinkNavegacao[] = [
     curto: 'Tabela geral',
     tecla: 'a',
     numero: '7A',
+    dominio: 'simulacao',
+    setor: 'sim-setoriais',
     Icon: Calculator,
     cor: 'text-rose-700',
     bg: 'bg-rose-100',
@@ -420,6 +656,8 @@ const TABELAS: LinkNavegacao[] = [
     curto: 'Cronograma',
     tecla: '8',
     numero: '8',
+    dominio: 'nucleo',
+    setor: 'regras-gerais',
     Icon: CalendarDays,
     cor: 'text-cyan-600',
     bg: 'bg-cyan-50',
@@ -455,6 +693,8 @@ const FONTES: LinkNavegacao[] = [
     curto: 'Radar Nacional',
     tecla: 'n',
     numero: '19',
+    dominio: 'fontes',
+    setor: 'monitor',
     Icon: Globe2,
     cor: 'text-teal-700',
     bg: 'bg-teal-50',
@@ -489,6 +729,8 @@ const FONTES: LinkNavegacao[] = [
     curto: 'Lefisc',
     tecla: 'j',
     numero: '18',
+    dominio: 'fontes',
+    setor: 'fontes-agregadores',
     Icon: Lock,
     cor: 'text-indigo-700',
     bg: 'bg-indigo-50',
@@ -524,6 +766,8 @@ const FONTES: LinkNavegacao[] = [
     curto: 'Agregadores',
     tecla: 'o',
     numero: '11',
+    dominio: 'fontes',
+    setor: 'fontes-agregadores',
     Icon: Layers,
     cor: 'text-fuchsia-700',
     bg: 'bg-fuchsia-50',
@@ -550,6 +794,8 @@ const FONTES: LinkNavegacao[] = [
     curto: 'Fontes',
     tecla: '9',
     numero: '9',
+    dominio: 'fontes',
+    setor: 'fontes-oficiais',
     Icon: Database,
     cor: 'text-violet-600',
     bg: 'bg-violet-50',
@@ -563,6 +809,8 @@ const FONTES: LinkNavegacao[] = [
     curto: 'Fontes primárias',
     tecla: 'w',
     numero: '12',
+    dominio: 'fontes',
+    setor: 'fontes-oficiais',
     Icon: ListChecks,
     cor: 'text-fuchsia-600',
     bg: 'bg-fuchsia-50',
@@ -576,6 +824,8 @@ const FONTES: LinkNavegacao[] = [
     curto: 'Monitor',
     tecla: 'v',
     numero: '12A',
+    dominio: 'fontes',
+    setor: 'monitor',
     Icon: Eye,
     cor: 'text-emerald-700',
     bg: 'bg-emerald-50',
@@ -603,6 +853,8 @@ const FONTES: LinkNavegacao[] = [
     curto: 'Diagnóstico',
     tecla: 't',
     numero: '12B',
+    dominio: 'fontes',
+    setor: 'monitor',
     Icon: BrainCircuit,
     cor: 'text-indigo-700',
     bg: 'bg-indigo-50',
@@ -639,6 +891,8 @@ const SISTEMA: LinkNavegacao[] = [
     curto: 'Cadastro',
     tecla: 'k',
     numero: '9A',
+    dominio: 'sistema',
+    setor: 'gestao',
     Icon: Building2,
     cor: 'text-sky-700',
     bg: 'bg-sky-50',
@@ -667,6 +921,8 @@ const SISTEMA: LinkNavegacao[] = [
     curto: 'Histórico',
     tecla: 'h',
     numero: '13',
+    dominio: 'fontes',
+    setor: 'monitor',
     Icon: History,
     cor: 'text-lime-600',
     bg: 'bg-lime-50',
@@ -680,6 +936,8 @@ const SISTEMA: LinkNavegacao[] = [
     curto: 'Entregar',
     tecla: 'e',
     numero: '14',
+    dominio: 'sistema',
+    setor: 'gestao',
     Icon: Printer,
     cor: 'text-rose-600',
     bg: 'bg-rose-50',
@@ -703,6 +961,8 @@ const SISTEMA: LinkNavegacao[] = [
     curto: 'Assistentes',
     tecla: 'x',
     numero: '15',
+    dominio: 'sistema',
+    setor: 'seguranca',
     Icon: ShieldCheck,
     cor: 'text-indigo-600',
     bg: 'bg-indigo-50',
@@ -716,6 +976,8 @@ const SISTEMA: LinkNavegacao[] = [
     curto: 'Acesso',
     tecla: 'l',
     numero: '16',
+    dominio: 'sistema',
+    setor: 'seguranca',
     Icon: KeyRound,
     cor: 'text-amber-700',
     bg: 'bg-amber-50',
@@ -729,6 +991,8 @@ const SISTEMA: LinkNavegacao[] = [
     curto: 'Celular',
     tecla: 'm',
     numero: '17',
+    dominio: 'sistema',
+    setor: 'manutencao',
     Icon: MonitorSmartphone,
     cor: 'text-cyan-700',
     bg: 'bg-cyan-50',
@@ -746,6 +1010,8 @@ const DESTAQUE_TOPO: LinkNavegacao[] = [
     curto: 'Instalador & Versão',
     tecla: 'u',
     numero: '1',
+    dominio: 'sistema',
+    setor: 'manutencao',
     Icon: PackageCheck,
     cor: 'text-amber-600',
     bg: 'bg-gradient-to-r from-amber-100 via-amber-50 to-blue-50',
@@ -779,6 +1045,8 @@ const DESTAQUE_TOPO: LinkNavegacao[] = [
     curto: 'Busca Avançada',
     tecla: 'b',
     numero: 'BUSCA',
+    dominio: 'simulacao',
+    setor: 'sim-geral',
     Icon: Sparkles,
     cor: 'text-amber-600',
     bg: 'bg-gradient-to-br from-amber-50 to-blue-50',
@@ -813,6 +1081,8 @@ const DESTAQUE_TOPO: LinkNavegacao[] = [
     curto: 'Indicadores',
     tecla: 'd',
     numero: '8A',
+    dominio: 'sistema',
+    setor: 'gestao',
     Icon: Gauge,
     cor: 'text-amber-700',
     bg: 'bg-amber-100',
@@ -857,7 +1127,17 @@ export const GRUPOS: GrupoNavegacao[] = [
     cor: 'text-indigo-700',
     bg: 'bg-indigo-50',
     borda: 'border-indigo-300',
-    itens: FUNDAMENTOS,
+    itens: FUNDAMENTOS.filter((i) => i.dominio !== 'setores'),
+  },
+  {
+    id: 'setores',
+    nome: 'Setores da Economia',
+    proposito: 'Cada setor tem regra própria — 14 setores',
+    Icon: Factory,
+    cor: 'text-rose-700',
+    bg: 'bg-rose-50',
+    borda: 'border-rose-300',
+    itens: FUNDAMENTOS.filter((i) => i.dominio === 'setores'),
   },
   {
     id: 'simulacao',
@@ -917,7 +1197,261 @@ export const HOME: LinkNavegacao = {
   borda: 'border-slate-300',
   descricao: 'Painel de acompanhamento e atalhos',
   tags: ['painel', 'início', 'dashboard'],
+  dominio: 'sistema',
+  setor: 'manutencao',
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+ * HIERARQUIA v2 — 3 NÍVEIS (domínio → setor → seção)
+ *
+ * Pedido do CEO (02/11/2026): "Pode implantar o menu em três níveis."
+ *
+ * ── POR QUE TRÊS E NÃO QUATRO ──
+ * A proposta original tinha quatro níveis, incluindo FONTES como nível próprio.
+ * Ao implementar, ficou claro que fonte não é um lugar onde se NAVEGA: é um
+ * selo de procedência que acompanha a seção. Virou o nível 4 conceitual, mas
+ * não um degrau de menu — a lista de fontes continua nas Seções 9/11/12, onde
+ * já vive com o selo de oficialidade. Isso evita um quarto clique para chegar
+ * ao mesmo conteúdo.
+ *
+ * ── O QUE ESTES DOIS NÍVEIS RESOLVEM ──
+ * Antes: 7 grupos com 40 itens numa lista plana dentro de cada grupo. "Onde
+ * está o regime de combustíveis?" exigia ler 40 rótulos. Agora: Domínio
+ * "Setores da Economia" abre 14 setores; cada setor abre só as suas seções.
+ *
+ * ── REGRA ──
+ * A hierarquia NÃO substitui os grupos: ela os reorganiza. Todo item tem
+ * `dominio` e `setor` preenchidos, e as seções continuam as mesmas, com o
+ * mesmo href e a mesma tecla.
+ * ══════════════════════════════════════════════════════════════════════════ */
+
+export interface SetorHierarquia {
+  id: string
+  nome: string
+  /** base legal do recorte — sem isto o setor seria invenção */
+  base: string
+  Icon: React.ComponentType<{ className?: string }>
+}
+
+export interface DominioHierarquia {
+  id: string
+  numero: string
+  nome: string
+  proposito: string
+  Icon: React.ComponentType<{ className?: string }>
+  cor: string
+  bg: string
+  borda: string
+  setores: SetorHierarquia[]
+}
+
+export const DOMINIOS_HIERARQUIA: DominioHierarquia[] = [
+  {
+    id: 'nucleo',
+    numero: '1',
+    nome: 'Núcleo Tributário',
+    proposito: 'A lei, o fato gerador e o que fica de fora',
+    Icon: Scale,
+    cor: 'text-indigo-700',
+    bg: 'bg-indigo-50',
+    borda: 'border-indigo-300',
+    setores: [
+      {
+        id: 'regras-gerais',
+        nome: 'Regras Gerais',
+        base: 'EC 132/2023 · LC 214/2025 · LC 227/2026',
+        Icon: Scale,
+      },
+      {
+        id: 'regimes-especificos',
+        nome: 'Regimes Específicos',
+        base: 'LC 214/2025, arts. 172 a 307',
+        Icon: Layers,
+      },
+    ],
+  },
+  {
+    id: 'setores',
+    numero: '2',
+    nome: 'Setores da Economia',
+    proposito: 'Cada setor tem regra própria — 14 setores',
+    Icon: Factory,
+    cor: 'text-rose-700',
+    bg: 'bg-rose-50',
+    borda: 'border-rose-300',
+    setores: [
+      {
+        id: 'imobiliario',
+        nome: 'Bens Imóveis',
+        base: 'LC 214, arts. 251-261 e 485-488 (RET)',
+        Icon: Building2,
+      },
+      {
+        id: 'agro',
+        nome: 'Agronegócio',
+        base: 'LC 214, arts. 110, 137-138, 164-171, 271-272',
+        Icon: Tractor,
+      },
+      { id: 'consorcios', nome: 'Consórcios', base: 'LC 214, arts. 204-206', Icon: Handshake },
+      {
+        id: 'financeiro',
+        nome: 'Serviços Financeiros',
+        base: 'LC 214, arts. 181-233',
+        Icon: Landmark,
+      },
+      {
+        id: 'simples',
+        nome: 'Simples Nacional',
+        base: 'LC 123/2006 · art. 343 · Res. CGSN 190/2026',
+        Icon: Store,
+      },
+      {
+        id: 'profissionais',
+        nome: 'Profissionais e Plataformas',
+        base: 'LC 214, arts. 22 e 127',
+        Icon: Users,
+      },
+      {
+        id: 'combustiveis',
+        nome: 'Combustíveis e Energia',
+        base: 'LC 214, arts. 172-180',
+        Icon: Fuel,
+      },
+      {
+        id: 'saude',
+        nome: 'Saúde e Planos',
+        base: 'LC 214 — regimes específico e diferenciado',
+        Icon: HeartPulse,
+      },
+      {
+        id: 'educacao',
+        nome: 'Educação',
+        base: 'LC 214 — serviços de educação',
+        Icon: GraduationCap,
+      },
+      {
+        id: 'turismo',
+        nome: 'Bares, Restaurantes e Turismo',
+        base: 'LC 214 — regime específico de turismo',
+        Icon: UtensilsCrossed,
+      },
+      { id: 'cooperativas', nome: 'Cooperativas', base: 'LC 214, arts. 271-272', Icon: UsersRound },
+      {
+        id: 'futebol',
+        nome: 'Sociedade Anônima do Futebol',
+        base: 'LC 214 — regime específico da SAF',
+        Icon: Trophy,
+      },
+      {
+        id: 'exterior',
+        nome: 'Comércio Exterior e ZFM',
+        base: 'LC 214, art. 93 e ss. · Dec. 12.955/2026',
+        Icon: Ship,
+      },
+      {
+        id: 'diplomatico',
+        nome: 'Missões Diplomáticas',
+        base: 'LC 214 — tratados internacionais',
+        Icon: Globe,
+      },
+    ],
+  },
+  {
+    id: 'simulacao',
+    numero: '3',
+    nome: 'Simuladores',
+    proposito: 'Calcular o impacto antes de decidir',
+    Icon: Calculator,
+    cor: 'text-emerald-700',
+    bg: 'bg-emerald-50',
+    borda: 'border-emerald-300',
+    setores: [
+      {
+        id: 'sim-geral',
+        nome: 'Simulador Geral',
+        base: 'Catálogo de 1.002 itens (NCM/NBS)',
+        Icon: Calculator,
+      },
+      {
+        id: 'sim-setoriais',
+        nome: 'Simuladores por Setor',
+        base: 'Mesmos regimes da Seção 2',
+        Icon: SlidersHorizontal,
+      },
+    ],
+  },
+  {
+    id: 'tabelas',
+    numero: '4',
+    nome: 'Tabelas e Anexos',
+    proposito: 'Onde o item está classificado',
+    Icon: Paperclip,
+    cor: 'text-cyan-700',
+    bg: 'bg-cyan-50',
+    borda: 'border-cyan-300',
+    setores: [
+      {
+        id: 'anexos',
+        nome: 'Anexos da LC 214 e do RIBS',
+        base: '23 anexos LC 214 · 5 RIBS · 5 Dec. 12.955',
+        Icon: Paperclip,
+      },
+    ],
+  },
+  {
+    id: 'fontes',
+    numero: '5',
+    nome: 'Fontes e Monitoramento',
+    proposito: 'De onde vem o dado e o que mudou',
+    Icon: Radio,
+    cor: 'text-fuchsia-700',
+    bg: 'bg-fuchsia-50',
+    borda: 'border-fuchsia-300',
+    setores: [
+      {
+        id: 'fontes-oficiais',
+        nome: 'Fontes Oficiais',
+        base: 'Publicadores primários',
+        Icon: Landmark,
+      },
+      {
+        id: 'fontes-agregadores',
+        nome: 'Agregadores',
+        base: 'Reprodutores — nunca base legal',
+        Icon: Layers,
+      },
+      { id: 'monitor', nome: 'Monitoramento', base: 'Radar e acompanhamento', Icon: Radio },
+    ],
+  },
+  {
+    id: 'sistema',
+    numero: '6',
+    nome: 'Sistema',
+    proposito: 'Gestão, entrega, segurança e manutenção',
+    Icon: Settings2,
+    cor: 'text-slate-700',
+    bg: 'bg-slate-100',
+    borda: 'border-slate-300',
+    setores: [
+      { id: 'gestao', nome: 'Gestão e Entrega', base: 'Operação do escritório', Icon: Gauge },
+      { id: 'seguranca', nome: 'Segurança e Acesso', base: 'Controle interno', Icon: ShieldCheck },
+      { id: 'manutencao', nome: 'Manutenção', base: 'Controle do programa', Icon: Wrench },
+    ],
+  },
+]
+
+/** Setores de um domínio, já com as seções que pertencem a eles. */
+export function setoresDoDominio(dominioId: string) {
+  const dom = DOMINIOS_HIERARQUIA.find((d) => d.id === dominioId)
+  if (!dom) return []
+  return dom.setores.map((s) => ({
+    ...s,
+    itens: NAVEGACAO.filter((n) => n.dominio === dominioId && n.setor === s.id),
+  }))
+}
+
+export const TOTAL_DOMINIOS = DOMINIOS_HIERARQUIA.length
+export const TOTAL_SETORES = DOMINIOS_HIERARQUIA.reduce((n, d) => n + d.setores.length, 0)
 
 /** Total de seções de conteúdo — usado no painel inicial. */
 export const TOTAL_ITENS = NAVEGACAO.length
