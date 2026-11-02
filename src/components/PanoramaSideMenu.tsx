@@ -267,12 +267,13 @@ export function PanoramaSideMenu() {
                     new Set(g.visiveis.map((i) => i.setor).filter(Boolean)),
                   ) as string[]
                   const usarNivelSetor = setoresDoGrupo.length > 1 && g.visiveis.length >= 7
-                  const blocos: { setor: string | null; itens: typeof g.visiveis }[] = usarNivelSetor
-                    ? setoresDoGrupo.map((s) => ({
-                        setor: s,
-                        itens: g.visiveis.filter((i) => i.setor === s),
-                      }))
-                    : [{ setor: null, itens: g.visiveis }]
+                  const blocos: { setor: string | null; itens: typeof g.visiveis }[] =
+                    usarNivelSetor
+                      ? setoresDoGrupo.map((s) => ({
+                          setor: s,
+                          itens: g.visiveis.filter((i) => i.setor === s),
+                        }))
+                      : [{ setor: null, itens: g.visiveis }]
 
                   return blocos.map((bloco) => {
                     const nomeSetor = bloco.setor
@@ -310,36 +311,36 @@ export function PanoramaSideMenu() {
                         )}
                         {(!nomeSetor || !setorFechado) &&
                           bloco.itens.map((item) => {
-                  const { Icon } = item
-                  const isAtivo = ativo === item.id.replace('#', '')
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={() => ir(item)}
-                      className={`w-full flex items-center gap-2 pl-6 pr-3 py-1.5 text-left text-[12px] font-semibold transition-colors ${
-                        isAtivo
-                          ? 'bg-panorama-gold/10 text-panorama-gold-dark border-l-2 border-panorama-gold'
-                          : 'text-slate-700 hover:bg-slate-100 hover:text-panorama-gold-dark border-l-2 border-transparent'
-                      }`}
-                      title={`Tecla ${item.tecla.toUpperCase()} — ${item.label}`}
-                    >
-                      <span
-                        className={`inline-flex items-center justify-center w-6 h-6 shrink-0 rounded-md border ${item.bg} ${item.borda} ${item.cor}`}
-                      >
-                        <Icon className="w-3.5 h-3.5" />
-                      </span>
-                      <span className="flex-1 leading-tight truncate">{item.label}</span>
-                      <kbd
-                        className={`px-1 rounded text-[9px] font-mono shrink-0 ${
-                          isAtivo
-                            ? 'bg-panorama-gold/20 text-panorama-gold-dark'
-                            : 'bg-slate-100 text-slate-400'
-                        }`}
-                      >
-                        {item.tecla.toUpperCase()}
-                      </kbd>
-                    </button>
-                  )
+                            const { Icon } = item
+                            const isAtivo = ativo === item.id.replace('#', '')
+                            return (
+                              <button
+                                key={item.id}
+                                onClick={() => ir(item)}
+                                className={`w-full flex items-center gap-2 pl-6 pr-3 py-1.5 text-left text-[12px] font-semibold transition-colors ${
+                                  isAtivo
+                                    ? 'bg-panorama-gold/10 text-panorama-gold-dark border-l-2 border-panorama-gold'
+                                    : 'text-slate-700 hover:bg-slate-100 hover:text-panorama-gold-dark border-l-2 border-transparent'
+                                }`}
+                                title={`Tecla ${item.tecla.toUpperCase()} — ${item.label}`}
+                              >
+                                <span
+                                  className={`inline-flex items-center justify-center w-6 h-6 shrink-0 rounded-md border ${item.bg} ${item.borda} ${item.cor}`}
+                                >
+                                  <Icon className="w-3.5 h-3.5" />
+                                </span>
+                                <span className="flex-1 leading-tight truncate">{item.label}</span>
+                                <kbd
+                                  className={`px-1 rounded text-[9px] font-mono shrink-0 ${
+                                    isAtivo
+                                      ? 'bg-panorama-gold/20 text-panorama-gold-dark'
+                                      : 'bg-slate-100 text-slate-400'
+                                  }`}
+                                >
+                                  {item.tecla.toUpperCase()}
+                                </kbd>
+                              </button>
+                            )
                           })}
                       </div>
                     )
