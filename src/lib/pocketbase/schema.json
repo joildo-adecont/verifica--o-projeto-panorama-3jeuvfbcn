@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-02T22:44:25.655Z",
+  "generatedAt": "2026-11-02T23:06:43.436Z",
   "collections": [
     {
       "name": "users",
@@ -551,6 +551,13 @@
           "type": "text",
           "required": false,
           "system": false
+        },
+        {
+          "name": "confidence_tier",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": ["diario_oficial", "oficial_institucional", "comparacao"]
         }
       ],
       "indexes": [
