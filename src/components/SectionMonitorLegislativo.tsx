@@ -40,6 +40,7 @@ import {
 import { LINHAS_POR_DISPOSITIVO } from '@/data/vinculosLegislacao'
 import { AgenteFontes } from '@/components/AgenteFontes'
 import { AdecontLogo } from '@/components/AdecontLogo'
+import { SeloNivelConfianca } from '@/components/SeloNivelConfianca'
 
 /**
  * Seção 12A — MONITOR LEGISLATIVO
@@ -264,6 +265,16 @@ export function SectionMonitorLegislativo() {
                 >
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-xs font-bold text-panorama-navy">{i.codigo}</span>
+                    <SeloNivelConfianca
+                      fonte={
+                        i.url.includes('cgibs')
+                          ? 'CGIBS'
+                          : i.url.includes('in.gov.br')
+                            ? 'DOU'
+                            : 'Senado Federal'
+                      }
+                      compacto
+                    />
                     <ExternalLink className="w-3 h-3 text-slate-400 group-hover:text-panorama-gold-dark shrink-0" />
                   </div>
                   <p className="text-[11px] text-slate-600 mt-0.5 leading-tight line-clamp-2">
@@ -450,6 +461,16 @@ export function SectionMonitorLegislativo() {
                             {i.tipo}
                           </span>
                           <span className="text-xs font-bold text-slate-900">{i.codigo}</span>
+                          <SeloNivelConfianca
+                            fonte={
+                              i.url.includes('cgibs')
+                                ? 'CGIBS'
+                                : i.url.includes('in.gov.br')
+                                  ? 'DOU'
+                                  : 'Senado Federal'
+                            }
+                            compacto
+                          />
                           {i.incorporada ? (
                             <span className="inline-flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 shrink-0">
                               <CheckCircle2 className="w-2.5 h-2.5" />

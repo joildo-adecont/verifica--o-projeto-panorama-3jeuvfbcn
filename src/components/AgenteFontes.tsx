@@ -31,6 +31,7 @@ import {
   type StatusFonte,
 } from '@/data/agenteFontes'
 import { DestinatariosAgente } from '@/components/DestinatariosAgente'
+import { SeloNivelConfianca } from '@/components/SeloNivelConfianca'
 
 /**
  * AGENTE DE VIGILÂNCIA DAS FONTES E ORIGENS DA LEGISLAÇÃO
@@ -271,6 +272,7 @@ export function AgenteFontes() {
                     <ShieldAlert className="w-3 h-3 text-slate-400 shrink-0" />
                   )}
                   <span className="text-[11px] font-bold text-slate-900">{f.rotulo}</span>
+                  <SeloNivelConfianca fonte={f.id || f.rotulo} compacto />
                   <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${c.selo}`}>
                     {c.rotulo}
                   </span>
