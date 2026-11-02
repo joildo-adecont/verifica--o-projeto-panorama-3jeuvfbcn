@@ -48,6 +48,10 @@ import {
   Building2,
   Lock,
   Globe2,
+  Wrench,
+  SlidersHorizontal,
+  Users,
+  Store,
 } from 'lucide-react'
 
 export interface LinkNavegacao {
