@@ -950,17 +950,23 @@ const INDICADORES: LinkNavegacao[] = [
  * Cada segmento filtra esta lista por `dominio`. A vantagem: mover uma seção de
  * segmento é mover um domínio de lista, nunca reescrever 41 itens.
  */
-const TODOS_ITENS: LinkNavegacao[] = [
-  ...INDICADORES,
-  ...FUNDAMENTOS,
-  ...SETORES_NOVOS,
-  ...SIMULACAO,
-  ...TABELAS,
-  ...FONTES,
-  ...SISTEMA,
-  ITEM_INSTALADOR_CEO,
-  HOME,
-]
+/* Avaliada SOB DEMANDA (é função, não constante): assim a ordem de declaração
+ * no arquivo deixa de importar. Em 02/11/2026 a versão como constante lia
+ * HOME/ITEM_INSTALADOR_CEO antes de existirem e a home caía com
+ * "Cannot read properties of undefined (reading 'dominio')". */
+function todosItens(): LinkNavegacao[] {
+  return [
+    ...INDICADORES,
+    ...FUNDAMENTOS,
+    ...SETORES_NOVOS,
+    ...SIMULACAO,
+    ...TABELAS,
+    ...FONTES,
+    ...SISTEMA,
+    ITEM_INSTALADOR_CEO,
+    HOME,
+  ]
+}
 
 export const GRUPOS: GrupoNavegacao[] = [
   /* ══════════════════════════════════════════════════════════════════════
@@ -1000,7 +1006,7 @@ export const GRUPOS: GrupoNavegacao[] = [
     bg: 'bg-indigo-50',
     borda: 'border-indigo-300',
     dominios: ['nucleo'],
-    itens: TODOS_ITENS.filter((i) => i.dominio === 'nucleo'),
+    itens: todosItens().filter((i) => i.dominio === 'nucleo'),
   },
 
   // ── SEGMENTO 2 — SETORES ──────────────────────────────────────────────
@@ -1014,7 +1020,7 @@ export const GRUPOS: GrupoNavegacao[] = [
     bg: 'bg-rose-50',
     borda: 'border-rose-300',
     dominios: ['setores'],
-    itens: TODOS_ITENS.filter((i) => i.dominio === 'setores'),
+    itens: todosItens().filter((i) => i.dominio === 'setores'),
   },
 
   // ── SEGMENTO 3 — SIMULAÇÃO E TABELAS ──────────────────────────────────
@@ -1028,7 +1034,7 @@ export const GRUPOS: GrupoNavegacao[] = [
     bg: 'bg-emerald-50',
     borda: 'border-emerald-300',
     dominios: ['simulacao', 'tabelas'],
-    itens: TODOS_ITENS.filter((i) => ['simulacao', 'tabelas'].includes(i.dominio || '')),
+    itens: todosItens().filter((i) => ['simulacao', 'tabelas'].includes(i.dominio || '')),
   },
 
   // ── SEGMENTO 4 — FONTES E SISTEMA ─────────────────────────────────────
@@ -1042,7 +1048,7 @@ export const GRUPOS: GrupoNavegacao[] = [
     bg: 'bg-fuchsia-50',
     borda: 'border-fuchsia-300',
     dominios: ['fontes', 'sistema'],
-    itens: TODOS_ITENS.filter((i) => ['fontes', 'sistema'].includes(i.dominio || '')),
+    itens: todosItens().filter((i) => ['fontes', 'sistema'].includes(i.dominio || '')),
   },
 ]
 
@@ -1104,7 +1110,7 @@ export const SEGMENTOS_SISTEMA: SegmentoSistema[] = [
     borda: 'border-indigo-300',
     hrefAgente: '#secao-1',
     agenteNome: 'Jurídico',
-    itens: TODOS_ITENS.filter((i) => i.dominio === 'nucleo'),
+    itens: todosItens().filter((i) => i.dominio === 'nucleo'),
   },
   {
     id: 'setores',
@@ -1116,7 +1122,7 @@ export const SEGMENTOS_SISTEMA: SegmentoSistema[] = [
     borda: 'border-rose-300',
     hrefAgente: '#setor-combustiveis',
     agenteNome: 'Contábil',
-    itens: TODOS_ITENS.filter((i) => i.dominio === 'setores'),
+    itens: todosItens().filter((i) => i.dominio === 'setores'),
   },
   {
     id: 'simulacao-tabelas',
@@ -1128,7 +1134,7 @@ export const SEGMENTOS_SISTEMA: SegmentoSistema[] = [
     borda: 'border-emerald-300',
     hrefAgente: '#busca-avancada',
     agenteNome: 'Contábil',
-    itens: TODOS_ITENS.filter((i) => ['simulacao', 'tabelas'].includes(i.dominio || '')),
+    itens: todosItens().filter((i) => ['simulacao', 'tabelas'].includes(i.dominio || '')),
   },
   {
     id: 'fontes-sistema',
@@ -1140,7 +1146,7 @@ export const SEGMENTOS_SISTEMA: SegmentoSistema[] = [
     borda: 'border-fuchsia-300',
     hrefAgente: '#radar-nacional',
     agenteNome: 'Administrativo',
-    itens: TODOS_ITENS.filter((i) => ['fontes', 'sistema'].includes(i.dominio || '')),
+    itens: todosItens().filter((i) => ['fontes', 'sistema'].includes(i.dominio || '')),
   },
 ]
 
