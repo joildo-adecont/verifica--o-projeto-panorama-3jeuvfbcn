@@ -75,6 +75,8 @@ export interface LinkNavegacao {
 
 export interface GrupoNavegacao {
   id: string
+  /** segmento para o filtro rápido do menu */
+  segmentoKey?: string
   nome: string
   /** frase curta: para que serve este grupo */
   proposito: string
@@ -748,6 +750,7 @@ const INDICADORES: LinkNavegacao[] = [
 export const GRUPOS: GrupoNavegacao[] = [
   {
     id: 'indicadores',
+    segmentoKey: 'sistema',
     nome: 'Indicadores',
     proposito: 'Bater o olho e entender o sistema',
     Icon: Gauge,
@@ -758,6 +761,7 @@ export const GRUPOS: GrupoNavegacao[] = [
   },
   {
     id: 'fundamentos',
+    segmentoKey: 'fundamentos',
     nome: 'Fundamentos',
     proposito: 'A lei e o que ela alcança',
     Icon: BookOpen,
@@ -768,6 +772,7 @@ export const GRUPOS: GrupoNavegacao[] = [
   },
   {
     id: 'simulacao',
+    segmentoKey: 'simulacao',
     nome: 'Simulação',
     proposito: 'Calcular por regime e por setor',
     Icon: Calculator,
@@ -778,6 +783,7 @@ export const GRUPOS: GrupoNavegacao[] = [
   },
   {
     id: 'tabelas',
+    segmentoKey: 'tabelas',
     nome: 'Tabelas',
     proposito: 'Os itens, os anexos e as datas',
     Icon: Layers,
@@ -788,6 +794,7 @@ export const GRUPOS: GrupoNavegacao[] = [
   },
   {
     id: 'fontes',
+    segmentoKey: 'fontes',
     nome: 'Fontes e Monitor',
     proposito: 'De onde vem e o que mudou',
     Icon: Radio,
@@ -798,6 +805,7 @@ export const GRUPOS: GrupoNavegacao[] = [
   },
   {
     id: 'sistema',
+    segmentoKey: 'sistema',
     nome: 'Sistema',
     proposito: 'Entregar, controlar e acompanhar',
     Icon: Settings2,
@@ -823,6 +831,54 @@ export const HOME: LinkNavegacao = {
   bg: 'bg-slate-100',
   borda: 'border-slate-300',
   descricao: 'Painel de acompanhamento e atalhos',
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+ * SEGMENTOS DO SISTEMA — filtro rápido do menu lateral
+ *
+ * O menu tem 41 seções. Antes de abrir, o CEO escolhe o segmento ("quero ver
+ * só Simulação") e a lista encolhe. É o degrau 0: menos do que domínio, é um
+ * recorte de conveniência sobre o que já existe.
+ * ══════════════════════════════════════════════════════════════════════════ */
+export const SEGMENTOS_SISTEMA = [
+  { id: 'fundamentos', nome: 'Segmento Fundamentos' },
+  { id: 'setores', nome: 'Segmento Setores' },
+  { id: 'simulacao', nome: 'Segmento Simulação' },
+  { id: 'tabelas', nome: 'Segmento Tabelas' },
+  { id: 'fontes', nome: 'Segmento Fontes' },
+  { id: 'sistema', nome: 'Segmento Sistema' },
+] as const
+
+/**
+ * ITEM DO TOPO DO MENU — o Instalador e Controle de Versão.
+ *
+ * Regra permanente do CEO: o controle do programa fica no #1 do menu, sempre
+ * visível, com selo próprio. É o primeiro item que ele procura ao abrir o app
+ * em outro aparelho.
+ */
+export const ITEM_INSTALADOR_CEO: LinkNavegacao = {
+  href: '#instalador-versao',
+  label: 'Instalador e Versão',
+  curto: 'Instalador',
+  tecla: 'u',
+  numero: '1',
+  Icon: MonitorSmartphone,
+  cor: 'text-amber-700',
+  bg: 'bg-amber-100',
+  borda: 'border-amber-400',
+  descricao: 'Envios de instalação e controle de versões do programa',
+  tags: [
+    'instalador',
+    'instalar',
+    'versão',
+    'versao',
+    'atualização',
+    'atualizacao',
+    'app',
+    'celular',
+  ],
+  dominio: 'sistema',
+  setor: 'manutencao',
 }
 
 /** Total de seções de conteúdo — usado no painel inicial. */
