@@ -334,6 +334,7 @@ function SimCombustiveis() {
         Receita Federal e do CGIBS (art. 174). Sem esse ato publicado, qualquer número seria
         invenção — por isso o campo é seu, e não nosso.
       </Pendente>
+      <BotaoEnviar termo="combustíveis" label="Enviar simulação de combustíveis" />
       <Rodape
         itens={[
           'LC 214/2025 — arts. 172-180',
@@ -475,6 +476,7 @@ function SimSaude() {
         marcar a caixa acima não substitui a verificação documental. A lista de dispositivos
         alcançados vem por anexo.
       </Pendente>
+      <BotaoEnviar termo="planos de saúde" label="Enviar simulação de saúde" />
       <Rodape
         itens={[
           'LC 214/2025 — regime específico (planos)',
@@ -570,6 +572,7 @@ function SimEducacao() {
         <b>Verifique antes de faturar:</b> curso livre sem previsão legal fica na alíquota cheia. A
         mensalidade e o material didático podem ter tratamentos distintos na mesma nota.
       </Pendente>
+      <BotaoEnviar termo="educação" label="Enviar simulação de educação" />
       <Rodape
         itens={[
           'LC 214/2025 — serviços de educação',
@@ -671,6 +674,7 @@ function SimTurismo() {
         <b>Depende de regulamento:</b> as condições de enquadramento e o detalhamento por atividade
         vêm do CGIBS. Ajuste o campo de alíquota conforme o enquadramento confirmado.
       </Pendente>
+      <BotaoEnviar termo="restaurante" label="Enviar simulação de turismo" />
       <Rodape
         itens={[
           'LC 214/2025 — regime específico de turismo',
@@ -760,6 +764,7 @@ function SimCooperativas() {
         na lei, com percentual próprio. Documentar o vínculo cooperativo é o que sustenta o
         tratamento na fiscalização.
       </Pendente>
+      <BotaoEnviar termo="cooperativa" label="Enviar simulação de cooperativa" />
       <Rodape
         itens={[
           'LC 214/2025 — art. 271 (ato cooperativo)',
@@ -856,6 +861,7 @@ function SimFutebol() {
         <b>Depende de regulamento:</b> o detalhamento da apuração sobre direitos desportivos. O
         percentual de formação é do mecanismo desportivo, não tributário — informe o aplicável.
       </Pendente>
+      <BotaoEnviar termo="futebol" label="Enviar simulação de SAF" />
       <Rodape
         itens={[
           'LC 214/2025 — regime específico da SAF',
@@ -991,6 +997,7 @@ function SimExterior() {
         (arts. 439-457) e exige enquadramento e habilitação. O simulador não aplica o diferencial
         automaticamente — seria arriscado estimar sem a habilitação confirmada.
       </Pendente>
+      <BotaoEnviar termo="importação" label="Enviar simulação de comércio exterior" />
       <Rodape
         itens={[
           'LC 214/2025 — art. 93 e ss.',
@@ -1087,6 +1094,7 @@ function SimDiplomatico() {
         <b>Cada tratado tem alcance próprio.</b> O regime não se estende a empresa privada que
         apenas presta serviço à missão. A análise é caso a caso, com o texto do acordo em mãos.
       </Pendente>
+      <BotaoEnviar termo="diplomacia" label="Enviar simulação diplomática" />
       <Rodape
         itens={[
           'LC 214/2025 — regime específico',
@@ -1100,7 +1108,7 @@ function SimDiplomatico() {
 
 /* ══════════════════════════ registro e componente público ═════════════════ */
 
-const SIMULADORES: Record<string, () => React.ReactElement> = {
+const SIMULADORES: Record<string, () => JSX.Element> = {
   combustiveis: SimCombustiveis,
   saude: SimSaude,
   educacao: SimEducacao,
