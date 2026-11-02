@@ -283,9 +283,16 @@ export function PanoramaSideMenu() {
                       : null
                     const SetorIcon = nomeSetor?.Icon
                     const setorFechado = !!fechados[`${g.id}:${bloco.setor}`]
+                    /* Não repete o nome: quando o setor tem UMA seção só e o
+                     * rótulo dela é igual ao nome do setor, o cabeçalho seria
+                     * uma linha idêntica em cima do item. Medido na tela em
+                     * 02/11/2026: aparecia "Combustíveis e Energia" duas vezes
+                     * seguidas. Nesse caso o item sozinho já diz tudo. */
+                    const repetiria =
+                      bloco.itens.length === 1 && bloco.itens[0].label === nomeSetor?.nome
                     return (
                       <div key={bloco.setor || 'flat'}>
-                        {nomeSetor && (
+                        {nomeSetor && !repetiria && (
                           <button
                             onClick={() =>
                               setFechados((v) => ({
