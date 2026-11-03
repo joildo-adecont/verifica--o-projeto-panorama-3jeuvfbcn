@@ -519,7 +519,14 @@ a[href]::after { content: none !important; }
         <div id="resultado-artigo-impressao" className="space-y-2">
           {/* cabeçalho que só existe no papel: sem ele a folha sairia com uma
               lista de súmulas sem dizer a que dispositivo se referem. */}
-          <div className="so-no-papel hidden border-b-2 border-panorama-navy pb-2">
+          {/* `style` inline em vez de `hidden`: a classe do Tailwind estava
+              vencendo a regra de impressão e o cabeçalho aparecia na TELA.
+              Inline sem !important perde para a folha com !important — que é
+              exatamente o que se quer: invisível na tela, visível no papel. */}
+          <div
+            className="so-no-papel border-b-2 border-panorama-navy pb-2"
+            style={{ display: 'none' }}
+          >
             <p className="text-[9pt] font-black uppercase tracking-wider text-slate-500">
               ADECONT · Acervo Jurídico
             </p>
@@ -610,7 +617,7 @@ a[href]::after { content: none !important; }
 
           {/* rodapé do documento impresso — a procedência tem de ir junto:
               um PDF sem ela parece ter saído do tribunal. */}
-          <div className="so-no-papel hidden border-t border-slate-300 pt-1.5">
+          <div className="so-no-papel border-t border-slate-300 pt-1.5" style={{ display: 'none' }}>
             <p className="text-[8pt] leading-snug text-slate-500">
               <b>Procedência das ligações:</b> STF — {indice?.origem['0']}; STJ —{' '}
               {indice?.origem['1']}; TST — {indice?.origem['2']}; temas — {indice?.origem['3']}.
