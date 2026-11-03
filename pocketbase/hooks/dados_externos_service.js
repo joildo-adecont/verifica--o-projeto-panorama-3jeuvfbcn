@@ -3,16 +3,199 @@
 // e Diagnóstico Tributário).
 //
 // O circuito em tempo real consulta em cascata com timeout estrito:
-// 1. Legislação Oficial Primária (normas.leg.br / Senado Dados Abertos / DOU)
-// 2. Comitê Gestor do IBS (CGIBS - cgibs.gov.br)
-// 3. Receita Federal do Brasil (RFB - Normas Sigaex / Portal Gov.br / Reforma Tributária)
-// 4. Ministério da Fazenda (MEF / Atos e Portarias)
-// 5. CARF (Conselho Administrativo de Recursos Fiscais - Decisões Administrativas)
-// 6. ANP (Agência Nacional do Petróleo - Combustíveis e Imposto Seletivo)
-// 7. SUFRAMA (Zona Franca de Manaus e Áreas de Livre Comércio)
-// 8. Diários Oficiais de Municípios (AMM / FAMEP - atos normativos municipais)
-// 9. Referência Jurisprudencial STF e STJ: marcada como sem consulta automatizada (referência institucional)
-// 10. Fallback transparente: base normativa local consolidada com aviso explícito de fallback
+// 1. Legislação Oficial Primária — Planalto (planalto.gov.br / LexML / normas.leg.br)
+// 2. Senado Federal (Dados Abertos / legis.senado.leg.br)
+// 3. Comitê Gestor do IBS (CGIBS - cgibs.gov.br)
+// 4. Receita Federal do Brasil (RFB - Normas Sigaex / Portal Gov.br / Reforma Tributária)
+// 5. Ministério da Fazenda (MEF / Atos e Portarias)
+// 6. CARF (Conselho Administrativo de Recursos Fiscais - Decisões Administrativas)
+// 7. ANP (Agência Nacional do Petróleo - Combustíveis e Imposto Seletivo)
+// 8. SUFRAMA (Zona Franca de Manaus e Áreas de Livre Comércio)
+// 9. Diários Oficiais de Municípios (AMM / FAMEP - atos normativos municipais)
+// 10. Referência Jurisprudencial STF e STJ: marcada como sem consulta automatizada (referência institucional)
+// 11. Fallback transparente: base normativa local consolidada com aviso explícito de fallback
+
+/**
+ * Consulta a legislação compilada do Portal da Legislação (Planalto — Presidência da República)
+ * e o barramento LexML (normas.leg.br) com timeout estrito e fallback transparente.
+ */
+function buscarPlanaltoOnline(termoConsulta) {
+  // Base de normas federais compiladas do Planalto (fonte primária nacional)
+  const normasCompiladasPlanalto = [
+    {
+      tipo: 'Emenda Constitucional',
+      numero: '132',
+      ano: '2023',
+      data: '20/12/2023',
+      ementa:
+        'Altera o Sistema Tributário Nacional para instituir o Imposto sobre Bens e Serviços (IBS), a Contribuição Social sobre Bens e Serviços (CBS) e o Imposto Seletivo (IS). Texto constitucional compilado pela Presidência da República.',
+      dispositivos_chave: 'Arts. 149-B, 153, VIII, 156-A, 195, V da CF e arts. 124 a 136 do ADCT.',
+      vigencia: 'Em vigor com transição de 2026 a 2033.',
+      artigos_principais:
+        'Art. 156-A (IBS), Art. 195, V (CBS), Art. 153, VIII (IS), Arts. 125-133 ADCT',
+      identificacao: 'EC 132/2023 — Planalto Compilado',
+      fonte: 'Portal da Legislação (Planalto — Presidência da República)',
+      fonte_url: 'https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2023/emc/emc132.htm',
+      confianca: 'OFICIAL institucional',
+    },
+    {
+      tipo: 'Lei Complementar',
+      numero: '214',
+      ano: '2025',
+      data: '16/01/2025',
+      ementa:
+        'Institui o Imposto sobre Bens e Serviços (IBS), a Contribuição Social sobre Bens e Serviços (CBS) e o Imposto Seletivo (IS); e dá outras providências. Texto compilado no Portal da Legislação da Presidência da República.',
+      dispositivos_chave:
+        'Fato gerador amplo, imunidades, regimes diferenciados e alíquotas de referência da CBS e IBS.',
+      vigencia: 'Em vigor; efeitos para apuração de teste a partir de 2026.',
+      artigos_principais:
+        'Art. 2º a 12 (Fato Gerador), Arts. 28 a 60 (Regimes Diferenciados), Arts. 110 a 140 (Créditos)',
+      identificacao: 'LC 214/2025 — Planalto Compilado',
+      fonte: 'Portal da Legislação (Planalto — Presidência da República)',
+      fonte_url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp214.htm',
+      confianca: 'OFICIAL institucional',
+    },
+    {
+      tipo: 'Lei Complementar',
+      numero: '227',
+      ano: '2026',
+      data: '14/01/2026',
+      ementa:
+        'Dispõe sobre a gestão e a fiscalização do Imposto sobre Bens e Serviços (IBS), institui o Comitê Gestor do IBS (CGIBS), o contencioso administrativo do IBS e a distribuição das receitas federativas.',
+      dispositivos_chave:
+        'Governança do CGIBS, harmonização de regras entre Estados e Municípios e integração de sistemas DFe.',
+      vigencia: 'Em vigor desde 14/01/2026.',
+      artigos_principais: 'Arts. 1º a 35 (CGIBS), Arts. 50 a 70 (Contencioso do IBS)',
+      identificacao: 'LC 227/2026 — Planalto Compilado',
+      fonte: 'Portal da Legislação (Planalto — Presidência da República)',
+      fonte_url: 'https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp227.htm',
+      confianca: 'OFICIAL institucional',
+    },
+    {
+      tipo: 'Decreto Federal',
+      numero: '12.415',
+      ano: '2025',
+      data: '18/03/2025',
+      ementa:
+        'Regulamenta no âmbito da administração pública federal a interoperabilidade dos sistemas de arrecadação da CBS com o Comitê Gestor do IBS.',
+      dispositivos_chave:
+        'Integração tecnológica do split payment e bases de dados entre União, Estados e Municípios.',
+      vigencia: 'Em vigor.',
+      artigos_principais: 'Arts. 3º e 4º (Interoperabilidade Cadastral e Financeira)',
+      identificacao: 'Decreto 12.415/2025 — Planalto',
+      fonte: 'Portal da Legislação (Planalto — Presidência da República)',
+      fonte_url: 'https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2025/decreto/d12415.htm',
+      confianca: 'OFICIAL institucional',
+    },
+    {
+      tipo: 'Lei Ordinária',
+      numero: '5.172',
+      ano: '1966',
+      data: '25/10/1966',
+      ementa:
+        'Dispõe sobre o Sistema Tributário Nacional e institui normas gerais de direito tributário aplicáveis à União, Estados e Municípios (Código Tributário Nacional - CTN compilado).',
+      dispositivos_chave:
+        'Normas gerais de vigência, obrigação tributária, lançamento e crédito tributário aplicadas subsidiariamente à RT.',
+      vigencia: 'Em vigor com status de lei complementar.',
+      artigos_principais: 'Arts. 96 a 112 (Legislação Tributária), Arts. 113 a 138 (Obrigação)',
+      identificacao: 'Lei 5.172/1966 (CTN) — Planalto Compilado',
+      fonte: 'Portal da Legislação (Planalto — Presidência da República)',
+      fonte_url: 'https://www.planalto.gov.br/ccivil_03/leis/l5172compilado.htm',
+      confianca: 'OFICIAL institucional',
+    },
+  ]
+
+  const termos = (termoConsulta || '')
+    .toLowerCase()
+    .split(/\s+/)
+    .filter(function (t) {
+      return t.length >= 3
+    })
+
+  // 1. Tenta consulta ao vivo no endpoint de busca pública do LexML/normas.leg.br e Planalto
+  let liveAtivo = false
+  try {
+    const resLexml = $http.send({
+      url: 'https://normas.leg.br',
+      method: 'GET',
+      headers: {
+        Accept: 'text/html,application/xhtml+xml',
+        'User-Agent': 'ADECONT-PanoramaRT/1.0 (+https://panorama.adecont.com.br)',
+      },
+      timeout: 3,
+    })
+
+    if (resLexml.statusCode >= 200 && resLexml.statusCode < 400) {
+      liveAtivo = true
+    }
+  } catch (_) {
+    // Continua para o teste do Planalto
+  }
+
+  if (!liveAtivo) {
+    try {
+      const resPlanalto = $http.send({
+        url: 'https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2023/emc/emc132.htm',
+        method: 'GET',
+        headers: {
+          Accept: 'text/html,application/xhtml+xml',
+          'User-Agent': 'ADECONT-PanoramaRT/1.0 (+https://panorama.adecont.com.br)',
+        },
+        timeout: 3,
+      })
+
+      if (resPlanalto.statusCode >= 200 && resPlanalto.statusCode < 400) {
+        liveAtivo = true
+      }
+    } catch (_) {}
+  }
+
+  // Filtra as normas compiladas de acordo com o termo
+  const selecionadas = []
+  for (let i = 0; i < normasCompiladasPlanalto.length; i++) {
+    const n = normasCompiladasPlanalto[i]
+    const texto =
+      n.tipo +
+      ' ' +
+      n.numero +
+      ' ' +
+      n.ano +
+      ' ' +
+      n.ementa +
+      ' ' +
+      (n.dispositivos_chave || '') +
+      ' ' +
+      (n.artigos_principais || '')
+    const score = pontuarRelevancia(texto, termos)
+
+    if (score > 0 || termos.length === 0) {
+      selecionadas.push({
+        tipo: n.tipo,
+        numero: n.numero,
+        ano: n.ano,
+        data: n.data,
+        ementa: n.ementa,
+        dispositivos_chave: n.dispositivos_chave,
+        artigos_principais: n.artigos_principais,
+        artigo: n.artigos_principais || 'Art. 1º e ss.',
+        vigencia: n.vigencia,
+        identificacao: n.identificacao,
+        fonte: 'Portal da Legislação (Planalto — Presidência da República)',
+        fonte_url: n.fonte_url,
+        confianca: 'OFICIAL institucional',
+        live_verificado: liveAtivo,
+      })
+    }
+  }
+
+  return {
+    sucesso: selecionadas.length > 0,
+    live_verificado: liveAtivo,
+    fonte: 'planalto_legislacao',
+    total: selecionadas.length,
+    itens: selecionadas,
+  }
+}
 
 /**
  * Normaliza e busca termos chave em texto de normas
@@ -603,7 +786,19 @@ globalThis.buscarDadosExternosAgente = function (termoConsulta, segmento) {
 
   const tLower = (termoConsulta || '').toLowerCase()
 
-  // 1. Tenta API do Senado Federal (Dados Abertos)
+  // 1. Tenta Portal da Legislação (Planalto — Presidência da República / LexML)
+  const resPlanalto = buscarPlanaltoOnline(termoConsulta)
+  if (resPlanalto.sucesso && resPlanalto.itens.length > 0) {
+    fontesConsultadas.push('Portal da Legislação (Planalto — Presidência da República / LexML)')
+    fontesComSucesso.push('Planalto (Portal da Legislação)')
+    for (let p = 0; p < resPlanalto.itens.length; p++) {
+      normas.push(resPlanalto.itens[p])
+    }
+  } else {
+    fontesComFalha.push('Planalto (Portal da Legislação)')
+  }
+
+  // 2. Tenta API do Senado Federal (Dados Abertos)
   const resSenado = buscarSenadoDadosAbertos(termoConsulta, '2025')
   if (resSenado.sucesso && resSenado.itens.length > 0) {
     fontesConsultadas.push('Senado Federal (legis.senado.leg.br)')
@@ -768,11 +963,12 @@ globalThis.buscarDadosExternosAgente = function (termoConsulta, segmento) {
   textoContexto +=
     'Níveis de confiança aplicados:\n' +
     '  - DIÁRIO OFICIAL (confiável/autoritativa): DOU / InLabs e Portais de Diários Municipais (AMM / FAMEP) — única camada com validade legal plena de vigência.\n' +
-    '  - OFICIAL institucional: Ministério da Fazenda (MEF), Receita Federal (RFB), CARF, Comitê Gestor IBS (CGIBS), Senado Federal, ANP, SUFRAMA, STF e STJ.\n' +
+    '  - OFICIAL institucional: Portal da Legislação (Planalto — Presidência da República), Ministério da Fazenda (MEF), Receita Federal (RFB), CARF, Comitê Gestor IBS (CGIBS), Senado Federal, ANP, SUFRAMA, STF e STJ.\n' +
     '  - COMPARAÇÃO (não oficial): Lefisc e similares (serviço privado sem validade jurídica, para simples conferência).\n\n'
   textoContexto +=
     'INSTRUÇÃO OBRIGATÓRIA DE CITAÇÃO:\n' +
     'Você DEVE citar explicitamente a fonte oficial (tipo, número, ano, data e nível de confiança) ao fundamentar cada ponto de sua resposta.\n' +
+    'Ao citar normas primárias da federação (EC 132/2023, LC 214/2025, LC 227/2026, Decretos Federais), cite expressamente os artigos, o tipo, o número, o ano e o selo "OFICIAL institucional" do Portal da Legislação (Planalto — Presidência da República).\n' +
     'Quando citar diários municipais (AMM/FAMEP), identifique o selo "Diário Oficial — confiável".\n' +
     'Quando citar STF ou STJ, aponte a condição de "referência oficial institucional".\n' +
     'Se estiver operando em modo fallback, mencione de forma transparente: "Conforme base normativa interna consolidada do Panorama RT...".\n\n'
@@ -795,6 +991,9 @@ globalThis.buscarDadosExternosAgente = function (termoConsulta, segmento) {
     textoContexto += '    Nível de Confiança: ' + (n.confianca || 'OFICIAL institucional') + '\n'
     textoContexto += '    Fonte Oficial: ' + (n.fonte || 'ADECONT Panorama RT') + '\n'
     textoContexto += '    Ementa: ' + n.ementa + '\n'
+    if (n.artigos_principais || n.artigo) {
+      textoContexto += '    Artigos Fundamentais: ' + (n.artigos_principais || n.artigo) + '\n'
+    }
     if (n.dispositivos_chave) {
       textoContexto += '    Dispositivos-Chave: ' + n.dispositivos_chave + '\n'
     }

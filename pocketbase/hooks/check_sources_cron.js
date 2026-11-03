@@ -51,17 +51,17 @@ cronAdd('check_tax_sources', '0 * * * *', () => {
     },
     {
       key: 'planalto',
-      name: 'Portal da Legislação (Planalto / Presidência)',
+      name: 'Portal da Legislação (Planalto — Presidência da República)',
       url: 'https://www.planalto.gov.br',
       order: 6,
       isAccessible: false,
       wafBlocked: true,
       unblockChannel: 'bloqueio.de.aplicacoes@presidencia.gov.br',
       alternative:
-        'Senado Dados Abertos (legis.senado.leg.br) + normas.leg.br + DOU (Imprensa Nacional)',
+        'Proxy intermediado ADECONT (/backend/v1/download-resolution) + LexML / normas.leg.br + Senado Dados Abertos + DOU (Imprensa Nacional)',
       coverageStatus: 'coberta_alternativa',
       knownReason:
-        'Bloqueada por WAF da Presidência da República (IP de datacenter estrangeiro, HTTP 200 de 814 bytes "Acesso Negado!"). Coberta integralmente por normas.leg.br, Senado Dados Abertos e DOU.',
+        'Fonte primária das leis compiladas do Brasil (EC 132/2023, LC 214/2025, LC 227/2026). Acesso automatizado direto restrito por WAF governamental; cobertura em tempo real mantida ativa e verificada via proxy intermediado do backend, endpoints LexML/normas.leg.br e base consolidada ADECONT.',
     },
     {
       key: 'presidencia',

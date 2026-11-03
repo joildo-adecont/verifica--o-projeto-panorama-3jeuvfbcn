@@ -267,11 +267,13 @@ export function SectionMonitorLegislativo() {
                     <span className="text-xs font-bold text-panorama-navy">{i.codigo}</span>
                     <SeloNivelConfianca
                       fonte={
-                        i.url.includes('cgibs')
-                          ? 'CGIBS'
-                          : i.url.includes('in.gov.br')
-                            ? 'DOU'
-                            : 'Senado Federal'
+                        i.url.includes('planalto')
+                          ? 'Portal da Legislação (Planalto)'
+                          : i.url.includes('cgibs')
+                            ? 'CGIBS'
+                            : i.url.includes('in.gov.br')
+                              ? 'DOU'
+                              : 'Senado Federal'
                       }
                       compacto
                     />
@@ -463,11 +465,13 @@ export function SectionMonitorLegislativo() {
                           <span className="text-xs font-bold text-slate-900">{i.codigo}</span>
                           <SeloNivelConfianca
                             fonte={
-                              i.url.includes('cgibs')
-                                ? 'CGIBS'
-                                : i.url.includes('in.gov.br')
-                                  ? 'DOU'
-                                  : 'Senado Federal'
+                              i.url.includes('planalto')
+                                ? 'Portal da Legislação (Planalto)'
+                                : i.url.includes('cgibs')
+                                  ? 'CGIBS'
+                                  : i.url.includes('in.gov.br')
+                                    ? 'DOU'
+                                    : 'Senado Federal'
                             }
                             compacto
                           />

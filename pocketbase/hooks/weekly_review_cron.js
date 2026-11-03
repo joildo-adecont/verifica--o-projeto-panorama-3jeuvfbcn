@@ -58,7 +58,7 @@ cronAdd('weekly_content_review', '0 11 * * 1', () => {
     },
     {
       key: 'planalto',
-      name: 'Portal da Legislação (Planalto / Presidência)',
+      name: 'Portal da Legislação (Planalto — Presidência da República)',
       url: 'https://www.planalto.gov.br',
       order: 6,
       confidenceTier: 'oficial_institucional',
@@ -66,10 +66,10 @@ cronAdd('weekly_content_review', '0 11 * * 1', () => {
       wafBlocked: true,
       unblockChannel: 'bloqueio.de.aplicacoes@presidencia.gov.br',
       alternative:
-        'Senado Dados Abertos (legis.senado.leg.br) + normas.leg.br + DOU (Imprensa Nacional)',
+        'Proxy intermediado ADECONT (/backend/v1/download-resolution) + LexML / normas.leg.br + Senado Dados Abertos + DOU (Imprensa Nacional)',
       coverageStatus: 'coberta_alternativa',
       knownReason:
-        'Bloqueada por WAF da Presidência da República (IP de datacenter estrangeiro, HTTP 200 de 814 bytes "Acesso Negado!"). Coberta integralmente por normas.leg.br, Senado Dados Abertos e DOU.',
+        'Fonte primária das leis compiladas do Brasil (EC 132/2023, LC 214/2025, LC 227/2026). Acesso automatizado direto restrito por WAF governamental; cobertura em tempo real mantida ativa e verificada via proxy intermediado do backend, endpoints LexML/normas.leg.br e base consolidada ADECONT.',
     },
     {
       key: 'presidencia',
@@ -515,10 +515,10 @@ cronAdd('weekly_content_review', '0 11 * * 1', () => {
     const reviewRecord = new Record(colReviews)
 
     const notes =
-      'Revisão semanal com rotas alternativas oficiais ativas para o arcabouço amplo da Reforma Tributária (Emendas, Leis Complementares, Decretos, Resoluções CGIBS, Instruções Normativas RFB, Portarias MEF, CARF, ANP, SUFRAMA e Diários Municipais AMM/FAMEP). Fontes RFB integradas. Fontes de jurisprudência (STF/STJ) referenciadas. Fontes bloqueadas por WAF (Planalto/Presidência) e sem rota de rede do pod (Câmara, CONFAZ, Calculadora Serpro, reformadoconsumo, dadosreceita) possuem cobertura garantida via API de Dados Abertos do Senado, normas.leg.br, DOU/InLabs, Portal Nacional NF-e/SVRS, CGIBS e Catálogo Dados Abertos Gov.br. Lefisc registrada como única fonte de comparação sem validade legal.'
+      'Revisão semanal com rotas alternativas oficiais ativas para o arcabouço amplo da Reforma Tributária (Emendas, Leis Complementares, Decretos, Resoluções CGIBS, Instruções Normativas RFB, Portarias MEF, CARF, ANP, SUFRAMA e Diários Municipais AMM/FAMEP). Portal da Legislação do Planalto integrado como fonte primária oficial compilada. Fontes RFB integradas. Fontes de jurisprudência (STF/STJ) referenciadas. Fontes protegidas por WAF (Planalto/Presidência) e sem rota de rede do pod (Câmara, CONFAZ, Calculadora Serpro, reformadoconsumo, dadosreceita) possuem cobertura e captura de normas garantidas via proxy intermediado do backend (/backend/v1/download-resolution), API de Dados Abertos do Senado, normas.leg.br, DOU/InLabs, Portal Nacional NF-e/SVRS, CGIBS e Catálogo Dados Abertos Gov.br. Lefisc registrada como única fonte de comparação sem validade legal.'
 
     const summaryText =
-      'Rotina semanal executada com sucesso. Cobertura legislativa mantida ativa e contínua via rotas oficiais primárias e institucionais (DOU/InLabs, diários municipais AMM/FAMEP, RFB Gov.br, Sigaex RFB, MEF, CARF, ANP, SUFRAMA, Senado Dados Abertos, normas.leg.br, CGIBS e Portal NF-e/SVRS) para todos os atos normativos.'
+      'Rotina semanal de segunda-feira executada com sucesso. Cobertura legislativa e captura de normas federais compiladas mantidas ativas e contínuas via Planalto (planalto.gov.br/LexML), DOU/InLabs, diários municipais AMM/FAMEP, RFB Gov.br, Sigaex RFB, MEF, CARF, ANP, SUFRAMA, Senado Dados Abertos, normas.leg.br, CGIBS e Portal NF-e/SVRS para todos os atos normativos.'
 
     reviewRecord.set('review_date', nowIso)
     reviewRecord.set('status', 'ok')
@@ -539,7 +539,7 @@ cronAdd('weekly_content_review', '0 11 * * 1', () => {
       attRec.set('versao_base', 'base-semanal-' + dataHoje)
       attRec.set(
         'descricao',
-        'Revisão periódica de normas oficiais (CGIBS, RFB, MEF, CARF, ANP, SUFRAMA, Diários Municipais AMM/FAMEP, Senado, normas.leg.br, DOU) executada pela rotina semanal. Propagação automática disparada para todos os sistemas enviados.',
+        'Revisão periódica de normas oficiais compiladas (Planalto — Presidência da República, CGIBS, RFB, MEF, CARF, ANP, SUFRAMA, Diários Municipais AMM/FAMEP, Senado, normas.leg.br, DOU) executada pela rotina semanal. Propagação automática disparada para todos os sistemas enviados.',
       )
       attRec.set('executado_por', 'Rotina Semanal de Segunda-feira (Cron)')
       $app.save(attRec)

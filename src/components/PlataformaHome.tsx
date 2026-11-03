@@ -675,10 +675,11 @@ export function PlataformaHome() {
             </div>
             <SeloNivelConfianca tier="oficial_institucional" />
             <p className="text-[11px] text-slate-600 leading-relaxed">
-              Receita Federal do Brasil (RFB), Comitê Gestor IBS (CGIBS), Senado Federal e Planalto.
+              Portal da Legislação (Planalto — Presidência da República), Receita Federal (RFB),
+              Comitê Gestor IBS (CGIBS) e Senado Federal.
             </p>
             <div className="text-[10px] font-mono text-blue-700 font-semibold">
-              cgibs.gov.br · rfb.gov.br
+              planalto.gov.br · cgibs.gov.br · rfb.gov.br
             </div>
           </div>
 

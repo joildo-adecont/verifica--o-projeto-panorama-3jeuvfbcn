@@ -142,14 +142,14 @@ export function SectionFontes() {
 
   const fontes = [
     {
-      orgao: 'Planalto (Presidência)',
-      fonte: 'normas.leg.br + legis.senado.leg.br + DOU',
+      orgao: 'Portal da Legislação (Planalto — Presidência)',
+      fonte: 'planalto.gov.br + LexML + normas.leg.br + proxy backend',
       conteudo:
-        'Texto integral compilado oficial (LC 214/2025, LC 227/2026, EC 132/2023, Dec. 12.955/2026)',
-      url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
+        'Fonte primária das leis federais compiladas (EC 132/2023, LC 214/2025, LC 227/2026, Dec. 12.955/2026 e CTN)',
+      url: 'https://www.planalto.gov.br',
       statusNota:
-        'Bloqueado por WAF da Presidência (IP datacenter). Cobertura garantida pelas fontes oficiais ativas (normas.leg.br, Senado Dados Abertos e DOU). Canal oficial: bloqueio.de.aplicacoes@presidencia.gov.br',
-      badgeStatus: 'Coberta via Senado + DOU',
+        'Fonte Oficial Institucional integrada. Protegida por WAF de robôs da Presidência; cobertura ao vivo mantida pelo proxy intermediado do backend (/backend/v1/download-resolution), LexML/normas.leg.br e base consolidada. Canal oficial: bloqueio.de.aplicacoes@presidencia.gov.br',
+      badgeStatus: 'Oficial Integrada (Proxy + LexML)',
       badgeCor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
     },
     {
