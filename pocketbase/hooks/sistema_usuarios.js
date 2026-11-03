@@ -23,6 +23,7 @@ routerAdd('POST', '/backend/v1/sistema-usuarios/login', (e) => {
       nome: rec.getString('nome'),
       email: rec.getString('email'),
       cargo: rec.getString('cargo'),
+      departamento: rec.getString('departamento'),
       nivel: rec.getString('nivel'),
       nivel_customizado_id: rec.getString('nivel_customizado_id'),
       nivel_customizado_nome: rec.getString('nivel_customizado_nome'),
@@ -132,6 +133,7 @@ routerAdd('POST', '/backend/v1/sistema-usuarios/confirmar-codigo', (e) => {
       nome: rec.getString('nome'),
       email: rec.getString('email'),
       cargo: rec.getString('cargo'),
+      departamento: rec.getString('departamento'),
       nivel: rec.getString('nivel'),
       nivel_customizado_id: rec.getString('nivel_customizado_id'),
       nivel_customizado_nome: rec.getString('nivel_customizado_nome'),
@@ -225,6 +227,7 @@ routerAdd('POST', '/backend/v1/sistema-usuarios/confirmar-admin', (e) => {
       nome: rec.getString('nome'),
       email: rec.getString('email'),
       cargo: rec.getString('cargo'),
+      departamento: rec.getString('departamento'),
       nivel: rec.getString('nivel'),
       nivel_customizado_id: rec.getString('nivel_customizado_id'),
       nivel_customizado_nome: rec.getString('nivel_customizado_nome'),
@@ -294,6 +297,7 @@ routerAdd('GET', '/backend/v1/sistema-usuarios', (e) => {
       nome: rec.getString('nome'),
       email: rec.getString('email'),
       cargo: rec.getString('cargo'),
+      departamento: rec.getString('departamento'),
       nivel: rec.getString('nivel'),
       nivel_customizado_id: rec.getString('nivel_customizado_id'),
       nivel_customizado_nome: rec.getString('nivel_customizado_nome'),
@@ -355,6 +359,7 @@ routerAdd('POST', '/backend/v1/sistema-usuarios', (e) => {
       nome: rec.getString('nome'),
       email: rec.getString('email'),
       cargo: rec.getString('cargo'),
+      departamento: rec.getString('departamento'),
       nivel: rec.getString('nivel'),
       nivel_customizado_id: rec.getString('nivel_customizado_id'),
       nivel_customizado_nome: rec.getString('nivel_customizado_nome'),
@@ -381,6 +386,7 @@ routerAdd('POST', '/backend/v1/sistema-usuarios', (e) => {
   const nome = (data.nome || '').trim()
   const email = (data.email || '').trim().toLowerCase()
   const cargo = (data.cargo || '').trim()
+  const departamento = (data.departamento || '').trim()
   const nivel = (data.nivel || 'Leitor').trim()
   const nivelCustomizadoId = (data.nivel_customizado_id || '').trim()
   const nivelCustomizadoNome = (data.nivel_customizado_nome || '').trim()
@@ -422,6 +428,7 @@ routerAdd('POST', '/backend/v1/sistema-usuarios', (e) => {
     rec.set('nome', nome)
     rec.set('email', email)
     rec.set('cargo', cargo)
+    rec.set('departamento', departamento)
     rec.set('nivel', nivel)
     rec.set('nivel_customizado_id', nivelCustomizadoId)
     rec.set('nivel_customizado_nome', nivelCustomizadoNome)
@@ -499,6 +506,7 @@ const editarUsuarioHandler = (e) => {
       nome: rec.getString('nome'),
       email: rec.getString('email'),
       cargo: rec.getString('cargo'),
+      departamento: rec.getString('departamento'),
       nivel: rec.getString('nivel'),
       nivel_customizado_id: rec.getString('nivel_customizado_id'),
       nivel_customizado_nome: rec.getString('nivel_customizado_nome'),
@@ -537,6 +545,7 @@ const editarUsuarioHandler = (e) => {
 
     if (data.nome !== undefined) rec.set('nome', String(data.nome).trim())
     if (data.cargo !== undefined) rec.set('cargo', String(data.cargo).trim())
+    if (data.departamento !== undefined) rec.set('departamento', String(data.departamento).trim())
     if (data.nivel !== undefined) rec.set('nivel', String(data.nivel).trim())
     if (data.nivel_customizado_id !== undefined)
       rec.set('nivel_customizado_id', String(data.nivel_customizado_id).trim())

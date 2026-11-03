@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-03T05:30:24.568Z",
+  "generatedAt": "2026-11-03T05:57:48.957Z",
   "collections": [
     {
       "name": "users",
@@ -2901,12 +2901,20 @@
           "type": "text",
           "required": false,
           "system": false
+        },
+        {
+          "name": "departamento",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": ["Contábil", "Fiscal", "Pessoal", "Apoio", "Jurídico", "Administrativo"]
         }
       ],
       "indexes": [
         "CREATE UNIQUE INDEX idx_sistema_usuarios_email ON sistema_usuarios (email)",
         "CREATE INDEX idx_sistema_usuarios_nivel ON sistema_usuarios (nivel)",
-        "CREATE INDEX idx_sistema_usuarios_ativo ON sistema_usuarios (ativo)"
+        "CREATE INDEX idx_sistema_usuarios_ativo ON sistema_usuarios (ativo)",
+        "CREATE INDEX `idx_sistema_usuarios_departamento` ON `sistema_usuarios` (departamento)"
       ]
     },
     {

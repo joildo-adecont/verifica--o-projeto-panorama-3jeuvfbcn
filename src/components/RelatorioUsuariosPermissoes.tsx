@@ -138,6 +138,7 @@ export function RelatorioUsuariosPermissoes({
                 <tr className="bg-slate-100 border-b border-slate-300 text-slate-800 font-bold">
                   <th className="py-2 px-2.5">Nome / E-mail</th>
                   <th className="py-2 px-2">Cargo</th>
+                  <th className="py-2 px-2">Departamento</th>
                   <th className="py-2 px-2">Nível</th>
                   <th className="py-2 px-1.5 text-center">Jurídico</th>
                   <th className="py-2 px-1.5 text-center">Tributário</th>
@@ -154,6 +155,9 @@ export function RelatorioUsuariosPermissoes({
                       <div className="text-[10.5px] text-slate-500 font-mono">{u.email}</div>
                     </td>
                     <td className="py-2 px-2 text-[11px] text-slate-700">{u.cargo || '—'}</td>
+                    <td className="py-2 px-2 text-[11px] text-slate-700 font-semibold">
+                      {u.departamento || '—'}
+                    </td>
                     <td className="py-2 px-2">
                       <span className="inline-block text-[10px] font-bold px-1.5 py-0.5 rounded border border-slate-300 bg-white">
                         {u.nivel_customizado_nome || u.nivel}

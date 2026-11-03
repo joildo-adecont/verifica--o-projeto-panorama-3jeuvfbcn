@@ -31,6 +31,8 @@ import {
   SalvarUsuarioInput,
   SalvarNivelInput,
   DadosMensagemConfirmacao,
+  DEPARTAMENTOS_USUARIOS,
+  DepartamentoUsuario,
   listarSistemaUsuarios,
   criarSistemaUsuario,
   atualizarSistemaUsuario,
@@ -131,6 +133,7 @@ interface FormState {
   nome: string
   email: string
   cargo: string
+  departamento: DepartamentoUsuario | ''
   nivel: NivelAcesso
   nivel_customizado_id?: string
   nivel_customizado_nome?: string
@@ -151,6 +154,7 @@ const FORM_INICIAL: FormState = {
   nome: '',
   email: '',
   cargo: '',
+  departamento: '',
   nivel: 'Editor',
   nivel_customizado_id: '',
   nivel_customizado_nome: '',
@@ -227,6 +231,7 @@ export function SectionNivelAcesso() {
   // Filtros da lista
   const [busca, setBusca] = useState('')
   const [filtroNivel, setFiltroNivel] = useState<string>('todos')
+  const [filtroDepartamento, setFiltroDepartamento] = useState<string>('todos')
   const [filtroSituacao, setFiltroSituacao] = useState<string>('todos')
 
   // Formulário (preserva dados digitados sempre)
@@ -354,6 +359,7 @@ export function SectionNivelAcesso() {
       nome: form.nome.trim(),
       email: form.email.trim().toLowerCase(),
       cargo: form.cargo.trim(),
+      departamento: form.departamento || '',
       nivel: form.nivel,
       nivel_customizado_id: form.nivel_customizado_id,
       nivel_customizado_nome: form.nivel_customizado_nome,
@@ -437,6 +443,7 @@ export function SectionNivelAcesso() {
       nome: u.nome,
       email: u.email,
       cargo: u.cargo || '',
+      departamento: (u.departamento as DepartamentoUsuario) || '',
       nivel: u.nivel,
       nivel_customizado_id: u.nivel_customizado_id || '',
       nivel_customizado_nome: u.nivel_customizado_nome || '',
@@ -648,16 +655,24 @@ export function SectionNivelAcesso() {
   const usuariosFiltrados = useMemo(() => {
     return usuarios.filter((u) => {
       if (filtroNivel !== 'todos' && u.nivel !== filtroNivel) return false
+      if (filtroDepartamento !== 'todos') {
+        if (filtroDepartamento === 'sem_departamento') {
+          if (u.departamento) return false
+        } else if (u.departamento !== filtroDepartamento) {
+          return false
+        }
+      }
       if (filtroSituacao === 'ativo' && !u.ativo) return false
       if (filtroSituacao === 'inativo' && u.ativo) return false
       if (busca.trim()) {
         const termo = busca.toLowerCase()
-        const texto = `${u.nome} ${u.email} ${u.cargo} ${u.observacoes}`.toLowerCase()
+        const texto =
+          `${u.nome} ${u.email} ${u.cargo || ''} ${u.departamento || ''} ${u.observacoes || ''}`.toLowerCase()
         if (!texto.includes(termo)) return false
       }
       return true
     })
-  }, [usuarios, filtroNivel, filtroSituacao, busca])
+  }, [usuarios, filtroNivel, filtroDepartamento, filtroSituacao, busca])
 
   const totalAtivos = useMemo(() => usuarios.filter((u) => u.ativo).length, [usuarios])
 
@@ -906,6 +921,20 @@ export function SectionNivelAcesso() {
                   </select>
 
                   <select
+                    value={filtroDepartamento}
+                    onChange={(e) => setFiltroDepartamento(e.target.value)}
+                    className="text-xs rounded-xl border border-slate-300 bg-white px-3 py-2 focus:outline-none focus:border-panorama-navy font-medium text-slate-700"
+                  >
+                    <option value="todos">Todos os Departamentos</option>
+                    {DEPARTAMENTOS_USUARIOS.map((dep) => (
+                      <option key={dep} value={dep}>
+                        {dep}
+                      </option>
+                    ))}
+                    <option value="sem_departamento">Sem Departamento (—)</option>
+                  </select>
+
+                  <select
                     value={filtroSituacao}
                     onChange={(e) => setFiltroSituacao(e.target.value)}
                     className="text-xs rounded-xl border border-slate-300 bg-white px-3 py-2 focus:outline-none focus:border-panorama-navy font-medium text-slate-700"
@@ -943,10 +972,11 @@ export function SectionNivelAcesso() {
                     <thead>
                       <tr className="bg-panorama-navy text-white">
                         <th className="py-3 px-3.5 font-bold">Identificação do Usuário</th>
+                        <th className="py-3 px-2.5 font-bold">Departamento</th>
                         <th className="py-3 px-3 font-bold">Nível de Acesso</th>
                         <th className="py-3 px-3 font-bold">Permissões nos Segmentos</th>
-                        <th className="py-3 px-2.5 font-bold text-center">Confirmação</th>
-                        <th className="py-3 px-2 font-bold text-center">Situação</th>
+                        <th className="py-3 px-2 font-bold text-center">Confirmação</th>
+                        <th className="py-3 px-1.5 font-bold text-center">Situação</th>
                         <th className="py-3 px-3.5 font-bold text-right">Ações</th>
                       </tr>
                     </thead>
@@ -987,6 +1017,18 @@ export function SectionNivelAcesso() {
                                   )}
                                 </div>
                               </div>
+                            </td>
+
+                            {/* Departamento */}
+                            <td className="py-3 px-2.5 align-middle">
+                              {u.departamento ? (
+                                <span className="inline-flex items-center gap-1 text-[10.5px] font-bold px-2 py-0.5 rounded-md border bg-slate-100 text-slate-800 border-slate-300">
+                                  <Briefcase className="w-3 h-3 text-slate-500" />
+                                  <span>{u.departamento}</span>
+                                </span>
+                              ) : (
+                                <span className="text-[11px] text-slate-400 italic">—</span>
+                              )}
                             </td>
 
                             {/* Nível de Acesso */}
@@ -1260,6 +1302,29 @@ export function SectionNivelAcesso() {
                       placeholder="maria@adecont.com.br"
                       className="w-full text-xs rounded-xl border border-slate-300 bg-white px-3 py-2 focus:outline-none focus:border-panorama-navy"
                     />
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-700 block mb-1">
+                      Departamento
+                    </label>
+                    <select
+                      value={form.departamento}
+                      onChange={(e) =>
+                        setForm((f) => ({
+                          ...f,
+                          departamento: (e.target.value as DepartamentoUsuario) || '',
+                        }))
+                      }
+                      className="w-full text-xs rounded-xl border border-slate-300 bg-white px-3 py-2 focus:outline-none focus:border-panorama-navy font-semibold text-slate-800"
+                    >
+                      <option value="">— Não definido —</option>
+                      {DEPARTAMENTOS_USUARIOS.map((dep) => (
+                        <option key={dep} value={dep}>
+                          {dep}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
                   <div>

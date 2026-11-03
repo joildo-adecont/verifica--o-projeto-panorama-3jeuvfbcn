@@ -16,6 +16,17 @@ export type NivelAcesso = NivelAcessoPadrao | string
 export type TipoPermissao = 'consultar' | 'editar'
 export type StatusCadastro = 'confirmado' | 'pendente_confirmacao'
 
+/** Departamentos institucionais de qualificação do usuário (6 valores oficiais). */
+export const DEPARTAMENTOS_USUARIOS = [
+  'Contábil',
+  'Fiscal',
+  'Pessoal',
+  'Apoio',
+  'Jurídico',
+  'Administrativo',
+] as const
+export type DepartamentoUsuario = (typeof DEPARTAMENTOS_USUARIOS)[number]
+
 export interface PermissaoSegmento {
   acesso: boolean
   tipo: TipoPermissao
@@ -26,6 +37,7 @@ export interface SistemaUsuario {
   nome: string
   email: string
   cargo: string
+  departamento?: DepartamentoUsuario | ''
   nivel: NivelAcesso
   nivel_customizado_id?: string
   nivel_customizado_nome?: string
@@ -70,6 +82,7 @@ export interface SalvarUsuarioInput {
   nome: string
   email: string
   cargo?: string
+  departamento?: DepartamentoUsuario | ''
   nivel: NivelAcesso
   nivel_customizado_id?: string
   nivel_customizado_nome?: string
@@ -106,6 +119,7 @@ export interface SalvarNivelInput {
 export interface ListarUsuariosParams {
   q?: string
   nivel?: string
+  departamento?: string
   situacao?: 'ativo' | 'inativo' | ''
 }
 
@@ -300,6 +314,9 @@ export async function listarSistemaUsuarios(
   }
   if (params?.nivel) {
     filtered = filtered.filter((u) => u.nivel === params.nivel)
+  }
+  if (params?.departamento) {
+    filtered = filtered.filter((u) => (u.departamento || '') === params.departamento)
   }
   if (params?.situacao === 'ativo') {
     filtered = filtered.filter((u) => u.ativo)
