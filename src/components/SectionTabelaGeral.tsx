@@ -739,12 +739,14 @@ export function SectionTabelaGeral() {
                                     {mostrarOrigem && selo && (
                                       <span
                                         title={`${resumo?.norma ?? ''} — ${resumo?.dispositivo ?? ''}${resumo?.remissao ? ' · ' + resumo.remissao : ''}. ${selo.titulo}`}
-                                        className={`mt-0.5 flex items-center gap-0.5 w-fit text-[8px] font-bold rounded border px-1 py-px cursor-help ${selo.cor}`}
+                                        /* 11px e ícone de 12px: em 8px (como estava) o selo ficava ilegível na
+                                          tabela — 114 ícones de 8×8 na Anexo I medidos em 03/11/2026. */
+                                        className={`mt-1 flex items-center gap-1 w-fit text-[11px] font-bold rounded border px-1.5 py-0.5 cursor-help ${selo.cor}`}
                                       >
                                         {conf === 'baixa' ? (
-                                          <CircleAlert className="w-2 h-2" />
+                                          <CircleAlert className="w-3 h-3 shrink-0" />
                                         ) : (
-                                          <CircleCheck className="w-2 h-2" />
+                                          <CircleCheck className="w-3 h-3 shrink-0" />
                                         )}
                                         {selo.rotulo}
                                       </span>
