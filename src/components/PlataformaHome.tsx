@@ -23,6 +23,7 @@ import {
   BookOpen,
   History,
   Ban,
+  ShieldUser,
 } from 'lucide-react'
 import { AdecontLogo } from '@/components/AdecontLogo'
 import { SeloNivelConfianca } from '@/components/SeloNivelConfianca'
@@ -238,15 +239,15 @@ export function PlataformaHome() {
         cardBorda: 'border-sky-200 hover:border-sky-400',
         destaques: [
           { label: 'Seção 9A', valor: 'Clientes & CRM' },
+          { label: 'Nível de Acesso', valor: 'Usuários & Níveis' },
           { label: 'Instalador CEO', valor: '#1 CEO ativo' },
           { label: 'Central de Entrega', valor: 'PDF & Relatórios' },
-          { label: 'Painel Degraus', valor: 'Domínio → Seção' },
         ],
         atalhos: [
           { label: 'Cadastro de Clientes & Envios (9A)', href: '#cadastro-envios' },
+          { label: 'Nível de Acesso (Cadastro de Usuários)', href: '#nivel-acesso' },
           { label: 'Instalador e Versão (#1 CEO)', href: '#instalador-versao' },
           { label: 'Central de Entrega de Relatórios', href: '#central-entrega' },
-          { label: 'Central de Indicadores (KPIs)', href: '#indicadores' },
         ],
       },
     ]
@@ -495,6 +496,15 @@ export function PlataformaHome() {
           >
             <Calculator className="w-4 h-4 text-slate-700 group-hover:scale-110 transition-transform" />
             <span>Tabela Geral (1.053 itens)</span>
+          </button>
+
+          {/* Nível de Acesso — Cadastro de Usuários */}
+          <button
+            onClick={() => navegarPara('#nivel-acesso')}
+            className="group px-3.5 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-950 border border-rose-300 text-xs font-bold flex items-center gap-2 transition-all hover:shadow-sm hover:-translate-y-0.5 cursor-pointer"
+          >
+            <ShieldUser className="w-4 h-4 text-rose-700 group-hover:scale-110 transition-transform" />
+            <span>Nível de Acesso (Usuários)</span>
           </button>
         </div>
 

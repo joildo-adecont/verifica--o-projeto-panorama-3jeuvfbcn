@@ -23,6 +23,7 @@ import { SectionMonitorLegislativo } from '@/components/SectionMonitorLegislativ
 import { SectionCentralEntrega } from '@/components/SectionCentralEntrega'
 import { SectionAssistentesSeguranca } from '@/components/SectionAssistentesSeguranca'
 import { SectionControleAcesso } from '@/components/SectionControleAcesso'
+import { SectionNivelAcesso } from '@/components/SectionNivelAcesso'
 import { SectionResponsividade } from '@/components/SectionResponsividade'
 import { SectionSetor } from '@/components/SectionSetor'
 import { SectionControleVersao } from '@/components/SectionControleVersao'
@@ -167,6 +168,7 @@ const COMPONENTES: Record<string, ComponentType<PropsAba>> = {
   '#central-entrega': SectionCentralEntrega,
   '#assistentes-seguranca': SectionAssistentesSeguranca,
   '#controle-acesso': SectionControleAcesso,
+  '#nivel-acesso': SectionNivelAcesso,
   '#responsividade-celulares': SectionResponsividade,
   '#historico-atualizacoes': SectionHistoricoAtualizacoes,
   '#lefisc': SectionLefisc,

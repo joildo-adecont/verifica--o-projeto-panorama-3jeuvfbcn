@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { RotateCw, Clock, ExternalLink, Search, Menu, X, FileText } from 'lucide-react'
+import { RotateCw, Clock, ExternalLink, Search, Menu, X, FileText, ShieldUser } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { AdecontLogo } from '@/components/AdecontLogo'
 import { AlternadorTema } from '@/components/AlternadorTema'
@@ -7,6 +7,7 @@ import { NormAlertsBell } from '@/components/NormAlertsBell'
 import { NAVEGACAO } from '@/components/navegacao'
 import { fetchSourceStatuses, triggerSourceCheck } from '@/services/panorama'
 import { useToast } from '@/hooks/use-toast'
+import { obterUsuarioAtivoLocal, SistemaUsuario } from '@/services/sistemaUsuarios'
 import type { SourceStatusItem } from '@/types/panorama'
 
 interface PanoramaHeaderProps {
@@ -32,6 +33,15 @@ export function PanoramaHeader({
     [],
   )
   const [mostraProdutos, setMostraProdutos] = useState(false)
+  const [usuarioAtivo, setUsuarioAtivo] = useState<SistemaUsuario | null>(null)
+
+  // Carrega usuário ativo para exibição informativa de nível/permissão
+  useEffect(() => {
+    setUsuarioAtivo(obterUsuarioAtivoLocal())
+    const handleStorage = () => setUsuarioAtivo(obterUsuarioAtivoLocal())
+    window.addEventListener('storage', handleStorage)
+    return () => window.removeEventListener('storage', handleStorage)
+  }, [])
 
   // Carrega o catálogo do Simulador (987 itens NCM/NBS/CNAE) para a busca de produtos/serviços
   useEffect(() => {
@@ -340,6 +350,21 @@ export function PanoramaHeader({
           <div className="flex items-center gap-2">
             {/* Bell de Alertas de Novas Revisões */}
             <NormAlertsBell />
+
+            {/* Badge informativo de nível do usuário ativo */}
+            {usuarioAtivo && (
+              <a
+                href="#nivel-acesso"
+                title={`Usuário ativo: ${usuarioAtivo.nome} (${usuarioAtivo.nivel}). Clique para gerenciar permissões.`}
+                className="hidden xl:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 transition-colors"
+              >
+                <ShieldUser className="w-3.5 h-3.5 text-panorama-navy" />
+                <span className="truncate max-w-[120px]">{usuarioAtivo.nome.split(' ')[0]}</span>
+                <span className="px-1.5 py-0.2 rounded text-[9.5px] uppercase font-black bg-panorama-navy text-panorama-gold">
+                  {usuarioAtivo.nivel}
+                </span>
+              </a>
+            )}
 
             <div className="hidden sm:flex items-center gap-2">
               <a
