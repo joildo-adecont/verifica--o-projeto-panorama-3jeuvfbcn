@@ -9,7 +9,10 @@ import {
   FileText,
   Hash,
   Info,
+  Send,
 } from 'lucide-react'
+import type { Jurisprudencia } from '@/services/jurisprudencias'
+import { verbeteParaJurisprudencia, grupoParaTribunal } from '@/lib/verbeteParaJurisprudencia'
 
 /**
  * BUSCA POR ARTIGO DE LEI — dentro das teses

@@ -358,7 +358,181 @@ export function SectionBuscaAvancada({ segmentoInicial }: SectionBuscaAvancadaPr
     (tipoClassif !== 'TODOS' ? 1 : 0) +
     (atosNivel !== 'todos' ? 1 : 0) +
     (categoriaEspecial !== 'TODAS' ? 1 : 0) +
-    (filtroAnexo !== 'TODOS' ? 1 : 0)
+    (filtroAnexo !== 'TODOS' ? 1 : 0) +
+    (buscaPalavraChave.trim() ? 1 : 0)
+
+  // ── Filtragem refinada por palavra-chave sobre o acervo carregado ──────────
+  // Com buscaPalavraChave vazia, o comportamento é EXATAMENTE o original sem alterações.
+  // Múltiplas palavras filtram como "E" (correspondePalavrasChave) e ignoram acentos/caixa.
+
+  const anexosReformaFiltrados = useMemo(() => {
+    if (!resultado) return []
+    if (palavrasChave.length === 0) return resultado.anexosReforma.items
+    return resultado.anexosReforma.items.filter((anexo) => {
+      const prodsStr = anexo.produtosServicos
+        .map(
+          (p) =>
+            `${p.item} ${p.descricao} ${p.codigo || ''} ${p.tipoCodigo || ''} ${p.detalhes || ''}`,
+        )
+        .join(' ')
+      const textoAlvo = [
+        anexo.numero,
+        anexo.titulo,
+        anexo.subtitulo,
+        anexo.capitulacaoLegal,
+        anexo.artigosRemissao.join(' '),
+        anexo.reducaoRotulo,
+        anexo.aliquotaEfetivaIbsCbs,
+        anexo.baseCalculoTexto,
+        anexo.resumo,
+        anexo.categoria,
+        anexo.tags.join(' '),
+        prodsStr,
+        anexo.codigosOficiaisRelacionados.join(' '),
+      ]
+      return correspondePalavrasChave(textoAlvo, palavrasChave)
+    })
+  }, [resultado, palavrasChave])
+
+  const assuntosEspeciaisFiltrados = useMemo(() => {
+    if (!resultado) return []
+    if (palavrasChave.length === 0) return resultado.assuntosEspeciais.items
+    return resultado.assuntosEspeciais.items.filter((esp) => {
+      const conexoesStr = esp.conexoesNormativas
+        .map((c) => `${c.codigoNorma} ${c.dispositivo} ${c.titulo} ${c.efeitoOuTratamento}`)
+        .join(' ')
+      const fontesStr = esp.fontesOficiais.map((f) => `${f.orgao} ${f.nome || ''}`).join(' ')
+      const textoAlvo = [
+        esp.titulo,
+        esp.subtitulo,
+        esp.categoria,
+        esp.descricao,
+        esp.oQueMuda,
+        esp.baseLegal,
+        esp.aliquotaOuTratamento,
+        esp.badgeExcecao,
+        esp.termosChave.join(' '),
+        esp.produtosOuSegmentosAfetados.join(' '),
+        conexoesStr,
+        fontesStr,
+      ]
+      return correspondePalavrasChave(textoAlvo, palavrasChave)
+    })
+  }, [resultado, palavrasChave])
+
+  const classificacoesFiltradas = useMemo(() => {
+    if (!resultado) return []
+    if (palavrasChave.length === 0) return resultado.classificacoes.items
+    return resultado.classificacoes.items.filter((item) => {
+      const textoAlvo = [
+        item.tipo,
+        item.codigo,
+        item.nome || '',
+        item.descricao,
+        item.fonte,
+        item.tabela_origem || '',
+        item.observacoes || '',
+      ]
+      return correspondePalavrasChave(textoAlvo, palavrasChave)
+    })
+  }, [resultado, palavrasChave])
+
+  const normasFiltradas = useMemo(() => {
+    if (!resultado) return []
+    if (palavrasChave.length === 0) return resultado.normas.items
+    return resultado.normas.items.filter((n) => {
+      const textoAlvo = [
+        n.code,
+        n.title,
+        n.summary,
+        n.status_incidence,
+        n.norm_type || '',
+        n.origin || '',
+        n.date || '',
+        n.dou_date || '',
+      ]
+      return correspondePalavrasChave(textoAlvo, palavrasChave)
+    })
+  }, [resultado, palavrasChave])
+
+  const radarAtosFiltrados = useMemo(() => {
+    if (!resultado) return []
+    if (palavrasChave.length === 0) return resultado.radarAtos.items
+    return resultado.radarAtos.items.filter((a) => {
+      const textoAlvo = [
+        a.titulo,
+        a.tipo_ato,
+        a.nivel,
+        a.ente_nome || '',
+        a.uf || '',
+        a.municipio_nome || '',
+        a.fonte_oficial || '',
+        a.trecho || '',
+        a.relacao || '',
+      ]
+      return correspondePalavrasChave(textoAlvo, palavrasChave)
+    })
+  }, [resultado, palavrasChave])
+
+  const aliquotasFiltradas = useMemo(() => {
+    if (!resultado) return []
+    if (palavrasChave.length === 0) return resultado.aliquotasTratamentos
+    return resultado.aliquotasTratamentos.filter((trat) => {
+      const textoAlvo = [
+        trat.tema,
+        trat.tipoTratamento,
+        trat.reducaoOuFator,
+        trat.aliquotaEstimada,
+        trat.fundamentoLegal,
+        trat.observacao,
+        trat.categoria,
+      ]
+      return correspondePalavrasChave(textoAlvo, palavrasChave)
+    })
+  }, [resultado, palavrasChave])
+
+  const conexoesFiltradas = useMemo(() => {
+    if (!resultado) return []
+    if (palavrasChave.length === 0) return resultado.conexoesLegais
+    return resultado.conexoesLegais.filter((con) => {
+      const textoAlvo = [
+        con.norma,
+        con.dispositivo,
+        con.remissao || '',
+        con.anexo,
+        con.rotulo,
+        con.detalhe,
+        con.aliquotaOuEfeito,
+      ]
+      return correspondePalavrasChave(textoAlvo, palavrasChave)
+    })
+  }, [resultado, palavrasChave])
+
+  const analisesFiltradas = useMemo(() => {
+    if (!resultado) return []
+    if (palavrasChave.length === 0) return resultado.analisesEspecialistas
+    return resultado.analisesEspecialistas.filter((an) => {
+      const textoAlvo = [
+        an.tema,
+        an.autoridadeOuFonte,
+        an.dataOuMarco,
+        an.resumo,
+        an.impactoOuProjecao,
+        an.tag,
+      ]
+      return correspondePalavrasChave(textoAlvo, palavrasChave)
+    })
+  }, [resultado, palavrasChave])
+
+  const totalFiltradoPalavraChave =
+    anexosReformaFiltrados.length +
+    assuntosEspeciaisFiltrados.length +
+    classificacoesFiltradas.length +
+    normasFiltradas.length +
+    radarAtosFiltrados.length +
+    aliquotasFiltradas.length +
+    conexoesFiltradas.length +
+    analisesFiltradas.length
 
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
