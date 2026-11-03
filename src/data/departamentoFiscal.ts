@@ -160,7 +160,13 @@ export interface LeiIcms {
 }
 
 export const LEIS_ICMS: LeiIcms[] = [
-  { uf: 'AC', lei: 'LC 55/1996', ano: '1996', aliquota: 19, fonte: 'SEFAZ-AC (legislação do ICMS)' },
+  {
+    uf: 'AC',
+    lei: 'LC 55/1996',
+    ano: '1996',
+    aliquota: 19,
+    fonte: 'SEFAZ-AC (legislação do ICMS)',
+  },
   {
     uf: 'AL',
     lei: 'Lei 5.900/1996',
@@ -169,15 +175,58 @@ export const LEIS_ICMS: LeiIcms[] = [
     obs: 'Era 19%; Lei 9.776/2025 elevou para 20,5% desde 01/04/2026',
     fonte: 'SEFAZ-AL + Lei 9.776/2025',
   },
-  { uf: 'AP', lei: 'Lei 1.940/1996', ano: '1996', aliquota: 18, fonte: 'Legislação estadual (a confirmar na SEFAZ)' },
-  { uf: 'AM', lei: 'Lei 2.826/2003', ano: '2003', aliquota: 20, fonte: 'SEFAZ-AM (sistemas de normas)' },
-  { uf: 'BA', lei: 'Lei 7.014/1996', ano: '1996', aliquota: 20.5, obs: 'Redação da Lei 14.629/2023', fonte: 'Lei 7.014/1996, art. 15' },
-  { uf: 'CE', lei: 'Lei 18.665/2023', ano: '2023', aliquota: 20, fonte: 'SEFAZ-CE (nota técnica da reforma comentada)' },
-  { uf: 'DF', lei: 'Lei 1.254/1996', ano: '1996', aliquota: 20, fonte: 'Legislação do DF (a confirmar)' },
+  {
+    uf: 'AP',
+    lei: 'Lei 1.940/1996',
+    ano: '1996',
+    aliquota: 18,
+    fonte: 'Legislação estadual (a confirmar na SEFAZ)',
+  },
+  {
+    uf: 'AM',
+    lei: 'Lei 2.826/2003',
+    ano: '2003',
+    aliquota: 20,
+    fonte: 'SEFAZ-AM (sistemas de normas)',
+  },
+  {
+    uf: 'BA',
+    lei: 'Lei 7.014/1996',
+    ano: '1996',
+    aliquota: 20.5,
+    obs: 'Redação da Lei 14.629/2023',
+    fonte: 'Lei 7.014/1996, art. 15',
+  },
+  {
+    uf: 'CE',
+    lei: 'Lei 18.665/2023',
+    ano: '2023',
+    aliquota: 20,
+    fonte: 'SEFAZ-CE (nota técnica da reforma comentada)',
+  },
+  {
+    uf: 'DF',
+    lei: 'Lei 1.254/1996',
+    ano: '1996',
+    aliquota: 20,
+    fonte: 'Legislação do DF (a confirmar)',
+  },
   { uf: 'ES', lei: 'Lei 7.000/2001', ano: '2001', aliquota: 17, fonte: 'Legislação estadual' },
-  { uf: 'GO', lei: 'Lei 11.651/1991 (CTE)', ano: '1991', aliquota: 19, fonte: 'Economia-GO (Código Tributário Estadual)' },
+  {
+    uf: 'GO',
+    lei: 'Lei 11.651/1991 (CTE)',
+    ano: '1991',
+    aliquota: 19,
+    fonte: 'Economia-GO (Código Tributário Estadual)',
+  },
   { uf: 'MA', lei: 'Lei 7.799/2002', ano: '2002', aliquota: 22, fonte: 'Legislação estadual' },
-  { uf: 'MT', lei: 'Lei 7.098/1998', ano: '1998', aliquota: 17, fonte: 'SEFAZ-MT (legislação tributária)' },
+  {
+    uf: 'MT',
+    lei: 'Lei 7.098/1998',
+    ano: '1998',
+    aliquota: 17,
+    fonte: 'SEFAZ-MT (legislação tributária)',
+  },
   { uf: 'MS', lei: 'Lei 1.810/1997', ano: '1997', aliquota: 17, fonte: 'SEFAZ-MS' },
   {
     uf: 'MG',
@@ -197,14 +246,26 @@ export const LEIS_ICMS: LeiIcms[] = [
     obs: 'Atualizada até a Lei 22.962/2025',
     fonte: 'SEFAZ-PR (PDF oficial da lei, atualizado)',
   },
-  { uf: 'PE', lei: 'Lei 15.730/2016', ano: '2016', aliquota: 20.5, fonte: 'SEFAZ-PE (tabela de alíquotas oficial)' },
+  {
+    uf: 'PE',
+    lei: 'Lei 15.730/2016',
+    ano: '2016',
+    aliquota: 20.5,
+    fonte: 'SEFAZ-PE (tabela de alíquotas oficial)',
+  },
   { uf: 'PI', lei: 'Lei 4.261/1989', ano: '1989', aliquota: 21, fonte: 'Legislação estadual' },
   { uf: 'RJ', lei: 'Lei 2.657/1996', ano: '1996', aliquota: 22, fonte: 'Fazenda-RJ' },
   { uf: 'RN', lei: 'Lei 6.968/1996', ano: '1996', aliquota: 18, fonte: 'Legislação estadual' },
   { uf: 'RS', lei: 'Lei 8.820/1989', ano: '1989', aliquota: 17, fonte: 'Fazenda-RS' },
   { uf: 'RO', lei: 'Lei 688/1996', ano: '1996', aliquota: 19.5, fonte: 'Legislação estadual' },
   { uf: 'RR', lei: 'Lei 059/1993', ano: '1993', aliquota: 20, fonte: 'SEFAZ-RR' },
-  { uf: 'SC', lei: 'Lei 10.297/1996', ano: '1996', aliquota: 17, fonte: 'SEF-SC (índice de leis estaduais)' },
+  {
+    uf: 'SC',
+    lei: 'Lei 10.297/1996',
+    ano: '1996',
+    aliquota: 17,
+    fonte: 'SEF-SC (índice de leis estaduais)',
+  },
   {
     uf: 'SP',
     lei: 'Lei 6.374/1989',
@@ -274,17 +335,28 @@ export const SEFAZ_SEM_RESPOSTA = COBERTURA_SEFAZ.filter((s) => !s.responde).len
  */
 export const ISS_ESTRUTURA = {
   leiNacional: 'Lei Complementar 116/2003',
-  listaServicos: 'Lista anexa, 40 itens e subitens (ex.: 1.01 construção, 7.02 escolas, 17.05 contabilidade)',
+  listaServicos:
+    'Lista anexa, 40 itens e subitens (ex.: 1.01 construção, 7.02 escolas, 17.05 contabilidade)',
   piso: 2,
   teto: 5,
   pisoBaseLegal: 'Art. 8º-A da LC 116/2003 (incluído pela LC 157/2016)',
   tetoBaseLegal: 'Art. 8º, II, da LC 116/2003',
   transicao: [
-    { ano: '2029', reducao: '10%', ibs: '10%', base: 'Art. 8º-B da LC 116/2003 (incluído pela LC 214/2025)' },
+    {
+      ano: '2029',
+      reducao: '10%',
+      ibs: '10%',
+      base: 'Art. 8º-B da LC 116/2003 (incluído pela LC 214/2025)',
+    },
     { ano: '2030', reducao: '20%', ibs: '20%', base: 'Art. 8º-B' },
     { ano: '2031', reducao: '30%', ibs: '30%', base: 'Art. 8º-B' },
     { ano: '2032', reducao: '40%', ibs: '40%', base: 'Art. 8º-B' },
-    { ano: '2033', reducao: '100% (extinto)', ibs: '100%', base: 'LC 214/2025, art. 543, IV — LC 116 revogada' },
+    {
+      ano: '2033',
+      reducao: '100% (extinto)',
+      ibs: '100%',
+      base: 'LC 214/2025, art. 543, IV — LC 116 revogada',
+    },
   ],
   nota:
     'As alíquotas municipais vigentes em 31/12/2028 são a base da redução. É por isso que ' +

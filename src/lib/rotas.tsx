@@ -29,6 +29,7 @@ import { SectionControleVersao } from '@/components/SectionControleVersao'
 import { SectionBuscaAvancada } from '@/components/SectionBuscaAvancada'
 import { SectionDiagnosticoTributario } from '@/components/SectionDiagnosticoTributario'
 import { SectionRecursosHumanos } from '@/components/SectionRecursosHumanos'
+import { SectionDepartamentoFiscal } from '@/components/SectionDepartamentoFiscal'
 import { PainelDegraus } from '@/components/PainelDegraus'
 import { SectionHistoricoAtualizacoes } from '@/components/SectionHistoricoAtualizacoes'
 import { SectionHistoricoRevisoes } from '@/components/SectionHistoricoRevisoes'
@@ -138,6 +139,7 @@ const COMPONENTES: Record<string, ComponentType<PropsAba>> = {
   '#setor-exterior': SetorExterior,
   '#setor-diplomatico': SetorDiplomatico,
   '#recursos-humanos': SectionRecursosHumanos,
+  '#departamento-fiscal': SectionDepartamentoFiscal,
   '#secao-7': SectionAnexos,
   '#tabela-geral': SectionTabelaGeral,
   '#secao-8': SectionCronograma,

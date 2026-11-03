@@ -1072,6 +1072,232 @@ function buscarRecursosHumanos(termoConsulta) {
 }
 
 /**
+ * DEPARTAMENTO FISCAL — consulta federal, estadual e municipal
+ * (pedido do CEO, 02/11/2026)
+ *
+ * O que esta função faz de diferente: as outras fontes deste serviço buscam a
+ * Reforma Tributária no âmbito FEDERAL. Aqui o recorte é por ENTE — a lei do
+ * ICMS é de cada estado, a do ISS é de cada município, e citar a errada é pior
+ * do que não citar. Por isso a função devolve a lei matriz de cada UF e a
+ * estrutura do ISS, e diz explicitamente que a alíquota municipal exige a lei
+ * do município (não existe "alíquota nacional de ISS").
+ *
+ * LIMITE DECLARADO: a CONFAZ não responde deste servidor (timeout medido em
+ * 02/11/2026) e 16 das 27 SEFAZ também não. O texto abaixo diz isso ao agente,
+ * para ele não afirmar que conferiu o RICMS de um estado que não conseguiu abrir.
+ */
+function buscarDepartamentoFiscal(termoConsulta) {
+  const normal = (s) =>
+    String(s || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+  const tn = normal(termoConsulta)
+
+  const GATILHOS = [
+    'icms',
+    'iss',
+    'issqn',
+    'iptu',
+    'ipva',
+    'itbi',
+    'itcd',
+    'sefaz',
+    'confaz',
+    'ricms',
+    'ctm',
+    'codigo tributario',
+    'lei estadual',
+    'lei municipal',
+    'decreto estadual',
+    'decreto municipal',
+    'estadual',
+    'municipal',
+    'prefeitura',
+    'estado de',
+    'aliquota interna',
+    'substituicao tributaria',
+    'difal',
+    'fecp',
+    'beneficio fiscal',
+    'regime especial',
+  ]
+  const ehFiscal = GATILHOS.some((g) => tn.indexOf(g) >= 0)
+  if (!ehFiscal) return null
+
+  // UF citada na pergunta → devolve a lei daquele estado
+  const UFS = [
+    ['AC', 'LC 55/1996', '19%'],
+    ['AL', 'Lei 5.900/1996', '20,5% (era 19%; Lei 9.776/2025 desde 01/04/2026)'],
+    ['AP', 'Lei 1.940/1996', '18%'],
+    ['AM', 'Lei 2.826/2003', '20%'],
+    ['BA', 'Lei 7.014/1996', '20,5%'],
+    ['CE', 'Lei 18.665/2023', '20%'],
+    ['DF', 'Lei 1.254/1996', '20%'],
+    ['ES', 'Lei 7.000/2001', '17%'],
+    ['GO', 'Lei 11.651/1991 (CTE)', '19%'],
+    ['MA', 'Lei 7.799/2002', '22%'],
+    ['MT', 'Lei 7.098/1998', '17%'],
+    ['MS', 'Lei 1.810/1997', '17%'],
+    ['MG', 'Lei 6.763/1975', '18% (RICMS: Decreto 43.080/2002)'],
+    ['PA', 'Lei 6.080/1997', '19%'],
+    ['PB', 'Lei 7.102/2002', '20%'],
+    ['PR', 'Lei 11.580/1996', '19,5%'],
+    ['PE', 'Lei 15.730/2016', '20,5%'],
+    ['PI', 'Lei 4.261/1989', '21%'],
+    ['RJ', 'Lei 2.657/1996', '22%'],
+    ['RN', 'Lei 6.968/1996', '18%'],
+    ['RS', 'Lei 8.820/1989', '17%'],
+    ['RO', 'Lei 688/1996', '19,5%'],
+    ['RR', 'Lei 059/1993', '20%'],
+    ['SC', 'Lei 10.297/1996', '17%'],
+    ['SP', 'Lei 6.374/1989', '18% (atualizada até Lei 17.784/2023)'],
+    ['SE', 'Lei 3.796/1996', '19%'],
+    ['TO', 'Lei 1.287/2001', '20%'],
+  ]
+  const ufsCitadas = []
+  for (let i = 0; i < UFS.length; i++) {
+    const uf = UFS[i][0]
+    // casar a sigla isolada ou o nome do estado
+    const re = new RegExp('\\b' + uf.toLowerCase() + '\\b')
+    if (re.test(tn) || tn.indexOf(normal(NOMES_UF_FISCAL[uf])) >= 0) ufsCitadas.push(UFS[i])
+  }
+
+  const itens = []
+  itens.push({
+    tipo: 'Acervo',
+    numero: 'Departamento Fiscal',
+    ano: '2026',
+    data: 'Verificado em 02/11/2026',
+    ementa:
+      'Acervo fiscal em três esferas. FEDERAL: leis, decretos, IN RFB e atos CGIBS, publicados no DOU. ' +
+      'ESTADUAL: a lei do ICMS de cada UF, o RICMS (decreto), os convênios e protocolos do CONFAZ e os ' +
+      'decretos de benefício. MUNICIPAL: a lei do ISS/ISSQN, o Código Tributário Municipal e os decretos ' +
+      'de retenção, publicados no Diário Oficial do município.',
+    dispositivos_chave:
+      'CF art. 155, II (ICMS) e art. 156, III (ISS); LC 87/1996 (Lei Kandir); LC 116/2003; ' +
+      'LC 214/2025 (extinção do ICMS e do ISS: arts. 543 e ss.).',
+    vigencia: 'ICMS e ISS vigentes até 31/12/2032; extintos em 01/01/2033.',
+    fonte: 'DOU · SEFAZ · Diários Municipais · CONFAZ',
+    fonte_url: 'https://www.in.gov.br',
+    confianca: 'OFICIAL institucional',
+  })
+
+  if (ufsCitadas.length > 0) {
+    var ls = []
+    for (var u = 0; u < ufsCitadas.length; u++) {
+      ls.push(ufsCitadas[u][0] + ' — ' + ufsCitadas[u][1] + ' · alíquota modal ' + ufsCitadas[u][2])
+    }
+    itens.push({
+      tipo: 'ICMS estadual',
+      numero: 'Lei matriz por UF',
+      ano: '2026',
+      data: 'Alíquotas modais de 2026',
+      ementa: 'UF citada na consulta: ' + ls.join(' | '),
+      dispositivos_chave:
+        'Cada UF edita a sua própria lei do ICMS; o RICMS é decreto. Os convênios do CONFAZ ' +
+        'obrigam a internalização por cada estado.',
+      fonte: 'SEFAZ de cada estado',
+      fonte_url: 'https://www.confaz.fazenda.gov.br/legislacao',
+      confianca: 'OFICIAL institucional',
+    })
+  }
+
+  itens.push({
+    tipo: 'ISS municipal',
+    numero: 'LC 116/2003',
+    ano: '2003',
+    data: 'Alterada pela LC 157/2016 e pela LC 214/2025',
+    ementa:
+      'NÃO existe alíquota nacional de ISS. A lei nacional fixa a lista de serviços (40 itens), o piso ' +
+      'de 2% (art. 8º-A, incluído pela LC 157/2016) e o teto de 5% (art. 8º, II). A alíquota é de cada ' +
+      'um dos 5.570 municípios e está na lei municipal dele. Transição: redução de 10% em 2029, 20% em ' +
+      '2030, 30% em 2031 e 40% em 2032 sobre a alíquota vigente em 31/12/2028 (art. 8º-B, incluído pela ' +
+      'LC 214/2025); a LC 116 é revogada por inteiro em 01/01/2033.',
+    dispositivos_chave: 'LC 116/2003, arts. 8º, 8º-A e 8º-B; LC 214/2025, art. 543, IV.',
+    fonte: 'Congresso Nacional / normas.leg.br',
+    fonte_url: 'https://normas.leg.br',
+    confianca: 'OFICIAL institucional',
+  })
+
+  var texto = '=== ACERVO DO DEPARTAMENTO FISCAL (federal · estadual · municipal) ===\n'
+  texto +=
+    'REGRA DE OURO: o tributo é do ENTE, não da União. ICMS é estadual (CF art. 155, II); ISS é ' +
+    'municipal (CF art. 156, III). Citar lei federal para responder ICMS ou ISS é erro grave. Se a ' +
+    'pergunta for de um estado ou município específico, diga qual lei daquele ente deve ser lida e ' +
+    'que a confirmação é na SEFAZ ou no Diário Oficial do município.\n\n'
+  texto += 'LIMITE DECLARADO (medido em 02/11/2026):\n'
+  texto +=
+    '  • CONFAZ (convênios e protocolos ICMS): NÃO respondeu deste servidor (timeout). O link vale ' +
+    'para o usuário; não afirme que conferiu um convênio aqui.\n'
+  texto +=
+    '  • SEFAZ: 11 dos 27 portais responderam; 16 não responderam deste servidor (bloqueio de IP ' +
+    'de datacenter é o mais comum, NÃO é site fora do ar).\n'
+  texto +=
+    '  • Sindicatos e ISS municipal: a lei do ISS está no Diário Oficial do município. Não invente ' +
+    'alíquota municipal.\n\n'
+  texto += 'LEI MATRIZ DO ICMS POR UF (alíquota modal 2026):\n'
+  for (var k = 0; k < UFS.length; k++) {
+    texto += '  • ' + UFS[k][0] + ': ' + UFS[k][1] + ' — ' + UFS[k][2] + '\n'
+  }
+  texto +=
+    '\nISS/ISSQN: LC 116/2003 — lista anexa de 40 itens; piso 2% (art. 8º-A); teto 5% (art. 8º, II); ' +
+    'redução escalonada 2029-2032 (art. 8º-B) e extinção em 01/01/2033 (LC 214/2025, art. 543, IV).\n'
+  if (ufsCitadas.length > 0) {
+    texto += '\nUF CITADA NA CONSULTA:\n'
+    for (var u2 = 0; u2 < ufsCitadas.length; u2++) {
+      texto +=
+        '  • ' +
+        ufsCitadas[u2][0] +
+        ' → ' +
+        ufsCitadas[u2][1] +
+        ' (modal ' +
+        ufsCitadas[u2][2] +
+        ')\n'
+    }
+  }
+
+  return {
+    fonte: 'departamento_fiscal',
+    itens: itens,
+    normas: itens,
+    ufs_citadas: ufsCitadas,
+    texto_contexto: texto,
+  }
+}
+
+/** Nomes das UFs, para casar "São Paulo" e não só "SP" na consulta. */
+var NOMES_UF_FISCAL = {
+  AC: 'Acre',
+  AL: 'Alagoas',
+  AP: 'Amapá',
+  AM: 'Amazonas',
+  BA: 'Bahia',
+  CE: 'Ceará',
+  DF: 'Distrito Federal',
+  ES: 'Espírito Santo',
+  GO: 'Goiás',
+  MA: 'Maranhão',
+  MT: 'Mato Grosso',
+  MS: 'Mato Grosso do Sul',
+  MG: 'Minas Gerais',
+  PA: 'Pará',
+  PB: 'Paraíba',
+  PR: 'Paraná',
+  PE: 'Pernambuco',
+  PI: 'Piauí',
+  RJ: 'Rio de Janeiro',
+  RN: 'Rio Grande do Norte',
+  RS: 'Rio Grande do Sul',
+  RO: 'Rondônia',
+  RR: 'Roraima',
+  SC: 'Santa Catarina',
+  SP: 'São Paulo',
+  SE: 'Sergipe',
+  TO: 'Tocantins',
+}
+
+/**
  * Base interna consolidada de normas com citações estritas (fallback transparente)
  */
 function buscarBaseInternaNormas(termoConsulta) {
@@ -1423,6 +1649,25 @@ globalThis.buscarDadosExternosAgente = function (termoConsulta, segmento) {
     console.log('Erro no acervo de Recursos Humanos: ' + String(errRH))
   }
 
+  // 9c. DEPARTAMENTO FISCAL — ICMS estadual, ISS municipal, três esferas
+  //      (pedido do CEO, 02/11/2026). Antes do fallback pelo mesmo motivo do RH:
+  //      pergunta sobre a lei do ICMS de um estado não pode receber resposta da
+  //      LC 214 federal como se fosse a mesma coisa.
+  var blocosFiscal = ''
+  try {
+    var resFiscal = buscarDepartamentoFiscal(termoConsulta)
+    if (resFiscal && resFiscal.itens && resFiscal.itens.length > 0) {
+      fontesConsultadas.push('Departamento Fiscal (DOU · SEFAZ · Diários Municipais · CONFAZ)')
+      fontesComSucesso.push('Acervo Fiscal Federal/Estadual/Municipal')
+      for (var fi = 0; fi < resFiscal.itens.length; fi++) {
+        normas.push(resFiscal.itens[fi])
+      }
+      blocosFiscal = resFiscal.texto_contexto
+    }
+  } catch (errFiscal) {
+    console.log('Erro no acervo do Departamento Fiscal: ' + String(errFiscal))
+  }
+
   // 10. Se não obteve normas online suficientes, utiliza fallback interno consolidado
   if (normas.length === 0) {
     usouFallback = true
@@ -1445,6 +1690,10 @@ globalThis.buscarDadosExternosAgente = function (termoConsulta, segmento) {
 
   if (blocosRH) {
     textoContexto += '\n' + blocosRH + '\n'
+  }
+
+  if (blocosFiscal) {
+    textoContexto += '\n' + blocosFiscal + '\n'
   }
 
   textoContexto += 'Fontes consultadas: ' + fontesConsultadas.join('; ') + '\n'

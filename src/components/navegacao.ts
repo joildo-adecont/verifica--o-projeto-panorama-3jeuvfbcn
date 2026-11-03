@@ -270,6 +270,46 @@ const SETORES_NOVOS: LinkNavegacao[] = [
     dominio: 'setores',
     setor: 'recursos-humanos',
   },
+  /* ── DEPARTAMENTO FISCAL (02/11/2026) ──
+   * Segundo setor pedido pelo CEO. Reúne as três esferas (federal, estadual,
+   * municipal), o ICMS das 27 UFs e o ISS/ISSQN. Consome o acervo do Radar
+   * Nacional em vez de criar um segundo coletor. Tecla 'k' (de fiscal). */
+  {
+    href: '#departamento-fiscal',
+    label: 'Departamento Fiscal',
+    curto: 'Fiscal',
+    tecla: 'k',
+    numero: '29',
+    Icon: Building2,
+    cor: 'text-cyan-700',
+    bg: 'bg-cyan-50',
+    borda: 'border-cyan-300',
+    descricao: 'Federal, estadual e municipal: ICMS, ISS e o acervo coletado',
+    tags: [
+      'fiscal',
+      'departamento fiscal',
+      'icms',
+      'iss',
+      'issqn',
+      'estadual',
+      'municipal',
+      'federal',
+      'sefaz',
+      'confaz',
+      'lei estadual',
+      'lei municipal',
+      'decreto',
+      'regulamento',
+      'ricms',
+      'ctm',
+      'iptu',
+      'ipva',
+      'itbi',
+      'itcd',
+    ],
+    dominio: 'setores',
+    setor: 'departamento-fiscal',
+  },
 ]
 
 /* ────────────────────────────── GRUPO 1 ────────────────────────────── */
@@ -1019,6 +1059,7 @@ const SECOES_CONTABIL = [
   /* Recursos Humanos entra PRIMEIRO: para quem opera a folha, é a porta de
      entrada do setor — o resto da plataforma é apuração de IBS/CBS. */
   '#recursos-humanos',
+  '#departamento-fiscal',
   '#regime-imobiliario',
   '#agronegocio',
   '#consorcios',
