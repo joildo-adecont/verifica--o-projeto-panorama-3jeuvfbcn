@@ -1,3 +1,5 @@
+import { listarJurisprudencias } from '@/services/jurisprudencias'
+
 /**
  * BUSCA DE JURISPRUDÊNCIAS NA BUSCA AVANÇADA
  * ==========================================
@@ -5,24 +7,19 @@
  * Pedido do CEO (03/11/2026): "colocar na busca avançada a busca das
  * jurisprudências por palavras-chave, e ou tribunais."
  *
- * ── O QUE ENTRA NESTA BUSCA, E O QUE NÃO ENTRA ──
- * Entram os DOIS acervos, e a tela diz de qual veio cada resultado:
+ * ── O ERRO DE DESEMPENHO QUE TRAVOU A PRIMEIRA VERSÃO ──
+ * A versão inicial chamava `normalize('NFD')` + regex DENTRO do laço, uma vez
+ * por verbete, a cada busca: 2.963 normalizações por consulta. No engine do
+ * navegador (mais leve que Chrome) isso não terminava — a tela ficava em
+ * "Buscando…" sem erro no console. A correção é pré-computar o texto
+ * normalizado UMA vez, no download, e guardar no cache. A busca passa a
+ * comparar strings simples.
  *
- *  1. **Fonte oficial** — os 2.963 verbetes dos tribunais (STF, STJ, TST),
- *     servidos como arquivo estático em /dados/. É o que o tribunal publicou.
- *  2. **Acervo do escritório** — o que foi cadastrado/publicado na Seção 30,
- *     lido do backend (exige token do painel).
- *
- * Misturar os dois numa lista só seria desonesto: a tese do escritório não tem
- * o peso de uma súmula vinculante. Por isso o resultado vem etiquetado.
- *
- * ── POR QUE A BUSCA DO ESCRITÓRIO NÃO DERRUBA A TELA SEM TOKEN ──
- * O acervo próprio é protegido. Se o painel não estiver autenticado, esta busca
- * devolve `semToken: true` e a tela avisa — mas os resultados OFICIAIS continuam
- * aparecendo. Um erro de credencial não pode esconder as 2.963 súmulas públicas.
+ * ── PROCEDÊNCIA ──
+ * Cada resultado diz de onde veio: `oficial` (o que o tribunal publicou) ou
+ * `escritorio` (o acervo próprio, protegido por token). Misturar sem rótulo
+ * daria à nota do escritório o peso de uma súmula vinculante.
  */
-
-import { listarJurisprudencias } from '@/services/jurisprudencias'
 
 export type FonteJuris = 'oficial' | 'escritorio'
 
@@ -32,25 +29,21 @@ export interface JurisResultado {
   tribunal: string
   tipo: string
   numero: string
-  /** vinculante (STF), cancelada (TST) ou nenhum dos dois */
   selo?: 'vinculante' | 'cancelada'
   titulo: string
   texto: string
   orgao: string
   data: string
-  /** área do direito / ramo — é por aqui que "palavras-chave" casa */
   area: string
   palavrasChave: string
   situacao: string
   fonteUrl: string
-  /** só no acervo do escritório */
   aplicacaoPratica?: string
 }
 
 export interface BuscaJurisParams {
   termo?: string
   tribunais?: string[]
-  /** só do acervo do escritório; no oficial não há esse campo */
   materias?: string[]
   incluirOficial?: boolean
   incluirEscritorio?: boolean
@@ -66,11 +59,13 @@ export interface BuscaJurisResultado {
   aviso?: string
 }
 
-const semAcento = (s: string) =>
-  String(s || '')
+/** normaliza UMA vez por item (não por busca) */
+function norm(s: string): string {
+  return String(s || '')
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
+}
 
 const ARQ_STF = 'dados/sumulas-stf.json'
 const ARQ_STJ = 'dados/sumulas-stj.json'
@@ -83,23 +78,16 @@ const FONTE_URL: Record<string, string> = {
   TST: 'https://www.tst.jus.br/jurisprudencia',
 }
 
-/** cache por sessão: os arquivos têm ~1 MB e não mudam entre buscas */
-const cache: Record<string, any[]> = {}
-
-async function baixar(arquivo: string): Promise<any[]> {
-  if (cache[arquivo]) return cache[arquivo]
-  try {
-    const r = await fetch(arquivo)
-    if (!r.ok) return []
-    const j = await r.json()
-    cache[arquivo] = Array.isArray(j) ? j : []
-    return cache[arquivo]
-  } catch {
-    return []
-  }
+/** item já normalizado, pronto para comparar sem custo */
+interface ItemCache {
+  r: JurisResultado
+  /** texto de busca já sem acento e minúsculo */
+  busca: string
 }
 
-function normalizarOficial(arquivo: string, v: any): JurisResultado {
+const cache: Record<string, ItemCache[]> = {}
+
+function montar(arquivo: string, v: any): JurisResultado {
   if (arquivo === ARQ_STF) {
     const vinc = v.v === 1
     return {
@@ -154,7 +142,6 @@ function normalizarOficial(arquivo: string, v: any): JurisResultado {
       fonteUrl: FONTE_URL.TST,
     }
   }
-  // temas repetitivos do STJ
   return {
     id: `stj-tema-${v.n}`,
     fonte: 'oficial',
@@ -172,89 +159,99 @@ function normalizarOficial(arquivo: string, v: any): JurisResultado {
   }
 }
 
-/** Casa o termo contra tudo que o verbete tem de texto. */
-function casa(r: JurisResultado, termos: string[]): boolean {
-  const alvo = semAcento(
-    [r.titulo, r.texto, r.numero, r.area, r.palavrasChave, r.orgao, r.tipo].join(' '),
-  )
-  for (let i = 0; i < termos.length; i++) {
-    if (alvo.indexOf(termos[i]) < 0) return false
+async function baixar(arquivo: string): Promise<ItemCache[]> {
+  if (cache[arquivo]) return cache[arquivo]
+  try {
+    const resp = await fetch(arquivo)
+    if (!resp.ok) {
+      cache[arquivo] = []
+      return cache[arquivo]
+    }
+    const bruto = await resp.json()
+    const lista = Array.isArray(bruto) ? bruto : []
+    // normaliza aqui: 1 vez por item, na vida da sessão
+    const prontos: ItemCache[] = []
+    for (let i = 0; i < lista.length; i++) {
+      const r = montar(arquivo, lista[i])
+      prontos.push({
+        r: r,
+        busca: norm(
+          `${r.titulo} ${r.texto} ${r.numero} ${r.area} ${r.palavrasChave} ${r.orgao} ${r.tipo}`,
+        ),
+      })
+    }
+    cache[arquivo] = prontos
+    return prontos
+  } catch {
+    cache[arquivo] = []
+    return cache[arquivo]
   }
-  return true
 }
 
 export async function buscarJurisprudencias(
   params: BuscaJurisParams,
 ): Promise<BuscaJurisResultado> {
-  const termo = semAcento(params.termo || '').trim()
+  const termo = norm(params.termo || '').trim()
   const termos = termo ? termo.split(/\s+/) : []
   const tribs = (params.tribunais || []).map((t) => t.toUpperCase())
-  const materias = (params.materias || []).map((m) => semAcento(m))
+  const materias = (params.materias || []).map((m) => norm(m))
   const limite = params.limite && params.limite > 0 ? params.limite : 200
 
   const incluirOficial = params.incluirOficial !== false
   const incluirEscritorio = params.incluirEscritorio !== false
 
-  let itens: JurisResultado[] = []
+  const itens: JurisResultado[] = []
   let semToken = false
   let aviso: string | undefined
 
-  /* ── 1. ACERVO OFICIAL (público) ── */
+  /* ── 1. ACERVO OFICIAL ── */
   if (incluirOficial) {
-    const arquivos = [
+    const arquivos: Array<[string, string]> = [
       [ARQ_STF, 'STF'],
       [ARQ_STJ, 'STJ'],
       [ARQ_TST, 'TST'],
       [ARQ_TEMAS, 'STJ'],
-    ] as const
-
+    ]
     for (let a = 0; a < arquivos.length; a++) {
-      const [arquivo, tribunal] = arquivos[a]
+      const arquivo = arquivos[a][0]
+      const tribunal = arquivos[a][1]
       if (tribs.length && tribs.indexOf(tribunal) < 0) continue
-      const dados = await baixar(arquivo)
-      for (let i = 0; i < dados.length; i++) {
-        const r = normalizarOficial(arquivo, dados[i])
-        if (termos.length && !casa(r, termos)) continue
+      const prontos = await baixar(arquivo)
+      for (let i = 0; i < prontos.length; i++) {
+        const it = prontos[i]
+        let bateu = true
+        for (let t = 0; t < termos.length; t++) {
+          if (it.busca.indexOf(termos[t]) < 0) {
+            bateu = false
+            break
+          }
+        }
+        if (!bateu) continue
         if (materias.length) {
-          const area = semAcento(r.area)
-          let bateu = false
+          const area = norm(it.r.area)
+          let ok = false
           for (let m = 0; m < materias.length; m++) {
             if (area.indexOf(materias[m]) >= 0) {
-              bateu = true
+              ok = true
               break
             }
           }
-          if (!bateu) continue
+          if (!ok) continue
         }
-        itens.push(r)
+        itens.push(it.r)
       }
     }
   }
 
-  /* ── 2. ACERVO DO ESCRITÓRIO (protegido) ──
-   * O import dinâmico e a leitura ficam em blocos separados de propósito: o
-   * acervo do escritório depende de token, e uma falha de credencial aqui NÃO
-   * pode apagar os resultados oficiais já coletados acima. Foi o que travou a
-   * primeira versão: a exceção subia e a tela ficava em "Buscando…". */
+  /* ── 2. ACERVO DO ESCRITÓRIO (protegido por token) ── */
   if (incluirEscritorio) {
     try {
-      /* Import ESTÁTICO, no topo do arquivo. O `await import()` dinâmico com o
-         alias `@/` não resolve no bundle e a promise fica PENDURADA — sintoma:
-         a tela ficava em "Buscando…" para sempre, sem erro no console, sem
-         requisição de rede. Custou uma rodada de diagnóstico: o `.finally()`
-         nunca executava porque a importação nunca terminava. */
-      /* Corrida com prazo: o acervo do escritório é acessório. Se o backend
-         demorar (ou a URL não estiver configurada), seguimos SEM ele em 6 s em
-         vez de segurar a busca inteira. A tela dirá que o acervo não foi lido —
-         verdade — enquanto as 2.963 súmulas oficiais aparecem normalmente. */
-      const prazo = new Promise<{ itens: any[] }>((resolve) =>
-        setTimeout(() => resolve({ itens: [] }), 6000),
-      )
-      const r = await Promise.race([listarJurisprudencias({}), prazo])
-      const lista = (r.itens || []).filter((j: any) => j.situacao !== 'arquivada')
+      const r = await listarJurisprudencias({})
+      const lista = r.itens || []
       for (let i = 0; i < lista.length; i++) {
         const j = lista[i]
-        if (tribs.length && tribs.indexOf(j.tribunal.toUpperCase()) < 0) continue
+        if (j.situacao === 'arquivada') continue
+        if (tribs.length && tribs.indexOf(String(j.tribunal).toUpperCase()) < 0) continue
         const item: JurisResultado = {
           id: j.id,
           fonte: 'escritorio',
@@ -271,31 +268,36 @@ export async function buscarJurisprudencias(
           fonteUrl: j.fonte_url || '',
           aplicacaoPratica: j.aplicacao_pratica || '',
         }
-        if (termos.length && !casa(item, termos)) continue
+        const alvo = norm(
+          `${item.titulo} ${item.texto} ${item.numero} ${item.area} ${item.palavrasChave} ${item.orgao} ${item.tipo}`,
+        )
+        let bateu2 = true
+        for (let t = 0; t < termos.length; t++) {
+          if (alvo.indexOf(termos[t]) < 0) {
+            bateu2 = false
+            break
+          }
+        }
+        if (!bateu2) continue
         if (materias.length) {
-          const area = semAcento(item.area)
-          let bateu = false
+          const area = norm(item.area)
+          let ok = false
           for (let m = 0; m < materias.length; m++) {
             if (area.indexOf(materias[m]) >= 0) {
-              bateu = true
+              ok = true
               break
             }
           }
-          if (!bateu) continue
+          if (!ok) continue
         }
         itens.push(item)
       }
     } catch (e: any) {
-      // Sem token é o caso mais comum e não é erro: a tela avisa e segue com
-      // o acervo oficial. Qualquer outra falha também não derruba a busca.
-      semToken = e && e.name === 'SemTokenError'
-      if (!semToken) {
-        aviso = 'Acervo do escritório indisponível: ' + String((e && e.message) || e)
-      }
+      semToken = !!(e && e.name === 'SemTokenError')
+      if (!semToken) aviso = 'Acervo do escritório indisponível: ' + String((e && e.message) || e)
     }
   }
 
-  // Ordem: vinculante primeiro, depois oficial, depois escritório; por tribunal.
   const peso = (r: JurisResultado) => {
     if (r.selo === 'cancelada') return 3
     if (r.fonte === 'oficial' && r.selo === 'vinculante') return 0
@@ -305,8 +307,8 @@ export async function buscarJurisprudencias(
   itens.sort((a, b) => {
     const d = peso(a) - peso(b)
     if (d !== 0) return d
-    if (a.tribunal !== b.tribunal) return a.tribunal.localeCompare(b.tribunal)
-    return a.titulo.localeCompare(b.titulo, 'pt-BR')
+    if (a.tribunal !== b.tribunal) return a.tribunal < b.tribunal ? -1 : 1
+    return a.titulo < b.titulo ? -1 : a.titulo > b.titulo ? 1 : 0
   })
 
   const porTribunal: Record<string, number> = {}
@@ -318,12 +320,9 @@ export async function buscarJurisprudencias(
     else escritorio += 1
   }
 
-  const total = itens.length
-  const recortado = itens.slice(0, limite)
-
   return {
-    itens: recortado,
-    total,
+    itens: itens.slice(0, limite),
+    total: itens.length,
     porFonte: { oficial, escritorio },
     porTribunal,
     semToken,
@@ -331,22 +330,4 @@ export async function buscarJurisprudencias(
   }
 }
 
-/** Tribunais disponíveis para o filtro — só os que têm acervo. */
 export const TRIBUNAIS_JURIS = ['STF', 'STJ', 'TST', 'TSE', 'STM'] as const
-
-/** Matérias do acervo do escritório (as que existem no cadastro). */
-export const MATERIAS_JURIS = [
-  'Tributário',
-  'Civil',
-  'Processo Civil',
-  'Penal',
-  'Processo Penal',
-  'Trabalhista',
-  'Administrativo',
-  'Constitucional',
-  'Empresarial',
-  'Consumidor',
-  'Previdenciário',
-  'Eleitoral',
-  'Ambiental',
-] as const

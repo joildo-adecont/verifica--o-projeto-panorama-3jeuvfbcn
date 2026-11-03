@@ -51,6 +51,11 @@ import {
   type EsferaFederativaId,
 } from '@/services/buscaAvancada'
 import { downloadOfficialDocViaProxy } from '@/services/panorama'
+import {
+  buscarJurisprudencias,
+  type BuscaJurisResultado,
+  type JurisResultado,
+} from '@/services/buscaJurisprudencias'
 import { OPCOES_TABELAS_CLASSIFICACOES } from '@/components/ModalBaseClassificacoes'
 import { ModalBuscaAvancada } from '@/components/ModalBuscaAvancada'
 import { GraficosBusca } from '@/components/GraficosBusca'
@@ -2605,8 +2610,8 @@ export function SectionBuscaAvancada({ segmentoInicial }: SectionBuscaAvancadaPr
             <p className="text-[10.5px] text-slate-500">
               <b>Por tribunal:</b>{' '}
               {Object.entries(juris.porTribunal)
-                .sort((a, b) => b[1] - a[1])
-                .map(([t, n]) => `${t} ${n}`)
+                .sort((a, b) => Number(b[1]) - Number(a[1]))
+                .map(([t, n]) => `${t} ${String(n)}`)
                 .join(' · ')}
             </p>
           )}
