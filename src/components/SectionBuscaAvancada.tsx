@@ -60,8 +60,13 @@ import { OPCOES_TABELAS_CLASSIFICACOES } from '@/components/ModalBaseClassificac
 import { ModalBuscaAvancada } from '@/components/ModalBuscaAvancada'
 import { GraficosBusca } from '@/components/GraficosBusca'
 import { ConsultaCompletaAnexos } from '@/components/ConsultaCompletaAnexos'
+import {
+  BuscaAvancadaIAPanel,
+  mapearSegmentoParaEspecialista,
+  METADADOS_ESPECIALISTAS,
+} from '@/components/BuscaAvancadaIAPanel'
 import { toast } from '@/hooks/use-toast'
-import { Send, Share2 } from 'lucide-react'
+import { Send, Share2, Bot, MessageSquare } from 'lucide-react'
 
 const SUGESTOES_RAPIDAS = [
   'insumo agropecuário',
@@ -284,6 +289,10 @@ export function SectionBuscaAvancada({ segmentoInicial }: SectionBuscaAvancadaPr
   const [filtros, setFiltros] = useState<FiltrosAvancados>(() =>
     construirFiltrosIniciais(segmentoInicial || paramsIniciais.segmento),
   )
+
+  // Modo de busca: 'palavra-chave' (padrão histórico preservado) ou 'ia' (IA complementar com agente especialista)
+  const [modoBusca, setModoBusca] = useState<'palavra-chave' | 'ia'>('palavra-chave')
+  const [perguntaParaIa, setPerguntaParaIa] = useState<string>('')
 
   // Escuta alteração do hash caso o usuário clique em outro segmento no menu sem remontar
   useEffect(() => {
@@ -736,6 +745,66 @@ export function SectionBuscaAvancada({ segmentoInicial }: SectionBuscaAvancadaPr
         </div>
       </div>
 
+      {/* Alternância de Modo: Palavra-chave vs. Perguntar à IA */}
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="inline-flex items-center p-1.5 rounded-2xl bg-slate-100 border border-slate-300 shadow-inner">
+          <button
+            type="button"
+            onClick={() => setModoBusca('palavra-chave')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+              modoBusca === 'palavra-chave'
+                ? 'bg-white text-panorama-navy shadow-md border border-slate-200'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+            }`}
+          >
+            <Search className="w-4 h-4 text-panorama-navy" />
+            <span>Busca por Palavra-Chave</span>
+            <span className="hidden sm:inline-block px-1.5 py-0.2 rounded text-[10px] bg-slate-100 text-slate-600 border border-slate-200">
+              15.240+ NCMs & Atos
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setModoBusca('ia')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+              modoBusca === 'ia'
+                ? 'bg-panorama-navy text-panorama-gold-light shadow-md border border-panorama-gold/40'
+                : 'text-slate-700 hover:text-panorama-navy hover:bg-amber-100/40'
+            }`}
+          >
+            <Bot className="w-4 h-4 text-panorama-gold" />
+            <span>Perguntar à IA</span>
+            <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded text-[10px] font-black uppercase tracking-wider bg-panorama-gold text-panorama-navy shadow-2xs">
+              <Sparkles className="w-3 h-3" />
+              {METADADOS_ESPECIALISTAS[mapearSegmentoParaEspecialista(segmentoAtivo)].badge}
+            </span>
+          </button>
+        </div>
+
+        {modoBusca === 'ia' && (
+          <div className="flex items-center gap-2 text-xs text-slate-600">
+            <span className="hidden md:inline font-medium">
+              Especialista nativo do segmento ativo:
+            </span>
+            <span className="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-300 font-bold text-xs inline-flex items-center gap-1">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+              {METADADOS_ESPECIALISTAS[mapearSegmentoParaEspecialista(segmentoAtivo)].titulo}
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* PAINEL COMPLEMENTAR DE BUSCA COM IA */}
+      {modoBusca === 'ia' && (
+        <BuscaAvancadaIAPanel
+          segmentoAtual={segmentoAtivo}
+          perguntaInicial={perguntaParaIa || termo}
+          aoFecharOuVoltar={() => setModoBusca('palavra-chave')}
+          onMudarPergunta={(p) => setPerguntaParaIa(p)}
+        />
+      )}
+
       {/* Caixa Central de Pesquisa */}
       <div className="bg-white rounded-2xl border-2 border-slate-200 shadow-md p-4 sm:p-6 space-y-4">
         <div className="relative">
@@ -769,6 +838,20 @@ export function SectionBuscaAvancada({ segmentoInicial }: SectionBuscaAvancadaPr
             )}
             <button
               type="button"
+              onClick={() => {
+                if (termo.trim()) {
+                  setPerguntaParaIa(termo.trim())
+                }
+                setModoBusca('ia')
+              }}
+              className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-panorama-gold via-amber-300 to-panorama-gold-dark hover:brightness-105 text-panorama-navy border border-amber-400 text-xs font-black flex items-center gap-1.5 shadow-xs transition-all cursor-pointer"
+              title="Perguntar o termo atual diretamente ao Especialista de IA com fundamentação legal"
+            >
+              <Bot className="w-3.5 h-3.5 text-panorama-navy" />
+              <span className="hidden sm:inline">Perguntar à IA</span>
+            </button>
+            <button
+              type="button"
               onClick={handleAbrirEnvio}
               className="px-3 py-1.5 rounded-lg bg-panorama-navy hover:bg-panorama-navy-light text-panorama-gold-light border border-panorama-gold/40 text-xs font-bold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
               title={
@@ -778,7 +861,7 @@ export function SectionBuscaAvancada({ segmentoInicial }: SectionBuscaAvancadaPr
               }
             >
               <Send className="w-3.5 h-3.5 text-panorama-gold" />
-              <span className="hidden sm:inline">Enviar ao Cliente</span>
+              <span className="hidden sm:inline">Enviar</span>
             </button>
           </div>
         </div>
