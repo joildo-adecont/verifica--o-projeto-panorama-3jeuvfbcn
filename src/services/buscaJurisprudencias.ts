@@ -229,10 +229,14 @@ export async function buscarJurisprudencias(
     }
   }
 
-  /* ── 2. ACERVO DO ESCRITÓRIO (protegido) ── */
+  /* ── 2. ACERVO DO ESCRITÓRIO (protegido) ──
+   * O import dinâmico e a leitura ficam em blocos separados de propósito: o
+   * acervo do escritório depende de token, e uma falha de credencial aqui NÃO
+   * pode apagar os resultados oficiais já coletados acima. Foi o que travou a
+   * primeira versão: a exceção subia e a tela ficava em "Buscando…". */
   if (incluirEscritorio) {
     try {
-      const { listarJurisprudencias, SemTokenError } = await import('@/services/jurisprudencias')
+      const { listarJurisprudencias } = await import('@/services/jurisprudencias')
       const r = await listarJurisprudencias({})
       const lista = r.itens.filter((j) => j.situacao !== 'arquivada')
       for (let i = 0; i < lista.length; i++) {
@@ -269,11 +273,11 @@ export async function buscarJurisprudencias(
         itens.push(item)
       }
     } catch (e: any) {
-      if (e && (e.name === 'SemTokenError' || e instanceof Error)) {
-        semToken = e.name === 'SemTokenError'
-        if (!semToken) {
-          aviso = 'Não foi possível ler o acervo do escritório: ' + String(e.message || e)
-        }
+      // Sem token é o caso mais comum e não é erro: a tela avisa e segue com
+      // o acervo oficial. Qualquer outra falha também não derruba a busca.
+      semToken = e && e.name === 'SemTokenError'
+      if (!semToken) {
+        aviso = 'Acervo do escritório indisponível: ' + String((e && e.message) || e)
       }
     }
   }
