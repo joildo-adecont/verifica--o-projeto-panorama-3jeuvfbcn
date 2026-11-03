@@ -42,7 +42,10 @@ import { REF_TOTAL as REF_TOTAL_ALIQ, pct } from '@/data/aliquotas'
  * possível num sistema que o CEO usa para conversar com cliente.
  *
  * ── FONTE DAS ALÍQUOTAS ──
- * `@/data/aliquotas` — fonte única. Hoje: CBS 11,30% + IBS 18,70% = 27,91%
+ * `@/data/aliquotas` — fonte única. Hoje: CBS 11,30% + IBS 18,70% = 30,00%
+ * (o 27,91% é histórico: era a soma antes do TCU fixar a CBS em 11,3% em
+ * 28/10/2026. Comentário atualizado na auditoria de cálculo de 03/11/2026 —
+ * ele afirmava 27,91% como valor corrente e induzia a erro quem fosse conferir.)
  * (Res. CGIBS 14/2026 e cálculo do TCU).
  */
 
