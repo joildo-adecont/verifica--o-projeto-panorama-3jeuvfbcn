@@ -561,6 +561,47 @@ routerAdd('POST', '/backend/v1/trigger-weekly-review', (e) => {
           $app.save(histRec)
           historicoGravado.push(itemNorma.code)
 
+          // Se for exclusão/revogação, grava também em norm_exclusions_history
+          const tipoRev = isNova ? 'inclusao' : 'alteracao'
+          if (tipoRev === 'exclusao' || itemNorma.status_incidence === 'Revogado' || itemNorma.status_incidence === 'Excluído') {
+            try {
+              const colExcl = $app.findCollectionByNameOrId('norm_exclusions_history')
+              const exclJaExiste = $app.findRecordsByFilter(
+                'norm_exclusions_history',
+                'norm_code = {:c} && exclusion_date = {:d}',
+                '',
+                1,
+                0,
+                { c: itemNorma.code, d: hojeStr },
+              )
+              if (exclJaExiste.length === 0) {
+                const exclRec = new Record(colExcl)
+                exclRec.set('norm_code', itemNorma.code)
+                exclRec.set('norm_type', itemNorma.norm_type)
+                exclRec.set('norm_number', itemNorma.code.match(/(\d+[\.\d]*)/)?.[1] || '')
+                exclRec.set('norm_year', itemNorma.code.match(/(\d{4})/)?.[1] || '2026')
+                exclRec.set('norm_title', itemNorma.title)
+                exclRec.set('source_org', itemNorma.origin)
+                exclRec.set('confidence_tier', 'oficial_institucional')
+                exclRec.set('segment', 'Tributário')
+                exclRec.set('exclusion_date', hojeStr)
+                exclRec.set('system_exclusion_date', hojeStr)
+                exclRec.set('reason_description', itemNorma.summary)
+                exclRec.set('revoked_article', '')
+                exclRec.set('previous_content', prevSummary || '')
+                exclRec.set('origin_record_id', recNorma.id)
+                exclRec.set('origin_collection', 'tax_norms')
+                exclRec.set('review_history_id', histRec.id)
+                exclRec.set('record_origin', 'rotina_semanal')
+                exclRec.set('link_url', itemNorma.link_url)
+                exclRec.set('notes', 'Exclusão registrada automaticamente pela rotina semanal.')
+                $app.save(exclRec)
+              }
+            } catch (exclErr) {
+              console.log('Erro ao gravar exclusão em norm_exclusions_history: ' + String(exclErr))
+            }
+          }
+
           // Registra Alerta de Nova Revisão (norm_alerts)
           try {
             const colAlerts = $app.findCollectionByNameOrId('norm_alerts')

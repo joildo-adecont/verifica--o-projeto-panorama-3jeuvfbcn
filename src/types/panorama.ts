@@ -176,6 +176,53 @@ export interface NormAlertItem {
   updated?: string
 }
 
+export interface NormExclusionHistoryItem {
+  id: string
+  norm_code: string
+  norm_type: string
+  norm_number?: string
+  norm_year?: string
+  norm_title: string
+  source_org: string
+  confidence_tier: ConfidenceTier
+  segment: NormSegment
+  exclusion_date: string // YYYY-MM-DD
+  system_exclusion_date?: string
+  reason_description: string
+  revoked_article?: string
+  previous_content?: string
+  origin_record_id?: string
+  origin_collection?: string
+  review_history_id?: string
+  record_origin: NormRecordOrigin
+  link_url?: string
+  notes?: string
+  created?: string
+  updated?: string
+}
+
+export interface CreateNormExclusionInput {
+  norm_code: string
+  norm_type: string
+  norm_number?: string
+  norm_year?: string
+  norm_title: string
+  source_org: string
+  confidence_tier: ConfidenceTier
+  segment: NormSegment
+  exclusion_date: string
+  system_exclusion_date?: string
+  reason_description: string
+  revoked_article?: string
+  previous_content?: string
+  origin_record_id?: string
+  origin_collection?: string
+  review_history_id?: string
+  record_origin?: NormRecordOrigin
+  link_url?: string
+  notes?: string
+}
+
 export interface CreateNormReviewInput {
   norm_code: string
   norm_type: string

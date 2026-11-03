@@ -44,6 +44,7 @@ import {
   type FiltrosHistoricoNormas,
 } from '@/services/normReviewsHistory'
 import { criarAlertaParaRevisao } from '@/services/normAlerts'
+import { criarRegistroExclusaoManual } from '@/services/normExclusionsHistory'
 import { ModalDetalhesNorma } from '@/components/ModalDetalhesNorma'
 import { ModalNovaRevisao } from '@/components/ModalNovaRevisao'
 import { RelatorioRevisoesImprimivel } from '@/components/RelatorioRevisoesImprimivel'
@@ -83,6 +84,35 @@ export const SectionHistoricoRevisoes: React.FC = () => {
   const handleSalvarManual = async (dados: CreateNormReviewInput) => {
     const novo = await criarRegistroRevisaoManual(dados)
     setItens((prev) => [novo, ...prev])
+
+    // Se a revisão registrada for do tipo exclusão, alimenta também o Histórico de Exclusões
+    if (dados.review_type === 'exclusao') {
+      try {
+        await criarRegistroExclusaoManual({
+          norm_code: dados.norm_code,
+          norm_type: dados.norm_type || 'Exclusão Legislativa',
+          norm_number: dados.norm_number,
+          norm_year: dados.norm_year,
+          norm_title: dados.norm_title,
+          source_org: dados.source_org,
+          confidence_tier: dados.confidence_tier,
+          segment: dados.segment,
+          exclusion_date: dados.review_date,
+          reason_description: dados.summary_change,
+          previous_content: dados.previous_version,
+          origin_record_id: novo.id,
+          origin_collection: 'norm_reviews_history',
+          review_history_id: novo.id,
+          record_origin: 'manual',
+          link_url: dados.link_url,
+          notes: dados.notes || 'Registro originado pelo Modal de Revisões',
+        })
+        window.dispatchEvent(new CustomEvent('norm_exclusions_updated'))
+      } catch (errExcl) {
+        console.warn('Erro ao replicar exclusão para norm_exclusions_history:', errExcl)
+      }
+    }
+
     // Dispara geração do alerta correspondente à nova revisão
     try {
       await criarAlertaParaRevisao(novo)
