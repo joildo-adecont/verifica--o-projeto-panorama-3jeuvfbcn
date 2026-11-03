@@ -119,32 +119,31 @@ export function BuscaPorArtigo({
     return true
   }
 
-  const rotuloNorma = (chave: string) =>
-  (indice?.normas[chave] || chave).replace(/\s*\(.*\)$/, '')
+  const rotuloNorma = (chave: string) => (indice?.normas[chave] || chave).replace(/\s*\(.*\)$/, '')
 
-/**
- * EXPORTAR EM PDF A CONSULTA POR ARTIGO
- * =====================================
- * Segue o padrão do projeto (BotaoExportarPDF): imprimir a PRÓPRIA tela com
- * CSS escopado, em vez de redesenhar o conteúdo num gerador de PDF. Assim o
- * documento é exatamente o que se vê — sem risco de o PDF divergir da tela.
- *
- * ── O QUE VAI PARA O PAPEL ──
- * Só o bloco do resultado (`#resultado-artigo-impressao`) mais um cabeçalho
- * que existe apenas na impressão: norma, artigo, data/hora e a declaração de
- * procedência das ligações. O resto (abas, menu, filtros, botões) fica de
- * fora — um acervo impresso com menu lateral não serve para levar a reunião.
- *
- * ── POR QUE O CABEÇALHO É `print-only` ──
- * Na tela o usuário já vê o dispositivo nos seletores. No papel, sem esse
- * cabeçalho, a folha sairia com uma lista de súmulas sem dizer a que
- * dispositivo se referem — inútil como documento.
- */
-const imprimirArtigo = () => {
-  if (!document.getElementById('css-impressao-artigo')) {
-    const tag = document.createElement('style')
-    tag.id = 'css-impressao-artigo'
-    tag.textContent = `
+  /**
+   * EXPORTAR EM PDF A CONSULTA POR ARTIGO
+   * =====================================
+   * Segue o padrão do projeto (BotaoExportarPDF): imprimir a PRÓPRIA tela com
+   * CSS escopado, em vez de redesenhar o conteúdo num gerador de PDF. Assim o
+   * documento é exatamente o que se vê — sem risco de o PDF divergir da tela.
+   *
+   * ── O QUE VAI PARA O PAPEL ──
+   * Só o bloco do resultado (`#resultado-artigo-impressao`) mais um cabeçalho
+   * que existe apenas na impressão: norma, artigo, data/hora e a declaração de
+   * procedência das ligações. O resto (abas, menu, filtros, botões) fica de
+   * fora — um acervo impresso com menu lateral não serve para levar a reunião.
+   *
+   * ── POR QUE O CABEÇALHO É `print-only` ──
+   * Na tela o usuário já vê o dispositivo nos seletores. No papel, sem esse
+   * cabeçalho, a folha sairia com uma lista de súmulas sem dizer a que
+   * dispositivo se referem — inútil como documento.
+   */
+  const imprimirArtigo = () => {
+    if (!document.getElementById('css-impressao-artigo')) {
+      const tag = document.createElement('style')
+      tag.id = 'css-impressao-artigo'
+      tag.textContent = `
 @media print {
 @page { size: A4 portrait; margin: 14mm 12mm; }
 aside, header.fixed, .fixed, footer, #painel-atalhos, [data-print="hide"] { display: none !important; }
@@ -172,29 +171,30 @@ body * { visibility: hidden !important; }
 a[href]::after { content: none !important; }
 }
 `
-    document.head.appendChild(tag)
+      document.head.appendChild(tag)
+    }
+
+    // carimba a data para o rodapé do documento
+    const el = document.getElementById('resultado-artigo-impressao')
+    if (el) {
+      const h = new Date()
+      const data = `${String(h.getDate()).padStart(2, '0')}/${String(h.getMonth() + 1).padStart(
+        2,
+        '0',
+      )}/${h.getFullYear()} às ${String(h.getHours()).padStart(2, '0')}:${String(
+        h.getMinutes(),
+      ).padStart(2, '0')}`
+      el.setAttribute('data-gerado', data)
+    }
+
+    window.setTimeout(() => window.print(), 150)
   }
 
-  // carimba a data para o rodapé do documento
-  const el = document.getElementById('resultado-artigo-impressao')
-  if (el) {
-    const h = new Date()
-    const data = `${String(h.getDate()).padStart(2, '0')}/${String(h.getMonth() + 1).padStart(
-      2,
-      '0',
-    )}/${h.getFullYear()} às ${String(h.getHours()).padStart(2, '0')}:${String(
-      h.getMinutes(),
-    ).padStart(2, '0')}`
-    el.setAttribute('data-gerado', data)
-  }
-
-  window.setTimeout(() => window.print(), 150)
-}
-
-/** quantos verbetes o dispositivo tem, somando os grupos */
-const totalDocumento = resultado && !resultado.vazio
-  ? Object.values(resultado.grupos).reduce((acc, ns) => acc + ns.length, 0)
-  : 0
+  /** quantos verbetes o dispositivo tem, somando os grupos */
+  const totalDocumento =
+    resultado && !resultado.vazio
+      ? Object.values(resultado.grupos).reduce((acc, ns) => acc + ns.length, 0)
+      : 0
   const [indice, setIndice] = useState<Indice | null>(null)
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState('')
@@ -415,7 +415,10 @@ const totalDocumento = resultado && !resultado.vazio
 
       {/* atalho para a Busca Avançada + exportação: só com dispositivo escolhido */}
       {chaveAtiva && artigoAtivo && (
-        <div className="flex flex-wrap items-center gap-2 rounded-lg border border-panorama-gold/50 bg-amber-50/50 p-2.5" data-print="hide">
+        <div
+          className="flex flex-wrap items-center gap-2 rounded-lg border border-panorama-gold/50 bg-amber-50/50 p-2.5"
+          data-print="hide"
+        >
           <p className="min-w-0 flex-1 text-[11px] leading-snug text-slate-700">
             Quer buscar por <b>palavra-chave</b> ou <b>tribunal</b> dentro deste dispositivo?
           </p>
