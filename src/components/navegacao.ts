@@ -950,10 +950,44 @@ const INDICADORES: LinkNavegacao[] = [
  * Cada segmento filtra esta lista por `dominio`. A vantagem: mover uma seção de
  * segmento é mover um domínio de lista, nunca reescrever 41 itens.
  */
-/* Avaliada SOB DEMANDA (é função, não constante): assim a ordem de declaração
- * no arquivo deixa de importar. Em 02/11/2026 a versão como constante lia
- * HOME/ITEM_INSTALADOR_CEO antes de existirem e a home caía com
- * "Cannot read properties of undefined (reading 'dominio')". */
+export const HOME: LinkNavegacao = {
+  href: '#inicio',
+  label: 'Início',
+  curto: 'Início',
+  tecla: '0',
+  numero: '0',
+  Icon: LayoutDashboard,
+  cor: 'text-slate-800',
+  bg: 'bg-slate-100',
+  borda: 'border-slate-300',
+  descricao: 'Painel de acompanhamento e atalhos',
+}
+
+export const ITEM_INSTALADOR_CEO: LinkNavegacao = {
+  href: '#instalador-versao',
+  label: 'Instalador e Versão',
+  curto: 'Instalador',
+  tecla: 'u',
+  numero: '1',
+  Icon: MonitorSmartphone,
+  cor: 'text-amber-700',
+  bg: 'bg-amber-100',
+  borda: 'border-amber-400',
+  descricao: 'Envios de instalação e controle de versões do programa',
+  tags: [
+    'instalador',
+    'instalar',
+    'versão',
+    'versao',
+    'atualização',
+    'atualizacao',
+    'app',
+    'celular',
+  ],
+  dominio: 'sistema',
+  setor: 'manutencao',
+}
+
 function todosItens(): LinkNavegacao[] {
   return [
     ...INDICADORES,
@@ -1056,18 +1090,6 @@ export const GRUPOS: GrupoNavegacao[] = [
 export const NAVEGACAO: LinkNavegacao[] = GRUPOS.flatMap((g) => g.itens)
 
 /** Item do painel inicial (não é uma seção do conteúdo). */
-export const HOME: LinkNavegacao = {
-  href: '#inicio',
-  label: 'Início',
-  curto: 'Início',
-  tecla: '0',
-  numero: '0',
-  Icon: LayoutDashboard,
-  cor: 'text-slate-800',
-  bg: 'bg-slate-100',
-  borda: 'border-slate-300',
-  descricao: 'Painel de acompanhamento e atalhos',
-}
 
 /* ══════════════════════════════════════════════════════════════════════════
  * SEGMENTOS DO SISTEMA — filtro rápido do menu lateral
@@ -1157,30 +1179,6 @@ export const SEGMENTOS_SISTEMA: SegmentoSistema[] = [
  * visível, com selo próprio. É o primeiro item que ele procura ao abrir o app
  * em outro aparelho.
  */
-export const ITEM_INSTALADOR_CEO: LinkNavegacao = {
-  href: '#instalador-versao',
-  label: 'Instalador e Versão',
-  curto: 'Instalador',
-  tecla: 'u',
-  numero: '1',
-  Icon: MonitorSmartphone,
-  cor: 'text-amber-700',
-  bg: 'bg-amber-100',
-  borda: 'border-amber-400',
-  descricao: 'Envios de instalação e controle de versões do programa',
-  tags: [
-    'instalador',
-    'instalar',
-    'versão',
-    'versao',
-    'atualização',
-    'atualizacao',
-    'app',
-    'celular',
-  ],
-  dominio: 'sistema',
-  setor: 'manutencao',
-}
 
 /* ══════════════════════════════════════════════════════════════════════════
  * HIERARQUIA — domínio → setor → seção (três degraus)
