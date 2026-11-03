@@ -272,10 +272,12 @@ export function PlataformaHome() {
           src="/hero-adecont.jpg"
           alt=""
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-70"
+          className="pointer-events-none absolute inset-0 h-full w-full object-cover object-right"
         />
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/85 to-slate-950/30" />
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent" />
+        {/* Escurece só onde há texto (esquerda) e deixa a arte respirar à direita.
+         * Primeira versão usava via-slate-950/85 no meio e a imagem desaparecia. */}
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/75 to-slate-950/10" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-slate-950/20" />
         <div className="absolute right-0 top-0 w-1/2 h-full bg-gradient-to-l from-amber-500/10 via-blue-500/5 to-transparent pointer-events-none" />
 
         <div className="relative z-10 space-y-6">
