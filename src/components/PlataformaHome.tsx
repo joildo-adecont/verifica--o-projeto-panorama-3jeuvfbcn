@@ -21,6 +21,7 @@ import {
   Activity,
   ChevronRight,
   BookOpen,
+  History,
 } from 'lucide-react'
 import { AdecontLogo } from '@/components/AdecontLogo'
 import { SeloNivelConfianca } from '@/components/SeloNivelConfianca'

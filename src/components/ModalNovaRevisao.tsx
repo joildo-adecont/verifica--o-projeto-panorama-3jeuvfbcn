@@ -128,8 +128,8 @@ export const ModalNovaRevisao: React.FC<ModalNovaRevisaoProps> = ({
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader className="border-b pb-4">
           <div className="flex items-center justify-between mb-2">
-            <AdecontLogo variante="colorido" tamanho="sm" />
-            <SeloNivelConfianca tier={confidenceTier} tamanho="compacto" permitirModal={false} />
+            <AdecontLogo variant="color" className="h-7 w-auto" />
+            <SeloNivelConfianca tier={confidenceTier} compacto />
           </div>
           <DialogTitle className="text-lg font-bold flex items-center gap-2 text-slate-900 dark:text-slate-100">
             <PlusCircle className="h-5 w-5 text-emerald-600" />

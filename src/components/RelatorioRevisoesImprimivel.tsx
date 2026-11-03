@@ -1,7 +1,8 @@
 import React from 'react'
 import { AdecontLogo } from '@/components/AdecontLogo'
 import { SeloNivelConfianca } from '@/components/SeloNivelConfianca'
-import type { NormReviewHistoryItem, FiltrosHistoricoNormas } from '@/types/panorama'
+import type { NormReviewHistoryItem } from '@/types/panorama'
+import type { FiltrosHistoricoNormas } from '@/services/normReviewsHistory'
 import { Printer, Calendar, ShieldCheck, CheckCircle2, AlertTriangle, Layers } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
@@ -65,7 +66,7 @@ export const RelatorioRevisoesImprimivel: React.FC<RelatorioRevisoesImprimivelPr
             <div className="border-b-2 border-emerald-800 pb-6 flex items-start justify-between gap-6">
               <div className="space-y-1">
                 <div className="mb-2">
-                  <AdecontLogo variante="colorido" tamanho="md" />
+                  <AdecontLogo variant="color" className="h-10 w-auto" />
                 </div>
                 <h1 className="text-xl font-bold tracking-tight text-slate-900 uppercase">
                   Relatório Consolidado de Revisões de Normas
@@ -177,9 +178,8 @@ export const RelatorioRevisoesImprimivel: React.FC<RelatorioRevisoesImprimivelPr
                         <div className="flex justify-end">
                           <SeloNivelConfianca
                             tier={item.confidence_tier}
-                            nomeFonte={item.source_org}
-                            tamanho="compacto"
-                            permitirModal={false}
+                            fonte={item.source_org}
+                            compacto
                           />
                         </div>
                       </div>

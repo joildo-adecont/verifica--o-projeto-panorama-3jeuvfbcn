@@ -203,8 +203,14 @@ export interface SeloNivelConfiancaProps {
   tier?: ConfidenceTier
   /** Ou nome/chave da fonte para resolver dinamicamente nos dados do PocketBase */
   fonte?: string
+  /** Compatibilidade com código legado que passa nomeFonte */
+  nomeFonte?: string
   /** Se deve mostrar versão compacta (apenas ícone e rótulo curto) */
   compacto?: boolean
+  /** Compatibilidade com código legado que passa tamanho="compacto" */
+  tamanho?: 'compacto' | 'normal' | 'sm' | 'md'
+  /** Compatibilidade com código legado que passa permitirModal */
+  permitirModal?: boolean
   /** Se deve mostrar o aviso/nota jurídica (especialmente importante para Lefisc) */
   exibirAvisoJuridico?: boolean
   /** Classes CSS adicionais */
@@ -221,12 +227,17 @@ export interface SeloNivelConfiancaProps {
 export function SeloNivelConfianca({
   tier,
   fonte,
+  nomeFonte,
   compacto = false,
+  tamanho,
+  permitirModal: _permitirModal,
   exibirAvisoJuridico = false,
   className = '',
 }: SeloNivelConfiancaProps) {
   const { resolverTier } = useSourceConfidence()
-  const tierEfetivo = tier || resolverTier(fonte)
+  const fonteEfetiva = fonte || nomeFonte
+  const tierEfetivo = tier || resolverTier(fonteEfetiva)
+  const isCompacto = compacto || tamanho === 'compacto' || tamanho === 'sm'
 
   if (!tierEfetivo || !METADADOS_CONFIDENCE_TIER[tierEfetivo]) {
     // Rótulo neutro defensivo padrão
@@ -248,11 +259,11 @@ export function SeloNivelConfianca({
     <div className={`inline-flex flex-col gap-0.5 ${className}`}>
       <span
         className={`inline-flex items-center gap-1 rounded font-bold border transition-colors ${
-          compacto ? 'px-1.5 py-0.2 text-[9.5px]' : 'px-2 py-0.5 text-[10.5px]'
+          isCompacto ? 'px-1.5 py-0.2 text-[9.5px]' : 'px-2 py-0.5 text-[10.5px]'
         } ${meta.badgeClass}`}
         title={`${meta.rotulo} — ${meta.descricao}`}
       >
-        <Icone className={compacto ? 'w-2.5 h-2.5 shrink-0' : 'w-3 h-3 shrink-0'} />
+        <Icone className={isCompacto ? 'w-2.5 h-2.5 shrink-0' : 'w-3 h-3 shrink-0'} />
         <span>{meta.rotulo}</span>
       </span>
 

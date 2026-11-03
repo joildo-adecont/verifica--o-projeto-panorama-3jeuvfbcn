@@ -104,7 +104,7 @@ export const SectionHistoricoRevisoes: React.FC = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-6">
         <div className="space-y-2">
           <div className="flex items-center gap-3">
-            <AdecontLogo variante="colorido" tamanho="md" />
+            <AdecontLogo variant="color" className="h-10 w-auto" />
             <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 flex items-center gap-1.5">
               <History className="h-3.5 w-3.5" />
               Histórico Oficial de Normas
@@ -402,9 +402,8 @@ export const SectionHistoricoRevisoes: React.FC = () => {
 
                           <SeloNivelConfianca
                             tier={item.confidence_tier}
-                            nomeFonte={item.source_org}
-                            tamanho="compacto"
-                            permitirModal={false}
+                            fonte={item.source_org}
+                            compacto
                           />
                         </div>
                       </div>

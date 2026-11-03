@@ -45,12 +45,11 @@ export const ModalDetalhesNorma: React.FC<ModalDetalhesNormaProps> = ({
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader className="border-b pb-4">
           <div className="flex items-center justify-between mb-2">
-            <AdecontLogo variante="colorido" tamanho="sm" />
+            <AdecontLogo variant="color" className="h-7 w-auto" />
             <SeloNivelConfianca
               tier={normaSelecionada.confidence_tier}
-              nomeFonte={normaSelecionada.source_org}
-              tamanho="compacto"
-              permitirModal={false}
+              fonte={normaSelecionada.source_org}
+              compacto
             />
           </div>
 
