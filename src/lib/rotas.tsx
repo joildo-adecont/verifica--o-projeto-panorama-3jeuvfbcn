@@ -27,6 +27,7 @@ import { SectionResponsividade } from '@/components/SectionResponsividade'
 import { SectionSetor } from '@/components/SectionSetor'
 import { PainelDegraus } from '@/components/PainelDegraus'
 import { SectionHistoricoAtualizacoes } from '@/components/SectionHistoricoAtualizacoes'
+import { SectionHistoricoRevisoes } from '@/components/SectionHistoricoRevisoes'
 import { SectionLefisc } from '@/components/SectionLefisc'
 import { SectionRadarNacional } from '@/components/SectionRadarNacional'
 import { NAVEGACAO } from '@/components/navegacao'
@@ -102,6 +103,7 @@ const COMPONENTES: Record<string, ComponentType<PropsAba>> = {
   '#fontes-agregador': SectionFontesAgregador,
   '#fontes-primarias': SectionFontesPrimarias,
   '#monitor-legislativo': SectionMonitorLegislativo,
+  '#historico-revisoes': SectionHistoricoRevisoes,
   '#cadastro-envios': SectionCadastroEnvios,
   '#central-entrega': SectionCentralEntrega,
   '#assistentes-seguranca': SectionAssistentesSeguranca,

@@ -959,6 +959,7 @@ const INDICADORES: LinkNavegacao[] = [
 /* ── três plataformas: micromenus ── */
 const SECOES_JURIDICA = [
   '#secao-1',
+  '#historico-revisoes',
   '#secao-2',
   '#secao-3',
   '#secao-4',
@@ -1075,6 +1076,32 @@ const EXTRAS: LinkNavegacao[] = [
     dominio: 'fontes',
     setor: 'monitor',
   },
+  {
+    href: '#historico-revisoes',
+    label: 'Histórico de Revisões de Normas',
+    curto: 'Revisões de Normas',
+    tecla: 'y',
+    numero: '12C',
+    Icon: History,
+    cor: 'text-emerald-700',
+    bg: 'bg-emerald-50',
+    borda: 'border-emerald-300',
+    descricao: 'Linha do tempo de alterações, inclusões e exclusões com versão anterior e atual',
+    tags: [
+      'revisao',
+      'revisoes',
+      'historico',
+      'norma',
+      'normas',
+      'alteracao',
+      'inclusao',
+      'exclusao',
+      'vigencia',
+      'semanal',
+    ],
+    dominio: 'nucleo',
+    setor: 'regras-gerais',
+  },
 ]
 
 const TODOS_ITENS: LinkNavegacao[] = [
@@ -1133,6 +1160,7 @@ function itensDaPlataforma(secoes: string[]): LinkNavegacao[] {
  * ══════════════════════════════════════════════════════════════════════════ */
 const SECOES_REFORMA = [
   '#secao-1',
+  '#historico-revisoes',
   '#secao-2',
   '#secao-3',
   '#secao-4',

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-03T01:11:46.498Z",
+  "generatedAt": "2026-11-03T01:27:36.791Z",
   "collections": [
     {
       "name": "users",
@@ -1977,6 +1977,151 @@
         "CREATE INDEX idx_diag_sessoes_data ON diagnostico_sessoes (created DESC)",
         "CREATE INDEX idx_diag_sessoes_tipo ON diagnostico_sessoes (tipo_analise)",
         "CREATE INDEX idx_diag_sessoes_conv ON diagnostico_sessoes (conversation_id)"
+      ]
+    },
+    {
+      "name": "norm_reviews_history",
+      "type": "base",
+      "apiRules": {
+        "list": "",
+        "view": "",
+        "create": "",
+        "update": "",
+        "delete": ""
+      },
+      "fields": [
+        {
+          "name": "norm_code",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "norm_type",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "norm_number",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "norm_year",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "norm_title",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "source_org",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "confidence_tier",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": ["diario_oficial", "oficial_institucional", "comparacao"]
+        },
+        {
+          "name": "review_type",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": ["inclusao", "alteracao", "exclusao"]
+        },
+        {
+          "name": "segment",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": ["Tributário", "Jurídico", "Contábil", "Administrativo"]
+        },
+        {
+          "name": "review_date",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "summary_change",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "previous_version",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "current_version",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "origin_record_id",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "origin_collection",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "record_origin",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": ["rotina_semanal", "manual", "backfill_inicial"]
+        },
+        {
+          "name": "link_url",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "notes",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": [
+        "CREATE INDEX idx_nrh_date ON norm_reviews_history (review_date DESC)",
+        "CREATE INDEX idx_nrh_code ON norm_reviews_history (norm_code)",
+        "CREATE INDEX idx_nrh_segment ON norm_reviews_history (segment)",
+        "CREATE INDEX idx_nrh_type ON norm_reviews_history (review_type)"
       ]
     }
   ]

@@ -126,6 +126,55 @@ export interface ContentReviewItem {
   updated?: string
 }
 
+export type ReviewType = 'inclusao' | 'alteracao' | 'exclusao'
+export type NormSegment = 'Tributário' | 'Jurídico' | 'Contábil' | 'Administrativo'
+export type NormRecordOrigin = 'rotina_semanal' | 'manual' | 'backfill_inicial'
+
+export interface NormReviewHistoryItem {
+  id: string
+  norm_code: string
+  norm_type: string
+  norm_number?: string
+  norm_year?: string
+  norm_title: string
+  source_org: string
+  confidence_tier: ConfidenceTier
+  review_type: ReviewType
+  segment: NormSegment
+  review_date: string // YYYY-MM-DD ou ISO
+  summary_change: string
+  previous_version?: string
+  current_version?: string
+  origin_record_id?: string
+  origin_collection?: string
+  record_origin: NormRecordOrigin
+  link_url?: string
+  notes?: string
+  created?: string
+  updated?: string
+}
+
+export interface CreateNormReviewInput {
+  norm_code: string
+  norm_type: string
+  norm_number?: string
+  norm_year?: string
+  norm_title: string
+  source_org: string
+  confidence_tier: ConfidenceTier
+  review_type: ReviewType
+  segment: NormSegment
+  review_date: string
+  summary_change: string
+  previous_version?: string
+  current_version?: string
+  origin_record_id?: string
+  origin_collection?: string
+  record_origin?: NormRecordOrigin
+  link_url?: string
+  notes?: string
+}
+
 // Para manter retrocompatibilidade com partes antigas se necessário
 export interface GalleryItem {
   id: string

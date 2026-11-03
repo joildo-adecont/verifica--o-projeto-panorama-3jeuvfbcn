@@ -178,11 +178,11 @@ export function PlataformaHome() {
             valor: `${metricas.totalLinhasTabelaGeral.toLocaleString('pt-BR')} itens`,
           },
           { label: 'Alíquota Ref.', valor: 'CBS 11,3% + IBS 18,7%' },
-          { label: 'Simuladores', valor: 'Por setor e NCM' },
+          { label: 'Revisões de Normas', valor: 'Histórico ativo' },
         ],
         atalhos: [
           { label: 'Regimes Específicos', href: '#secao-6' },
-          { label: 'Tabela Geral dos Anexos', href: '#tabela-geral' },
+          { label: 'Histórico de Revisões de Normas', href: '#historico-revisoes' },
           { label: 'Diagnóstico Tributário (CEO)', href: '#diagnostico-tributario' },
           { label: 'Cronograma 2026–2033', href: '#secao-8' },
         ],
@@ -424,6 +424,15 @@ export function PlataformaHome() {
             <span className="px-1.5 py-0.2 rounded-md bg-amber-400 text-slate-950 text-[10px] font-black uppercase">
               #1 CEO
             </span>
+          </button>
+
+          {/* Histórico de Revisões de Normas */}
+          <button
+            onClick={() => navegarPara('#historico-revisoes')}
+            className="group px-3.5 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-300 text-xs font-bold flex items-center gap-2 transition-all hover:shadow-sm hover:-translate-y-0.5 cursor-pointer"
+          >
+            <History className="w-4 h-4 text-emerald-700 group-hover:scale-110 transition-transform" />
+            <span>Histórico de Revisões</span>
           </button>
 
           {/* Monitor Legislativo */}

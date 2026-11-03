@@ -569,6 +569,7 @@ cronAdd('weekly_content_review', '0 11 * * 1', () => {
   for (let nrIdx = 0; nrIdx < normasRFBParaCapturar.length; nrIdx++) {
     const itemNorma = normasRFBParaCapturar[nrIdx]
     try {
+      let isNova = false
       let recNorma
       try {
         recNorma = $app.findFirstRecordByData('tax_norms', 'code', itemNorma.code)
@@ -577,8 +578,10 @@ cronAdd('weekly_content_review', '0 11 * * 1', () => {
         recNorma = new Record(colNormas)
         recNorma.set('code', itemNorma.code)
         novasNormasRFBCapturadas++
+        isNova = true
       }
 
+      const prevSummary = recNorma.getString('summary') || ''
       recNorma.set('date', itemNorma.date)
       recNorma.set('dou_date', itemNorma.dou_date)
       recNorma.set('norm_type', itemNorma.norm_type)
@@ -589,6 +592,48 @@ cronAdd('weekly_content_review', '0 11 * * 1', () => {
       recNorma.set('link_url', itemNorma.link_url)
       recNorma.set('order', itemNorma.order)
       $app.save(recNorma)
+
+      // Registra evento no Histórico de Revisões de Normas (norm_reviews_history)
+      try {
+        const colHist = $app.findCollectionByNameOrId('norm_reviews_history')
+        const hojeStr = nowIso.slice(0, 10)
+        const jaRegistradoHoje = $app.findRecordsByFilter(
+          'norm_reviews_history',
+          'norm_code = {:c} && review_date = {:d}',
+          '',
+          1,
+          0,
+          { c: itemNorma.code, d: hojeStr },
+        )
+
+        if (jaRegistradoHoje.length === 0) {
+          const histRec = new Record(colHist)
+          histRec.set('norm_code', itemNorma.code)
+          histRec.set('norm_type', itemNorma.norm_type)
+          histRec.set('norm_number', itemNorma.code.match(/(\d+[\.\d]*)/)?.[1] || '')
+          histRec.set('norm_year', itemNorma.code.match(/(\d{4})/)?.[1] || '2026')
+          histRec.set('norm_title', itemNorma.title)
+          histRec.set('source_org', itemNorma.origin)
+          histRec.set('confidence_tier', 'oficial_institucional')
+          histRec.set('review_type', isNova ? 'inclusao' : 'alteracao')
+          histRec.set('segment', 'Tributário')
+          histRec.set('review_date', hojeStr)
+          histRec.set('summary_change', itemNorma.summary)
+          histRec.set('previous_version', isNova ? '' : prevSummary || 'Versão anterior')
+          histRec.set('current_version', itemNorma.summary)
+          histRec.set('origin_record_id', recNorma.id)
+          histRec.set('origin_collection', 'tax_norms')
+          histRec.set('record_origin', 'rotina_semanal')
+          histRec.set('link_url', itemNorma.link_url)
+          histRec.set(
+            'notes',
+            'Revisão registrada automaticamente na rotina semanal de segunda-feira (Cron).',
+          )
+          $app.save(histRec)
+        }
+      } catch (histErr) {
+        console.log('Erro ao gravar evento de cron em norm_reviews_history: ' + String(histErr))
+      }
     } catch (normErr) {
       console.log('Erro ao gravar norma RFB ' + itemNorma.code + ': ' + String(normErr))
     }
