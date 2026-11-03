@@ -116,13 +116,17 @@ export const FONTES_VIGIADAS: FonteVigiada[] = [
   },
   {
     id: 'rfb_normas',
-    rotulo: 'RFB — normas',
+    rotulo: 'RFB — normas (Sigaex / Atos)',
     orgao: 'Receita Federal do Brasil',
     url: 'https://normas.receita.fazenda.gov.br',
     status: 'ativa',
     tipo: 'texto_integral',
-    verifica: 'normas e instruções da Receita Federal',
+    verifica:
+      'instruções normativas, soluções de consulta COSIT e atos declaratórios da Receita Federal',
     mudou: false,
+    ultimoStatus: 'ok',
+    detalhe: 'adaptador em tempo real e captura periódica ativos',
+    verificacoes: 3,
   },
   {
     id: 'rfb_reforma',
