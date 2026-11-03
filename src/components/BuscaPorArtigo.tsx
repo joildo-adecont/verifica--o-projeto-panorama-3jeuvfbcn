@@ -190,11 +190,6 @@ a[href]::after { content: none !important; }
     window.setTimeout(() => window.print(), 150)
   }
 
-  /** quantos verbetes o dispositivo tem, somando os grupos */
-  const totalDocumento =
-    resultado && !resultado.vazio
-      ? Object.values(resultado.grupos).reduce((acc, ns) => acc + ns.length, 0)
-      : 0
   const [indice, setIndice] = useState<Indice | null>(null)
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState('')
@@ -285,6 +280,20 @@ a[href]::after { content: none !important; }
     if (!grupos) return { vazio: true as const }
     return { vazio: false as const, grupos }
   }, [indice, chaveAtiva, artigoAtivo])
+
+  /**
+   * Quantos verbetes o dispositivo tem, somando os grupos — usado no botão de
+   * PDF e no cabeçalho do papel.
+   *
+   * TEM DE VIR DEPOIS DE `resultado`. Declarado antes, o bundle compila mas
+   * quebra em runtime com "Cannot access 'w' before initialization": a aba
+   * derrubava a aplicação inteira ao abrir. Erro de ordem de declaração não
+   * aparece no build nem no QA — só clicando.
+   */
+  const totalDocumento =
+    resultado && !resultado.vazio
+      ? Object.values(resultado.grupos).reduce((acc, ns) => acc + ns.length, 0)
+      : 0
 
   const totalLigacoes = useMemo(() => {
     if (!indice) return 0
