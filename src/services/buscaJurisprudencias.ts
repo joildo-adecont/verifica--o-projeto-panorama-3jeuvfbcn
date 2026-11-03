@@ -421,8 +421,34 @@ export async function buscarPorDispositivo(
   }
   if (!indice) return vazio
 
-  const chaveIndice = `${normaChave}|${parseInt(artigo, 10)}`
-  const grupos = indice.artigos[chaveIndice]
+  /**
+   * ALIAS DE NORMA.
+   *
+   * O índice veio de fontes diferentes e cada uma nomeia a mesma lei do seu
+   * jeito: o STJ entrega o CTN pelo número da lei ("LEI5172"), enquanto a tela
+   * e o usuário falam "CTN". Sem este mapa, "art. 156 do CTN" devolvia ZERO —
+   * e zero, num acervo jurídico, se lê como "não existe jurisprudência sobre
+   * isso", que é mentira. O alias resolve antes de desistir.
+   */
+  const ALIAS: Record<string, string[]> = {
+    CTN: ['CTN', 'LEI5172'],
+    LEF: ['LEI6830'],
+    LIC: ['LEI14133'],
+    LIA: ['LEI8429'],
+    LRF: ['LEI11101'],
+    MS: ['LEI12016'],
+  }
+  const candidatas = [normaChave].concat(ALIAS[normaChave] || [])
+  let grupos: Record<string, Array<number | string>> | undefined
+  let chaveUsada = normaChave
+  for (let c = 0; c < candidatas.length; c++) {
+    const k = `${candidatas[c]}|${parseInt(artigo, 10)}`
+    if (indice.artigos[k]) {
+      grupos = indice.artigos[k]
+      chaveUsada = candidatas[c]
+      break
+    }
+  }
   if (!grupos) return vazio
 
   const itens: JurisResultado[] = []
@@ -466,9 +492,15 @@ export async function buscarPorDispositivo(
         if (!disp) continue
         // exige o número do artigo E alguma referência à norma
         if (disp.indexOf(numTxt) < 0) continue
+        // aceita a sigla (CTN), o número da lei (5172) e o nome por extenso
         const sigla = norm(normaChave).replace(/\/.*$/, '')
-        if (disp.indexOf(sigla) < 0 && disp.indexOf(norm(indice.normas[normaChave] || '')) < 0)
-          continue
+        const nomeNorma = norm(indice.normas[chaveUsada] || indice.normas[normaChave] || '')
+        const numLei = (chaveUsada.match(/\d{3,}/) || [])[0] || ''
+        const casouNorma =
+          disp.indexOf(sigla) >= 0 ||
+          (nomeNorma.length > 3 && disp.indexOf(nomeNorma) >= 0) ||
+          (numLei !== '' && disp.indexOf(numLei) >= 0)
+        if (!casouNorma) continue
         itens.push({
           id: j.id,
           fonte: 'escritorio',
@@ -512,6 +544,6 @@ export async function buscarPorDispositivo(
     aviso,
     norma: normaChave,
     artigo: artigo,
-    normaNome: indice.normas[normaChave] || normaChave,
+    normaNome: indice.normas[chaveUsada] || indice.normas[normaChave] || normaChave,
   }
 }
