@@ -56,7 +56,8 @@ import {
   buscarPorDispositivo,
   type JurisResultado,
   type BuscaJurisResultado,
-} from '@/services/buscaJurisprudencias'import { OPCOES_TABELAS_CLASSIFICACOES } from '@/components/ModalBaseClassificacoes'
+} from '@/services/buscaJurisprudencias'
+import { OPCOES_TABELAS_CLASSIFICACOES } from '@/components/ModalBaseClassificacoes'
 import { ModalBuscaAvancada } from '@/components/ModalBuscaAvancada'
 import { GraficosBusca } from '@/components/GraficosBusca'
 import { ConsultaCompletaAnexos } from '@/components/ConsultaCompletaAnexos'
