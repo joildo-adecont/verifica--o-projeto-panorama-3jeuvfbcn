@@ -112,6 +112,11 @@ const SetorFutebol = () => <SectionSetor id="futebol" />
 const SetorExterior = () => <SectionSetor id="exterior" />
 const SetorDiplomatico = () => <SectionSetor id="diplomatico" />
 
+const BuscaAvancadaGeral = () => <SectionBuscaAvancada />
+const BuscaAvancadaContabil = () => <SectionBuscaAvancada segmentoInicial="contabil" />
+const BuscaAvancadaJuridica = () => <SectionBuscaAvancada segmentoInicial="juridica" />
+const BuscaAvancadaAdministrativa = () => <SectionBuscaAvancada segmentoInicial="administrativa" />
+
 /**
  * Uma entrada por item de navegação — a fonte é `navegacao.ts`, sem lista paralela.
  * SectionNorms é a única que exige `norms`; o cast alinha a assinatura ao tipo comum
@@ -152,10 +157,10 @@ const COMPONENTES: Record<string, ComponentType<PropsAba>> = {
   '#monitor-legislativo': SectionMonitorLegislativo,
   '#historico-revisoes': SectionHistoricoRevisoes,
   '#historico-exclusoes': SectionHistoricoExclusoes,
-  '#busca-avancada': () => <SectionBuscaAvancada />,
-  '#busca-avancada?segmento=contabil': () => <SectionBuscaAvancada segmentoInicial="contabil" />,
-  '#busca-avancada?segmento=juridica': () => <SectionBuscaAvancada segmentoInicial="juridica" />,
-  '#busca-avancada?segmento=administrativa': () => <SectionBuscaAvancada segmentoInicial="administrativa" />,
+  '#busca-avancada': BuscaAvancadaGeral,
+  '#busca-avancada?segmento=contabil': BuscaAvancadaContabil,
+  '#busca-avancada?segmento=juridica': BuscaAvancadaJuridica,
+  '#busca-avancada?segmento=administrativa': BuscaAvancadaAdministrativa,
   '#diagnostico-tributario': SectionDiagnosticoTributario,
   '#instalador-versao': SectionControleVersao,
   '#cadastro-envios': SectionCadastroEnvios,

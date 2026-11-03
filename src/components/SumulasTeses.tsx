@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
+import { BuscaPorArtigo } from './BuscaPorArtigo'
 import {
   Search,
   Loader2,
