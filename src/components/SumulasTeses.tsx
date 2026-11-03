@@ -9,6 +9,7 @@ import {
   FileText,
   X,
   Download,
+  Hash,
 } from 'lucide-react'
 
 /**
@@ -31,7 +32,13 @@ import {
  *    cancelados ou ainda em julgamento) — lacuna é o dado, não falha da coleta.
  */
 
-type ConjuntoId = 'stf-vinculantes' | 'stf-simples' | 'stj-sumulas' | 'tst-sumulas' | 'stj-temas'
+type ConjuntoId =
+  | 'stf-vinculantes'
+  | 'stf-simples'
+  | 'stj-sumulas'
+  | 'tst-sumulas'
+  | 'stj-temas'
+  | 'por-artigo'
 
 interface Conjunto {
   id: ConjuntoId
@@ -48,6 +55,17 @@ interface Conjunto {
 }
 
 const CONJUNTOS: Conjunto[] = [
+  {
+    id: 'por-artigo',
+    nome: 'Por artigo de lei',
+    arquivo: '',
+    tribunal: 'STF · STJ · TST',
+    descricao:
+      'Escolha o dispositivo — art. 156 do CTN, art. 5º da CF — e veja todos os verbetes que o tratam. As normas revogadas (CF/1946, CPC/1973) ficam separadas das vigentes.',
+    rotuloTexto: 'Busca por dispositivo',
+    Icone: Hash,
+    cor: 'text-slate-700',
+  },
   {
     id: 'stf-vinculantes',
     nome: 'Súmulas vinculantes',
@@ -137,6 +155,14 @@ export function SumulasTeses() {
   const conjunto = CONJUNTOS.find((c) => c.id === conjuntoId)!
 
   useEffect(() => {
+    /* A aba "Por artigo de lei" não baixa arquivo próprio: ela lê
+       dados/indice-artigos.json dentro de BuscaPorArtigo. Sem esta guarda o
+       fetch sairia com URL vazia ('') e buscaria a própria página — devolveria
+       HTML, o .json() estouraria e a aba mostraria erro em vez do índice. */
+    if (!conjunto.arquivo) {
+      setCarregando(false)
+      return
+    }
     if (dados[conjunto.arquivo]) return
     let ativo = true
     setCarregando(true)
@@ -159,6 +185,39 @@ export function SumulasTeses() {
       ativo = false
     }
   }, [conjunto.arquivo, dados])
+
+  /**
+   * A aba "Por artigo de lei" mostra verbetes dos quatro conjuntos ao mesmo
+   * tempo — então, ao entrar nela, os quatro arquivos precisam estar baixados.
+   * Sem isto o usuário buscaria "art. 156 do CTN", acharia 3 súmulas do STJ e
+   * veria "texto não carregado" em todas, porque só o arquivo do STF teria sido
+   * baixado. Busca que devolve o verbete sem o texto não serve para advogado.
+   */
+  useEffect(() => {
+    if (conjuntoId !== 'por-artigo') return
+    const faltam = CONJUNTOS.map((c) => c.arquivo).filter((a) => a && !dados[a])
+    if (!faltam.length) return
+    let ativo = true
+    Promise.all(
+      faltam.map((a) =>
+        fetch(a)
+          .then((r) => (r.ok ? r.json() : []))
+          .catch(() => []),
+      ),
+    ).then((listas) => {
+      if (!ativo) return
+      setDados((d) => {
+        const novo = { ...d }
+        faltam.forEach((a, i) => {
+          novo[a] = listas[i]
+        })
+        return novo
+      })
+    })
+    return () => {
+      ativo = false
+    }
+  }, [conjuntoId, dados])
 
   const base = dados[conjunto.arquivo] || []
 
@@ -190,6 +249,48 @@ export function SumulasTeses() {
   }, [base, busca, conjunto.id])
 
   const amostra = itens.slice(0, 60)
+
+  /* A aba por artigo tem tela própria — ela usa o índice de dispositivos
+     e precisa dos textos já carregados de todos os conjuntos. */
+  if (conjuntoId === 'por-artigo') {
+    return (
+      <div className="space-y-3">
+        <div className="flex flex-wrap gap-1.5">
+          {CONJUNTOS.map((c) => {
+            const ativo = conjuntoId === c.id
+            const I = c.Icone
+            return (
+              <button
+                key={c.id}
+                onClick={() => setConjuntoId(c.id)}
+                className={`inline-flex min-h-[40px] items-center gap-1.5 rounded-lg border px-2.5 text-[11.5px] font-bold transition-colors ${
+                  ativo
+                    ? 'border-panorama-navy bg-panorama-navy text-white'
+                    : 'border-slate-300 bg-white text-slate-600 hover:border-panorama-gold'
+                }`}
+              >
+                <I className={`h-3.5 w-3.5 ${ativo ? 'text-panorama-gold' : c.cor}`} />
+                {c.nome}
+              </button>
+            )
+          })}
+        </div>
+        {/* BuscaPorArtigo consulta verbetes[grupo], onde grupo é 0=STF, 1=STJ,
+            2=TST, 3=temas. Aqui se monta esse mapa a partir dos arquivos reais:
+            STF e STJ moram no mesmo JSON? Não — são arquivos diferentes, mas o
+            índice usa a MESMA numeração de grupo do extrator, então o mapa
+            abaixo espelha os arquivos baixados. */}
+        <BuscaPorArtigo
+          verbetes={{
+            '0': dados['dados/sumulas-stf.json'] || [],
+            '1': dados['dados/sumulas-stj.json'] || [],
+            '2': dados['dados/sumulas-tst.json'] || [],
+            '3': dados['dados/temas-stj.json'] || [],
+          }}
+        />
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-3">
