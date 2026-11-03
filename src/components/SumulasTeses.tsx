@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo } from 'react'
-import { BuscaPorArtigo } from './BuscaPorArtigo'
 import {
   Search,
   Loader2,
@@ -12,25 +11,31 @@ import {
   Download,
   Hash,
 } from 'lucide-react'
+import { BuscaPorArtigo } from './BuscaPorArtigo'
 
 /**
  * SÚMULAS E TESES EM TEXTO — aba do Acervo Jurídico
  * =================================================
  *
  * O texto integral dos verbetes, extraído das fontes oficiais e servido como
- * arquivo estático em /dados/ — NÃO dentro do bundle. Motivo: são ~1 MB de texto
- * e o app abriria 1 MB mais pesado para todo mundo que só quer ver o painel.
- * Aqui o arquivo só é baixado quando o usuário abre esta aba.
+ * arquivo estático em /dados/ — NÃO dentro do bundle. Motivo: são ~1,1 MB de
+ * texto; embutir deixaria o app mais pesado para quem só quer ver o painel.
+ * Aqui o arquivo só é baixado quando a aba é aberta.
  *
- * ── DE ONDE VEM CADA CONJUNTO (todos extraídos em 02/11/2026) ──
- *  • STF vinculantes — 63, da SV 1 à 63. API de jurisprudência do STF.
- *  • STF simples — 736. Mesma API.
- *  • STJ súmulas — 649, da 1 à 649, sem lacuna. PDF oficial "SumulasSTJ.pdf".
- *  • TST súmulas — 363 vigentes de 463 históricas (123 marcadas canceladas).
- *    API jurisprudencia-backend.tst.jus.br.
- *  • Temas repetitivos do STJ — 1.152 com tese firmada. Portal de repetitivos.
- *    O número vai até 1.455: os que faltam não têm tese firmada (afetados,
- *    cancelados ou ainda em julgamento) — lacuna é o dado, não falha da coleta.
+ * ── DE ONDE VEM CADA CONJUNTO (extraídos em 02-03/11/2026) ──
+ *  • STF vinculantes — 63 (SV 1 a 63). API de jurisprudência do STF.
+ *  • STF simples — 736. Mesma API. (Os dois moram no MESMO arquivo: 799.)
+ *  • STJ súmulas — 649, da 1 à 649, sem lacuna. PDF oficial SumulasSTJ.pdf.
+ *  • TST súmulas — 363 vigentes de 463 históricas (123 canceladas marcadas).
+ *  • Temas repetitivos do STJ — 1.152 com tese firmada (numeração até 1.455;
+ *    os que faltam não têm tese — lacuna é o dado, não falha da coleta).
+ *
+ * ── BUG QUE JÁ DERRUBOU A PÁGINA (v0.0.437) ──
+ * A aba "Por artigo de lei" foi montada referenciando <BuscaPorArtigo> sem que
+ * o módulo entrasse no bundle publicado: ao clicar, o React lançava
+ * "ReferenceError: BuscaPorArtigo is not defined" e a aplicação inteira ficava
+ * em branco. Por isso o import está na PRIMEIRA linha do arquivo, junto do
+ * React, e o componente é o único ponto de entrada dessa aba.
  */
 
 type ConjuntoId =
@@ -44,16 +49,22 @@ type ConjuntoId =
 interface Conjunto {
   id: ConjuntoId
   nome: string
+  /** caminho do JSON; vazio = a aba tem tela própria e não baixa arquivo */
   arquivo: string
   tribunal: string
   descricao: string
-  /** o que o campo `t` significa neste conjunto */
-  rotuloTexto: string
   Icone: React.ComponentType<{ className?: string }>
   cor: string
-  /** o que vale extra: 'vinculante' | 'cancelada' | 'ramo' */
-  extra?: 'vinculante' | 'cancelada' | 'ramo'
+  /** filtro aplicado ao arquivo */
+  filtro?: 'vinculante' | 'simples'
+  /** selo extra na lista */
+  extra?: 'cancelada' | 'ramo'
 }
+
+const ARQ_STF = 'dados/sumulas-stf.json'
+const ARQ_STJ = 'dados/sumulas-stj.json'
+const ARQ_TST = 'dados/sumulas-tst.json'
+const ARQ_TEMAS = 'dados/temas-stj.json'
 
 const CONJUNTOS: Conjunto[] = [
   {
@@ -62,54 +73,49 @@ const CONJUNTOS: Conjunto[] = [
     arquivo: '',
     tribunal: 'STF · STJ · TST',
     descricao:
-      'Escolha o dispositivo — art. 156 do CTN, art. 5º da CF — e veja todos os verbetes que o tratam. As normas revogadas (CF/1946, CPC/1973) ficam separadas das vigentes.',
-    rotuloTexto: 'Busca por dispositivo',
+      'Escolha o dispositivo — art. 156 do CTN, art. 5º da CF — e veja todos os verbetes que o tratam. Normas revogadas (CF/1946, CPC/1973) ficam separadas das vigentes.',
     Icone: Hash,
     cor: 'text-slate-700',
   },
   {
     id: 'stf-vinculantes',
     nome: 'Súmulas vinculantes',
-    arquivo: 'dados/sumulas-stf.json',
+    arquivo: ARQ_STF,
     tribunal: 'STF',
     descricao:
       'As 63 súmulas vinculantes. Depois de editada, vinculam todo o Judiciário e a administração pública — é o grau mais alto de precedente que existe.',
-    rotuloTexto: 'Enunciado',
     Icone: Landmark,
     cor: 'text-indigo-700',
-    extra: 'vinculante',
+    filtro: 'vinculante',
   },
   {
     id: 'stf-simples',
     nome: 'Súmulas do STF',
-    arquivo: 'dados/sumulas-stf.json',
+    arquivo: ARQ_STF,
     tribunal: 'STF',
     descricao:
       '736 súmulas simples: orientam, mas não vinculam. Continuam citáveis e mostram como o STF lê a Constituição.',
-    rotuloTexto: 'Enunciado',
     Icone: Scale,
     cor: 'text-sky-700',
-    extra: 'vinculante',
+    filtro: 'simples',
   },
   {
     id: 'stj-sumulas',
     nome: 'Súmulas do STJ',
-    arquivo: 'dados/sumulas-stj.json',
+    arquivo: ARQ_STJ,
     tribunal: 'STJ',
     descricao:
       '649 súmulas, da 1 à 649, do PDF oficial do STJ. É onde se confirma a leitura do CTN, do CPC e da lei federal.',
-    rotuloTexto: 'Enunciado',
     Icone: FileText,
     cor: 'text-emerald-700',
   },
   {
     id: 'tst-sumulas',
     nome: 'Súmulas do TST',
-    arquivo: 'dados/sumulas-tst.json',
+    arquivo: ARQ_TST,
     tribunal: 'TST',
     descricao:
       '363 súmulas vigentes da Justiça do Trabalho. As canceladas ficam marcadas — cancelada não se cita como se valesse.',
-    rotuloTexto: 'Tese',
     Icone: Gavel,
     cor: 'text-amber-700',
     extra: 'cancelada',
@@ -117,11 +123,10 @@ const CONJUNTOS: Conjunto[] = [
   {
     id: 'stj-temas',
     nome: 'Temas repetitivos (STJ)',
-    arquivo: 'dados/temas-stj.json',
+    arquivo: ARQ_TEMAS,
     tribunal: 'STJ',
     descricao:
       '1.152 teses firmadas em recursos repetitivos. É a jurisprudência que os tribunais são obrigados a seguir — a mais útil na prática.',
-    rotuloTexto: 'Tese firmada',
     Icone: Scale,
     cor: 'text-rose-700',
     extra: 'ramo',
@@ -146,25 +151,41 @@ const semAcento = (s: string) =>
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
 
+const ehStf = (c: Conjunto) => c.id === 'stf-vinculantes' || c.id === 'stf-simples'
+
+/** conta os verbetes DO CONJUNTO — vinculantes e simples dividem o arquivo */
+function contar(c: Conjunto, arr: Verbete[]): number {
+  if (c.filtro === 'vinculante') return arr.filter((v) => v.v === 1).length
+  if (c.filtro === 'simples') return arr.filter((v) => v.v === 0).length
+  return arr.length
+}
+
+/** aplica o filtro do conjunto */
+function filtrar(c: Conjunto, arr: Verbete[]): Verbete[] {
+  if (c.filtro === 'vinculante') return arr.filter((v) => v.v === 1)
+  if (c.filtro === 'simples') return arr.filter((v) => v.v === 0)
+  return arr
+}
+
 export function SumulasTeses() {
   const [conjuntoId, setConjuntoId] = useState<ConjuntoId>('stf-vinculantes')
   const [dados, setDados] = useState<Record<string, Verbete[]>>({})
   const [carregando, setCarregando] = useState(false)
-  const [erro, setErro] = useState<string>('')
+  const [erro, setErro] = useState('')
   const [busca, setBusca] = useState('')
 
-  const conjunto = CONJUNTOS.find((c) => c.id === conjuntoId)!
+  const conjunto = CONJUNTOS.find((c) => c.id === conjuntoId) ?? CONJUNTOS[1]
 
+  /* ── carrega o arquivo do conjunto ativo ── */
   useEffect(() => {
-    /* A aba "Por artigo de lei" não baixa arquivo próprio: ela lê
-       dados/indice-artigos.json dentro de BuscaPorArtigo. Sem esta guarda o
-       fetch sairia com URL vazia ('') e buscaria a própria página — devolveria
-       HTML, o .json() estouraria e a aba mostraria erro em vez do índice. */
     if (!conjunto.arquivo) {
       setCarregando(false)
       return
     }
-    if (dados[conjunto.arquivo]) return
+    if (dados[conjunto.arquivo]) {
+      setCarregando(false)
+      return
+    }
     let ativo = true
     setCarregando(true)
     setErro('')
@@ -177,7 +198,7 @@ export function SumulasTeses() {
         if (ativo) setDados((d) => ({ ...d, [conjunto.arquivo]: j }))
       })
       .catch((e) => {
-        if (ativo) setErro(String(e.message || e))
+        if (ativo) setErro(String((e && e.message) || e))
       })
       .finally(() => {
         if (ativo) setCarregando(false)
@@ -187,16 +208,10 @@ export function SumulasTeses() {
     }
   }, [conjunto.arquivo, dados])
 
-  /**
-   * A aba "Por artigo de lei" mostra verbetes dos quatro conjuntos ao mesmo
-   * tempo — então, ao entrar nela, os quatro arquivos precisam estar baixados.
-   * Sem isto o usuário buscaria "art. 156 do CTN", acharia 3 súmulas do STJ e
-   * veria "texto não carregado" em todas, porque só o arquivo do STF teria sido
-   * baixado. Busca que devolve o verbete sem o texto não serve para advogado.
-   */
+  /* ── a aba por artigo precisa dos quatro arquivos ao mesmo tempo ── */
   useEffect(() => {
     if (conjuntoId !== 'por-artigo') return
-    const faltam = CONJUNTOS.map((c) => c.arquivo).filter((a) => a && !dados[a])
+    const faltam = [ARQ_STF, ARQ_STJ, ARQ_TST, ARQ_TEMAS].filter((a) => !dados[a])
     if (!faltam.length) return
     let ativo = true
     Promise.all(
@@ -221,114 +236,80 @@ export function SumulasTeses() {
   }, [conjuntoId, dados])
 
   const base = dados[conjunto.arquivo] || []
-
-  /**
-   * O selo de contagem tem de ser o número DO CONJUNTO, não do arquivo.
-   * Vinculantes e simples do STF moram no mesmo arquivo (799 verbetes): usar
-   * `base.length` no selo anunciava "Súmulas vinculantes 799" — e são 63. Um
-   * número desses, na porta de entrada, é pior que nenhum.
-   */
-  const contagem = (c: Conjunto, arr: Verbete[]) => {
-    if (c.id === 'stf-vinculantes') return arr.filter((v) => v.v === 1).length
-    if (c.id === 'stf-simples') return arr.filter((v) => v.v === 0).length
-    return arr.length
-  }
+  const doConjunto = useMemo(() => filtrar(conjunto, base), [base, conjunto])
+  const total = contar(conjunto, base)
 
   const itens = useMemo(() => {
-    let lista = base
-    // STF: o mesmo arquivo serve às vinculantes e às simples
-    if (conjunto.id === 'stf-vinculantes') lista = base.filter((v) => v.v === 1)
-    if (conjunto.id === 'stf-simples') lista = base.filter((v) => v.v === 0)
-
     const t = semAcento(busca).trim()
-    if (!t) return lista
+    if (!t) return doConjunto
     const termos = t.split(/\s+/)
-    return lista.filter((v) => {
+    return doConjunto.filter((v) => {
       const alvo = semAcento(`${v.n} ${v.t} ${v.a || ''} ${v.r || ''} ${v.o || ''} ${v.s || ''}`)
       return termos.every((p) => alvo.includes(p))
     })
-  }, [base, busca, conjunto.id])
+  }, [doConjunto, busca])
 
   const amostra = itens.slice(0, 60)
 
-  /* A aba por artigo tem tela própria — ela usa o índice de dispositivos
-     e precisa dos textos já carregados de todos os conjuntos. */
+  const seletor = (
+    <div className="flex flex-wrap gap-1.5">
+      {CONJUNTOS.map((c) => {
+        const ativo = conjuntoId === c.id
+        const I = c.Icone
+        const n = dados[c.arquivo] ? contar(c, dados[c.arquivo]) : null
+        return (
+          <button
+            key={c.id}
+            type="button"
+            onClick={() => {
+              setConjuntoId(c.id)
+              setBusca('')
+            }}
+            className={`inline-flex min-h-[40px] items-center gap-1.5 rounded-lg border px-2.5 text-[11.5px] font-bold transition-colors ${
+              ativo
+                ? 'border-panorama-navy bg-panorama-navy text-white'
+                : 'border-slate-300 bg-white text-slate-600 hover:border-panorama-gold'
+            }`}
+          >
+            <I className={`h-3.5 w-3.5 ${ativo ? 'text-panorama-gold' : c.cor}`} />
+            {c.nome}
+            {n !== null && (
+              <span
+                className={`rounded px-1 text-[9px] ${
+                  ativo ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
+                }`}
+              >
+                {n}
+              </span>
+            )}
+          </button>
+        )
+      })}
+    </div>
+  )
+
+  /* ══════════ ABA: POR ARTIGO DE LEI ══════════ */
   if (conjuntoId === 'por-artigo') {
     return (
       <div className="space-y-3">
-        <div className="flex flex-wrap gap-1.5">
-          {CONJUNTOS.map((c) => {
-            const ativo = conjuntoId === c.id
-            const I = c.Icone
-            return (
-              <button
-                key={c.id}
-                onClick={() => setConjuntoId(c.id)}
-                className={`inline-flex min-h-[40px] items-center gap-1.5 rounded-lg border px-2.5 text-[11.5px] font-bold transition-colors ${
-                  ativo
-                    ? 'border-panorama-navy bg-panorama-navy text-white'
-                    : 'border-slate-300 bg-white text-slate-600 hover:border-panorama-gold'
-                }`}
-              >
-                <I className={`h-3.5 w-3.5 ${ativo ? 'text-panorama-gold' : c.cor}`} />
-                {c.nome}
-              </button>
-            )
-          })}
-        </div>
-        {/* BuscaPorArtigo consulta verbetes[grupo], onde grupo é 0=STF, 1=STJ,
-            2=TST, 3=temas. Aqui se monta esse mapa a partir dos arquivos reais:
-            STF e STJ moram no mesmo JSON? Não — são arquivos diferentes, mas o
-            índice usa a MESMA numeração de grupo do extrator, então o mapa
-            abaixo espelha os arquivos baixados. */}
+        {seletor}
         <BuscaPorArtigo
           verbetes={{
-            '0': dados['dados/sumulas-stf.json'] || [],
-            '1': dados['dados/sumulas-stj.json'] || [],
-            '2': dados['dados/sumulas-tst.json'] || [],
-            '3': dados['dados/temas-stj.json'] || [],
+            '0': dados[ARQ_STF] || [],
+            '1': dados[ARQ_STJ] || [],
+            '2': dados[ARQ_TST] || [],
+            '3': dados[ARQ_TEMAS] || [],
           }}
         />
       </div>
     )
   }
 
+  /* ══════════ ABAS DE TEXTO ══════════ */
   return (
     <div className="space-y-3">
-      {/* seletor de conjunto */}
-      <div className="flex flex-wrap gap-1.5">
-        {CONJUNTOS.map((c) => {
-          const ativo = conjuntoId === c.id
-          const carregado = !!dados[c.arquivo]
-          const I = c.Icone
-          return (
-            <button
-              key={c.id}
-              onClick={() => {
-                setConjuntoId(c.id)
-                setBusca('')
-              }}
-              className={`inline-flex min-h-[40px] items-center gap-1.5 rounded-lg border px-2.5 text-[11.5px] font-bold transition-colors ${
-                ativo
-                  ? 'border-panorama-navy bg-panorama-navy text-white'
-                  : 'border-slate-300 bg-white text-slate-600 hover:border-panorama-gold'
-              }`}
-            >
-              <I className={`h-3.5 w-3.5 ${ativo ? 'text-panorama-gold' : c.cor}`} />
-              {c.nome}
-              {carregado && (
-                <span
-                  className={`rounded px-1 text-[9px] ${ativo ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'}`}
-                >
-                  {contagem(c, dados[c.arquivo] || [])}
-                </span>
-              )}
-            </button>
-          )
-        })}
-      </div>
+      {seletor}
 
-      {/* cabeçalho do conjunto */}
       <div className="rounded-lg border-l-4 border-panorama-gold bg-amber-50/70 p-2.5">
         <p className="flex flex-wrap items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-amber-800">
           <span className="rounded bg-panorama-navy px-1.5 py-0.5 text-panorama-gold-light">
@@ -342,7 +323,6 @@ export function SumulasTeses() {
         <p className="mt-1 text-[11.5px] leading-relaxed text-slate-700">{conjunto.descricao}</p>
       </div>
 
-      {/* busca */}
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative min-w-[220px] flex-1">
           <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
@@ -355,6 +335,7 @@ export function SumulasTeses() {
           />
           {busca && (
             <button
+              type="button"
               onClick={() => setBusca('')}
               className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
               aria-label="Limpar busca"
@@ -365,16 +346,15 @@ export function SumulasTeses() {
         </div>
         <span className="text-[11.5px] text-slate-600">
           <b>{itens.length}</b>
-          {base.length ? ` de ${contagem(conjunto, base)}` : ''}
+          {base.length ? ` de ${total}` : ''}
         </span>
-        {conjunto.id === 'tst-sumulas' && base.length > 0 && (
+        {conjunto.extra === 'cancelada' && base.length > 0 && (
           <span className="rounded bg-red-50 px-1.5 py-0.5 text-[10px] font-bold text-red-700 ring-1 ring-red-200">
             {base.filter((v) => v.c === 1).length} canceladas
           </span>
         )}
       </div>
 
-      {/* estados */}
       {carregando && (
         <p className="flex items-center gap-1.5 text-[12px] text-slate-500">
           <Loader2 className="h-3.5 w-3.5 animate-spin" /> Baixando o texto integral…
@@ -389,24 +369,13 @@ export function SumulasTeses() {
           <p className="mt-0.5 font-mono text-[10.5px] text-red-700">
             {conjunto.arquivo} — {erro}
           </p>
-          <p className="mt-1 text-[10.5px] text-red-700">
-            O arquivo é servido de <code>/dados/</code>. Se ele responde 404, a publicação não o
-            incluiu.
-          </p>
         </div>
       )}
 
-      {/* verbetes */}
       {!carregando && !erro && itens.length === 0 && busca && (
         <p className="rounded-lg bg-slate-100 p-2.5 text-[11.5px] text-slate-600">
           Nenhum verbete contém todos os termos. Tente uma palavra só — a busca exige que todas
           apareçam.
-        </p>
-      )}
-
-      {!busca && itens.length === 0 && !carregando && !erro && base.length > 0 && (
-        <p className="rounded-lg bg-amber-50 p-2.5 text-[11.5px] text-amber-800">
-          O arquivo carregou {base.length} verbetes, mas nenhum entrou neste filtro.
         </p>
       )}
 
