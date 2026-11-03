@@ -289,9 +289,22 @@ export function PlataformaHome() {
              * ADECONT — mas renderizava a 56×32px, pequeno demais para se ler.
              * Agora: largura fluida grande (até 340px), altura automática. */}
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
+              {/* ── LOGO AZUL OFICIAL (03/11/2026) ──
+               * O CEO pediu: "o logo da ADECONT é azul. Copie o logo dos outros
+               * setores do sistema. E mantenha o tamanho."
+               * As demais seções (header e rodapé) usam `variant="color"` — o
+               * logo original azul-marinho — dentro de uma caixa branca, porque
+               * sobre fundo escuro o traço escuro desapareceria. Aqui é igual:
+               * caixa branca com anel dourado e o MESMO tamanho de 300px. */}
               <div className="relative w-full max-w-[200px] shrink-0 sm:max-w-[260px] lg:max-w-[300px]">
                 <div className="absolute -inset-4 rounded-3xl bg-panorama-gold/10 blur-2xl" />
-                <AdecontLogo variant="white" className="relative h-auto w-full object-contain" />
+                <div className="relative rounded-2xl bg-white p-3 shadow-lg ring-2 ring-panorama-gold/40">
+                  <AdecontLogo
+                    variant="color"
+                    showTagline={true}
+                    className="h-auto w-full max-w-full object-contain"
+                  />
+                </div>
               </div>
               <div className="min-w-0 border-panorama-gold/40 sm:border-l sm:pl-6">
                 <span className="block text-[13px] font-semibold leading-relaxed text-slate-200 sm:text-sm">
@@ -318,10 +331,10 @@ export function PlataformaHome() {
             </div>
           </div>
 
-          {/* Título Principal Exato: Plataforma Contábil, Jurídica e Administrativa ADECONT */}
+          {/* Título Principal Exato: Plataforma Contábil, Jurídica e Administrativa */}
           <div className="space-y-3 max-w-4xl">
             <h1 className="font-serif text-[1.7rem] font-bold leading-tight tracking-tight text-white sm:text-3xl md:text-4xl lg:text-[2.6rem]">
-              Plataforma Contábil, Jurídica e Administrativa ADECONT
+              Plataforma Contábil, Jurídica e Administrativa
             </h1>
 
             <p className="text-xs sm:text-sm md:text-base text-slate-300 leading-relaxed max-w-3xl font-sans">
