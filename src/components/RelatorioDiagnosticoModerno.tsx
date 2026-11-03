@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Printer,
   FileSpreadsheet,
@@ -33,6 +33,11 @@ import {
 import { AdecontLogo } from '@/components/AdecontLogo'
 import { RenderizadorTextoMarkdown } from '@/components/RenderizadorTextoMarkdown'
 import type { LinhaComparativoAliquota } from '@/services/diagnosticoTributario'
+import {
+  obterUsuarioAtivoLocal,
+  assinarMudancaUsuarioAtivo,
+  SistemaUsuario,
+} from '@/services/sistemaUsuarios'
 
 export interface RelatorioDiagnosticoModernoProps {
   titulo: string
@@ -157,6 +162,13 @@ export function RelatorioDiagnosticoModerno({
   onAtualizarPassoAPasso,
 }: RelatorioDiagnosticoModernoProps) {
   const [modoEdicao, setModoEdicao] = useState(false)
+  const [usuarioAtivo, setUsuarioAtivo] = useState<SistemaUsuario | null>(null)
+
+  useEffect(() => {
+    setUsuarioAtivo(obterUsuarioAtivoLocal())
+    const unsubscribe = assinarMudancaUsuarioAtivo((u) => setUsuarioAtivo(u))
+    return () => unsubscribe()
+  }, [])
 
   // Injetar CSS de impressão sob demanda e chamar window.print()
   const handleImprimirPdf = () => {
@@ -685,7 +697,7 @@ export function RelatorioDiagnosticoModerno({
           </p>
         </section>
 
-        {/* ── RODAPÉ INSTITUCIONAL ADECONT (LOGO + TEXTO OBRIGATÓRIO) ── */}
+        {/* ── RODAPÉ INSTITUCIONAL ADECONT (LOGO + TEXTO OBRIGATÓRIO COM GERADOR) ── */}
         <div className="relatorio-footer-impresso pt-6 border-t-2 border-indigo-900 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs text-slate-600">
           <div className="flex items-center gap-3">
             <AdecontLogo variant="color" className="h-10 w-auto" />
@@ -696,6 +708,13 @@ export function RelatorioDiagnosticoModerno({
               <span className="text-[11px] text-slate-500">
                 Plataforma Panorama da Reforma Tributária · Todos os direitos reservados
               </span>
+              <div className="text-[11px] font-bold text-emerald-800 mt-1">
+                Gerado por: {usuarioAtivo ? usuarioAtivo.nome : 'Administrador ADECONT'} — nível{' '}
+                {usuarioAtivo
+                  ? usuarioAtivo.nivel_customizado_nome || usuarioAtivo.nivel
+                  : 'Administrador'}{' '}
+                — {dataEmissao}
+              </div>
             </div>
           </div>
 

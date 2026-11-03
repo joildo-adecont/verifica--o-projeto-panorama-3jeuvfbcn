@@ -1,10 +1,15 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { AdecontLogo } from '@/components/AdecontLogo'
 import { SeloNivelConfianca } from '@/components/SeloNivelConfianca'
 import type { NormReviewHistoryItem } from '@/types/panorama'
 import type { FiltrosHistoricoNormas } from '@/services/normReviewsHistory'
 import { Printer, Calendar, ShieldCheck, CheckCircle2, AlertTriangle, Layers } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import {
+  obterUsuarioAtivoLocal,
+  assinarMudancaUsuarioAtivo,
+  SistemaUsuario,
+} from '@/services/sistemaUsuarios'
 
 export interface RelatorioRevisoesImprimivelProps {
   itens: NormReviewHistoryItem[]
@@ -17,6 +22,14 @@ export const RelatorioRevisoesImprimivel: React.FC<RelatorioRevisoesImprimivelPr
   filtros,
   aoFechar,
 }) => {
+  const [usuarioAtivo, setUsuarioAtivo] = useState<SistemaUsuario | null>(null)
+
+  useEffect(() => {
+    setUsuarioAtivo(obterUsuarioAtivoLocal())
+    const unsubscribe = assinarMudancaUsuarioAtivo((u) => setUsuarioAtivo(u))
+    return () => unsubscribe()
+  }, [])
+
   const agoraFormatado = new Intl.DateTimeFormat('pt-BR', {
     dateStyle: 'full',
     timeStyle: 'medium',
@@ -228,8 +241,21 @@ export const RelatorioRevisoesImprimivel: React.FC<RelatorioRevisoesImprimivelPr
             </div>
           </div>
 
-          {/* Rodapé Institucional Oficial A4 */}
-          <div className="border-t border-slate-300 pt-6 mt-12 text-center text-xs text-slate-500 space-y-1">
+          {/* Rodapé Institucional Oficial A4 com Registro de Gerador */}
+          <div className="border-t border-slate-300 pt-6 mt-12 text-center text-xs text-slate-500 space-y-1.5">
+            <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-[11px] font-semibold text-slate-800 inline-block">
+              Gerado por:{' '}
+              <span className="font-bold text-slate-900">
+                {usuarioAtivo ? usuarioAtivo.nome : 'Administrador ADECONT'}
+              </span>{' '}
+              — nível{' '}
+              <span className="font-bold text-emerald-800">
+                {usuarioAtivo
+                  ? usuarioAtivo.nivel_customizado_nome || usuarioAtivo.nivel
+                  : 'Administrador'}
+              </span>{' '}
+              — {agoraFormatado}
+            </div>
             <div className="font-semibold text-slate-700">
               ADECONT — Assessoria Contábil e Administrativa
             </div>

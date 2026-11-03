@@ -27,12 +27,21 @@ import {
   SistemaUsuario,
   NivelAcesso,
   TipoPermissao,
+  NivelAcessoCustomizado,
   SalvarUsuarioInput,
+  SalvarNivelInput,
+  DadosMensagemConfirmacao,
   listarSistemaUsuarios,
   criarSistemaUsuario,
   atualizarSistemaUsuario,
   alternarSituacaoUsuario,
   excluirSistemaUsuario,
+  listarNiveisCustomizados,
+  criarNivelCustomizado,
+  atualizarNivelCustomizado,
+  excluirNivelCustomizado,
+  confirmarUsuarioManualAdmin,
+  confirmarCodigoUsuario,
   lerTokenPainel,
   salvarTokenPainel,
   validarTokenPainel,
@@ -40,6 +49,9 @@ import {
   definirUsuarioAtivoLocal,
   SemTokenError,
 } from '@/services/sistemaUsuarios'
+import { ModalMensagemPronta } from '@/components/ModalMensagemPronta'
+import { RelatorioUsuariosPermissoes } from '@/components/RelatorioUsuariosPermissoes'
+import { Printer, MessageSquare, Plus, Sliders } from 'lucide-react'
 
 const NIVEIS_INFO: Record<
   NivelAcesso,
@@ -120,6 +132,9 @@ interface FormState {
   email: string
   cargo: string
   nivel: NivelAcesso
+  nivel_customizado_id?: string
+  nivel_customizado_nome?: string
+  senha?: string
   ativo: boolean
   perm_juridico_acesso: boolean
   perm_juridico_tipo: TipoPermissao
@@ -137,6 +152,9 @@ const FORM_INICIAL: FormState = {
   email: '',
   cargo: '',
   nivel: 'Editor',
+  nivel_customizado_id: '',
+  nivel_customizado_nome: '',
+  senha: '',
   ativo: true,
   perm_juridico_acesso: true,
   perm_juridico_tipo: 'consultar',
@@ -149,12 +167,56 @@ const FORM_INICIAL: FormState = {
   observacoes: '',
 }
 
+interface FormNivelCustomState {
+  id?: string
+  nome: string
+  descricao: string
+  cor_badge: string
+  ativo: boolean
+  perm_juridico_acesso: boolean
+  perm_juridico_tipo: TipoPermissao
+  perm_tributario_acesso: boolean
+  perm_tributario_tipo: TipoPermissao
+  perm_contabil_acesso: boolean
+  perm_contabil_tipo: TipoPermissao
+  perm_administrativo_acesso: boolean
+  perm_administrativo_tipo: TipoPermissao
+}
+
+const FORM_NIVEL_INICIAL: FormNivelCustomState = {
+  nome: '',
+  descricao: '',
+  cor_badge: 'bg-purple-100 text-purple-800 border-purple-300',
+  ativo: true,
+  perm_juridico_acesso: true,
+  perm_juridico_tipo: 'consultar',
+  perm_tributario_acesso: true,
+  perm_tributario_tipo: 'consultar',
+  perm_contabil_acesso: true,
+  perm_contabil_tipo: 'consultar',
+  perm_administrativo_acesso: false,
+  perm_administrativo_tipo: 'consultar',
+}
+
 export function SectionNivelAcesso() {
-  const [aba, setAba] = useState<'lista' | 'cadastro'>('lista')
+  const [aba, setAba] = useState<'lista' | 'cadastro' | 'niveis_custom'>('lista')
   const [usuarios, setUsuarios] = useState<SistemaUsuario[]>([])
+  const [niveisCustomizados, setNiveisCustomizados] = useState<NivelAcessoCustomizado[]>([])
   const [carregando, setCarregando] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
   const [msg, setMsg] = useState<{ tipo: 'ok' | 'erro'; txt: string } | null>(null)
+
+  // Mensagem pronta de confirmação
+  const [modalMsgAberta, setModalMsgAberta] = useState(false)
+  const [dadosMsgPronta, setDadosMsgPronta] = useState<DadosMensagemConfirmacao | null>(null)
+
+  // Relatório imprimível A4
+  const [modalRelatorioAberto, setModalRelatorioAberto] = useState(false)
+
+  // Form de Nível Customizado
+  const [formNivel, setFormNivel] = useState<FormNivelCustomState>(FORM_NIVEL_INICIAL)
+  const [editandoNivel, setEditandoNivel] = useState(false)
+  const [salvandoNivel, setSalvandoNivel] = useState(false)
 
   // Token de painel no padrão da Seção 9A
   const [token, setToken] = useState('')
@@ -196,21 +258,27 @@ export function SectionNivelAcesso() {
     if (uAtivo) setUsuarioAtivo(uAtivo)
   }, [])
 
-  // Carrega lista do backend
-  const carregarUsuarios = useCallback(async (tok: string) => {
-    if (!tok) return
+  // Carrega lista de usuários e níveis customizados
+  const carregarDadosCompletos = useCallback(async (tok: string) => {
     setCarregando(true)
     setErro(null)
     try {
-      const resp = await listarSistemaUsuarios(tok)
-      setUsuarios(resp.usuarios || [])
-      // Se não tiver usuário ativo selecionado, escolhe o primeiro administrador
-      const atual = obterUsuarioAtivoLocal()
-      if (!atual && resp.usuarios && resp.usuarios.length > 0) {
-        const primeiroAdmin =
-          resp.usuarios.find((u) => u.nivel === 'Administrador') || resp.usuarios[0]
-        definirUsuarioAtivoLocal(primeiroAdmin)
-        setUsuarioAtivo(primeiroAdmin)
+      // Níveis customizados podem ser carregados publicamente
+      const resNiveis = await listarNiveisCustomizados()
+      if (resNiveis.sucesso) {
+        setNiveisCustomizados(resNiveis.niveis || [])
+      }
+
+      if (tok) {
+        const resp = await listarSistemaUsuarios(tok)
+        setUsuarios(resp.usuarios || [])
+        const atual = obterUsuarioAtivoLocal()
+        if (!atual && resp.usuarios && resp.usuarios.length > 0) {
+          const primeiroAdmin =
+            resp.usuarios.find((u) => u.nivel === 'Administrador') || resp.usuarios[0]
+          definirUsuarioAtivoLocal(primeiroAdmin)
+          setUsuarioAtivo(primeiroAdmin)
+        }
       }
     } catch (e) {
       if (e instanceof SemTokenError) {
@@ -223,6 +291,11 @@ export function SectionNivelAcesso() {
       setCarregando(false)
     }
   }, [])
+
+  const carregarUsuarios = useCallback(
+    (tok: string) => carregarDadosCompletos(tok),
+    [carregarDadosCompletos],
+  )
 
   useEffect(() => {
     if (token && tokenValidado) {
@@ -282,6 +355,9 @@ export function SectionNivelAcesso() {
       email: form.email.trim().toLowerCase(),
       cargo: form.cargo.trim(),
       nivel: form.nivel,
+      nivel_customizado_id: form.nivel_customizado_id,
+      nivel_customizado_nome: form.nivel_customizado_nome,
+      senha: form.senha?.trim() || undefined,
       ativo: form.ativo,
       perm_juridico_acesso: form.perm_juridico_acesso,
       perm_juridico_tipo: form.perm_juridico_tipo,
@@ -299,12 +375,30 @@ export function SectionNivelAcesso() {
       if (form.id) {
         await atualizarSistemaUsuario(tokUsar, form.id, payload)
         setMsg({ tipo: 'ok', txt: `Usuário “${form.nome}” atualizado com sucesso!` })
+        setForm(FORM_INICIAL)
+        setAba('lista')
       } else {
-        await criarSistemaUsuario(tokUsar, payload)
-        setMsg({ tipo: 'ok', txt: `Novo usuário “${form.nome}” cadastrado com sucesso!` })
+        const respCriacao = await criarSistemaUsuario(tokUsar, payload)
+        setMsg({
+          tipo: 'ok',
+          txt: `Novo usuário “${form.nome}” cadastrado! Status: Pendente de confirmação. Mensagem gerada.`,
+        })
+
+        // Abre modal da mensagem pronta para cópia (WhatsApp / e-mail)
+        if (respCriacao.codigo_confirmacao) {
+          setDadosMsgPronta({
+            nome: form.nome.trim(),
+            email: form.email.trim().toLowerCase(),
+            codigo: respCriacao.codigo_confirmacao,
+            nivel: form.nivel_customizado_nome || form.nivel,
+            cargo: form.cargo.trim() || undefined,
+            senhaTemporaria: respCriacao.senha_temporaria,
+          })
+          setModalMsgAberta(true)
+        }
+        setForm(FORM_INICIAL)
+        setAba('lista')
       }
-      setForm(FORM_INICIAL)
-      setAba('lista')
       await carregarUsuarios(tokUsar)
     } catch (e) {
       if (e instanceof SemTokenError) {
@@ -336,7 +430,7 @@ export function SectionNivelAcesso() {
     await executarSalvar(token)
   }
 
-  // Prepara edição
+  // Prepara edição de usuário
   const iniciarEdicao = (u: SistemaUsuario) => {
     setForm({
       id: u.id,
@@ -344,6 +438,9 @@ export function SectionNivelAcesso() {
       email: u.email,
       cargo: u.cargo || '',
       nivel: u.nivel,
+      nivel_customizado_id: u.nivel_customizado_id || '',
+      nivel_customizado_nome: u.nivel_customizado_nome || '',
+      senha: '',
       ativo: u.ativo,
       perm_juridico_acesso: u.perm_juridico_acesso,
       perm_juridico_tipo: u.perm_juridico_tipo,
@@ -357,6 +454,99 @@ export function SectionNivelAcesso() {
     })
     setMsg(null)
     setAba('cadastro')
+  }
+
+  // Confirmar usuário pendente manualmente
+  const confirmarManual = async (u: SistemaUsuario) => {
+    if (!token || !tokenValidado) {
+      setMsg({ tipo: 'erro', txt: 'Informe o token do painel para confirmar o usuário.' })
+      return
+    }
+    try {
+      await confirmarUsuarioManualAdmin(token, u.id)
+      setMsg({ tipo: 'ok', txt: `Usuário “${u.nome}” confirmado com sucesso pelo Administrador!` })
+      await carregarUsuarios(token)
+    } catch (e) {
+      setMsg({ tipo: 'erro', txt: (e as Error).message || 'Erro ao confirmar usuário.' })
+    }
+  }
+
+  // Reabrir mensagem pronta para usuário pendente
+  const abrirMensagemProntaUsuario = (u: SistemaUsuario) => {
+    setDadosMsgPronta({
+      nome: u.nome,
+      email: u.email,
+      codigo: u.codigo_confirmacao || 'ADEC-PENDENTE',
+      nivel: u.nivel_customizado_nome || u.nivel,
+      cargo: u.cargo || undefined,
+    })
+    setModalMsgAberta(true)
+  }
+
+  // Gestão de Níveis Customizados
+  const salvarNivelCustomizadoSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!token || !tokenValidado) {
+      setMsg({ tipo: 'erro', txt: 'Token do painel necessário para gravar níveis customizados.' })
+      return
+    }
+    if (!formNivel.nome.trim()) {
+      setMsg({ tipo: 'erro', txt: 'Nome do nível personalizado é obrigatório.' })
+      return
+    }
+
+    setSalvandoNivel(true)
+    try {
+      const payload: SalvarNivelInput = {
+        nome: formNivel.nome.trim(),
+        descricao: formNivel.descricao.trim(),
+        cor_badge: formNivel.cor_badge,
+        ativo: formNivel.ativo,
+        perm_juridico_acesso: formNivel.perm_juridico_acesso,
+        perm_juridico_tipo: formNivel.perm_juridico_tipo,
+        perm_tributario_acesso: formNivel.perm_tributario_acesso,
+        perm_tributario_tipo: formNivel.perm_tributario_tipo,
+        perm_contabil_acesso: formNivel.perm_contabil_acesso,
+        perm_contabil_tipo: formNivel.perm_contabil_tipo,
+        perm_administrativo_acesso: formNivel.perm_administrativo_acesso,
+        perm_administrativo_tipo: formNivel.perm_administrativo_tipo,
+        criado_por: usuarioAtivo?.nome || 'Administrador ADECONT',
+      }
+
+      if (formNivel.id) {
+        await atualizarNivelCustomizado(token, formNivel.id, payload)
+        setMsg({ tipo: 'ok', txt: `Nível customizado “${formNivel.nome}” atualizado com sucesso!` })
+      } else {
+        await criarNivelCustomizado(token, payload)
+        setMsg({ tipo: 'ok', txt: `Nível customizado “${formNivel.nome}” criado com sucesso!` })
+      }
+
+      setFormNivel(FORM_NIVEL_INICIAL)
+      setEditandoNivel(false)
+      const resN = await listarNiveisCustomizados()
+      if (resN.sucesso) setNiveisCustomizados(resN.niveis || [])
+    } catch (e) {
+      setMsg({ tipo: 'erro', txt: (e as Error).message || 'Erro ao gravar nível customizado.' })
+    } finally {
+      setSalvandoNivel(false)
+    }
+  }
+
+  const excluirNivelSubmit = async (nivel: NivelAcessoCustomizado) => {
+    if (!token || !tokenValidado) {
+      setMsg({ tipo: 'erro', txt: 'Token do painel necessário para excluir nível customizado.' })
+      return
+    }
+    if (!confirm(`Deseja realmente excluir o nível customizado "${nivel.nome}"?`)) return
+
+    try {
+      await excluirNivelCustomizado(token, nivel.id)
+      setMsg({ tipo: 'ok', txt: `Nível customizado “${nivel.nome}” excluído com sucesso.` })
+      const resN = await listarNiveisCustomizados()
+      if (resN.sucesso) setNiveisCustomizados(resN.niveis || [])
+    } catch (e) {
+      setMsg({ tipo: 'erro', txt: (e as Error).message || 'Erro ao excluir nível.' })
+    }
   }
 
   // Alterna ativação/desativação rápida
@@ -519,36 +709,61 @@ export function SectionNivelAcesso() {
             (consulta ou edição).
           </p>
 
-          {/* Abas */}
-          <div className="flex gap-2 mt-4 pt-3 border-t border-white/15">
+          {/* Abas e Botão de Relatório A4 */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mt-4 pt-3 border-t border-white/15">
+            <div className="flex gap-2 flex-wrap">
+              <button
+                onClick={() => {
+                  setAba('lista')
+                  setMsg(null)
+                }}
+                className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  aba === 'lista'
+                    ? 'bg-panorama-gold text-panorama-navy shadow-sm'
+                    : 'bg-white/10 text-white hover:bg-white/20'
+                }`}
+              >
+                <Users className="w-4 h-4" />
+                <span>Usuários Cadastrados ({usuarios.length})</span>
+              </button>
+              <button
+                onClick={() => {
+                  setAba('cadastro')
+                  setForm(FORM_INICIAL)
+                  setMsg(null)
+                }}
+                className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  aba === 'cadastro'
+                    ? 'bg-panorama-gold text-panorama-navy shadow-sm'
+                    : 'bg-white/10 text-white hover:bg-white/20'
+                }`}
+              >
+                <UserPlus className="w-4 h-4" />
+                <span>Novo Usuário</span>
+              </button>
+              <button
+                onClick={() => {
+                  setAba('niveis_custom')
+                  setMsg(null)
+                }}
+                className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  aba === 'niveis_custom'
+                    ? 'bg-panorama-gold text-panorama-navy shadow-sm'
+                    : 'bg-white/10 text-white hover:bg-white/20'
+                }`}
+              >
+                <Sliders className="w-4 h-4" />
+                <span>Níveis Customizados ({niveisCustomizados.length})</span>
+              </button>
+            </div>
+
             <button
-              onClick={() => {
-                setAba('lista')
-                setMsg(null)
-              }}
-              className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                aba === 'lista'
-                  ? 'bg-panorama-gold text-panorama-navy shadow-sm'
-                  : 'bg-white/10 text-white hover:bg-white/20'
-              }`}
+              type="button"
+              onClick={() => setModalRelatorioAberto(true)}
+              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-white/15 hover:bg-white/25 text-panorama-gold-light border border-panorama-gold/40 text-xs font-bold transition-colors shadow-xs cursor-pointer"
             >
-              <Users className="w-4 h-4" />
-              <span>Usuários Cadastrados ({usuarios.length})</span>
-            </button>
-            <button
-              onClick={() => {
-                setAba('cadastro')
-                setForm(FORM_INICIAL)
-                setMsg(null)
-              }}
-              className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                aba === 'cadastro'
-                  ? 'bg-panorama-gold text-panorama-navy shadow-sm'
-                  : 'bg-white/10 text-white hover:bg-white/20'
-              }`}
-            >
-              <UserPlus className="w-4 h-4" />
-              <span>Novo Usuário</span>
+              <Printer className="w-3.5 h-3.5" />
+              <span>Relatório Imprimível A4</span>
             </button>
           </div>
         </header>
@@ -729,8 +944,9 @@ export function SectionNivelAcesso() {
                       <tr className="bg-panorama-navy text-white">
                         <th className="py-3 px-3.5 font-bold">Identificação do Usuário</th>
                         <th className="py-3 px-3 font-bold">Nível de Acesso</th>
-                        <th className="py-3 px-3 font-bold">Permissões nos 4 Segmentos</th>
-                        <th className="py-3 px-3 font-bold text-center">Situação</th>
+                        <th className="py-3 px-3 font-bold">Permissões nos Segmentos</th>
+                        <th className="py-3 px-2.5 font-bold text-center">Confirmação</th>
+                        <th className="py-3 px-2 font-bold text-center">Situação</th>
                         <th className="py-3 px-3.5 font-bold text-right">Ações</th>
                       </tr>
                     </thead>
@@ -887,8 +1103,40 @@ export function SectionNivelAcesso() {
                               </div>
                             </td>
 
+                            {/* Status de Confirmação (WhatsApp / E-mail) */}
+                            <td className="py-3 px-2.5 align-middle text-center">
+                              {u.status_cadastro === 'pendente_confirmacao' ? (
+                                <div className="inline-flex flex-col items-center gap-1">
+                                  <button
+                                    type="button"
+                                    onClick={() => abrirMensagemProntaUsuario(u)}
+                                    title="Clique para abrir e copiar a mensagem pronta com o código"
+                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300 hover:bg-amber-200 transition-colors"
+                                  >
+                                    <MessageSquare className="w-3 h-3 text-amber-700" />
+                                    <span>Pendente</span>
+                                  </button>
+                                  {tokenValidado && (
+                                    <button
+                                      type="button"
+                                      onClick={() => confirmarManual(u)}
+                                      className="text-[9px] text-emerald-700 hover:underline font-bold"
+                                      title="Confirmar diretamente sem exigir digitação de código"
+                                    >
+                                      Confirmar agora
+                                    </button>
+                                  )}
+                                </div>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-50 text-blue-800 border border-blue-200">
+                                  <Check className="w-3 h-3 text-blue-600" />
+                                  <span>Confirmado</span>
+                                </span>
+                              )}
+                            </td>
+
                             {/* Situação (Ativo / Inativo) */}
-                            <td className="py-3 px-3 align-middle text-center">
+                            <td className="py-3 px-2 align-middle text-center">
                               <button
                                 onClick={() => alternarAtivo(u)}
                                 title={u.ativo ? 'Clique para desativar' : 'Clique para reativar'}
@@ -915,6 +1163,15 @@ export function SectionNivelAcesso() {
                             {/* Ações */}
                             <td className="py-3 px-3.5 align-middle text-right">
                               <div className="flex items-center justify-end gap-1.5">
+                                {u.status_cadastro === 'pendente_confirmacao' && (
+                                  <button
+                                    onClick={() => abrirMensagemProntaUsuario(u)}
+                                    title="Copiar mensagem pronta (WhatsApp / E-mail)"
+                                    className="p-1.5 rounded-lg text-amber-700 hover:bg-amber-100 transition-colors cursor-pointer"
+                                  >
+                                    <MessageSquare className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
                                 <button
                                   onClick={() => selecionarComoAtivo(u)}
                                   title="Definir como usuário ativo demonstrativo"
@@ -969,7 +1226,6 @@ export function SectionNivelAcesso() {
                   Voltar para lista
                 </button>
               </div>
-
               {/* BLOCO 1: DADOS DE IDENTIFICAÇÃO */}
               <div className="rounded-xl border border-slate-200 bg-slate-50/40 p-4 space-y-3">
                 <p className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
@@ -1018,9 +1274,25 @@ export function SectionNivelAcesso() {
                       className="w-full text-xs rounded-xl border border-slate-300 bg-white px-3 py-2 focus:outline-none focus:border-panorama-navy"
                     />
                   </div>
+
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-700 block mb-1">
+                      Senha de Acesso {form.id ? '(Deixe em branco para manter a atual)' : '*'}
+                    </label>
+                    <input
+                      type="text"
+                      value={form.senha || ''}
+                      onChange={(e) => setForm((f) => ({ ...f, senha: e.target.value }))}
+                      placeholder={form.id ? 'Manter senha atual' : 'Ex.: Adecont@2026'}
+                      className="w-full text-xs font-mono rounded-xl border border-slate-300 bg-white px-3 py-2 focus:outline-none focus:border-panorama-navy"
+                    />
+                    <p className="text-[10px] text-slate-500 mt-1">
+                      Se não preenchida em novo cadastro, uma senha provisória segura será gerada
+                      automaticamente.
+                    </p>
+                  </div>
                 </div>
               </div>
-
               {/* BLOCO 2: SELETOR DE NÍVEL DE ACESSO */}
               <div className="rounded-xl border border-slate-200 bg-slate-50/40 p-4 space-y-3">
                 <p className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
@@ -1036,9 +1308,16 @@ export function SectionNivelAcesso() {
                     return (
                       <div
                         key={nv}
-                        onClick={() => setForm((f) => ({ ...f, nivel: nv }))}
+                        onClick={() =>
+                          setForm((f) => ({
+                            ...f,
+                            nivel: nv,
+                            nivel_customizado_id: '',
+                            nivel_customizado_nome: '',
+                          }))
+                        }
                         className={`p-3.5 rounded-xl border-2 transition-all cursor-pointer flex flex-col justify-between ${
-                          selecionado
+                          selecionado && !form.nivel_customizado_id
                             ? `${info.borda} ${info.bgCard} shadow-xs ring-2 ring-panorama-navy/20`
                             : 'border-slate-200 bg-white hover:border-slate-300'
                         }`}
@@ -1053,8 +1332,15 @@ export function SectionNivelAcesso() {
                             <input
                               type="radio"
                               name="nivel_acesso"
-                              checked={selecionado}
-                              onChange={() => setForm((f) => ({ ...f, nivel: nv }))}
+                              checked={selecionado && !form.nivel_customizado_id}
+                              onChange={() =>
+                                setForm((f) => ({
+                                  ...f,
+                                  nivel: nv,
+                                  nivel_customizado_id: '',
+                                  nivel_customizado_nome: '',
+                                }))
+                              }
                               className="text-panorama-navy"
                             />
                           </div>
@@ -1067,8 +1353,64 @@ export function SectionNivelAcesso() {
                     )
                   })}
                 </div>
-              </div>
 
+                {/* Opções de Níveis Customizados cadastrados */}
+                {niveisCustomizados.length > 0 && (
+                  <div className="pt-3 border-t border-slate-200">
+                    <label className="text-[11px] font-bold text-slate-700 block mb-1.5">
+                      Ou selecione um Nível Customizado Criado:
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
+                      {niveisCustomizados.map((nc) => {
+                        const selecionado = form.nivel_customizado_id === nc.id
+                        return (
+                          <div
+                            key={nc.id}
+                            onClick={() => {
+                              setForm((f) => ({
+                                ...f,
+                                nivel: nc.nome,
+                                nivel_customizado_id: nc.id,
+                                nivel_customizado_nome: nc.nome,
+                                perm_juridico_acesso: nc.perm_juridico_acesso,
+                                perm_juridico_tipo: nc.perm_juridico_tipo,
+                                perm_tributario_acesso: nc.perm_tributario_acesso,
+                                perm_tributario_tipo: nc.perm_tributario_tipo,
+                                perm_contabil_acesso: nc.perm_contabil_acesso,
+                                perm_contabil_tipo: nc.perm_contabil_tipo,
+                                perm_administrativo_acesso: nc.perm_administrativo_acesso,
+                                perm_administrativo_tipo: nc.perm_administrativo_tipo,
+                              }))
+                            }}
+                            className={`p-3 rounded-xl border-2 transition-all cursor-pointer ${
+                              selecionado
+                                ? 'border-purple-400 bg-purple-50 shadow-xs ring-2 ring-purple-200'
+                                : 'border-slate-200 bg-white hover:border-slate-300'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-purple-100 text-purple-900 border border-purple-300">
+                                {nc.nome}
+                              </span>
+                              <input
+                                type="radio"
+                                name="nivel_acesso"
+                                checked={selecionado}
+                                readOnly
+                                className="text-purple-600"
+                              />
+                            </div>
+                            <p className="text-[10.5px] text-slate-600 mt-1 line-clamp-2">
+                              {nc.descricao || 'Nível com matriz de permissões customizada.'}
+                            </p>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+              =======
               {/* BLOCO 3: GRADE DE PERMISSÕES POR SEGMENTO */}
               <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-3.5 shadow-2xs">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-slate-100">
@@ -1214,7 +1556,6 @@ export function SectionNivelAcesso() {
                   })}
                 </div>
               </div>
-
               {/* BLOCO 4: OBSERVAÇÕES E SITUAÇÃO */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="sm:col-span-2">
@@ -1244,7 +1585,6 @@ export function SectionNivelAcesso() {
                   </select>
                 </div>
               </div>
-
               {/* BOTÕES DE GRAVAÇÃO */}
               <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-200">
                 <button
@@ -1269,6 +1609,284 @@ export function SectionNivelAcesso() {
                 </button>
               </div>
             </form>
+          )}
+
+          {/* ════════════ ABA 3: GESTÃO DE NÍVEIS CUSTOMIZADOS ════════════ */}
+          {aba === 'niveis_custom' && (
+            <div className="space-y-6">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                    <Sliders className="w-4 h-4 text-purple-700" />
+                    <span>Níveis de Acesso Personalizados ADECONT</span>
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Crie perfis com combinações específicas de acesso e permissões
+                    (consultar/editar) por segmento para atribuir a seus usuários.
+                  </p>
+                </div>
+                {!editandoNivel && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFormNivel(FORM_NIVEL_INICIAL)
+                      setEditandoNivel(true)
+                    }}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-700 hover:bg-purple-800 text-white text-xs font-bold shadow-xs cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Novo Nível Customizado</span>
+                  </button>
+                )}
+              </div>
+
+              {/* Formulário de Criação/Edição de Nível */}
+              {editandoNivel && (
+                <form
+                  onSubmit={salvarNivelCustomizadoSubmit}
+                  className="rounded-xl border-2 border-purple-200 bg-purple-50/30 p-4 space-y-4"
+                >
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-bold text-purple-950 uppercase tracking-wide">
+                      {formNivel.id ? 'Editar Nível Customizado' : 'Novo Nível Customizado'}
+                    </h4>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditandoNivel(false)
+                        setFormNivel(FORM_NIVEL_INICIAL)
+                      }}
+                      className="text-xs text-slate-500 hover:text-slate-800 underline"
+                    >
+                      Fechar formulário
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[11px] font-bold text-slate-700 block mb-1">
+                        Nome do Nível *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={formNivel.nome}
+                        onChange={(e) => setFormNivel((fn) => ({ ...fn, nome: e.target.value }))}
+                        placeholder="Ex.: Auditor Fiscal Externo"
+                        className="w-full text-xs rounded-xl border border-slate-300 bg-white px-3 py-2 focus:outline-none focus:border-purple-600"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-bold text-slate-700 block mb-1">
+                        Descrição / Finalidade
+                      </label>
+                      <input
+                        type="text"
+                        value={formNivel.descricao}
+                        onChange={(e) =>
+                          setFormNivel((fn) => ({ ...fn, descricao: e.target.value }))
+                        }
+                        placeholder="Ex.: Acesso de auditoria para visualização de relatórios e diagnósticos"
+                        className="w-full text-xs rounded-xl border border-slate-300 bg-white px-3 py-2 focus:outline-none focus:border-purple-600"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Matriz de permissões para este nível */}
+                  <div className="space-y-2 pt-2">
+                    <label className="text-[11px] font-bold text-slate-700 block">
+                      Permissões por Segmento para este Nível:
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      {SEGMENTOS_SISTEMA_LISTA.map((seg) => {
+                        const chaveAcesso = `perm_${seg.key}_acesso` as keyof FormNivelCustomState
+                        const chaveTipo = `perm_${seg.key}_tipo` as keyof FormNivelCustomState
+                        const temAcesso = Boolean(formNivel[chaveAcesso])
+                        const tipo = (formNivel[chaveTipo] as TipoPermissao) || 'consultar'
+
+                        return (
+                          <div
+                            key={seg.key}
+                            className="p-2.5 rounded-lg border border-slate-200 bg-white flex items-center justify-between text-xs"
+                          >
+                            <label className="flex items-center gap-2 font-bold text-slate-800 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={temAcesso}
+                                onChange={(e) =>
+                                  setFormNivel((fn) => ({
+                                    ...fn,
+                                    [chaveAcesso]: e.target.checked,
+                                  }))
+                                }
+                                className="rounded text-purple-600 focus:ring-purple-600"
+                              />
+                              <span>{seg.nome}</span>
+                            </label>
+
+                            <div className="flex items-center gap-1.5">
+                              <button
+                                type="button"
+                                disabled={!temAcesso}
+                                onClick={() =>
+                                  setFormNivel((fn) => ({ ...fn, [chaveTipo]: 'consultar' }))
+                                }
+                                className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                  tipo === 'consultar'
+                                    ? 'bg-blue-100 text-blue-900 border border-blue-300'
+                                    : 'bg-slate-100 text-slate-600'
+                                } ${!temAcesso ? 'opacity-40' : ''}`}
+                              >
+                                Consulta
+                              </button>
+                              <button
+                                type="button"
+                                disabled={!temAcesso}
+                                onClick={() =>
+                                  setFormNivel((fn) => ({ ...fn, [chaveTipo]: 'editar' }))
+                                }
+                                className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                  tipo === 'editar'
+                                    ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
+                                    : 'bg-slate-100 text-slate-600'
+                                } ${!temAcesso ? 'opacity-40' : ''}`}
+                              >
+                                Edição
+                              </button>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-end gap-2 pt-2 border-t border-purple-200">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditandoNivel(false)
+                        setFormNivel(FORM_NIVEL_INICIAL)
+                      }}
+                      className="px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={salvandoNivel}
+                      className="px-4 py-1.5 rounded-xl text-xs font-bold bg-purple-700 hover:bg-purple-800 text-white shadow-xs disabled:opacity-50"
+                    >
+                      {salvandoNivel
+                        ? 'Gravando Nível…'
+                        : formNivel.id
+                          ? 'Atualizar Nível'
+                          : 'Salvar Nível'}
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              {/* Lista dos Níveis Customizados existentes */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {niveisCustomizados.map((nc) => (
+                  <div
+                    key={nc.id}
+                    className="p-4 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-2.5"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-900 border border-purple-300">
+                          Personalizado
+                        </span>
+                        <h4 className="text-sm font-bold text-slate-900 mt-1">{nc.nome}</h4>
+                        <p className="text-xs text-slate-500 mt-0.5">
+                          {nc.descricao || 'Sem descrição cadastrada.'}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setFormNivel({
+                              id: nc.id,
+                              nome: nc.nome,
+                              descricao: nc.descricao || '',
+                              cor_badge:
+                                nc.cor_badge || 'bg-purple-100 text-purple-800 border-purple-300',
+                              ativo: nc.ativo,
+                              perm_juridico_acesso: nc.perm_juridico_acesso,
+                              perm_juridico_tipo: nc.perm_juridico_tipo,
+                              perm_tributario_acesso: nc.perm_tributario_acesso,
+                              perm_tributario_tipo: nc.perm_tributario_tipo,
+                              perm_contabil_acesso: nc.perm_contabil_acesso,
+                              perm_contabil_tipo: nc.perm_contabil_tipo,
+                              perm_administrativo_acesso: nc.perm_administrativo_acesso,
+                              perm_administrativo_tipo: nc.perm_administrativo_tipo,
+                            })
+                            setEditandoNivel(true)
+                          }}
+                          className="p-1.5 rounded-lg text-slate-600 hover:bg-slate-100"
+                          title="Editar nível"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => excluirNivelSubmit(nc)}
+                          className="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50"
+                          title="Excluir nível"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-4 gap-1 pt-2 border-t border-slate-100 text-[10px] font-bold text-center">
+                      <div
+                        className={`p-1 rounded ${nc.perm_juridico_acesso ? 'bg-indigo-50 text-indigo-900' : 'bg-slate-100 text-slate-400 line-through'}`}
+                      >
+                        Jur:{' '}
+                        {nc.perm_juridico_acesso
+                          ? nc.perm_juridico_tipo === 'editar'
+                            ? 'Ed'
+                            : 'Cons'
+                          : '—'}
+                      </div>
+                      <div
+                        className={`p-1 rounded ${nc.perm_tributario_acesso ? 'bg-amber-50 text-amber-900' : 'bg-slate-100 text-slate-400 line-through'}`}
+                      >
+                        Trib:{' '}
+                        {nc.perm_tributario_acesso
+                          ? nc.perm_tributario_tipo === 'editar'
+                            ? 'Ed'
+                            : 'Cons'
+                          : '—'}
+                      </div>
+                      <div
+                        className={`p-1 rounded ${nc.perm_contabil_acesso ? 'bg-emerald-50 text-emerald-900' : 'bg-slate-100 text-slate-400 line-through'}`}
+                      >
+                        Cont:{' '}
+                        {nc.perm_contabil_acesso
+                          ? nc.perm_contabil_tipo === 'editar'
+                            ? 'Ed'
+                            : 'Cons'
+                          : '—'}
+                      </div>
+                      <div
+                        className={`p-1 rounded ${nc.perm_administrativo_acesso ? 'bg-slate-200 text-slate-900' : 'bg-slate-100 text-slate-400 line-through'}`}
+                      >
+                        Adm:{' '}
+                        {nc.perm_administrativo_acesso
+                          ? nc.perm_administrativo_tipo === 'editar'
+                            ? 'Ed'
+                            : 'Cons'
+                          : '—'}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
         </div>
       </div>
@@ -1311,6 +1929,23 @@ export function SectionNivelAcesso() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* MODAL DE MENSAGEM PRONTA (WHATSAPP / E-MAIL) */}
+      <ModalMensagemPronta
+        open={modalMsgAberta}
+        onOpenChange={setModalMsgAberta}
+        dados={dadosMsgPronta}
+      />
+
+      {/* RELATÓRIO A4 IMPRIMÍVEL DE USUÁRIOS E PERMISSÕES */}
+      {modalRelatorioAberto && (
+        <RelatorioUsuariosPermissoes
+          usuarios={usuarios}
+          niveisCustomizados={niveisCustomizados}
+          usuarioGerador={usuarioAtivo}
+          onFechar={() => setModalRelatorioAberto(false)}
+        />
       )}
     </section>
   )

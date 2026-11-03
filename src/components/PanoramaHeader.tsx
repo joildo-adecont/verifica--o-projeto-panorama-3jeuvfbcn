@@ -1,5 +1,16 @@
 import { useState, useEffect, useCallback } from 'react'
-import { RotateCw, Clock, ExternalLink, Search, Menu, X, FileText, ShieldUser } from 'lucide-react'
+import {
+  RotateCw,
+  Clock,
+  ExternalLink,
+  Search,
+  Menu,
+  X,
+  FileText,
+  ShieldUser,
+  LogOut,
+  LogIn,
+} from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { AdecontLogo } from '@/components/AdecontLogo'
 import { AlternadorTema } from '@/components/AlternadorTema'
@@ -7,7 +18,13 @@ import { NormAlertsBell } from '@/components/NormAlertsBell'
 import { NAVEGACAO } from '@/components/navegacao'
 import { fetchSourceStatuses, triggerSourceCheck } from '@/services/panorama'
 import { useToast } from '@/hooks/use-toast'
-import { obterUsuarioAtivoLocal, SistemaUsuario } from '@/services/sistemaUsuarios'
+import {
+  obterUsuarioAtivoLocal,
+  definirUsuarioAtivoLocal,
+  assinarMudancaUsuarioAtivo,
+  SistemaUsuario,
+} from '@/services/sistemaUsuarios'
+import { ModalLogin } from '@/components/ModalLogin'
 import type { SourceStatusItem } from '@/types/panorama'
 
 interface PanoramaHeaderProps {
@@ -34,14 +51,22 @@ export function PanoramaHeader({
   )
   const [mostraProdutos, setMostraProdutos] = useState(false)
   const [usuarioAtivo, setUsuarioAtivo] = useState<SistemaUsuario | null>(null)
+  const [modalLoginAberto, setModalLoginAberto] = useState(false)
 
-  // Carrega usuário ativo para exibição informativa de nível/permissão
+  // Carrega usuário ativo e assina mudanças
   useEffect(() => {
     setUsuarioAtivo(obterUsuarioAtivoLocal())
-    const handleStorage = () => setUsuarioAtivo(obterUsuarioAtivoLocal())
-    window.addEventListener('storage', handleStorage)
-    return () => window.removeEventListener('storage', handleStorage)
+    const unsubscribe = assinarMudancaUsuarioAtivo((u) => setUsuarioAtivo(u))
+    return () => unsubscribe()
   }, [])
+
+  const handleLogout = () => {
+    definirUsuarioAtivoLocal(null)
+    toast({
+      title: 'Sessão encerrada',
+      description: 'Você saiu da sua conta ADECONT.',
+    })
+  }
 
   // Carrega o catálogo do Simulador (987 itens NCM/NBS/CNAE) para a busca de produtos/serviços
   useEffect(() => {
@@ -351,20 +376,44 @@ export function PanoramaHeader({
             {/* Bell de Alertas de Novas Revisões */}
             <NormAlertsBell />
 
-            {/* Badge informativo de nível do usuário ativo */}
-            {usuarioAtivo && (
-              <a
-                href="#nivel-acesso"
-                title={`Usuário ativo: ${usuarioAtivo.nome} (${usuarioAtivo.nivel}). Clique para gerenciar permissões.`}
-                className="hidden xl:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 transition-colors"
-              >
-                <ShieldUser className="w-3.5 h-3.5 text-panorama-navy" />
-                <span className="truncate max-w-[120px]">{usuarioAtivo.nome.split(' ')[0]}</span>
-                <span className="px-1.5 py-0.2 rounded text-[9.5px] uppercase font-black bg-panorama-navy text-panorama-gold">
-                  {usuarioAtivo.nivel}
-                </span>
-              </a>
-            )}
+            {/* Identificação de usuário e login/logout */}
+            <div className="flex items-center gap-1">
+              {usuarioAtivo ? (
+                <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[11px] font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+                  <a
+                    href="#nivel-acesso"
+                    title={`Logado como ${usuarioAtivo.nome} (${usuarioAtivo.nivel}) — Gerenciar Acessos`}
+                    className="inline-flex items-center gap-1.5 hover:underline"
+                  >
+                    <ShieldUser className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
+                    <span className="truncate max-w-[110px]">
+                      {usuarioAtivo.nome.split(' ')[0]}
+                    </span>
+                    <span className="px-1.5 py-0.2 rounded text-[9px] uppercase font-black bg-emerald-700 text-white">
+                      {usuarioAtivo.nivel}
+                    </span>
+                  </a>
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="p-1 rounded hover:bg-red-100 dark:hover:bg-red-950/60 text-slate-500 hover:text-red-700 transition-colors ml-0.5"
+                    title="Sair do sistema (Logout)"
+                  >
+                    <LogOut className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setModalLoginAberto(true)}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-panorama-navy hover:bg-panorama-navy-light text-white shadow-xs transition-colors"
+                  title="Entrar com usuário e senha"
+                >
+                  <LogIn className="w-3.5 h-3.5 text-panorama-gold" />
+                  <span>Entrar</span>
+                </button>
+              )}
+            </div>
 
             <div className="hidden sm:flex items-center gap-2">
               <a
@@ -547,6 +596,13 @@ export function PanoramaHeader({
           </div>
         )}
       </div>
+
+      {/* Modal de Login Corporativo ADECONT */}
+      <ModalLogin
+        open={modalLoginAberto}
+        onOpenChange={setModalLoginAberto}
+        onSucessoLogin={(u) => setUsuarioAtivo(u)}
+      />
     </header>
   )
 }

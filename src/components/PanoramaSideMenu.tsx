@@ -1,7 +1,13 @@
-import { useState, useMemo } from 'react'
-import { X, Search, ChevronRight, Menu } from 'lucide-react'
+import { useState, useMemo, useEffect } from 'react'
+import { X, Search, ChevronRight, Menu, Lock } from 'lucide-react'
 import { GRUPOS, ITEM_INSTALADOR_CEO, SEGMENTOS_SISTEMA } from '@/components/navegacao'
 import { AdecontLogo } from '@/components/AdecontLogo'
+import {
+  obterUsuarioAtivoLocal,
+  assinarMudancaUsuarioAtivo,
+  checarPermissaoSegmento,
+  SistemaUsuario,
+} from '@/services/sistemaUsuarios'
 
 interface PanoramaSideMenuProps {
   isOpen?: boolean
@@ -17,6 +23,13 @@ export function PanoramaSideMenu({
   const [internalOpen, setInternalOpen] = useState(false)
   const [busca, setBusca] = useState('')
   const [segmentoFiltro, setSegmentoFiltro] = useState<string | null>(null)
+  const [usuarioAtivo, setUsuarioAtivo] = useState<SistemaUsuario | null>(null)
+
+  useEffect(() => {
+    setUsuarioAtivo(obterUsuarioAtivoLocal())
+    const unsubscribe = assinarMudancaUsuarioAtivo((u) => setUsuarioAtivo(u))
+    return () => unsubscribe()
+  }, [])
 
   const isControlled = typeof isOpenProp === 'boolean'
   const isOpen = isControlled ? isOpenProp : internalOpen
@@ -28,10 +41,26 @@ export function PanoramaSideMenu({
 
   const hashAtual = hashAtivoProp ?? (typeof window !== 'undefined' ? window.location.hash : '')
 
-  // Filtro de itens pela busca e/ou segmento
+  // Filtro de itens pela busca e/ou segmento e pelas permissões do usuário logado
   const gruposFiltrados = useMemo(() => {
     return GRUPOS.map((grupo) => {
-      // Se há filtro por segmento e o grupo for de outro segmento, oculta (exceto CEO)
+      // Verificar se o usuário tem permissão para este segmento
+      if (usuarioAtivo && usuarioAtivo.nivel !== 'Administrador') {
+        let segKey: 'juridico' | 'tributario' | 'contabil' | 'administrativo' | null = null
+        if (grupo.segmentoKey === 'juridica') segKey = 'juridico'
+        else if (grupo.segmentoKey === 'reforma-tributaria') segKey = 'tributario'
+        else if (grupo.segmentoKey === 'contabil') segKey = 'contabil'
+        else if (grupo.segmentoKey === 'administrativa') segKey = 'administrativo'
+
+        if (segKey) {
+          const perm = checarPermissaoSegmento(usuarioAtivo, segKey)
+          if (!perm.temAcesso) {
+            return null
+          }
+        }
+      }
+
+      // Se há filtro por segmento e o grupo for de outro segmento, oculta
       if (segmentoFiltro && grupo.segmentoKey && grupo.segmentoKey !== segmentoFiltro) {
         return null
       }
@@ -109,33 +138,35 @@ export function PanoramaSideMenu({
           </button>
         </div>
 
-        {/* ── #1 CEO NO TOPO DO MENU COM BADGE EXCLUSIVO (REGRA PERMANENTE) ── */}
-        <div className="p-3 bg-gradient-to-r from-amber-50 via-amber-100/50 to-blue-50 border-b-2 border-amber-300">
-          <button
-            onClick={() => handleNavegar(ITEM_INSTALADOR_CEO.href)}
-            className="w-full p-2.5 rounded-xl bg-white border-2 border-amber-400 hover:border-amber-500 shadow-sm hover:shadow-md transition-all flex items-center justify-between gap-3 text-left cursor-pointer group"
-          >
-            <div className="flex items-center gap-2.5 min-w-0">
-              <span className="w-8 h-8 rounded-lg bg-amber-500 text-slate-950 font-black flex items-center justify-center text-xs shrink-0 shadow-xs">
-                #1
-              </span>
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-black text-slate-900 truncate">
-                    {ITEM_INSTALADOR_CEO.label}
-                  </span>
-                  <span className="px-1.5 py-0.2 rounded text-[10px] font-black uppercase tracking-wider bg-slate-950 text-amber-300 shrink-0">
-                    #1 CEO
+        {/* ── #1 CEO NO TOPO DO MENU COM BADGE EXCLUSIVO (REGRA PERMANENTE — Administrador) ── */}
+        {(!usuarioAtivo || usuarioAtivo.nivel === 'Administrador') && (
+          <div className="p-3 bg-gradient-to-r from-amber-50 via-amber-100/50 to-blue-50 border-b-2 border-amber-300">
+            <button
+              onClick={() => handleNavegar(ITEM_INSTALADOR_CEO.href)}
+              className="w-full p-2.5 rounded-xl bg-white border-2 border-amber-400 hover:border-amber-500 shadow-sm hover:shadow-md transition-all flex items-center justify-between gap-3 text-left cursor-pointer group"
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                <span className="w-8 h-8 rounded-lg bg-amber-500 text-slate-950 font-black flex items-center justify-center text-xs shrink-0 shadow-xs">
+                  #1
+                </span>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-black text-slate-900 truncate">
+                      {ITEM_INSTALADOR_CEO.label}
+                    </span>
+                    <span className="px-1.5 py-0.2 rounded text-[10px] font-black uppercase tracking-wider bg-slate-950 text-amber-300 shrink-0">
+                      #1 CEO
+                    </span>
+                  </div>
+                  <span className="text-[10px] text-slate-500 line-clamp-1">
+                    Envios de instalação e controle de versões do programa
                   </span>
                 </div>
-                <span className="text-[10px] text-slate-500 line-clamp-1">
-                  Envios de instalação e controle de versões do programa
-                </span>
               </div>
-            </div>
-            <ChevronRight className="w-4 h-4 text-amber-600 group-hover:translate-x-0.5 transition-transform shrink-0" />
-          </button>
-        </div>
+              <ChevronRight className="w-4 h-4 text-amber-600 group-hover:translate-x-0.5 transition-transform shrink-0" />
+            </button>
+          </div>
+        )}
 
         {/* ── BOTÕES DE SEGMENTAÇÃO RÁPIDA (4 ÁREAS) ── */}
         <div className="px-3 pt-2.5 pb-2 bg-slate-50 border-b border-slate-200 space-y-1.5">
@@ -417,33 +448,35 @@ export function PanoramaSideMenu({
               </button>
             </div>
 
-            {/* ── #1 CEO NO TOPO DO MENU COM BADGE EXCLUSIVO (REGRA PERMANENTE) ── */}
-            <div className="p-3 bg-gradient-to-r from-amber-50 via-amber-100/50 to-blue-50 border-b-2 border-amber-300">
-              <button
-                onClick={() => handleNavegar(ITEM_INSTALADOR_CEO.href)}
-                className="w-full p-2.5 rounded-xl bg-white border-2 border-amber-400 hover:border-amber-500 shadow-sm hover:shadow-md transition-all flex items-center justify-between gap-3 text-left cursor-pointer group"
-              >
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <span className="w-8 h-8 rounded-lg bg-amber-500 text-slate-950 font-black flex items-center justify-center text-xs shrink-0 shadow-xs">
-                    #1
-                  </span>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-black text-slate-900 truncate">
-                        {ITEM_INSTALADOR_CEO.label}
-                      </span>
-                      <span className="px-1.5 py-0.2 rounded text-[10px] font-black uppercase tracking-wider bg-slate-950 text-amber-300 shrink-0">
-                        #1 CEO
+            {/* ── #1 CEO NO TOPO DO MENU COM BADGE EXCLUSIVO (REGRA PERMANENTE — Administrador) ── */}
+            {(!usuarioAtivo || usuarioAtivo.nivel === 'Administrador') && (
+              <div className="p-3 bg-gradient-to-r from-amber-50 via-amber-100/50 to-blue-50 border-b-2 border-amber-300">
+                <button
+                  onClick={() => handleNavegar(ITEM_INSTALADOR_CEO.href)}
+                  className="w-full p-2.5 rounded-xl bg-white border-2 border-amber-400 hover:border-amber-500 shadow-sm hover:shadow-md transition-all flex items-center justify-between gap-3 text-left cursor-pointer group"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <span className="w-8 h-8 rounded-lg bg-amber-500 text-slate-950 font-black flex items-center justify-center text-xs shrink-0 shadow-xs">
+                      #1
+                    </span>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-black text-slate-900 truncate">
+                          {ITEM_INSTALADOR_CEO.label}
+                        </span>
+                        <span className="px-1.5 py-0.2 rounded text-[10px] font-black uppercase tracking-wider bg-slate-950 text-amber-300 shrink-0">
+                          #1 CEO
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-slate-500 line-clamp-1">
+                        Envios de instalação e controle de versões do programa
                       </span>
                     </div>
-                    <span className="text-[10px] text-slate-500 line-clamp-1">
-                      Envios de instalação e controle de versões do programa
-                    </span>
                   </div>
-                </div>
-                <ChevronRight className="w-4 h-4 text-amber-600 group-hover:translate-x-0.5 transition-transform shrink-0" />
-              </button>
-            </div>
+                  <ChevronRight className="w-4 h-4 text-amber-600 group-hover:translate-x-0.5 transition-transform shrink-0" />
+                </button>
+              </div>
+            )}
 
             {/* ── BOTÕES DE SEGMENTAÇÃO RÁPIDA (4 ÁREAS) ── */}
             <div className="px-3 pt-2.5 pb-2 bg-slate-50 border-b border-slate-200 space-y-1.5">

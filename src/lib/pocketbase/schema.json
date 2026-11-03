@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-03T04:49:21.035Z",
+  "generatedAt": "2026-11-03T05:14:37.124Z",
   "collections": [
     {
       "name": "users",
@@ -2779,6 +2779,48 @@
           "required": false,
           "system": false,
           "autodateTriggers": ["onCreate", "onUpdate"]
+        },
+        {
+          "name": "senha_hash",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "senha_salt",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "status_cadastro",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "codigo_confirmacao",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "confirmado_em",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "nivel_customizado_nome",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "nivel_customizado_id",
+          "type": "text",
+          "required": false,
+          "system": false
         }
       ],
       "indexes": [
@@ -2786,6 +2828,116 @@
         "CREATE INDEX idx_sistema_usuarios_nivel ON sistema_usuarios (nivel)",
         "CREATE INDEX idx_sistema_usuarios_ativo ON sistema_usuarios (ativo)"
       ]
+    },
+    {
+      "name": "sistema_niveis_acesso",
+      "type": "base",
+      "apiRules": {
+        "list": "",
+        "view": "",
+        "create": "",
+        "update": "",
+        "delete": ""
+      },
+      "fields": [
+        {
+          "name": "nome",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "descricao",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "cor_badge",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "ativo",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "perm_juridico_acesso",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "perm_juridico_tipo",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": ["consultar", "editar"]
+        },
+        {
+          "name": "perm_tributario_acesso",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "perm_tributario_tipo",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": ["consultar", "editar"]
+        },
+        {
+          "name": "perm_contabil_acesso",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "perm_contabil_tipo",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": ["consultar", "editar"]
+        },
+        {
+          "name": "perm_administrativo_acesso",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "perm_administrativo_tipo",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": ["consultar", "editar"]
+        },
+        {
+          "name": "criado_por",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": ["CREATE UNIQUE INDEX idx_niveis_acesso_nome ON sistema_niveis_acesso (nome)"]
     }
   ]
 }

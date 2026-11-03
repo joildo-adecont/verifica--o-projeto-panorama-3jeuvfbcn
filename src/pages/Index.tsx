@@ -8,8 +8,15 @@ import { PainelAtalhos } from '@/components/PainelAtalhos'
 import { BotaoInstalar } from '@/components/BotaoInstalar'
 import { PanoramaFooter } from '@/components/PanoramaFooter'
 import { ID_INICIO, resolverRota, vizinhas } from '@/lib/rotas'
-import { NAVEGACAO } from '@/components/navegacao'
+import { NAVEGACAO, GRUPOS } from '@/components/navegacao'
 import { fetchTaxNorms } from '@/services/panorama'
+import {
+  obterUsuarioAtivoLocal,
+  assinarMudancaUsuarioAtivo,
+  checarPermissaoSegmento,
+  SistemaUsuario,
+} from '@/services/sistemaUsuarios'
+import { TelaAcessoRestrito } from '@/components/TelaAcessoRestrito'
 import type { TaxNormItem } from '@/types/panorama'
 
 /**
@@ -65,11 +72,18 @@ export default function Index() {
   const [norms, setNorms] = useState<TaxNormItem[]>([])
   const [loading, setLoading] = useState<boolean>(true)
   const [searchTerm, setSearchTerm] = useState<string>('')
+  const [usuarioAtivo, setUsuarioAtivo] = useState<SistemaUsuario | null>(null)
 
   /** Rota atual lida do hash. Vazio = Início (painel de acompanhamento). */
   const [hash, setHash] = useState<string>(() =>
     typeof window === 'undefined' ? '' : window.location.hash,
   )
+
+  useEffect(() => {
+    setUsuarioAtivo(obterUsuarioAtivoLocal())
+    const unsubscribe = assinarMudancaUsuarioAtivo((u) => setUsuarioAtivo(u))
+    return () => unsubscribe()
+  }, [])
 
   const loadData = async () => {
     setLoading(true)
@@ -114,6 +128,42 @@ export default function Index() {
   const idAtual = rota?.id ?? ID_INICIO
   const itemNav = rota ? NAVEGACAO.find((n) => n.href === `#${rota.id}`) : null
   const { anterior, proxima } = rota ? vizinhas(rota.id) : { anterior: null, proxima: null }
+
+  // Verificação de permissão de acesso à seção atual
+  let acessoBloqueado = false
+  let segmentoBloqueadoNome = ''
+  let motivoBloqueio = ''
+
+  if (rota && usuarioAtivo && usuarioAtivo.nivel !== 'Administrador') {
+    // Instalador CEO (#1) exclusivo para Administrador
+    if (rota.id === 'instalador-versao') {
+      acessoBloqueado = true
+      segmentoBloqueadoNome = 'Instalador e Versões (#1 CEO)'
+      motivoBloqueio =
+        'Apenas o Administrador ADECONT tem permissão para gerenciar pacotes e versões do instalador.'
+    } else {
+      // Descobre a qual grupo e segmento pertence a rota
+      const grupoDono = GRUPOS.find((g) => g.itens.some((i) => i.href === `#${rota.id}`))
+      if (grupoDono?.segmentoKey) {
+        let segKey: 'juridico' | 'tributario' | 'contabil' | 'administrativo' | null = null
+        if (grupoDono.segmentoKey === 'juridica') segKey = 'juridico'
+        else if (grupoDono.segmentoKey === 'reforma-tributaria') segKey = 'tributario'
+        else if (grupoDono.segmentoKey === 'contabil') segKey = 'contabil'
+        else if (grupoDono.segmentoKey === 'administrativa') segKey = 'administrativo'
+
+        if (segKey) {
+          const perm = checarPermissaoSegmento(usuarioAtivo, segKey)
+          if (!perm.temAcesso) {
+            acessoBloqueado = true
+            segmentoBloqueadoNome = grupoDono.nome
+            motivoBloqueio =
+              perm.motivo ||
+              'Seu nível de acesso não permite visualizar este segmento da plataforma.'
+          }
+        }
+      }
+    }
+  }
 
   // busca do header continua filtrando as normas da Seção 1
   const filteredNorms = norms.filter((n) => {
@@ -214,7 +264,13 @@ export default function Index() {
         */}
         <main id="miolo-aba" className="flex-1 min-h-0 overflow-y-auto overscroll-contain w-full">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 py-5 w-full">
-            {rota ? (
+            {acessoBloqueado ? (
+              <TelaAcessoRestrito
+                segmentoNome={segmentoBloqueadoNome}
+                motivo={motivoBloqueio}
+                usuario={usuarioAtivo}
+              />
+            ) : rota ? (
               <div key={rota.id}>
                 <rota.Componente norms={filteredNorms} loading={loading} />
               </div>
