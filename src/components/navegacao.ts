@@ -85,6 +85,8 @@ export interface LinkNavegacao {
    * devolve vazio para o sinônimo e o usuário conclui que o sistema não tem.
    */
   tags: string[]
+  dominio?: string
+  setor?: string
 }
 
 export interface GrupoNavegacao {
@@ -1013,6 +1015,7 @@ export const HOME: LinkNavegacao = {
   bg: 'bg-slate-100',
   borda: 'border-slate-300',
   descricao: 'Painel de acompanhamento e atalhos',
+  tags: ['inicio', 'home', 'painel', 'plataforma', 'portal'],
 }
 
 export const ITEM_INSTALADOR_CEO: LinkNavegacao = {
