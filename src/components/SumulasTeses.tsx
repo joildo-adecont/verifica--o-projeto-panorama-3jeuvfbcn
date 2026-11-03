@@ -133,7 +133,6 @@ export function SumulasTeses() {
   const [carregando, setCarregando] = useState(false)
   const [erro, setErro] = useState<string>('')
   const [busca, setBusca] = useState('')
-  const [soVinculantes, setSoVinculantes] = useState(false)
 
   const conjunto = CONJUNTOS.find((c) => c.id === conjuntoId)!
 
@@ -163,12 +162,23 @@ export function SumulasTeses() {
 
   const base = dados[conjunto.arquivo] || []
 
+  /**
+   * O selo de contagem tem de ser o número DO CONJUNTO, não do arquivo.
+   * Vinculantes e simples do STF moram no mesmo arquivo (799 verbetes): usar
+   * `base.length` no selo anunciava "Súmulas vinculantes 799" — e são 63. Um
+   * número desses, na porta de entrada, é pior que nenhum.
+   */
+  const contagem = (c: Conjunto, arr: Verbete[]) => {
+    if (c.id === 'stf-vinculantes') return arr.filter((v) => v.v === 1).length
+    if (c.id === 'stf-simples') return arr.filter((v) => v.v === 0).length
+    return arr.length
+  }
+
   const itens = useMemo(() => {
     let lista = base
     // STF: o mesmo arquivo serve às vinculantes e às simples
     if (conjunto.id === 'stf-vinculantes') lista = base.filter((v) => v.v === 1)
     if (conjunto.id === 'stf-simples') lista = base.filter((v) => v.v === 0)
-    if (conjunto.id === 'stf-simples' && soVinculantes) lista = base.filter((v) => v.v === 1)
 
     const t = semAcento(busca).trim()
     if (!t) return lista
@@ -177,7 +187,7 @@ export function SumulasTeses() {
       const alvo = semAcento(`${v.n} ${v.t} ${v.a || ''} ${v.r || ''} ${v.o || ''} ${v.s || ''}`)
       return termos.every((p) => alvo.includes(p))
     })
-  }, [base, busca, conjunto.id, soVinculantes])
+  }, [base, busca, conjunto.id])
 
   const amostra = itens.slice(0, 60)
 
@@ -208,7 +218,7 @@ export function SumulasTeses() {
                 <span
                   className={`rounded px-1 text-[9px] ${ativo ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'}`}
                 >
-                  {(dados[c.arquivo] || []).length}
+                  {contagem(c, dados[c.arquivo] || [])}
                 </span>
               )}
             </button>
@@ -253,12 +263,12 @@ export function SumulasTeses() {
         </div>
         <span className="text-[11.5px] text-slate-600">
           <b>{itens.length}</b>
-          {base.length
-            ? ` de ${conjunto.id.startsWith('stf') ? base.filter((v) => (conjunto.id === 'stf-vinculantes' ? v.v === 1 : v.v === 0)).length : base.length}`
-            : ''}
+          {base.length ? ` de ${contagem(conjunto, base)}` : ''}
         </span>
-        {conjunto.extra === 'cancelada' && (
-          <button onClick={() => setSoVinculantes((v) => !v)} className="hidden" aria-hidden />
+        {conjunto.id === 'tst-sumulas' && base.length > 0 && (
+          <span className="rounded bg-red-50 px-1.5 py-0.5 text-[10px] font-bold text-red-700 ring-1 ring-red-200">
+            {base.filter((v) => v.c === 1).length} canceladas
+          </span>
         )}
       </div>
 
