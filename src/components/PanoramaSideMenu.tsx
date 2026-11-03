@@ -56,7 +56,18 @@ export function PanoramaSideMenu({
 
   const ehAtivo = (href: string) => {
     if (href === '#inicio') return !hashAtual || hashAtual === '#inicio'
-    return hashAtual === href
+    if (hashAtual === href) return true
+    // Se o item tem query param (ex.: #busca-avancada?segmento=juridica) e o hash atual é igual
+    const baseAtual = hashAtual.split('?')[0]
+    const baseHref = href.split('?')[0]
+    if (baseAtual === baseHref) {
+      // Se ambos tiverem query param, compara exato; se apenas um tiver, confere base
+      if (href.includes('?') && hashAtual.includes('?')) {
+        return hashAtual === href
+      }
+      return true
+    }
+    return false
   }
 
   const handleNavegar = (href: string) => {

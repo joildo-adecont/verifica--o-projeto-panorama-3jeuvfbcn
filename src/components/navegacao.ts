@@ -61,6 +61,8 @@ import {
   Ship,
   Globe,
   Search,
+  SearchCode,
+  FileSearch,
   BrainCircuit,
   Ban,
 } from 'lucide-react'
@@ -1098,10 +1100,12 @@ const SECOES_JURIDICA = [
   '#fontes-primarias',
   '#radar-nacional',
   '#monitor-legislativo',
+  '#diagnostico-tributario',
   '#fontes-agregador',
   '#secao-9',
   '#lefisc',
   '#historico-atualizacoes',
+  '#busca-avancada?segmento=juridica',
 ]
 const SECOES_CONTABIL = [
   /* Recursos Humanos entra PRIMEIRO: para quem opera a folha, é a porta de
@@ -1123,7 +1127,7 @@ const SECOES_CONTABIL = [
   '#setor-exterior',
   '#setor-diplomatico',
   '#tabela-geral',
-  '#busca-avancada',
+  '#busca-avancada?segmento=contabil',
   '#diagnostico-tributario',
 ]
 const SECOES_ADMINISTRATIVA = [
@@ -1134,6 +1138,7 @@ const SECOES_ADMINISTRATIVA = [
   '#assistentes-seguranca',
   '#controle-acesso',
   '#responsividade-celulares',
+  '#busca-avancada?segmento=administrativa',
   '#instalador-versao',
 ]
 
@@ -1180,8 +1185,8 @@ export const ITEM_INSTALADOR_CEO: LinkNavegacao = {
 const EXTRAS: LinkNavegacao[] = [
   {
     href: '#busca-avancada',
-    label: 'Busca Avançada de Itens',
-    curto: 'Busca de itens',
+    label: 'Busca Avançada',
+    curto: 'Busca Avançada',
     tecla: 'b',
     numero: 'B',
     Icon: Search,
@@ -1192,6 +1197,51 @@ const EXTRAS: LinkNavegacao[] = [
     tags: ['busca', 'ncm', 'nbs', 'item', 'produto', 'servico', 'catalogo'],
     dominio: 'simulacao',
     setor: 'sim-geral',
+  },
+  {
+    href: '#busca-avancada?segmento=contabil',
+    label: 'Busca Avançada',
+    curto: 'Busca Contábil',
+    tecla: 'b',
+    numero: 'B',
+    Icon: Search,
+    cor: 'text-emerald-700',
+    bg: 'bg-emerald-50',
+    borda: 'border-emerald-300',
+    descricao: 'Busca de classificações, NCMs, CSTs e alíquotas do setor contábil',
+    tags: ['busca', 'contabil', 'classificacoes', 'ncm', 'cst', 'aliquotas'],
+    dominio: 'simulacao',
+    setor: 'sim-geral',
+  },
+  {
+    href: '#busca-avancada?segmento=juridica',
+    label: 'Busca Avançada',
+    curto: 'Busca Jurídica',
+    tecla: 'b',
+    numero: 'B',
+    Icon: SearchCode,
+    cor: 'text-indigo-700',
+    bg: 'bg-indigo-50',
+    borda: 'border-indigo-300',
+    descricao: 'Pesquisa avançada em normas, acervos e atos da reforma',
+    tags: ['busca', 'juridico', 'normas', 'atos', 'leis', 'jurisprudencia'],
+    dominio: 'nucleo',
+    setor: 'regras-gerais',
+  },
+  {
+    href: '#busca-avancada?segmento=administrativa',
+    label: 'Busca Avançada',
+    curto: 'Busca Adm',
+    tecla: 'b',
+    numero: 'B',
+    Icon: FileSearch,
+    cor: 'text-slate-700',
+    bg: 'bg-slate-100',
+    borda: 'border-slate-300',
+    descricao: 'Pesquisa avançada em atos, fontes oficiais e órgãos de publicação',
+    tags: ['busca', 'administrativo', 'atos', 'fontes', 'orgaos', 'publicacoes'],
+    dominio: 'sistema',
+    setor: 'gestao',
   },
   {
     href: '#diagnostico-tributario',

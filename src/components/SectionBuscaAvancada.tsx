@@ -146,44 +146,145 @@ const REDUCOES_ALIQUOTA_OPCOES = [
   { id: '-100%', label: 'Desoneração Total (100%)', badge: 'Imunidade' },
 ]
 
-function extrairTermoInicialUrl(): string {
-  if (typeof window === 'undefined') return 'cigarro'
+function extrairParametrosUrl(): { termo: string; segmento: string | null } {
+  if (typeof window === 'undefined') return { termo: 'cigarro', segmento: null }
   try {
-    // 1. Tenta query param no search (?q=... ou ?busca=...)
-    const urlParams = new URLSearchParams(window.location.search)
-    const qSearch = urlParams.get('q') || urlParams.get('busca') || urlParams.get('termo')
-    if (qSearch && qSearch.trim()) return qSearch.trim()
+    let q: string | null = null
+    let seg: string | null = null
 
-    // 2. Tenta query param dentro do hash (ex.: #busca-avancada?q=cesta%20basica)
+    // 1. Tenta query param no search
+    const urlParams = new URLSearchParams(window.location.search)
+    q = urlParams.get('q') || urlParams.get('busca') || urlParams.get('termo')
+    seg = urlParams.get('segmento') || urlParams.get('seg')
+
+    // 2. Tenta query param dentro do hash (ex.: #busca-avancada?segmento=juridica)
     const hash = window.location.hash || ''
     if (hash.includes('?')) {
       const hashQuery = hash.substring(hash.indexOf('?') + 1)
       const hashParams = new URLSearchParams(hashQuery)
-      const qHash = hashParams.get('q') || hashParams.get('busca') || hashParams.get('termo')
-      if (qHash && qHash.trim()) return qHash.trim()
+      if (!q) q = hashParams.get('q') || hashParams.get('busca') || hashParams.get('termo')
+      if (!seg) seg = hashParams.get('segmento') || hashParams.get('seg')
+    }
+
+    return {
+      termo: q && q.trim() ? q.trim() : 'cigarro',
+      segmento: seg && seg.trim() ? seg.trim().toLowerCase() : null,
     }
   } catch {
     /* intentionally ignored */
   }
-  return 'cigarro'
+  return { termo: 'cigarro', segmento: null }
 }
 
-export function SectionBuscaAvancada() {
-  const [termo, setTermo] = useState<string>(() => extrairTermoInicialUrl())
+const OPCOES_SEGMENTO_FILTRO: { id: string; label: string; badge: string; cor: string }[] = [
+  {
+    id: 'todos',
+    label: 'Todos os Segmentos',
+    badge: 'Geral',
+    cor: 'border-slate-300 text-slate-700',
+  },
+  {
+    id: 'reforma-tributaria',
+    label: 'Tributário / Reforma',
+    badge: 'Tributário',
+    cor: 'border-amber-400 text-amber-900 bg-amber-50',
+  },
+  {
+    id: 'juridica',
+    label: 'Jurídico',
+    badge: 'Normas & Atos',
+    cor: 'border-indigo-400 text-indigo-900 bg-indigo-50',
+  },
+  {
+    id: 'contabil',
+    label: 'Contábil',
+    badge: 'Classificações & NCM',
+    cor: 'border-emerald-400 text-emerald-900 bg-emerald-50',
+  },
+  {
+    id: 'administrativa',
+    label: 'Administrativo',
+    badge: 'Atos & Órgãos',
+    cor: 'border-slate-400 text-slate-900 bg-slate-100',
+  },
+]
+
+export interface SectionBuscaAvancadaProps {
+  segmentoInicial?: string
+}
+
+export function SectionBuscaAvancada({ segmentoInicial }: SectionBuscaAvancadaProps = {}) {
+  const paramsIniciais = extrairParametrosUrl()
+  const [termo, setTermo] = useState<string>(paramsIniciais.termo)
+  const [segmentoAtivo, setSegmentoAtivo] = useState<string | null>(
+    () => segmentoInicial || paramsIniciais.segmento,
+  )
   const [tipoClassif, setTipoClassif] = useState<string>('TODOS')
   const [atosNivel, setAtosNivel] = useState<'todos' | 'federal' | 'estadual' | 'municipal'>(
     'todos',
   )
   const [categoriaEspecial, setCategoriaEspecial] = useState<string>('TODAS')
   const [filtroAnexo, setFiltroAnexo] = useState<string>('TODOS')
-  const [filtros, setFiltros] = useState<FiltrosAvancados>({
-    grupos: [],
-    esferas: [],
-    fontes: [],
-    tiposAto: [],
-    tabelas: [],
-    reducoes: [],
-  })
+
+  // Derivação de filtros contextuais baseados no segmento inicial
+  const construirFiltrosIniciais = (seg: string | null): FiltrosAvancados => {
+    if (seg === 'juridica' || seg === 'juridico') {
+      return {
+        grupos: ['normas', 'assuntos-especiais'],
+        esferas: [],
+        fontes: [],
+        tiposAto: [],
+        tabelas: [],
+        reducoes: [],
+      }
+    }
+    if (seg === 'contabil') {
+      return {
+        grupos: ['classificacoes', 'anexos', 'aliquotas'],
+        esferas: [],
+        fontes: [],
+        tiposAto: [],
+        tabelas: [],
+        reducoes: [],
+      }
+    }
+    if (seg === 'administrativa' || seg === 'administrativo') {
+      return {
+        grupos: ['normas', 'analises'],
+        esferas: [],
+        fontes: [],
+        tiposAto: [],
+        tabelas: [],
+        reducoes: [],
+      }
+    }
+    return {
+      grupos: [],
+      esferas: [],
+      fontes: [],
+      tiposAto: [],
+      tabelas: [],
+      reducoes: [],
+    }
+  }
+
+  const [filtros, setFiltros] = useState<FiltrosAvancados>(() =>
+    construirFiltrosIniciais(segmentoInicial || paramsIniciais.segmento),
+  )
+
+  // Escuta alteração do hash caso o usuário clique em outro segmento no menu sem remontar
+  useEffect(() => {
+    const onHashChange = () => {
+      const p = extrairParametrosUrl()
+      if (p.segmento && p.segmento !== segmentoAtivo) {
+        setSegmentoAtivo(p.segmento)
+        setFiltros(construirFiltrosIniciais(p.segmento))
+        setClassifPage(1)
+      }
+    }
+    window.addEventListener('hashchange', onHashChange)
+    return () => window.removeEventListener('hashchange', onHashChange)
+  }, [segmentoAtivo])
   const [painelFiltrosAberto, setPainelFiltrosAberto] = useState<boolean>(true)
   const [classifPage, setClassifPage] = useState<number>(1)
   const [abaAtiva, setAbaAtiva] = useState<
