@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react'
 import { X, Search, ChevronRight, Menu, Lock } from 'lucide-react'
 import { GRUPOS, ITEM_INSTALADOR_CEO, SEGMENTOS_SISTEMA } from '@/components/navegacao'
 import { AdecontLogo } from '@/components/AdecontLogo'
+import { BotaoSegmentoOficial } from '@/components/ItensSegmentoMenu'
 import {
   obterUsuarioAtivoLocal,
   assinarMudancaUsuarioAtivo,
@@ -181,22 +182,19 @@ export function PanoramaSideMenu({
               </button>
             )}
           </div>
-          <div className="grid grid-cols-4 gap-1">
+          {/* grid-cols-2 e não 4: com 4 colunas cada chip fica com ~51px e o
+              nome do segmento sai cortado ("Reforma Tribut…"). Com 2 colunas os
+              quatro nomes cabem inteiros — e é isso que os torna visíveis. */}
+          <div className="grid grid-cols-2 gap-1">
             {SEGMENTOS_SISTEMA.map((seg) => {
               const ativo = segmentoFiltro === seg.id
               return (
-                <button
+                <BotaoSegmentoOficial
                   key={seg.id}
+                  seg={seg}
+                  ativo={ativo}
                   onClick={() => setSegmentoFiltro(ativo ? null : seg.id)}
-                  className={`px-1.5 py-1.5 rounded-lg text-[10px] font-bold text-center transition-all cursor-pointer border ${
-                    ativo
-                      ? 'bg-slate-900 text-amber-300 border-slate-900 shadow-xs'
-                      : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300 hover:bg-slate-100'
-                  }`}
-                  title={seg.nome}
-                >
-                  <span className="block truncate">{seg.nome.replace('Segmento ', '')}</span>
-                </button>
+                />
               )
             })}
           </div>
@@ -499,20 +497,12 @@ export function PanoramaSideMenu({
                 {SEGMENTOS_SISTEMA.map((seg) => {
                   const ativo = segmentoFiltro === seg.id
                   return (
-                    <button
+                    <BotaoSegmentoOficial
                       key={seg.id}
+                      seg={seg}
+                      ativo={ativo}
                       onClick={() => setSegmentoFiltro(ativo ? null : seg.id)}
-                      className={`px-1.5 py-1.5 rounded-lg text-[10px] font-bold text-center transition-all cursor-pointer border ${
-                        ativo
-                          ? 'bg-slate-900 text-amber-300 border-slate-900 shadow-xs'
-                          : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300 hover:bg-slate-100'
-                      }`}
-                      title={seg.nome}
-                    >
-                      <span className="block truncate">
-                        {seg.nome.replace('Plataforma ', '').replace('Segmento ', '')}
-                      </span>
-                    </button>
+                    />
                   )
                 })}
               </div>
