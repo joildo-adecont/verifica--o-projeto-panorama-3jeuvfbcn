@@ -125,7 +125,12 @@ export function deduzirConfidenceTier(
   if (
     alvo.includes('dou') ||
     alvo.includes('imprensa nacional') ||
-    alvo.includes('diario oficial da uniao')
+    alvo.includes('diario oficial da uniao') ||
+    alvo.includes('diariomunicipal') ||
+    alvo.includes('diario municipal') ||
+    alvo.includes('diarios municipais') ||
+    alvo.includes('amm') ||
+    alvo.includes('famep')
   ) {
     return 'diario_oficial'
   }
@@ -143,7 +148,13 @@ export function deduzirConfidenceTier(
     alvo.includes('mdic') ||
     alvo.includes('suframa') ||
     alvo.includes('cgsn') ||
-    alvo.includes('serpro')
+    alvo.includes('serpro') ||
+    alvo.includes('fazenda') ||
+    alvo.includes('mef') ||
+    alvo.includes('carf') ||
+    alvo.includes('stf') ||
+    alvo.includes('stj') ||
+    alvo.includes('anp')
   ) {
     return 'oficial_institucional'
   }

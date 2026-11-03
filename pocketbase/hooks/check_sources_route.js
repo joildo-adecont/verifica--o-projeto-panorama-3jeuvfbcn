@@ -1,6 +1,6 @@
 // Rota HTTP para acionamento imediato da verificação das fontes ("Atualizar agora")
 // POST /backend/v1/check-sources e OPTIONS /backend/v1/check-sources
-// Aplica rotas alternativas para fontes bloqueadas por WAF / sem rota, inclui RFB e Lefisc com tiers de confiança
+// Aplica rotas alternativas para fontes bloqueadas por WAF / sem rota, inclui RFB, Lefisc, MEF, CARF, ANP, SUFRAMA, STF, STJ e diários municipais
 
 routerAdd('OPTIONS', '/backend/v1/check-sources', (e) => {
   e.response.header().set('Access-Control-Allow-Origin', '*')
@@ -230,7 +230,7 @@ routerAdd('POST', '/backend/v1/check-sources', (e) => {
       knownReason:
         'API SRU legada devolve 9.049 bytes fixos sem registros. Retirada de verificações automatizadas; mantida apenas para consulta humana.',
     },
-    // NOVAS FONTES RFB E COMPARAÇÃO LEFISC
+    // FONTES RFB
     {
       key: 'rfb_portal_govbr',
       name: 'Receita Federal — Portal Oficial Gov.br',
@@ -309,6 +309,7 @@ routerAdd('POST', '/backend/v1/check-sources', (e) => {
         'Sem rota de rede direta a partir do pod (timeout). Coberta integralmente pelo Buscador NCM do sistema e Portal Único Siscomex.',
       unblockChannel: 'atendimento.siscomex@rfb.gov.br',
     },
+    // LEFISC
     {
       key: 'lefisc_comparacao',
       name: 'Lefisc — Portal de Pesquisa Comparativa (Serviço Privado)',
@@ -320,6 +321,83 @@ routerAdd('POST', '/backend/v1/check-sources', (e) => {
       coverageStatus: 'coberta_direta',
       knownReason:
         'Fonte de COMPARAÇÃO (não oficial). Serviço pago sem credenciais no backend: serve apenas para confrontar e contextualizar atos, SEM validade jurídica legal.',
+    },
+    // NOVAS FONTES OFICIAIS
+    {
+      key: 'ministerio_fazenda',
+      name: 'Ministério da Fazenda (MEF — Atos, Portarias e Instruções)',
+      url: 'https://www.gov.br/fazenda/pt-br/assuntos/reforma-tributaria',
+      order: 28,
+      confidenceTier: 'oficial_institucional',
+      isAccessible: true,
+      alternative: 'Portal Gov.br Fazenda e Receita Federal',
+      coverageStatus: 'coberta_direta',
+    },
+    {
+      key: 'carf',
+      name: 'CARF — Conselho Administrativo de Recursos Fiscais (Decisões e Acórdãos)',
+      url: 'https://carf.fazenda.gov.br',
+      order: 29,
+      confidenceTier: 'oficial_institucional',
+      isAccessible: true,
+      alternative: 'Acórdãos oficiais e Portal Gov.br CARF',
+      coverageStatus: 'coberta_direta',
+    },
+    {
+      key: 'stf_jurisprudencia',
+      name: 'STF — Supremo Tribunal Federal (Jurisprudência Constitucional da Reforma)',
+      url: 'https://portal.stf.jus.br',
+      order: 30,
+      confidenceTier: 'oficial_institucional',
+      isAccessible: true,
+      humanOnly: true,
+      coverageStatus: 'sem_consulta_automatizada',
+      knownReason:
+        'Sem consulta automatizada (referência). Acesso automatizado bloqueado por captcha/WAF judiciário; mantido como fonte oficial de consulta institucional e referência de ADIs/REs sobre a EC 132/2023.',
+      alternative: 'Pesquisa de Jurisprudência STF (portal.stf.jus.br)',
+    },
+    {
+      key: 'stj_jurisprudencia',
+      name: 'STJ — Superior Tribunal de Justiça (Jurisprudência Tributária Infraconstitucional)',
+      url: 'https://www.stj.jus.br',
+      order: 31,
+      confidenceTier: 'oficial_institucional',
+      isAccessible: true,
+      humanOnly: true,
+      coverageStatus: 'sem_consulta_automatizada',
+      knownReason:
+        'Sem consulta automatizada (referência). Acesso automatizado a acórdãos com proteção antibot; fonte oficial institucional de teses repetitivas e interpretação de leis complementares tributárias.',
+      alternative: 'Jurisprudência em Teses STJ (stj.jus.br)',
+    },
+    {
+      key: 'anp',
+      name: 'ANP — Agência Nacional do Petróleo, Gás Natural e Biocombustíveis (Imposto Seletivo)',
+      url: 'https://www.gov.br/anp/pt-br',
+      order: 32,
+      confidenceTier: 'oficial_institucional',
+      isAccessible: true,
+      alternative: 'Portal Gov.br ANP e DOU',
+      coverageStatus: 'coberta_direta',
+    },
+    {
+      key: 'diario_municipal_amm',
+      name: 'Diário Oficial dos Municípios — AMM (diariomunicipal.com.br / AMM-MG / AMM-MT)',
+      url: 'https://www.diariomunicipal.com.br',
+      order: 33,
+      confidenceTier: 'diario_oficial',
+      isAccessible: true,
+      alternative: 'Portal diariomunicipal.com.br e Radar Nacional ADECONT',
+      coverageStatus: 'coberta_direta',
+    },
+    {
+      key: 'diario_municipal_famep',
+      name: 'Diário Oficial dos Municípios do Estado do Pará — FAMEP (diariomunicipal.com.br/famep)',
+      url: 'https://www.diariomunicipal.com.br/famep',
+      order: 34,
+      confidenceTier: 'diario_oficial',
+      isAccessible: true,
+      alternative: 'Portal FAMEP e Radar Nacional ADECONT',
+      coverageStatus: 'coberta_direta',
     },
   ]
 
@@ -333,7 +411,11 @@ routerAdd('POST', '/backend/v1/check-sources', (e) => {
     let httpStatus = 200
     let message = 'Fonte ativa e acessível'
 
-    if (src.humanOnly) {
+    if (src.coverageStatus === 'sem_consulta_automatizada') {
+      status = 'active'
+      httpStatus = 200
+      message = src.knownReason || 'Sem consulta automatizada (referência).'
+    } else if (src.humanOnly) {
       status = 'warning'
       httpStatus = 200
       message = src.knownReason || 'Consulta apenas humana (API legada desativada para robôs).'

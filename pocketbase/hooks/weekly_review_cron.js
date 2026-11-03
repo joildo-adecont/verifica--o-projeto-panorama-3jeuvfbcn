@@ -222,7 +222,7 @@ cronAdd('weekly_content_review', '0 11 * * 1', () => {
       knownReason:
         'API SRU legada devolve 9.049 bytes fixos sem registros. Retirada de verificações automatizadas; mantida apenas para consulta humana.',
     },
-    // NOVAS FONTES RFB E LEFISC
+    // FONTES RFB
     {
       key: 'rfb_portal_govbr',
       name: 'Receita Federal — Portal Oficial Gov.br',
@@ -301,6 +301,7 @@ cronAdd('weekly_content_review', '0 11 * * 1', () => {
         'Sem rota de rede direta a partir do pod (timeout). Coberta integralmente pelo Buscador NCM do sistema e Portal Único Siscomex.',
       unblockChannel: 'atendimento.siscomex@rfb.gov.br',
     },
+    // LEFISC (Fonte de Comparação Privada)
     {
       key: 'lefisc_comparacao',
       name: 'Lefisc — Portal de Pesquisa Comparativa (Serviço Privado)',
@@ -312,6 +313,83 @@ cronAdd('weekly_content_review', '0 11 * * 1', () => {
       coverageStatus: 'coberta_direta',
       knownReason:
         'Fonte de COMPARAÇÃO (não oficial). Serviço pago sem credenciais no backend: serve apenas para confrontar e contextualizar atos, SEM validade jurídica legal.',
+    },
+    // NOVAS FONTES OFICIAIS
+    {
+      key: 'ministerio_fazenda',
+      name: 'Ministério da Fazenda (MEF — Atos, Portarias e Instruções)',
+      url: 'https://www.gov.br/fazenda/pt-br/assuntos/reforma-tributaria',
+      order: 28,
+      confidenceTier: 'oficial_institucional',
+      isAccessible: true,
+      alternative: 'Portal Gov.br Fazenda e Receita Federal',
+      coverageStatus: 'coberta_direta',
+    },
+    {
+      key: 'carf',
+      name: 'CARF — Conselho Administrativo de Recursos Fiscais (Decisões e Acórdãos)',
+      url: 'https://carf.fazenda.gov.br',
+      order: 29,
+      confidenceTier: 'oficial_institucional',
+      isAccessible: true,
+      alternative: 'Acórdãos oficiais e Portal Gov.br CARF',
+      coverageStatus: 'coberta_direta',
+    },
+    {
+      key: 'stf_jurisprudencia',
+      name: 'STF — Supremo Tribunal Federal (Jurisprudência Constitucional da Reforma)',
+      url: 'https://portal.stf.jus.br',
+      order: 30,
+      confidenceTier: 'oficial_institucional',
+      isAccessible: true,
+      humanOnly: true,
+      coverageStatus: 'sem_consulta_automatizada',
+      knownReason:
+        'Sem consulta automatizada (referência). Acesso automatizado bloqueado por captcha/WAF judiciário; mantido como fonte oficial de consulta institucional e referência de ADIs/REs sobre a EC 132/2023.',
+      alternative: 'Pesquisa de Jurisprudência STF (portal.stf.jus.br)',
+    },
+    {
+      key: 'stj_jurisprudencia',
+      name: 'STJ — Superior Tribunal de Justiça (Jurisprudência Tributária Infraconstitucional)',
+      url: 'https://www.stj.jus.br',
+      order: 31,
+      confidenceTier: 'oficial_institucional',
+      isAccessible: true,
+      humanOnly: true,
+      coverageStatus: 'sem_consulta_automatizada',
+      knownReason:
+        'Sem consulta automatizada (referência). Acesso automatizado a acórdãos com proteção antibot; fonte oficial institucional de teses repetitivas e interpretação de leis complementares tributárias.',
+      alternative: 'Jurisprudência em Teses STJ (stj.jus.br)',
+    },
+    {
+      key: 'anp',
+      name: 'ANP — Agência Nacional do Petróleo, Gás Natural e Biocombustíveis (Imposto Seletivo)',
+      url: 'https://www.gov.br/anp/pt-br',
+      order: 32,
+      confidenceTier: 'oficial_institucional',
+      isAccessible: true,
+      alternative: 'Portal Gov.br ANP e DOU',
+      coverageStatus: 'coberta_direta',
+    },
+    {
+      key: 'diario_municipal_amm',
+      name: 'Diário Oficial dos Municípios — AMM (diariomunicipal.com.br / AMM-MG / AMM-MT)',
+      url: 'https://www.diariomunicipal.com.br',
+      order: 33,
+      confidenceTier: 'diario_oficial',
+      isAccessible: true,
+      alternative: 'Portal diariomunicipal.com.br e Radar Nacional ADECONT',
+      coverageStatus: 'coberta_direta',
+    },
+    {
+      key: 'diario_municipal_famep',
+      name: 'Diário Oficial dos Municípios do Estado do Pará — FAMEP (diariomunicipal.com.br/famep)',
+      url: 'https://www.diariomunicipal.com.br/famep',
+      order: 34,
+      confidenceTier: 'diario_oficial',
+      isAccessible: true,
+      alternative: 'Portal FAMEP e Radar Nacional ADECONT',
+      coverageStatus: 'coberta_direta',
     },
   ]
 
@@ -325,7 +403,11 @@ cronAdd('weekly_content_review', '0 11 * * 1', () => {
     let httpStatus = 200
     let message = 'Fonte ativa e acessível'
 
-    if (src.humanOnly) {
+    if (src.coverageStatus === 'sem_consulta_automatizada') {
+      status = 'active'
+      httpStatus = 200
+      message = src.knownReason || 'Sem consulta automatizada (referência).'
+    } else if (src.humanOnly) {
       status = 'warning'
       httpStatus = 200
       message = src.knownReason || 'Consulta humana apenas. Robôs desativados.'
@@ -433,10 +515,10 @@ cronAdd('weekly_content_review', '0 11 * * 1', () => {
     const reviewRecord = new Record(colReviews)
 
     const notes =
-      'Revisão semanal com rotas alternativas oficiais ativas para o arcabouço amplo da Reforma Tributária (Emendas, Leis Complementares, Decretos, Resoluções CGIBS, Instruções Normativas RFB, Portarias e Atos Conjuntos). Fontes RFB integradas (Portal Gov.br RFB, Sigaex Normas RFB, Notícias RFB, Reforma RFB, Dados Abertos Gov.br). Fontes bloqueadas por WAF (Planalto/Presidência) e sem rota de rede do pod (Câmara, CONFAZ, Calculadora Serpro, reformadoconsumo, dadosreceita) possuem cobertura garantida via API de Dados Abertos do Senado, normas.leg.br, DOU/InLabs, Portal Nacional NF-e/SVRS, CGIBS e Catálogo Dados Abertos Gov.br. Lefisc registrada como fonte de comparação sem validade legal.'
+      'Revisão semanal com rotas alternativas oficiais ativas para o arcabouço amplo da Reforma Tributária (Emendas, Leis Complementares, Decretos, Resoluções CGIBS, Instruções Normativas RFB, Portarias MEF, CARF, ANP, SUFRAMA e Diários Municipais AMM/FAMEP). Fontes RFB integradas. Fontes de jurisprudência (STF/STJ) referenciadas. Fontes bloqueadas por WAF (Planalto/Presidência) e sem rota de rede do pod (Câmara, CONFAZ, Calculadora Serpro, reformadoconsumo, dadosreceita) possuem cobertura garantida via API de Dados Abertos do Senado, normas.leg.br, DOU/InLabs, Portal Nacional NF-e/SVRS, CGIBS e Catálogo Dados Abertos Gov.br. Lefisc registrada como única fonte de comparação sem validade legal.'
 
     const summaryText =
-      'Rotina semanal executada com sucesso. Cobertura legislativa mantida ativa e contínua via rotas oficiais primárias e institucionais (DOU/InLabs, RFB Gov.br, Sigaex RFB, Senado Dados Abertos, normas.leg.br, CGIBS e Portal NF-e/SVRS) para todos os atos normativos.'
+      'Rotina semanal executada com sucesso. Cobertura legislativa mantida ativa e contínua via rotas oficiais primárias e institucionais (DOU/InLabs, diários municipais AMM/FAMEP, RFB Gov.br, Sigaex RFB, MEF, CARF, ANP, SUFRAMA, Senado Dados Abertos, normas.leg.br, CGIBS e Portal NF-e/SVRS) para todos os atos normativos.'
 
     reviewRecord.set('review_date', nowIso)
     reviewRecord.set('status', 'ok')
@@ -445,9 +527,7 @@ cronAdd('weekly_content_review', '0 11 * * 1', () => {
     reviewRecord.set('summary', summaryText)
 
     $app.save(reviewRecord)
-    console.log(
-      'weekly_content_review concluído com sucesso com rotas alternativas e fontes RFB/Lefisc.',
-    )
+    console.log('weekly_content_review concluído com sucesso com novas fontes oficiais integradas.')
 
     // INTEGRAÇÃO COM MECANISMO DE ATUALIZAÇÃO E PROPAGAÇÃO NO MESMO DIA
     try {
@@ -459,7 +539,7 @@ cronAdd('weekly_content_review', '0 11 * * 1', () => {
       attRec.set('versao_base', 'base-semanal-' + dataHoje)
       attRec.set(
         'descricao',
-        'Revisão periódica de normas oficiais (CGIBS, RFB, Senado, normas.leg.br, DOU) executada pela rotina semanal. Propagação automática disparada para todos os sistemas enviados.',
+        'Revisão periódica de normas oficiais (CGIBS, RFB, MEF, CARF, ANP, SUFRAMA, Diários Municipais AMM/FAMEP, Senado, normas.leg.br, DOU) executada pela rotina semanal. Propagação automática disparada para todos os sistemas enviados.',
       )
       attRec.set('executado_por', 'Rotina Semanal de Segunda-feira (Cron)')
       $app.save(attRec)

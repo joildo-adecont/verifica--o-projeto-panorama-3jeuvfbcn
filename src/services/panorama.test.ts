@@ -580,4 +580,36 @@ describe('Validação dos fluxos do Panorama da Reforma Tributária', () => {
     })
     expect(totalAtivos).toBe(4)
   })
+
+  it('mapeamento de tiers das novas fontes oficiais e preservação da Lefisc como única de comparação', async () => {
+    const { deduzirConfidenceTier } = await import('../components/SeloNivelConfianca')
+
+    // 1. Diários Oficiais Municipais devem ser classificados como "diario_oficial"
+    expect(deduzirConfidenceTier('diario_municipal_amm')).toBe('diario_oficial')
+    expect(deduzirConfidenceTier('diario_municipal_famep')).toBe('diario_oficial')
+    expect(deduzirConfidenceTier('diariomunicipal.com.br')).toBe('diario_oficial')
+    expect(deduzirConfidenceTier('Diário Oficial dos Municípios — AMM')).toBe('diario_oficial')
+    expect(deduzirConfidenceTier('Diário Oficial dos Municípios — FAMEP')).toBe('diario_oficial')
+    expect(deduzirConfidenceTier('DOU (Imprensa Nacional)')).toBe('diario_oficial')
+
+    // 2. Novas fontes institucionais oficiais
+    expect(deduzirConfidenceTier('CONFAZ')).toBe('oficial_institucional')
+    expect(deduzirConfidenceTier('Ministério da Fazenda (MEF)')).toBe('oficial_institucional')
+    expect(deduzirConfidenceTier('CARF — Conselho Administrativo de Recursos Fiscais')).toBe(
+      'oficial_institucional',
+    )
+    expect(deduzirConfidenceTier('STF — Supremo Tribunal Federal')).toBe('oficial_institucional')
+    expect(deduzirConfidenceTier('STJ — Superior Tribunal de Justiça')).toBe(
+      'oficial_institucional',
+    )
+    expect(deduzirConfidenceTier('ANP — Agência Nacional do Petróleo')).toBe(
+      'oficial_institucional',
+    )
+    expect(deduzirConfidenceTier('SUFRAMA')).toBe('oficial_institucional')
+
+    // 3. Lefisc deve permanecer como a ÚNICA fonte de comparação não oficial
+    expect(deduzirConfidenceTier('Lefisc')).toBe('comparacao')
+    expect(deduzirConfidenceTier('Lefisc — Portal de Pesquisa Comparativa')).toBe('comparacao')
+    expect(deduzirConfidenceTier('radar_lefisc')).toBe('comparacao')
+  })
 })

@@ -251,6 +251,90 @@ export function SectionFontes() {
       badgeCor: 'bg-blue-100 text-blue-800 border-blue-300',
     },
     {
+      orgao: 'Ministério da Fazenda (MEF)',
+      fonte: 'gov.br/fazenda → Reforma Tributária',
+      conteudo:
+        'Atos, diretrizes gerais da Reforma do Consumo, Portarias Conjuntas e regulamentação da CBS',
+      url: 'https://www.gov.br/fazenda/pt-br/assuntos/reforma-tributaria',
+      statusNota: 'Portal oficial do Ministério da Fazenda acessível e monitorado diretamente.',
+      badgeStatus: 'Acesso direto ativo',
+      badgeCor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+    },
+    {
+      orgao: 'CARF',
+      fonte: 'carf.fazenda.gov.br',
+      conteudo:
+        'Decisões administrativas, acórdãos e precedentes sobre PIS/Cofins, IPI e transição para CBS',
+      url: 'https://carf.fazenda.gov.br',
+      statusNota: 'Acesso direto aos precedentes administrativos federais e acórdãos fiscais.',
+      badgeStatus: 'Acesso direto ativo',
+      badgeCor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+    },
+    {
+      orgao: 'STF (Supremo Tribunal Federal)',
+      fonte: 'portal.stf.jus.br',
+      conteudo:
+        'Jurisprudência constitucional, ADIs e Recursos Extraordinários sobre a EC 132/2023',
+      url: 'https://portal.stf.jus.br',
+      statusNota:
+        'sem consulta automatizada (referência). Acesso direto institucional para consulta e fundamentação constitucional.',
+      badgeStatus: 'Referência Oficial',
+      badgeCor: 'bg-blue-100 text-blue-800 border-blue-300',
+    },
+    {
+      orgao: 'STJ (Superior Tribunal de Justiça)',
+      fonte: 'stj.jus.br',
+      conteudo:
+        'Jurisprudência tributária infraconstitucional e teses repetitivas de leis complementares',
+      url: 'https://www.stj.jus.br',
+      statusNota:
+        'sem consulta automatizada (referência). Acesso institucional para consulta de teses e acórdãos.',
+      badgeStatus: 'Referência Oficial',
+      badgeCor: 'bg-blue-100 text-blue-800 border-blue-300',
+    },
+    {
+      orgao: 'ANP (Agência Nacional do Petróleo)',
+      fonte: 'gov.br/anp',
+      conteudo:
+        'Regulamentação de combustíveis, petróleo e derivados relevantes para o Imposto Seletivo (art. 153, VIII da CF)',
+      url: 'https://www.gov.br/anp/pt-br',
+      statusNota: 'Portal oficial da ANP ativo e monitorado diretamente.',
+      badgeStatus: 'Acesso direto ativo',
+      badgeCor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+    },
+    {
+      orgao: 'SUFRAMA',
+      fonte: 'gov.br/suframa',
+      conteudo:
+        'Diretrizes e salvaguardas da Zona Franca de Manaus e Áreas de Livre Comércio perante IBS/CBS',
+      url: 'https://www.gov.br/suframa/pt-br',
+      statusNota: 'Acesso direto ativo ao portal oficial da SUFRAMA.',
+      badgeStatus: 'Acesso direto ativo',
+      badgeCor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+    },
+    {
+      orgao: 'Diários Oficiais Municipais (AMM)',
+      fonte: 'diariomunicipal.com.br (AMM-MG / AMM-MT)',
+      conteudo:
+        'Publicação oficial primária de decretos municipais de transição e governança da EC 132/2023',
+      url: 'https://www.diariomunicipal.com.br',
+      statusNota:
+        'Portal de diários oficiais municipais ativo. Alimenta os atos municipais do Radar Nacional com validade legal plena.',
+      badgeStatus: 'Diário Oficial Ativo',
+      badgeCor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+    },
+    {
+      orgao: 'Diários Oficiais Municipais (FAMEP)',
+      fonte: 'diariomunicipal.com.br/famep',
+      conteudo:
+        'Publicação oficial primária de atos normativos de municípios do Pará catalogados no Radar Nacional',
+      url: 'https://www.diariomunicipal.com.br/famep',
+      statusNota:
+        'Portal oficial de diários de municípios paraenses ativo. Alimenta o Radar Nacional com validade legal plena.',
+      badgeStatus: 'Diário Oficial Ativo',
+      badgeCor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+    },
+    {
       orgao: 'Lefisc (Serviço Privado de Confronto)',
       fonte: 'lefisc.com.br (Radar de Confronto)',
       conteudo:
@@ -279,7 +363,7 @@ export function SectionFontes() {
     {
       modo: 'Semanal',
       como: 'Rotina do assistente (toda segunda-feira, 11h)',
-      faz: 'Verificação de novas normas nos órgãos oficiais; atualização do conteúdo e nova publicação no Skip quando houver novidades',
+      faz: 'Verificação de novas normas nos órgãos oficiais (CGIBS, RFB, MEF, CARF, ANP, SUFRAMA, Diários Municipais AMM/FAMEP, Senado e DOU); atualização do conteúdo e propagação automática',
       badge: 'bg-purple-100 text-purple-800 border-purple-300',
     },
     {
