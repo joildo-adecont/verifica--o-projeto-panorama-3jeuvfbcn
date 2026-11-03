@@ -389,7 +389,13 @@ export const COBERTURA_SEFAZ: CoberturaSefaz[] = [
   },
   { uf: 'PR', host: 'www.fazenda.pr.gov.br', responde: true, codigo: '302' },
   { uf: 'RJ', host: 'www.fazenda.rj.gov.br', responde: true, codigo: '200' },
-  { uf: 'RN', host: 'www.sefaz.rn.gov.br', responde: false },
+  {
+    uf: 'RN',
+    host: 'www.sefaz.rn.gov.br',
+    responde: false,
+    rota: 'https://www.al.rn.leg.br/legislacao/pesquisa',
+    via: 'Assembleia Legislativa do RN — pesquisa de legislação, onde a Lei 6.968/1996 é publicada. O portal do Executivo e a SEFAZ-RN não abrem deste servidor.',
+  },
   {
     uf: 'RO',
     host: 'www.sefaz.ro.gov.br',
