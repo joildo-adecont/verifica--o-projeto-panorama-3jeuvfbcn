@@ -30,6 +30,7 @@ import {
   RotateCcw,
   Check,
   Landmark,
+  Gavel,
 } from 'lucide-react'
 import { AdecontLogo } from '@/components/AdecontLogo'
 import { SeloNivelConfianca } from '@/components/SeloNivelConfianca'
@@ -303,10 +304,68 @@ export function SectionBuscaAvancada({ segmentoInicial }: SectionBuscaAvancadaPr
     | 'atos'
     | 'aliquotas'
     | 'conexoes'
+    | 'jurisprudencias'
     | 'analises'
   >('tudo')
 
   const [resultado, setResultado] = useState<ResultadoBuscaAvancada | null>(null)
+
+  /* ══════════ JURISPRUDÊNCIAS (03/11/2026) ══════════
+   * Pedido do CEO: busca das jurisprudências por palavras-chave e/ou tribunais
+   * dentro da Busca Avançada.
+   *
+   * Roda em paralelo e separada da busca principal: os verbetes vêm de arquivo
+   * estático (~1 MB) e o acervo do escritório vem do backend. Se um dos dois
+   * falhar, o outro continua aparecendo — inclusive o oficial quando o painel
+   * está sem token.
+   */
+  const [juris, setJuris] = useState<BuscaJurisResultado | null>(null)
+  const [jurisCarregando, setJurisCarregando] = useState(false)
+  const [jurisTribunais, setJurisTribunais] = useState<string[]>([])
+  const [jurisMaterias, setJurisMaterias] = useState<string[]>([])
+  const [jurisTermoLocal, setJurisTermoLocal] = useState('')
+  const [jurisIncluirEscritorio, setJurisIncluirEscritorio] = useState(true)
+  const [jurisIncluirOficial, setJurisIncluirOficial] = useState(true)
+
+  useEffect(() => {
+    let ativo = true
+    const termoJuris = (jurisTermoLocal || termo || '').trim()
+    // Evita baixar 1 MB de verbete a cada tecla: só busca com termo ou filtro.
+    if (!termoJuris && jurisTribunais.length === 0 && jurisMaterias.length === 0) {
+      setJuris(null)
+      return
+    }
+    setJurisCarregando(true)
+    const t = setTimeout(() => {
+      buscarJurisprudencias({
+        termo: termoJuris,
+        tribunais: jurisTribunais,
+        materias: jurisMaterias,
+        incluirOficial: jurisIncluirOficial,
+        incluirEscritorio: jurisIncluirEscritorio,
+      })
+        .then((r) => {
+          if (ativo) setJuris(r)
+        })
+        .catch(() => {
+          if (ativo) setJuris(null)
+        })
+        .finally(() => {
+          if (ativo) setJurisCarregando(false)
+        })
+    }, 350)
+    return () => {
+      ativo = false
+      clearTimeout(t)
+    }
+  }, [
+    jurisTermoLocal,
+    termo,
+    jurisTribunais,
+    jurisMaterias,
+    jurisIncluirOficial,
+    jurisIncluirEscritorio,
+  ])
   const [carregando, setCarregando] = useState<boolean>(true)
   const [baixandoId, setBaixandoId] = useState<string | null>(null)
   const [modalEnvioAberto, setModalEnvioAberto] = useState<boolean>(false)
@@ -1339,6 +1398,21 @@ export function SectionBuscaAvancada({ segmentoInicial }: SectionBuscaAvancadaPr
               {analisesFiltradas.length}
             </span>
           </button>
+
+          <button
+            onClick={() => setAbaAtiva('jurisprudencias')}
+            className={`px-4 py-2.5 rounded-t-lg transition-colors border-b-2 whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
+              abaAtiva === 'jurisprudencias'
+                ? 'border-panorama-navy text-panorama-navy bg-white shadow-xs font-bold'
+                : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-50'
+            }`}
+          >
+            <Gavel className="w-4 h-4 text-rose-600" />
+            Jurisprudências
+            <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800">
+              {juris?.total || 0}
+            </span>
+          </button>
         </nav>
       </div>
 
@@ -2284,6 +2358,240 @@ export function SectionBuscaAvancada({ segmentoInicial }: SectionBuscaAvancadaPr
           </span>
         </div>
       </div>
+
+      {/* ══════════ BLOCO 6: JURISPRUDÊNCIAS ══════════
+          Busca por palavra-chave e/ou tribunal, nos dois acervos, com a
+          procedência etiquetada: o que é do tribunal e o que é do escritório. */}
+      {(abaAtiva === 'tudo' || abaAtiva === 'jurisprudencias') && (
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+            <div className="flex items-center gap-2">
+              <Gavel className="w-4 h-4 text-rose-600" />
+              <h3 className="text-base font-bold text-slate-900">Jurisprudências</h3>
+              <span className="rounded bg-rose-50 px-1.5 py-0.5 text-[10px] font-bold text-rose-700 ring-1 ring-rose-200">
+                {juris ? juris.total.toLocaleString('pt-BR') : '0'} encontradas
+              </span>
+            </div>
+            {juris && (
+              <span className="text-[11px] text-slate-500">
+                {juris.porFonte.oficial.toLocaleString('pt-BR')} de fonte oficial ·{' '}
+                {juris.porFonte.escritorio} do escritório
+              </span>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">
+                Tribunal
+              </span>
+              {['STF', 'STJ', 'TST', 'TSE', 'STM'].map((t) => {
+                const ativo = jurisTribunais.indexOf(t) >= 0
+                return (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() =>
+                      setJurisTribunais((atual) =>
+                        atual.indexOf(t) >= 0 ? atual.filter((x) => x !== t) : [...atual, t],
+                      )
+                    }
+                    className={`min-h-[30px] rounded-lg border px-2 text-[11px] font-bold transition-colors ${
+                      ativo
+                        ? 'border-panorama-navy bg-panorama-navy text-white'
+                        : 'border-slate-300 bg-white text-slate-600 hover:border-panorama-gold'
+                    }`}
+                  >
+                    {t}
+                  </button>
+                )
+              })}
+              {(jurisTribunais.length > 0 || jurisMaterias.length > 0) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setJurisTribunais([])
+                    setJurisMaterias([])
+                  }}
+                  className="min-h-[30px] rounded-lg border border-slate-300 px-2 text-[10.5px] font-bold text-slate-500"
+                >
+                  Limpar filtros
+                </button>
+              )}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">
+                Matéria
+              </span>
+              {[
+                'Tributário',
+                'Civil',
+                'Processo Civil',
+                'Trabalhista',
+                'Administrativo',
+                'Constitucional',
+              ].map((m) => {
+                const ativo = jurisMaterias.indexOf(m) >= 0
+                return (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() =>
+                      setJurisMaterias((atual) =>
+                        atual.indexOf(m) >= 0 ? atual.filter((x) => x !== m) : [...atual, m],
+                      )
+                    }
+                    className={`min-h-[30px] rounded-lg border px-2 text-[11px] font-semibold transition-colors ${
+                      ativo
+                        ? 'border-panorama-gold bg-amber-50 text-amber-900'
+                        : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                    }`}
+                  >
+                    {m}
+                  </button>
+                )
+              })}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="relative min-w-[220px] flex-1">
+                <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  value={jurisTermoLocal}
+                  onChange={(e) => setJurisTermoLocal(e.target.value)}
+                  placeholder={
+                    termo
+                      ? `Refinar dentro de "${termo}" — vazio usa o termo acima`
+                      : 'Palavra-chave: prescrição, penhora, ICMS, dano moral…'
+                  }
+                  className="w-full rounded-lg border border-slate-300 bg-white py-2 pl-8 pr-3 text-[12px] text-slate-800 placeholder:text-slate-400 focus:border-panorama-navy focus:outline-none"
+                />
+              </div>
+              <label className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-slate-600">
+                <input
+                  type="checkbox"
+                  checked={jurisIncluirOficial}
+                  onChange={(e) => setJurisIncluirOficial(e.target.checked)}
+                  className="h-3.5 w-3.5 rounded border-slate-300"
+                />
+                Fonte oficial
+              </label>
+              <label className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-slate-600">
+                <input
+                  type="checkbox"
+                  checked={jurisIncluirEscritorio}
+                  onChange={(e) => setJurisIncluirEscritorio(e.target.checked)}
+                  className="h-3.5 w-3.5 rounded border-slate-300"
+                />
+                Acervo do escritório
+              </label>
+            </div>
+          </div>
+
+          {jurisCarregando && (
+            <p className="text-[12px] text-slate-500">Buscando nas súmulas, teses e no acervo…</p>
+          )}
+
+          {juris?.semToken && jurisIncluirEscritorio && (
+            <p className="rounded-lg border border-amber-300 bg-amber-50 p-2 text-[11px] leading-relaxed text-amber-900">
+              O <b>acervo do escritório</b> não foi lido porque o painel não está autenticado. Os
+              resultados de <b>fonte oficial</b> abaixo estão completos — a falta de credencial não
+              esconde as súmulas públicas.
+            </p>
+          )}
+
+          {!juris && !jurisCarregando && (
+            <p className="rounded-lg bg-slate-50 p-2.5 text-[11.5px] leading-relaxed text-slate-600">
+              Digite uma palavra-chave ou escolha um tribunal. A busca cobre as{' '}
+              <b>2.963 súmulas e teses</b> dos tribunais (STF, STJ, TST) e o{' '}
+              <b>acervo do escritório</b> — cada resultado diz de onde veio.
+            </p>
+          )}
+
+          {juris && juris.total === 0 && (
+            <p className="rounded-lg bg-slate-100 p-2.5 text-[11.5px] text-slate-600">
+              Nenhuma jurisprudência para essa combinação. Tente uma palavra só, ou remova o filtro
+              de tribunal.
+            </p>
+          )}
+
+          <div className="space-y-1.5">
+            {(juris?.itens || []).slice(0, 60).map((j: JurisResultado) => (
+              <article key={j.id} className="rounded-lg border border-slate-200 bg-white p-2.5">
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <span className="rounded bg-panorama-navy px-1.5 py-0.5 font-mono text-[9.5px] font-bold text-panorama-gold-light">
+                    {j.tribunal}
+                  </span>
+                  <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[9px] font-bold uppercase text-slate-600">
+                    {j.tipo}
+                  </span>
+                  {j.numero && (
+                    <span className="font-mono text-[9.5px] text-slate-500">{j.numero}</span>
+                  )}
+                  {j.selo === 'vinculante' && (
+                    <span className="rounded bg-emerald-50 px-1.5 py-0.5 text-[8.5px] font-black uppercase text-emerald-700 ring-1 ring-emerald-200">
+                      vinculante
+                    </span>
+                  )}
+                  {j.selo === 'cancelada' && (
+                    <span className="rounded bg-red-50 px-1.5 py-0.5 text-[8.5px] font-black uppercase text-red-700 ring-1 ring-red-200">
+                      cancelada
+                    </span>
+                  )}
+                  {j.fonte === 'escritorio' ? (
+                    <span className="rounded bg-indigo-50 px-1.5 py-0.5 text-[8.5px] font-black uppercase text-indigo-700 ring-1 ring-indigo-200">
+                      acervo do escritório
+                    </span>
+                  ) : (
+                    <span className="rounded bg-slate-50 px-1.5 py-0.5 text-[8.5px] font-bold uppercase text-slate-500 ring-1 ring-slate-200">
+                      fonte oficial
+                    </span>
+                  )}
+                  {j.area && <span className="text-[9.5px] text-slate-400">{j.area}</span>}
+                </div>
+                <h4 className="mt-1 text-[12px] font-bold leading-snug text-panorama-navy">
+                  {j.titulo}
+                </h4>
+                <p className="mt-0.5 text-[11.5px] leading-relaxed text-slate-700">{j.texto}</p>
+                {j.aplicacaoPratica && (
+                  <p className="mt-1 rounded border-l-2 border-panorama-gold bg-amber-50/60 p-1.5 text-[10.5px] leading-snug text-amber-900">
+                    <b>No escritório:</b> {j.aplicacaoPratica}
+                  </p>
+                )}
+                {j.fonteUrl && (
+                  <a
+                    href={j.fonteUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-1 inline-flex items-center gap-1 text-[10px] font-bold text-panorama-navy hover:text-panorama-gold"
+                  >
+                    Abrir no tribunal <ExternalLink className="h-2.5 w-2.5" />
+                  </a>
+                )}
+              </article>
+            ))}
+          </div>
+
+          {juris && juris.total > 60 && (
+            <p className="rounded-lg bg-slate-100 p-2 text-[11px] text-slate-600">
+              Mostrando os 60 primeiros de <b>{juris.total.toLocaleString('pt-BR')}</b>. Use o
+              filtro de tribunal ou refine a palavra-chave.
+            </p>
+          )}
+
+          {juris && Object.keys(juris.porTribunal).length > 0 && (
+            <p className="text-[10.5px] text-slate-500">
+              <b>Por tribunal:</b>{' '}
+              {Object.entries(juris.porTribunal)
+                .sort((a, b) => b[1] - a[1])
+                .map(([t, n]) => `${t} ${n}`)
+                .join(' · ')}
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Modal da Central de Entrega integrado diretamente na Busca Avançada */}
       <ModalBuscaAvancada
