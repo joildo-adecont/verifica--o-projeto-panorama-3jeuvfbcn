@@ -1165,6 +1165,194 @@ export const SEGMENTOS_SISTEMA: SegmentoSistema[] = [
   },
 ]
 
+/* ── HIERARQUIA (usada pelo Painel de Degraus, rota #mapa) ── */
+export interface SetorHierarquia {
+  id: string
+  nome: string
+  base: string
+  Icon: React.ComponentType<{ className?: string }>
+}
+export interface DominioHierarquia {
+  id: string
+  numero: string
+  nome: string
+  proposito: string
+  Icon: React.ComponentType<{ className?: string }>
+  cor: string
+  bg: string
+  borda: string
+  setores: SetorHierarquia[]
+}
+
+export const DOMINIOS_HIERARQUIA: DominioHierarquia[] = [
+  {
+    id: 'nucleo',
+    numero: '1',
+    nome: 'Núcleo Tributário',
+    proposito: 'A lei, o fato gerador e o que fica de fora',
+    Icon: Scale,
+    cor: 'text-indigo-700',
+    bg: 'bg-indigo-50',
+    borda: 'border-indigo-300',
+    setores: [
+      { id: 'regras-gerais', nome: 'Regras Gerais', base: 'EC 132 · LC 214 · LC 227', Icon: Scale },
+      {
+        id: 'regimes-especificos',
+        nome: 'Regimes Específicos',
+        base: 'LC 214, arts. 172-307',
+        Icon: Layers,
+      },
+    ],
+  },
+  {
+    id: 'setores',
+    numero: '2',
+    nome: 'Setores da Economia',
+    proposito: 'Cada setor tem regra própria — 14 setores',
+    Icon: Factory,
+    cor: 'text-rose-700',
+    bg: 'bg-rose-50',
+    borda: 'border-rose-300',
+    setores: [
+      { id: 'imobiliario', nome: 'Bens Imóveis', base: 'LC 214, arts. 251-261', Icon: Building2 },
+      { id: 'agro', nome: 'Agronegócio', base: 'LC 214, arts. 164-171', Icon: Tractor },
+      { id: 'consorcios', nome: 'Consórcios', base: 'LC 214, arts. 204-206', Icon: Handshake },
+      {
+        id: 'financeiro',
+        nome: 'Serviços Financeiros',
+        base: 'LC 214, arts. 181-233',
+        Icon: Landmark,
+      },
+      { id: 'simples', nome: 'Simples Nacional', base: 'LC 123 · art. 343', Icon: Store },
+      {
+        id: 'profissionais',
+        nome: 'Profissionais e Plataformas',
+        base: 'LC 214, arts. 22 e 127',
+        Icon: Users,
+      },
+      {
+        id: 'combustiveis',
+        nome: 'Combustíveis e Energia',
+        base: 'LC 214, arts. 172-180',
+        Icon: Fuel,
+      },
+      {
+        id: 'saude',
+        nome: 'Saúde e Planos',
+        base: 'regimes específico e diferenciado',
+        Icon: HeartPulse,
+      },
+      { id: 'educacao', nome: 'Educação', base: 'serviços de educação', Icon: GraduationCap },
+      {
+        id: 'turismo',
+        nome: 'Bares, Restaurantes e Turismo',
+        base: 'regime específico',
+        Icon: UtensilsCrossed,
+      },
+      { id: 'cooperativas', nome: 'Cooperativas', base: 'LC 214, arts. 271-272', Icon: UsersRound },
+      { id: 'futebol', nome: 'Sociedade Anônima do Futebol', base: 'regime da SAF', Icon: Trophy },
+      {
+        id: 'exterior',
+        nome: 'Comércio Exterior e ZFM',
+        base: 'art. 93 e ss. · Dec. 12.955',
+        Icon: Ship,
+      },
+      {
+        id: 'diplomatico',
+        nome: 'Missões Diplomáticas',
+        base: 'tratados internacionais',
+        Icon: Globe,
+      },
+    ],
+  },
+  {
+    id: 'simulacao',
+    numero: '3',
+    nome: 'Simuladores',
+    proposito: 'Calcular o impacto antes de decidir',
+    Icon: Calculator,
+    cor: 'text-emerald-700',
+    bg: 'bg-emerald-50',
+    borda: 'border-emerald-300',
+    setores: [
+      {
+        id: 'sim-geral',
+        nome: 'Simulador Geral',
+        base: 'catálogo de 1.002 itens',
+        Icon: Calculator,
+      },
+      { id: 'sim-setoriais', nome: 'Simuladores por Setor', base: 'um por regime', Icon: Layers },
+    ],
+  },
+  {
+    id: 'tabelas',
+    numero: '4',
+    nome: 'Tabelas e Anexos',
+    proposito: 'Onde o item está classificado',
+    Icon: Paperclip,
+    cor: 'text-cyan-700',
+    bg: 'bg-cyan-50',
+    borda: 'border-cyan-300',
+    setores: [
+      {
+        id: 'anexos',
+        nome: 'Anexos da LC 214 e do RIBS',
+        base: '23 + 5 + 5 anexos',
+        Icon: Paperclip,
+      },
+    ],
+  },
+  {
+    id: 'fontes',
+    numero: '5',
+    nome: 'Fontes e Monitoramento',
+    proposito: 'De onde vem o dado e o que mudou',
+    Icon: Radio,
+    cor: 'text-fuchsia-700',
+    bg: 'bg-fuchsia-50',
+    borda: 'border-fuchsia-300',
+    setores: [
+      {
+        id: 'fontes-oficiais',
+        nome: 'Fontes Oficiais',
+        base: 'publicadores primários',
+        Icon: Landmark,
+      },
+      {
+        id: 'fontes-agregadores',
+        nome: 'Agregadores',
+        base: 'reprodutores — nunca base legal',
+        Icon: Layers,
+      },
+      { id: 'monitor', nome: 'Monitoramento', base: 'radar e acompanhamento', Icon: Radio },
+    ],
+  },
+  {
+    id: 'sistema',
+    numero: '6',
+    nome: 'Sistema',
+    proposito: 'Gestão, entrega, segurança e manutenção',
+    Icon: Settings2,
+    cor: 'text-slate-700',
+    bg: 'bg-slate-100',
+    borda: 'border-slate-300',
+    setores: [
+      { id: 'gestao', nome: 'Gestão e Entrega', base: 'operação do escritório', Icon: Gauge },
+      { id: 'seguranca', nome: 'Segurança e Acesso', base: 'controle interno', Icon: ShieldCheck },
+      { id: 'manutencao', nome: 'Manutenção', base: 'controle do programa', Icon: Wrench },
+    ],
+  },
+]
+
+export function setoresDoDominio(dominioId: string) {
+  const dom = DOMINIOS_HIERARQUIA.find((d) => d.id === dominioId)
+  if (!dom) return []
+  return dom.setores.map((s) => ({
+    ...s,
+    itens: NAVEGACAO.filter((n) => n.dominio === dominioId && n.setor === s.id),
+  }))
+}
+
 export const NAVEGACAO: LinkNavegacao[] = GRUPOS.flatMap((g) => g.itens)
 export const TOTAL_ITENS = NAVEGACAO.length
 export const TOTAL_GRUPOS = GRUPOS.length
