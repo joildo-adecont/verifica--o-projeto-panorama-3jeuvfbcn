@@ -149,6 +149,41 @@ routerAdd('POST', '/backend/v1/simul-importar', (e) => {
         if (isFinite(cap) && cap >= 0 && cap <= 100) existing.set('carga_atual_pct', cap)
       }
       if (Array.isArray(c.tributos_atuais)) existing.set('tributos_atuais', c.tributos_atuais)
+      /*
+       * PERMISSÕES (migration 0107) — aqui a regra é o INVERSO das outras.
+       * Os demais campos só gravam quando vêm preenchidos, para importação
+       * parcial não apagar dado. Nas proibições isso seria um defeito grave:
+       * desmarcar uma proibição no formulário NÃO a removeria do cadastro, e o
+       * cliente continuaria bloqueado sem ninguém entender por quê. Por isso
+       * os arrays de permissão SEMPRE são gravados quando presentes — inclusive
+       * vazios, que é o "nada proibido".
+       */
+      if (c.acesso_situacao) existing.set('acesso_situacao', c.acesso_situacao)
+      if (c.acesso_nivel) existing.set('acesso_nivel', c.acesso_nivel)
+      if (Array.isArray(c.acesso_restricoes)) existing.set('acesso_restricoes', c.acesso_restricoes)
+      if (Array.isArray(c.acesso_liberacoes)) existing.set('acesso_liberacoes', c.acesso_liberacoes)
+      if (c.acesso_motivo !== undefined && c.acesso_motivo !== null)
+        existing.set('acesso_motivo', String(c.acesso_motivo))
+      if (c.acesso_autorizado_por !== undefined && c.acesso_autorizado_por !== null)
+        existing.set('acesso_autorizado_por', String(c.acesso_autorizado_por))
+      if (
+        c.acesso_validade_dias !== undefined &&
+        c.acesso_validade_dias !== null &&
+        c.acesso_validade_dias !== ''
+      ) {
+        var avd = Number(c.acesso_validade_dias)
+        if (isFinite(avd) && avd >= 0) {
+          existing.set('acesso_validade_dias', avd)
+          // materializa a data de expiração: o hook de acesso compara datas,
+          // não fica recalculando dias a cada requisição
+          if (avd > 0) {
+            var exp = new Date()
+            exp.setDate(exp.getDate() + avd)
+            existing.set('acesso_expira_em', exp.toISOString().replace('T', ' ').slice(0, 19))
+          }
+        }
+      }
+      existing.set('acesso_atualizado_em', new Date().toISOString().replace('T', ' ').slice(0, 19))
       if (c.receita_mensal !== undefined && c.receita_mensal !== null && c.receita_mensal !== '') {
         var rmUp = Number(String(c.receita_mensal).replace(/\./g, '').replace(',', '.'))
         if (isFinite(rmUp) && rmUp >= 0) existing.set('receita_mensal', rmUp)
@@ -195,6 +230,15 @@ routerAdd('POST', '/backend/v1/simul-importar', (e) => {
           if (isFinite(capN) && capN >= 0 && capN <= 100) rec.set('carga_atual_pct', capN)
         }
         if (Array.isArray(c.tributos_atuais)) rec.set('tributos_atuais', c.tributos_atuais)
+        // permissões (0107) — cadastro novo nasce com padrão seguro
+        rec.set('acesso_situacao', c.acesso_situacao || 'liberado')
+        rec.set('acesso_nivel', c.acesso_nivel || 'N3_confirmacao')
+        if (Array.isArray(c.acesso_restricoes)) rec.set('acesso_restricoes', c.acesso_restricoes)
+        if (Array.isArray(c.acesso_liberacoes)) rec.set('acesso_liberacoes', c.acesso_liberacoes)
+        if (c.acesso_motivo) rec.set('acesso_motivo', String(c.acesso_motivo))
+        if (c.acesso_autorizado_por)
+          rec.set('acesso_autorizado_por', String(c.acesso_autorizado_por))
+        rec.set('acesso_atualizado_em', new Date().toISOString().replace('T', ' ').slice(0, 19))
         if (
           c.receita_mensal !== undefined &&
           c.receita_mensal !== null &&
@@ -342,6 +386,7 @@ routerAdd('POST', '/backend/v1/simul-enviar', (e) => {
 
   var envioCol = $app.findCollectionByNameOrId('simul_envios')
   var results = []
+  var pulados = []
   var mailer = $app.newMailClient()
   var remetente = 'nao-responda@adecont.com.br'
 
@@ -352,6 +397,25 @@ routerAdd('POST', '/backend/v1/simul-enviar', (e) => {
     } catch (_) {
       continue
     }
+    /*
+     * PERMISSÕES DO CLIENTE (migration 0107) — envio de novo laudo.
+     * `proibe_novos_envios` e `bloqueado` impedem o escritório de mandar simulação
+     * para ESTE cliente. Isso protege o dado do cliente que pediu para não receber
+     * mais, e evita que o "enviar para todos" mande e-mail a quem está suspenso.
+     * O laço apenas PULA o cliente e segue — um bloqueado não derruba o envio em
+     * massa para os outros.
+     */
+    var sitEnv = cli.getString('acesso_situacao') || 'liberado'
+    var restEnv = cli.get('acesso_restricoes') || []
+    if (sitEnv === 'bloqueado' || restEnv.indexOf('proibe_novos_envios') >= 0) {
+      pulados.push({
+        id: alvoIds[i],
+        nome: cli.getString('nome'),
+        motivo: sitEnv === 'bloqueado' ? 'acesso suspenso' : 'proibido receber novos envios',
+      })
+      continue
+    }
+
     var email = cli.getString('email')
     var nome = cli.getString('nome')
     var protocolo = genProtocolo()
@@ -459,7 +523,15 @@ routerAdd('POST', '/backend/v1/simul-enviar', (e) => {
     },
     e.auth ? e.auth.id : '',
   )
-  return e.json(200, { success: true, total: results.length, envios: results })
+  return e.json(200, {
+    success: true,
+    total: results.length,
+    envios: results,
+    // transparência: quem foi pulado por restrição, e por quê. Sem isto o
+    // "enviar para todos" pareceria ter falhado com alguns clientes.
+    pulados_por_restricao: pulados,
+    total_pulados: pulados.length,
+  })
 })
 
 // ---------- 2c. Relatorio consolidado (painel, agrupado por cliente) ----------
@@ -539,6 +611,24 @@ routerAdd('GET', '/backend/v1/simul-consolidado', (e) => {
 
 // ---------- 2b. Relatorio publico por token ----------
 routerAdd('GET', '/backend/v1/simul-relatorio', (e) => {
+  /*
+   * PERMISSÕES DO CLIENTE — bloco de restrições do cadastro (migration 0107)
+   *
+   * ESTE É O PONTO ONDE A PERMISSÃO DEIXA DE SER ENFEITE.
+   * O cliente entra com o token do laudo, sem login. Então a única forma de
+   * negar acesso é aqui: procurar o cadastro do cliente dono do token e aplicar
+   * o que o escritório marcou. Sem isto, marcar "bloqueado" na tela não fecharia
+   * nada e o cliente continuaria abrindo o laudo.
+   *
+   * DECISÕES QUE IMPORTAM:
+   *  - Cadastro ausente ou campo vazio = LIBERADO. Restringir exige ato
+   *    explícito; o contrário derrubaria 500 clientes no dia da publicação.
+   *  - "bloqueado" responde 403 com mensagem de negócio, não 404: o cliente
+   *    precisa saber que existe e que foi suspenso, senão abre chamado.
+   *  - Expiração só vale se o escritório marcou `proibe_apos_expirar`; sem essa
+   *    marca, a data é informativa e não fecha acesso (evita bloqueio em massa
+   *    por uma data esquecida no passado).
+   */
   var token = e.requestInfo().query.token || ''
   if (!token) return e.json(400, { success: false, error: 'token ausente' })
   var envio
@@ -557,7 +647,48 @@ routerAdd('GET', '/backend/v1/simul-relatorio', (e) => {
     empresa = cli.getString('empresa')
     email = cli.getString('email')
   } catch (_) {}
-  return e.json(200, {
+
+  // ── aplica as restrições do cadastro ──
+  var restricoes = []
+  var liberacoes = []
+  var situacao = 'liberado'
+  var nivel = 'N3_confirmacao'
+  if (cli) {
+    situacao = cli.getString('acesso_situacao') || 'liberado'
+    nivel = cli.getString('acesso_nivel') || 'N3_confirmacao'
+    restricoes = cli.get('acesso_restricoes') || []
+    liberacoes = cli.get('acesso_liberacoes') || []
+  }
+
+  if (situacao === 'bloqueado') {
+    return e.json(403, {
+      success: false,
+      status: 403,
+      error: 'ACESSO_SUSPENSO',
+      message:
+        'O acesso deste cliente ao sistema está suspenso. Fale com o escritório para regularizar.',
+    })
+  }
+
+  // expiração: só fecha quando o escritório marcou a proibição correspondente
+  if (restricoes.indexOf('proibe_apos_expirar') >= 0) {
+    var expira = cli ? cli.getString('acesso_expira_em') : ''
+    if (expira) {
+      var quando = new Date(expira).getTime()
+      if (isFinite(quando) && quando > 0 && Date.now() > quando) {
+        return e.json(403, {
+          success: false,
+          status: 403,
+          error: 'ACESSO_EXPIRADO',
+          message:
+            'O prazo de acesso deste cliente venceu. Fale com o escritório para renovar a liberação.',
+        })
+      }
+    }
+  }
+
+  // monta o laudo aplicando as restrições de conteúdo
+  var out = {
     protocolo: envio.getString('protocolo'),
     status: envio.getString('status'),
     tema: envio.getString('tema_resumo'),
@@ -570,7 +701,27 @@ routerAdd('GET', '/backend/v1/simul-relatorio', (e) => {
     cliente: nome,
     empresa: empresa,
     email: email,
-  })
+    // informativo: a tela mostra o que foi restringido, em vez de esconder
+    restricoes_aplicadas: restricoes,
+    nivel_acesso: nivel,
+  }
+
+  // proibe_capitulacao fecha a base legal — a liberação explícita vence
+  if (
+    restricoes.indexOf('proibe_capitulacao') >= 0 &&
+    liberacoes.indexOf('libera_capitulacao') < 0
+  ) {
+    out.capitulacao = ''
+    out.capitulacao_oculta = true
+  }
+
+  // proibe_valores fecha os valores tributários do laudo
+  if (restricoes.indexOf('proibe_valores') >= 0 && liberacoes.indexOf('libera_valores') < 0) {
+    out.payload = ''
+    out.valores_ocultos = true
+  }
+
+  return e.json(200, out)
 })
 
 // ---------- 3. Confirmacao de recebimento (publico) ----------
@@ -650,6 +801,38 @@ routerAdd('GET', '/backend/v1/simul-confirmar', (e) => {
   } catch (_) {
     return e.json(404, { success: false, error: 'protocolo não encontrado' })
   }
+  /*
+   * PERMISSÕES DO CLIENTE (migration 0107) — confirmação de recebimento.
+   * Se o escritório marcou `proibe_confirmar`, o cliente LÊ o laudo mas não
+   * confirma. Bloqueio total (`bloqueado`) também impede confirmar: quem está
+   * suspenso não movimenta o registro.
+   * Confirmar duas vezes já era inofensivo (o if abaixo); o que se fecha aqui é
+   * a movimentação por quem não tem mais liberação.
+   */
+  var cliConf = null
+  try {
+    cliConf = $app.findRecordById('simul_clientes', envio.getString('cliente'))
+  } catch (_) {}
+  if (cliConf) {
+    var sitConf = cliConf.getString('acesso_situacao') || 'liberado'
+    var restConf = cliConf.get('acesso_restricoes') || []
+    if (sitConf === 'bloqueado') {
+      return e.json(403, {
+        success: false,
+        error: 'ACESSO_SUSPENSO',
+        message: 'Acesso suspenso. Fale com o escritório para regularizar.',
+      })
+    }
+    if (restConf.indexOf('proibe_confirmar') >= 0) {
+      return e.json(403, {
+        success: false,
+        error: 'CONFIRMACAO_NAO_PERMITIDA',
+        message:
+          'Este cliente não tem permissão para confirmar recebimento. O laudo continua disponível para leitura.',
+      })
+    }
+  }
+
   if (envio.getString('status') !== 'RECEBIDO') {
     envio.set('status', 'RECEBIDO')
     envio.set('recebido_em', new Date().toISOString().replace('T', ' ').slice(0, 19))

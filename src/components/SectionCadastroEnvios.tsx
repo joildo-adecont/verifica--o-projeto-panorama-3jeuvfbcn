@@ -12,6 +12,7 @@ import {
   RefreshCw,
   Save,
   Search,
+  ShieldAlert,
   TrendingDown,
   TrendingUp,
   Users,
@@ -112,6 +113,80 @@ const TRIBUTOS = [
   { id: 'cpp', nome: 'CPP' },
   { id: 'simples_das', nome: 'DAS (Simples)' },
   { id: 'is', nome: 'Imposto Seletivo' },
+]
+
+/**
+ * PROIBIÇÕES E LIBERAÇÕES DO CLIENTE (migration 0107)
+ *
+ * Cada item aqui tem ponto de controle correspondente em `simulador_envios.js`.
+ * Um item novo que não feche nenhuma rota seria enfeite — e pior: daria sensação
+ * de segurança sem a segurança. Por isso `desc` diz exatamente o que fecha.
+ *
+ * A lista é em linguagem de negócio ("proíbe exportar"), não técnica
+ * ("allow_export=false"): quem preenche o cadastro é o escritório, não o dev.
+ */
+const RESTRICOES = [
+  {
+    id: 'proibe_exportar',
+    nome: 'Proíbe exportar',
+    desc: 'Fecha o PDF/CSV do relatório do cliente.',
+  },
+  {
+    id: 'proibe_compartilhar',
+    nome: 'Proíbe compartilhar',
+    desc: 'Marca o laudo como não repassável a terceiros.',
+  },
+  {
+    id: 'proibe_confirmar',
+    nome: 'Proíbe confirmar',
+    desc: 'Cliente lê o laudo, mas não confirma recebimento.',
+  },
+  {
+    id: 'proibe_novos_envios',
+    nome: 'Proíbe novos envios',
+    desc: 'O escritório não consegue enviar novo laudo a este cliente.',
+  },
+  {
+    id: 'proibe_apos_expirar',
+    nome: 'Proíbe após vencer',
+    desc: 'Passada a validade em dias, o acesso é fechado.',
+  },
+  {
+    id: 'proibe_valores',
+    nome: 'Proíbe ver valores',
+    desc: 'Esconde os valores tributários do laudo.',
+  },
+  {
+    id: 'proibe_capitulacao',
+    nome: 'Proíbe ver base legal',
+    desc: 'Esconde a capitulação legal detalhada.',
+  },
+  {
+    id: 'proibe_historico',
+    nome: 'Proíbe ver histórico',
+    desc: 'Esconde os envios anteriores do cliente.',
+  },
+]
+
+const LIBERACOES = [
+  { id: 'libera_valores', nome: 'Libera valores', desc: 'Vence a proibição de ver valores.' },
+  {
+    id: 'libera_capitulacao',
+    nome: 'Libera base legal',
+    desc: 'Vence a proibição de ver capitulação.',
+  },
+  { id: 'libera_exportar', nome: 'Libera exportar', desc: 'Vence a proibição de exportar.' },
+  {
+    id: 'libera_simulacoes_auto',
+    nome: 'Simulações automáticas',
+    desc: 'Recebe simulação sem pedir.',
+  },
+  { id: 'libera_download_anexos', nome: 'Baixar anexos', desc: 'Pode baixar os anexos do laudo.' },
+  {
+    id: 'libera_multiplos_usuarios',
+    nome: 'Vários usuários',
+    desc: 'Mais de um contato usa o mesmo acesso.',
+  },
 ]
 
 const SEGMENTOS = [
@@ -341,6 +416,8 @@ export function SectionCadastroEnvios() {
       // Só limpa após o sucesso confirmado
       setForm({})
       setTributos([])
+      setRestricoes([])
+      setLiberacoes([])
       carregar(tokUsar)
     } catch {
       setMsg({ tipo: 'erro', txt: 'Falha ao salvar. Verifique a conexão com a internet.' })
@@ -993,6 +1070,8 @@ export function SectionCadastroEnvios() {
                     onClick={() => {
                       setForm({})
                       setTributos([])
+                      setRestricoes([])
+                      setLiberacoes([])
                       setMsg(null)
                     }}
                     className="rounded-lg border border-slate-300 px-3 py-2 text-[11px] font-bold text-slate-600 hover:bg-slate-50 cursor-pointer"
