@@ -186,9 +186,31 @@ export const FONTES_VIGIADAS: FonteVigiada[] = [
     status: 'bloqueada',
     tipo: 'portal',
     motivo:
-      'Mesmo WAF da Presidência da República; devolve 409 bytes sem conteúdo útil para IP de nuvem.',
+      "Medido em 03/11/2026 no navegador real: HTTP 200 com 409 bytes e a página 'SEI indisponível temporariamente'. Não é WAF — é o próprio SEI fora do ar, e a página aponta para o Planalto. Vale a mesma cobertura alternativa. Reavaliar quando o SEI voltar: aí o domínio pode passar a servir.",
     canalDesbloqueio: 'bloqueio.de.aplicacoes@presidencia.gov.br',
     substituto: ['normas_leg', 'dou'],
+    mudou: false,
+  },
+  {
+    /*
+     * STM — CONFIRMADO EM 03/11/2026 (pedido do CEO: "confirmar os 4 domínios").
+     * Medição: HTTP 200 com 246 bytes e a página "Request Rejected ... support ID"
+     * em TODAS as rotas do domínio (portal, jurisprudencia, noticias), tanto por
+     * curl quanto no navegador real. É WAF F5 barrando por IP — e o IP de saída
+     * do pod é 34.193.171.91 (AWS us-east-1).
+     * Não entra em verificações automáticas: um 200 com 246 bytes faria o agente
+     * registrar "fonte ativa" e reportar mudança falsa a cada varredura.
+     * Para consulta humana o link abre normalmente de uma rede comum.
+     */
+    id: 'stm',
+    rotulo: 'STM — Superior Tribunal Militar',
+    orgao: 'Superior Tribunal Militar',
+    url: 'https://www.stm.jus.br',
+    status: 'bloqueada',
+    tipo: 'jurisprudencia',
+    motivo:
+      'WAF F5 devolve HTTP 200 com 246 bytes de "Request Rejected" (support ID) em todo o domínio para o IP deste pod (34.193.171.91 / AWS). Não é User-Agent: barra também no navegador real. Abre normalmente de uma rede comum — mantido como link de consulta humana.',
+    substituto: ['stf', 'stj', 'cnj'],
     mudou: false,
   },
   {
@@ -265,17 +287,26 @@ export const FONTES_VIGIADAS: FonteVigiada[] = [
   },
 ]
 
-export const CONTAGEM: Record<string, number> = {
-  ativa: 8,
-  bloqueada: 2,
-  nao_usar: 2,
-  sem_rota: 4,
-}
+/*
+ * CONTAGENS DERIVADAS DA LISTA — nunca escritas à mão.
+ *
+ * Antes eram números fixos (ativa: 8, bloqueada: 2, ...) e ficaram errados
+ * quando o STM entrou: a lista passou a ter 17 fontes e o cartão continuava
+ * dizendo 16. Número escrito à mão envelhece em silêncio; derivado da fonte,
+ * não tem como divergir. A auditoria de 03/11/2026 tropeçou exatamente nisso.
+ */
+export const CONTAGEM: Record<string, number> = FONTES_VIGIADAS.reduce(
+  (acc, f) => {
+    acc[f.status] = (acc[f.status] || 0) + 1
+    return acc
+  },
+  {} as Record<string, number>,
+)
 
 export const TOTAL_FONTES = FONTES_VIGIADAS.length
-export const TOTAL_ATIVAS = 8
-export const TOTAL_FALHANDO = 8
-export const TOTAL_FALTANDO_FONTES = 6
+export const TOTAL_ATIVAS = CONTAGEM.ativa || 0
+export const TOTAL_FALHANDO = TOTAL_FONTES - TOTAL_ATIVAS
+export const TOTAL_FALTANDO_FONTES = CONTAGEM.sem_rota || 0
 export const FONTES_COM_MUDANCA = FONTES_VIGIADAS.filter((f) => f.mudou)
 export const HOUVE_MUDANCA = FONTES_COM_MUDANCA.length > 0
 
@@ -299,13 +330,23 @@ export const ALERTAS: AlertaFonte[] = [
   },
   {
     fonte: 'presidencia',
-    rotulo: 'Presidência — legislação (bloqueada por WAF)',
+    rotulo: 'Presidência — legislação (SEI fora do ar)',
     tipo: 'indisponivel',
     gravidade: 'baixa',
     descricao:
-      'Bloqueada por WAF da Presidência — cobertura mantida ativa por normas.leg.br e DOU.',
+      'Medido em 03/11/2026: devolve 409 bytes com "SEI indisponível temporariamente" — não é bloqueio, o sistema está fora. Cobertura mantida por normas.leg.br e DOU. Reavaliar quando voltar.',
     revisar: ['Seções 6A-6F — regimes', 'Seção 2 — Regra-matriz'],
     substitutoAtivo: 'normas.leg.br + DOU',
+  },
+  {
+    fonte: 'stm',
+    rotulo: 'STM (WAF bloqueia o IP do pod)',
+    tipo: 'indisponivel',
+    gravidade: 'baixa',
+    descricao:
+      'Medido em 03/11/2026: HTTP 200 com 246 bytes de "Request Rejected" (WAF F5) em TODO o domínio — portal, jurisprudência e notícias — inclusive no navegador real. Abre de rede comum; mantido para consulta humana. Cobertura de jurisprudência por STF, STJ e CNJ.',
+    revisar: ['Seção 30 — Acervo Jurídico', 'Seção 15 — Assistentes'],
+    substitutoAtivo: 'STF + STJ + CNJ',
   },
   {
     fonte: 'calculadorartc',
