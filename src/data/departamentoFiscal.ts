@@ -332,6 +332,11 @@ export interface CoberturaSefaz {
   via?: string
   /** true quando a rota é um portal de legislação com busca (vale mais que a home) */
   busca?: boolean
+  /**
+   * Endereço oficial conhecido que NÃO foi possível abrir daqui. Serve para o
+   * usuário clicar — e não conta como cobertura, porque não é caminho medido.
+   */
+  rotaOficial?: string
 }
 
 export const COBERTURA_SEFAZ: CoberturaSefaz[] = [
@@ -408,8 +413,12 @@ export const COBERTURA_SEFAZ: CoberturaSefaz[] = [
     uf: 'TO',
     host: 'www.sefaz.to.gov.br',
     responde: false,
-    rota: 'https://dtri.sefaz.to.gov.br/legislacao/ntributaria/Leis/table_leis.htm',
-    via: 'DTRI/SEFAZ-TO — a página de leis do ICMS existe e é a fonte oficial, mas não responde deste servidor (nem em HTTP). O link fica para o usuário.',
+    /* SEM `rota` DE PROPÓSITO: a página de leis do ICMS (DTRI/SEFAZ-TO) foi
+       localizada e é a fonte oficial, mas NÃO responde deste servidor — nem em
+       HTTPS, nem em HTTP. Marcar como "via gov" daria a impressão de caminho
+       aberto que não existe. `rotaOficial` guarda o endereço para o usuário
+       clicar, sem contar como cobertura. */
+    rotaOficial: 'https://dtri.sefaz.to.gov.br/legislacao/ntributaria/Leis/table_leis.htm',
   },
 ]
 

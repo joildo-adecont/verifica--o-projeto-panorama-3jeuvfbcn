@@ -395,6 +395,20 @@ export function SectionDepartamentoFiscal() {
                               <ArrowRight className="h-2.5 w-2.5" />
                               {cobertura.busca ? 'legislação' : 'via gov'}
                             </a>
+                          ) : cobertura.rotaOficial ? (
+                            /* Tem endereço oficial, mas NÃO foi possível abrir daqui.
+                               O rótulo diz isso: "oficial" e não "via gov", que
+                               sugeriria caminho aberto. */
+                            <a
+                              href={cobertura.rotaOficial}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 rounded bg-rose-50 px-1.5 py-0.5 text-[9.5px] font-bold text-rose-700 ring-1 ring-rose-200"
+                              title="Endereço oficial da legislação do ICMS. Não respondeu deste servidor (nem em HTTP) — no seu computador abre normalmente. Não conta como cobertura medida."
+                            >
+                              <AlertTriangle className="h-2.5 w-2.5" />
+                              oficial*
+                            </a>
                           ) : (
                             <span
                               className="inline-flex items-center gap-1 rounded bg-rose-50 px-1.5 py-0.5 text-[9.5px] font-bold text-rose-700 ring-1 ring-rose-200"
