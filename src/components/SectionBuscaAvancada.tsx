@@ -53,10 +53,10 @@ import {
 import { downloadOfficialDocViaProxy } from '@/services/panorama'
 import {
   buscarJurisprudencias,
-  type BuscaJurisResultado,
+  buscarPorDispositivo,
   type JurisResultado,
-} from '@/services/buscaJurisprudencias'
-import { OPCOES_TABELAS_CLASSIFICACOES } from '@/components/ModalBaseClassificacoes'
+  type BuscaJurisResultado,
+} from '@/services/buscaJurisprudencias'import { OPCOES_TABELAS_CLASSIFICACOES } from '@/components/ModalBaseClassificacoes'
 import { ModalBuscaAvancada } from '@/components/ModalBuscaAvancada'
 import { GraficosBusca } from '@/components/GraficosBusca'
 import { ConsultaCompletaAnexos } from '@/components/ConsultaCompletaAnexos'
@@ -163,11 +163,20 @@ const REDUCOES_ALIQUOTA_OPCOES = [
   { id: '-100%', label: 'Desoneração Total (100%)', badge: 'Imunidade' },
 ]
 
-function extrairParametrosUrl(): { termo: string; segmento: string | null } {
-  if (typeof window === 'undefined') return { termo: 'cigarro', segmento: null }
+function extrairParametrosUrl(): {
+  termo: string
+  segmento: string | null
+  /** dispositivo vindo de "Abrir na Busca Avançada" (ex.: juris=156&norma=CTN) */
+  jurisArtigo: string | null
+  jurisNorma: string | null
+} {
+  if (typeof window === 'undefined')
+    return { termo: 'cigarro', segmento: null, jurisArtigo: null, jurisNorma: null }
   try {
     let q: string | null = null
     let seg: string | null = null
+    let jurisArtigo: string | null = null
+    let jurisNorma: string | null = null
 
     // 1. Tenta query param no search
     const urlParams = new URLSearchParams(window.location.search)
@@ -181,16 +190,22 @@ function extrairParametrosUrl(): { termo: string; segmento: string | null } {
       const hashParams = new URLSearchParams(hashQuery)
       if (!q) q = hashParams.get('q') || hashParams.get('busca') || hashParams.get('termo')
       if (!seg) seg = hashParams.get('segmento') || hashParams.get('seg')
+      jurisArtigo = hashParams.get('juris')
+      jurisNorma = hashParams.get('norma')
     }
+    if (!jurisArtigo) jurisArtigo = urlParams.get('juris')
+    if (!jurisNorma) jurisNorma = urlParams.get('norma')
 
     return {
       termo: q && q.trim() ? q.trim() : 'cigarro',
       segmento: seg && seg.trim() ? seg.trim().toLowerCase() : null,
+      jurisArtigo: jurisArtigo && jurisArtigo.trim() ? jurisArtigo.trim() : null,
+      jurisNorma: jurisNorma && jurisNorma.trim() ? jurisNorma.trim() : null,
     }
   } catch {
     /* intentionally ignored */
   }
-  return { termo: 'cigarro', segmento: null }
+  return { termo: 'cigarro', segmento: null, jurisArtigo: null, jurisNorma: null }
 }
 
 const OPCOES_SEGMENTO_FILTRO: { id: string; label: string; badge: string; cor: string }[] = [
@@ -341,8 +356,56 @@ export function SectionBuscaAvancada({ segmentoInicial }: SectionBuscaAvancadaPr
   const [jurisIncluirEscritorio, setJurisIncluirEscritorio] = useState(true)
   const [jurisIncluirOficial, setJurisIncluirOficial] = useState(true)
 
+  /* Dispositivo vindo de "Abrir na Busca Avançada" (Seção 30 → aqui).
+     Quando presente, a aba já abre filtrada e o rótulo do dispositivo aparece
+     no topo — o usuário vê de imediato o que está filtrando, e pode limpar. */
+  const [jurisDispositivo, setJurisDispositivo] = useState<{
+    norma: string
+    artigo: string
+    nome: string
+  } | null>(null)
+
+  useEffect(() => {
+    const p = extrairParametrosUrl()
+    if (!p.jurisArtigo || !p.jurisNorma) return
+    setAbaAtiva('jurisprudencias')
+    setJurisTermoLocal('')
+    setJurisTribunais([])
+    setJurisMaterias([])
+    setJurisDispositivo({ norma: p.jurisNorma, artigo: p.jurisArtigo, nome: p.jurisNorma })
+    setJurisCarregando(true)
+    buscarPorDispositivo(p.jurisNorma, p.jurisArtigo)
+      .then((r) => {
+        setJurisDispositivo({ norma: r.norma, artigo: r.artigo, nome: r.normaNome })
+        setJuris(r)
+      })
+      .catch(() => setJuris(null))
+      .finally(() => setJurisCarregando(false))
+    // roda uma vez, na montagem da seção
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  /** reaplica o filtro de tribunal quando o usuário mexe nos chips */
+  const recarregarDispositivo = (tribs: string[]) => {
+    if (!jurisDispositivo) return
+    setJurisCarregando(true)
+    buscarPorDispositivo(jurisDispositivo.norma, jurisDispositivo.artigo, { tribunais: tribs })
+      .then((r) => setJuris(r))
+      .catch(() => setJuris(null))
+      .finally(() => setJurisCarregando(false))
+  }
+
   useEffect(() => {
     let ativo = true
+
+    /* Se há dispositivo ativo, este efeito cuida só do filtro de tribunal.
+       O termo livre é outra dimensão: misturar os dois faria "156 do CTN" e
+       "penhora" competirem pelo mesmo resultado. */
+    if (jurisDispositivo) {
+      recarregarDispositivo(jurisTribunais)
+      return
+    }
+
     const termoJuris = (jurisTermoLocal || termo || '').trim()
     // Evita baixar 1 MB de verbete a cada tecla: só busca com termo ou filtro.
     if (!termoJuris && jurisTribunais.length === 0 && jurisMaterias.length === 0) {
@@ -2473,12 +2536,29 @@ export function SectionBuscaAvancada({ segmentoInicial }: SectionBuscaAvancadaPr
       {(abaAtiva === 'tudo' || abaAtiva === 'jurisprudencias') && (
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Gavel className="w-4 h-4 text-rose-600" />
               <h3 className="text-base font-bold text-slate-900">Jurisprudências</h3>
               <span className="rounded bg-rose-50 px-1.5 py-0.5 text-[10px] font-bold text-rose-700 ring-1 ring-rose-200">
                 {juris ? juris.total.toLocaleString('pt-BR') : '0'} encontradas
               </span>
+              {jurisDispositivo && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-panorama-navy px-2 py-0.5 text-[10px] font-bold text-panorama-gold-light">
+                  art. {jurisDispositivo.artigo} · {jurisDispositivo.nome}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setJurisDispositivo(null)
+                      setJuris(null)
+                      setJurisTribunais([])
+                    }}
+                    className="ml-0.5 rounded-full px-1 hover:bg-white/20"
+                    title="Remover o filtro de dispositivo"
+                  >
+                    <X className="h-2.5 w-2.5" />
+                  </button>
+                </span>
+              )}
             </div>
             {juris && (
               <span className="text-[11px] text-slate-500">

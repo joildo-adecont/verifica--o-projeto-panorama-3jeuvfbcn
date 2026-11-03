@@ -10,6 +10,7 @@ import {
   Hash,
   Info,
   Send,
+  ExternalLink,
 } from 'lucide-react'
 import type { Jurisprudencia } from '@/services/jurisprudencias'
 import { verbeteParaJurisprudencia, grupoParaTribunal } from '@/lib/verbeteParaJurisprudencia'
@@ -42,8 +43,37 @@ import { verbeteParaJurisprudencia, grupoParaTribunal } from '@/lib/verbeteParaJ
 
 interface Indice {
   normas: Record<string, string>
-  artigos: Record<string, Record<string, number[]>>
+  /**
+   * Grupo 0 (STF) traz CHAVE de verbete ("SV1", "S629"), não número: súmula
+   * vinculante e simples têm numeração independente. Os demais grupos trazem
+   * o número. Resolver sempre por esta chave — comparar com `x.n` numérico
+   * fazia 92 verbetes do STF aparecerem como "texto não carregado".
+   */
+  artigos: Record<string, Record<string, Array<number | string>>>
   origem: Record<string, string>
+}
+
+/** Como um item do índice deve ser procurado no verbete. */
+function acharVerbete(
+  lista: any[] | undefined,
+  chaveOuNumero: number | string,
+  grupoId: string,
+): any | undefined {
+  const bruto = String(chaveOuNumero)
+  if (grupoId === '0') {
+    // STF: casa pela chave k; se não houver, cai para o número (arquivos antigos)
+    const porK = (lista || []).find((x) => String(x.k) === bruto)
+    if (porK) return porK
+    const m = bruto.match(/^S?V?(\d+)$/)
+    const num = m ? parseInt(m[1], 10) : NaN
+    if (!isNaN(num)) {
+      const vinc = bruto.indexOf('SV') === 0
+      return (lista || []).find((x) => x.n === num && (vinc ? x.v === 1 : x.v !== 1))
+    }
+    return undefined
+  }
+  const num = typeof chaveOuNumero === 'number' ? chaveOuNumero : parseInt(bruto, 10)
+  return (lista || []).find((x) => x.n === num)
 }
 
 const GRUPOS = [
@@ -72,6 +102,23 @@ export function BuscaPorArtigo({
   verbetes: Record<string, any[]>
   onUsarTese?: (dados: Partial<Jurisprudencia>) => void
 }) {
+  /**
+   * "Abrir na Busca Avançada" (03/11/2026): leva o dispositivo escolhido para
+   * a aba de jurisprudências da Busca Avançada.
+   *
+   * ── POR QUE VAI PELA URL, E NÃO POR ESTADO ──
+   * As duas telas são seções irmãs do roteador (Seção 30 e Busca Avançada) sem
+   * pai comum que carregue estado. Passar por querystring no hash resolve sem
+   * contexto global e ainda dá o bônus de o link ficar compartilhável: colar
+   * "#busca-avancada?juris=156&norma=CTN" no navegador reproduz a consulta.
+   */
+  const abrirNaBuscaAvancada = (chaveNorma: string, numArtigo: string) => {
+    if (!chaveNorma || !numArtigo) return false
+    window.location.hash = `#busca-avancada?juris=${encodeURIComponent(numArtigo)}&norma=${encodeURIComponent(chaveNorma)}`
+    return true
+  }
+
+  const rotuloNorma = (chave: string) => (indice?.normas[chave] || chave).replace(/\s*\(.*\)$/, '')
   const [indice, setIndice] = useState<Indice | null>(null)
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState('')
@@ -290,6 +337,26 @@ export function BuscaPorArtigo({
         </div>
       )}
 
+      {/* atalho para a Busca Avançada: só quando há dispositivo escolhido */}
+      {chaveAtiva && artigoAtivo && (
+        <div className="flex flex-wrap items-center gap-2 rounded-lg border border-panorama-gold/50 bg-amber-50/50 p-2.5">
+          <p className="min-w-0 flex-1 text-[11px] leading-snug text-slate-700">
+            Quer buscar por <b>palavra-chave</b> ou <b>tribunal</b> dentro deste dispositivo?
+          </p>
+          <button
+            type="button"
+            onClick={() => abrirNaBuscaAvancada(chaveAtiva, artigoAtivo)}
+            className="inline-flex min-h-[32px] items-center gap-1.5 rounded-lg border border-panorama-navy bg-panorama-navy px-2.5 text-[11px] font-bold text-white hover:bg-slate-900"
+          >
+            <ExternalLink className="h-3 w-3 text-panorama-gold" />
+            Abrir na Busca Avançada
+            <span className="rounded bg-white/15 px-1 text-[9.5px]">
+              art. {artigoAtivo} {rotuloNorma(chaveAtiva)}
+            </span>
+          </button>
+        </div>
+      )}
+
       {/* resultado */}
       {resultado && resultado.vazio && chaveAtiva && artigoAtivo && (
         <div className="rounded-lg bg-slate-100 p-2.5 text-[11.5px] text-slate-600">
@@ -324,7 +391,7 @@ export function BuscaPorArtigo({
                 </div>
                 <div className="divide-y divide-slate-100">
                   {nums.map((n) => {
-                    const v = (verbetes[g.id] || []).find((x: any) => x.n === n)
+                    const v = acharVerbete(verbetes[g.id], n, g.id)
                     return (
                       <div key={`${g.id}-${n}`} className="px-2.5 py-2">
                         <div className="flex flex-wrap items-center gap-1.5">
