@@ -267,19 +267,48 @@ a[href]::after { content: none !important; }
   const artigosDaNorma = useMemo(() => {
     if (!indice || !chaveAtiva) return [] as number[]
     const nums = new Set<number>()
+    // considera o alias: CTN e LEI5172 são a MESMA norma no índice
+    const aceitas = [chaveAtiva].concat(ALIAS_NORMA[chaveAtiva] || [])
     for (const k of Object.keys(indice.artigos)) {
-      if (k.startsWith(`${chaveAtiva}|`)) nums.add(parseInt(k.split('|')[1], 10))
+      const partes = k.split('|')
+      if (aceitas.indexOf(partes[0]) >= 0) nums.add(parseInt(partes[1], 10))
     }
     return Array.from(nums).sort((a, b) => a - b)
-  }, [indice, chaveAtiva])
+  }, [indice, chaveAtiva, ALIAS_NORMA])
+
+  /**
+   * ALIAS DE NORMA — a mesma correção que existe em buscaJurisprudencias.
+   *
+   * O índice veio de fontes diferentes: o STJ nomeia o Código Tributário pelo
+   * número da lei ("LEI5172"), enquanto a tela e o usuário falam "CTN". Sem
+   * este mapa, "art. 173 do CTN" devolvia ZERO — e zero, num acervo jurídico,
+   * se lê como "não existe jurisprudência sobre isso", que é mentira.
+   *
+   * Se um dia entrar outra norma com dois nomes, é AQUI e no serviço — manter
+   * os dois em sincronia, senão a tela e a Busca Avançada divergem.
+   */
+  const ALIAS_NORMA: Record<string, string[]> = useMemo(
+    () => ({
+      CTN: ['CTN', 'LEI5172'],
+      LEF: ['LEF', 'LEI6830'],
+      LIC: ['LIC', 'LEI14133'],
+      LIA: ['LIA', 'LEI8429'],
+      LRF: ['LRF', 'LEI11101'],
+      MS: ['MS', 'LEI12016'],
+    }),
+    [],
+  )
 
   const resultado = useMemo(() => {
     if (!indice || !chaveAtiva || !artigoAtivo) return null
-    const k = `${chaveAtiva}|${parseInt(artigoAtivo, 10)}`
-    const grupos = indice.artigos[k]
-    if (!grupos) return { vazio: true as const }
-    return { vazio: false as const, grupos }
-  }, [indice, chaveAtiva, artigoAtivo])
+    const num = parseInt(artigoAtivo, 10)
+    const candidatas = [chaveAtiva].concat(ALIAS_NORMA[chaveAtiva] || [])
+    for (let c = 0; c < candidatas.length; c++) {
+      const grupos = indice.artigos[`${candidatas[c]}|${num}`]
+      if (grupos) return { vazio: false as const, grupos, chave: candidatas[c] }
+    }
+    return { vazio: true as const }
+  }, [indice, chaveAtiva, artigoAtivo, ALIAS_NORMA])
 
   /**
    * Quantos verbetes o dispositivo tem, somando os grupos — usado no botão de
