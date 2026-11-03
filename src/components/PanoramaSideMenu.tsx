@@ -263,9 +263,14 @@ export function PanoramaSideMenu({
                                 : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700'
                         }`}
                       >
-                        <div className="flex items-center gap-2 min-w-0">
+                        {/* gap-1.5 e p-1 (era gap-2 e p-1.5): com o rótulo de
+                            "Recursos Humanos" o texto pedia 111px e recebia 105px,
+                            e o menu mostrava "Recursos Humana" — cortado, com
+                            reticências. Os 6px liberados aqui devolvem o nome
+                            inteiro sem mexer no tamanho da fonte. */}
+                        <div className="flex items-center gap-1.5 min-w-0">
                           <span
-                            className={`p-1.5 rounded-lg border text-xs shrink-0 ${
+                            className={`p-1 rounded-lg border text-xs shrink-0 ${
                               ativo
                                 ? 'bg-white/10 border-white/20 text-amber-300'
                                 : `${item.bg} ${item.borda} ${item.cor}`
