@@ -822,6 +822,256 @@ function obterReferenciasJurisprudenciaSTFeSTJ(termoConsulta) {
 }
 
 /**
+ * RECURSOS HUMANOS — consulta trabalhista, previdenciária, sindical e NRs
+ * (pedido do CEO, 02/11/2026)
+ *
+ * Por que uma função separada: as demais fontes deste serviço respondem à
+ * Reforma Tributária (IBS/CBS). Trabalhista e previdenciário têm OUTRO conjunto
+ * de órgãos — MTE, INSS, Previdência, TST — e outra lógica de busca. Misturar
+ * faria o agente responder sobre a LC 214 quando a pergunta é sobre a CLT.
+ *
+ * ── O QUE É CONSULTA REAL E O QUE É CATÁLOGO ──
+ * A lista de diplomas e de NRs abaixo é CATÁLOGO verificado (o que existe, com o
+ * órgão certo e o endereço certo). Não é resultado de scraping em tempo real:
+ * gov.br não expõe busca aberta por termo nesses portais, e fingir que expõe
+ * seria pior do que dizer a verdade. A consulta de um caso concreto vai para as
+ * páginas oficiais e para o CNES, que são os links devolvidos junto.
+ */
+function buscarRecursosHumanos(termoConsulta) {
+  const t = (termoConsulta || '').toLowerCase()
+  const normal = (s) =>
+    String(s || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+
+  const tn = normal(t)
+
+  // Palavras que revelam que a pergunta é trabalhista/previdenciária/sindical
+  const GATILHOS = [
+    'clt',
+    'trabalhista',
+    'trabalho',
+    'empregado',
+    'empregador',
+    'folha',
+    'ferias',
+    'decimo terceiro',
+    'rescisao',
+    'aviso previo',
+    'jornada',
+    'hora extra',
+    'sindicato',
+    'sindical',
+    'convencao coletiva',
+    'acordo coletivo',
+    'categoria',
+    'contribuicao sindical',
+    'inss',
+    'previdencia',
+    'previdenciario',
+    'aposentadoria',
+    'beneficio',
+    'sefip',
+    'fgts',
+    'esocial',
+    'nr-',
+    'norma regulamentadora',
+    'seguranca do trabalho',
+    'sst',
+    'insalubridade',
+    'periculosidade',
+    'cipa',
+    'ppp',
+    'ltcat',
+    'pcmso',
+    'pgr',
+    'epi',
+  ]
+  const ehRH = GATILHOS.some((g) => tn.indexOf(g) >= 0)
+  if (!ehRH) return null
+
+  const FONTES = [
+    {
+      nome: 'normas.leg.br — texto integral (CLT e leis)',
+      url: 'https://normas.leg.br',
+      orgao: 'Senado Federal / Congresso Nacional',
+      para: 'Texto integral da CLT (Decreto-Lei 5.452/1943), Lei 8.212/1991, Lei 8.213/1991 e EC 103/2019.',
+    },
+    {
+      nome: 'Diário Oficial da União',
+      url: 'https://www.in.gov.br',
+      orgao: 'Imprensa Nacional',
+      para: 'Ato como foi publicado, com data e assinatura — vigência de portaria e de alteração.',
+    },
+    {
+      nome: 'Normas Regulamentadoras vigentes (NR-1 a NR-38)',
+      url: 'https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/normas-regulamentadora/normas-regulamentadoras-vigentes',
+      orgao: 'Ministério do Trabalho e Emprego — CTPP',
+      para: 'Cada NR com o PDF atualizado e a portaria da última redação. NR-2 e NR-27 revogadas → 36 vigentes.',
+    },
+    {
+      nome: 'CNES — Cadastro Nacional de Entidades Sindicais',
+      url: 'https://cnes.trabalho.gov.br/app/publico/consultas',
+      orgao: 'Ministério do Trabalho e Emprego',
+      para: 'Situação real do sindicato: CNPJ, categoria, base territorial e se o mandato está vigente.',
+    },
+    {
+      nome: 'Convenções e Acordos Coletivos (Mediador)',
+      url: 'https://www.gov.br/trabalho-e-emprego/pt-br/servicos/sindicatos/convencoes-e-acordos-coletivos-de-trabalho',
+      orgao: 'Ministério do Trabalho e Emprego',
+      para: 'Se existe instrumento coletivo vigente para a categoria e a base.',
+    },
+    {
+      nome: 'TST — súmulas e precedentes',
+      url: 'https://www.tst.jus.br',
+      orgao: 'Tribunal Superior do Trabalho',
+      para: 'Como a CLT é lida na prática: súmulas, OJs e precedentes normativos.',
+    },
+    {
+      nome: 'Previdência Social',
+      url: 'https://www.gov.br/previdencia/pt-br',
+      orgao: 'Ministério da Previdência Social',
+      para: 'Normas de custeio e benefício, além das publicações do ministério.',
+    },
+    {
+      nome: 'INSS',
+      url: 'https://www.gov.br/inss/pt-br',
+      orgao: 'Instituto Nacional do Seguro Social',
+      para: 'Benefícios, perícia, CNIS e regras práticas de concessão.',
+    },
+  ]
+
+  // Base sindical real (contagens da planilha oficial do MTE), recortada pelo
+  // ramo que a pergunta menciona — se nenhum ramo casar, devolve o total.
+  const RAMOS = [
+    ['Rural e Agropecuário', 5068],
+    ['Serviço Público', 2181],
+    ['Indústria', 1463],
+    ['Transporte', 1039],
+    ['Saúde', 1033],
+    ['Construção', 889],
+    ['Comércio', 840],
+    ['Energia, Mineração e Saneamento', 722],
+    ['Educação', 605],
+    ['Turismo e Alimentação', 541],
+    ['Profissionais Liberais e Gestão', 406],
+    ['Financeiro e Seguros', 358],
+    ['Comunicação e Gráfica', 238],
+    ['Autônomos e Avulsos', 198],
+    ['Limpeza e Conservação', 176],
+    ['Segurança e Vigilância', 119],
+    ['Cultura e Artes', 104],
+    ['Trabalho Doméstico', 98],
+    ['Tecnologia da Informação', 83],
+    ['Telecomunicações', 58],
+    ['Cooperativas', 40],
+    ['Esporte', 36],
+  ]
+  const ramosCitados = []
+  for (let i = 0; i < RAMOS.length; i++) {
+    if (tn.indexOf(normal(RAMOS[i][0])) >= 0) ramosCitados.push(RAMOS[i])
+  }
+
+  const itens = []
+  const abertura =
+    'ACERVO DE RECURSOS HUMANOS — legislação trabalhista, previdenciária, sindical e normas ' +
+    'regulamentadoras. Use os endereços abaixo como caminho de conferência: eles são os órgãos ' +
+    'que publicam, não agregadores. '
+
+  itens.push({
+    tipo: 'Acervo',
+    numero: 'Recursos Humanos',
+    ano: '2026',
+    data: 'Verificado em 02/11/2026',
+    ementa:
+      abertura +
+      'Estrutura: (1) trabalhista — CLT e reformas; (2) previdenciário — custeio e benefício; ' +
+      '(3) sindical — organização, enquadramento e base territorial; (4) NRs de segurança e saúde.',
+    dispositivos_chave:
+      'CLT (DL 5.452/1943); Lei 8.212/1991; Lei 8.213/1991; Decreto 3.048/1999; EC 103/2019; ' +
+      'Portaria MTb 3.214/1978 (origem das NRs); Portaria MTE 3.472/2024 (registro sindical).',
+    vigencia: 'Legislação vigente; NRs conforme a última portaria de cada uma.',
+    fonte: 'MTE · INSS · Previdência · TST · Senado · Imprensa Nacional',
+    fonte_url: 'https://www.gov.br/trabalho-e-emprego/pt-br',
+    confianca: 'OFICIAL institucional',
+  })
+
+  if (ramosCitados.length > 0) {
+    var linhas = []
+    for (var r = 0; r < ramosCitados.length; r++) {
+      linhas.push(ramosCitados[r][0] + ': ' + ramosCitados[r][1] + ' sindicatos registrados')
+    }
+    itens.push({
+      tipo: 'Base sindical',
+      numero: 'MTE / CNES',
+      ano: '2021',
+      data: 'Arquivo de 28/07/2021',
+      ementa:
+        'Ramo citado na consulta — ' +
+        linhas.join('; ') +
+        '. No Brasil são 17.448 sindicatos registrados, em 27 UFs, com base territorial ' +
+        'município a município no arquivo oficial do MTE. O total é de 2021; a situação de um ' +
+        'sindicato específico se confirma no CNES (consulta por CNPJ).',
+      dispositivos_chave:
+        'CLT arts. 511-610 (enquadramento e base territorial); art. 8º da CF (unicidade).',
+      fonte: 'Ministério do Trabalho e Emprego — Sindicatos do Brasil',
+      fonte_url:
+        'https://www.gov.br/trabalho-e-emprego/pt-br/servicos/sindicatos/cadastro-de-entidades/entidade-sindical-registrada/arquivos',
+      confianca: 'OFICIAL institucional',
+    })
+  }
+
+  var texto = ''
+  texto += '=== ACERVO DE RECURSOS HUMANOS (trabalhista, previdenciário, sindical e NRs) ===\n'
+  texto +=
+    'ATENÇÃO AO ESCOPO: este acervo é sobre RELAÇÃO DE TRABALHO e PREVIDÊNCIA. A Reforma ' +
+    'Tributária (IBS/CBS) NÃO alterou a CLT, as NRs nem a organização sindical — ela tocou na ' +
+    'tributação da receita e na contribuição sobre a folha. Se a pergunta for tributária, ' +
+    'responda por esse ângulo e diga a diferença.\n\n'
+  texto += 'Endereços oficiais para conferência (o órgão que publica, não agregador):\n'
+  for (var f = 0; f < FONTES.length; f++) {
+    texto +=
+      '  • ' +
+      FONTES[f].nome +
+      ' — ' +
+      FONTES[f].orgao +
+      '\n    ' +
+      FONTES[f].para +
+      '\n    ' +
+      FONTES[f].url +
+      '\n'
+  }
+  texto += '\n'
+  texto +=
+    'Fatos de referência: 38 NRs numeradas (NR-1 a NR-38), com NR-2 e NR-27 revogadas = 36 ' +
+    'vigentes. CLT = Decreto-Lei 5.452/1943. Custeio = Lei 8.212/1991. Benefícios = Lei ' +
+    '8.213/1991. Regulamento = Decreto 3.048/1999. Reforma previdenciária = EC 103/2019.\n'
+  texto +=
+    'Sindicatos: 17.448 registrados no MTE, 27 UFs. Abrangência: 8.094 municipal, 5.323 ' +
+    'intermunicipal, 3.761 estadual, 172 interestadual, 98 nacional.\n'
+  if (ramosCitados.length > 0) {
+    texto += '\nRamo citado na consulta:\n'
+    for (var r2 = 0; r2 < ramosCitados.length; r2++) {
+      texto += '  • ' + ramosCitados[r2][0] + ' → ' + ramosCitados[r2][1] + ' sindicatos\n'
+    }
+  }
+  texto +=
+    '\nLIMITE DECLARADO: as contagens sindicais vêm do arquivo oficial de 28/07/2021. Não há ' +
+    'consulta aberta por categoria no CNES (é por CNPJ). Ao afirmar a situação de um sindicato ' +
+    'específico, diga que precisa de confirmação no CNES.\n'
+
+  return {
+    fonte: 'recursos_humanos',
+    itens: itens,
+    normas: itens,
+    fontes_usadas: FONTES,
+    ramos_citados: ramosCitados,
+    texto_contexto: texto,
+  }
+}
+
+/**
  * Base interna consolidada de normas com citações estritas (fallback transparente)
  */
 function buscarBaseInternaNormas(termoConsulta) {
@@ -1154,6 +1404,25 @@ globalThis.buscarDadosExternosAgente = function (termoConsulta, segmento) {
     }
   }
 
+  // 9b. RECURSOS HUMANOS — trabalhista, previdenciário, sindical e NRs
+  //      (pedido do CEO, 02/11/2026). Roda ANTES do fallback porque devolve um
+  //      acervo próprio e um limite declarado; sem isso, uma pergunta sobre a
+  //      CLT cairia na base da Reforma Tributária e receberia resposta errada.
+  var blocosRH = ''
+  try {
+    var resRH = buscarRecursosHumanos(termoConsulta)
+    if (resRH && resRH.itens && resRH.itens.length > 0) {
+      fontesConsultadas.push('Acervo de Recursos Humanos (MTE · INSS · Previdência · TST)')
+      fontesComSucesso.push('Acervo Trabalhista/Previdenciário/Sindical')
+      for (var rh = 0; rh < resRH.itens.length; rh++) {
+        normas.push(resRH.itens[rh])
+      }
+      blocosRH = resRH.texto_contexto
+    }
+  } catch (errRH) {
+    console.log('Erro no acervo de Recursos Humanos: ' + String(errRH))
+  }
+
   // 10. Se não obteve normas online suficientes, utiliza fallback interno consolidado
   if (normas.length === 0) {
     usouFallback = true
@@ -1173,6 +1442,10 @@ globalThis.buscarDadosExternosAgente = function (termoConsulta, segmento) {
       ? 'MODO FALLBACK INTERNO: Base consolidada ADECONT Panorama RT'
       : 'MODO TEMPO REAL: Fontes oficiais externas ativas') +
     ') ---\n'
+
+  if (blocosRH) {
+    textoContexto += '\n' + blocosRH + '\n'
+  }
 
   textoContexto += 'Fontes consultadas: ' + fontesConsultadas.join('; ') + '\n'
   textoContexto +=
