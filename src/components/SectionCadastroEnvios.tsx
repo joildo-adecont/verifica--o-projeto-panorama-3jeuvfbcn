@@ -234,6 +234,14 @@ export function SectionCadastroEnvios() {
   const [form, setForm] = useState<Record<string, string>>({})
   const [tributos, setTributos] = useState<string[]>([])
   const [salvando, setSalvando] = useState(false)
+  /**
+   * PERMISSÕES DO CLIENTE (migration 0107)
+   * Listas separadas de propósito: "o que NÃO pode" e "o que PODE além do
+   * padrão". Juntar as duas num emaranhado de booleanos tornaria o cadastro
+   * ilegível — e é o cadastro que o operador lê antes de decidir.
+   */
+  const [restricoes, setRestricoes] = useState<string[]>([])
+  const [liberacoes, setLiberacoes] = useState<string[]>([])
 
   // importação
   const [textoImport, setTextoImport] = useState('')
@@ -387,6 +395,20 @@ export function SectionCadastroEnvios() {
       telefone: form.telefone || '',
       carga_atual_pct: form.carga_atual_pct || '',
       tributos_atuais: tributos,
+      /*
+       * Permissões vão SEMPRE, inclusive vazias. Nas outras campos a regra é
+       * "só grava se vier preenchido", para importação parcial não apagar dado.
+       * Aqui seria um defeito grave: desmarcar uma proibição no formulário não
+       * a removeria do cadastro, e o cliente seguiria bloqueado sem ninguém
+       * entender por quê.
+       */
+      acesso_situacao: form.acesso_situacao || 'liberado',
+      acesso_nivel: form.acesso_nivel || 'N3_confirmacao',
+      acesso_restricoes: restricoes,
+      acesso_liberacoes: liberacoes,
+      acesso_validade_dias: form.acesso_validade_dias || '',
+      acesso_motivo: form.acesso_motivo || '',
+      acesso_autorizado_por: form.acesso_autorizado_por || '',
     }
     setSalvando(true)
     try {
@@ -1053,6 +1075,134 @@ export function SectionCadastroEnvios() {
                       )
                     })}
                   </div>
+                </div>
+
+                {/* ───────── BLOCO DE PERMISSÕES E PROIBIÇÕES ─────────
+                    Pedido do CEO (03/11/2026): as restrições de uso do cliente
+                    têm de morar no cadastro dele. Cada item marcado fecha um
+                    ponto real de acesso, verificado em simulador_envios.js —
+                    relatório por token, confirmação e envio. Não é decorativo. */}
+                <div className="rounded-xl border-2 border-slate-300 bg-white p-3">
+                  <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
+                    <p className="text-[11px] font-bold text-slate-900 flex items-center gap-1.5">
+                      <ShieldAlert className="w-3.5 h-3.5 text-slate-600" />
+                      Permissões e proibições de uso
+                    </p>
+                    <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[9px] font-bold text-slate-500">
+                      vale no acesso do cliente
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <label>
+                      <span className={rotulo}>Situação do acesso</span>
+                      <select
+                        value={form.acesso_situacao ?? 'liberado'}
+                        onChange={(e) => set('acesso_situacao', e.target.value)}
+                        className={campo}
+                      >
+                        <option value="liberado">Liberado</option>
+                        <option value="restrito">Restrito (com proibições)</option>
+                        <option value="bloqueado">Bloqueado (não acessa)</option>
+                      </select>
+                    </label>
+                    <label>
+                      <span className={rotulo}>Nível de acesso</span>
+                      <select
+                        value={form.acesso_nivel ?? 'N3_confirmacao'}
+                        onChange={(e) => set('acesso_nivel', e.target.value)}
+                        className={campo}
+                      >
+                        <option value="N1_consulta">N1 — só consulta</option>
+                        <option value="N2_relatorio">N2 — vê o relatório</option>
+                        <option value="N3_confirmacao">N3 — relatório + confirmação</option>
+                        <option value="N4_total">N4 — acesso total</option>
+                      </select>
+                    </label>
+                    <label>
+                      <span className={rotulo}>Validade (dias)</span>
+                      <input
+                        inputMode="numeric"
+                        value={form.acesso_validade_dias ?? ''}
+                        onChange={(e) => set('acesso_validade_dias', e.target.value)}
+                        className={campo}
+                        placeholder="vazio = sem prazo"
+                      />
+                    </label>
+                  </div>
+
+                  <p className={`${rotulo} mt-2.5`}>Proibições — o que este cliente NÃO pode</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {RESTRICOES.map((r) => {
+                      const on = restricoes.includes(r.id)
+                      return (
+                        <button
+                          key={r.id}
+                          type="button"
+                          title={r.desc}
+                          onClick={() =>
+                            setRestricoes((v) => (on ? v.filter((x) => x !== r.id) : [...v, r.id]))
+                          }
+                          className={`rounded-lg border px-2 py-1 text-[10.5px] font-bold cursor-pointer transition-colors ${
+                            on
+                              ? 'bg-rose-700 text-white border-rose-700'
+                              : 'bg-white text-slate-600 border-slate-300 hover:border-rose-400'
+                          }`}
+                        >
+                          {r.nome}
+                        </button>
+                      )
+                    })}
+                  </div>
+
+                  <p className={`${rotulo} mt-2.5`}>Liberações — exceções além do padrão</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {LIBERACOES.map((l) => {
+                      const on = liberacoes.includes(l.id)
+                      return (
+                        <button
+                          key={l.id}
+                          type="button"
+                          title={l.desc}
+                          onClick={() =>
+                            setLiberacoes((v) => (on ? v.filter((x) => x !== l.id) : [...v, l.id]))
+                          }
+                          className={`rounded-lg border px-2 py-1 text-[10.5px] font-bold cursor-pointer transition-colors ${
+                            on
+                              ? 'bg-emerald-700 text-white border-emerald-700'
+                              : 'bg-white text-slate-600 border-slate-300 hover:border-emerald-400'
+                          }`}
+                        >
+                          {l.nome}
+                        </button>
+                      )
+                    })}
+                  </div>
+
+                  <label className="block mt-2.5">
+                    <span className={rotulo}>Motivo da restrição / autorização</span>
+                    <textarea
+                      value={form.acesso_motivo ?? ''}
+                      onChange={(e) => set('acesso_motivo', e.target.value)}
+                      className={`${campo} min-h-[52px]`}
+                      placeholder="ex.: cliente pediu para não receber novos laudos (e-mail de 02/11)"
+                    />
+                  </label>
+                  <label className="block mt-1.5">
+                    <span className={rotulo}>Autorizado por</span>
+                    <input
+                      value={form.acesso_autorizado_por ?? ''}
+                      onChange={(e) => set('acesso_autorizado_por', e.target.value)}
+                      className={campo}
+                      placeholder="quem decidiu a restrição"
+                    />
+                  </label>
+
+                  <p className="text-[9.5px] text-amber-900 leading-snug mt-1.5">
+                    <b>Atenção:</b> &quot;Bloqueado&quot; fecha o acesso de verdade — o cliente
+                    recebe aviso de acesso suspenso ao abrir o laudo. As proibições fecham só o item
+                    marcado, e a <b>liberação explícita vence a proibição</b>.
+                  </p>
                 </div>
 
                 <div className="flex gap-2 items-center flex-wrap pt-1">
