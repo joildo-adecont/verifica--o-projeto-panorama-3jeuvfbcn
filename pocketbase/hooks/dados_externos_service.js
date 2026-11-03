@@ -1303,6 +1303,205 @@ var NOMES_UF_FISCAL = {
 }
 
 /**
+ * ACERVO JURÍDICO — Constituição, códigos e jurisprudência
+ * (pedido do CEO, 02/11/2026)
+ *
+ * Por que separado: as demais fontes deste serviço respondem à reforma
+ * tributária. Aqui a pergunta é de DIREITO — qual dispositivo da CF incide, qual
+ * emenda o alterou, qual tribunal já decidiu. Misturar faria o agente responder
+ * LC 214 quando a pergunta é sobre o art. 5º.
+ *
+ * A hierarquia é a espinha: a Constituição vincula tudo; STF decide a
+ * constitucionalidade; STJ uniformiza a lei federal; TST a CLT; TJs e TRFs
+ * decidem o caso concreto. Citar um TJ como se vinculasse o STJ é erro grave.
+ */
+function buscarAcervoJuridico(termoConsulta) {
+  const normal = (s) =>
+    String(s || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+  const tn = normal(termoConsulta)
+
+  const GATILHOS = [
+    'constituicao',
+    'constituição',
+    'emenda constitucional',
+    'cf/88',
+    'cf 88',
+    'artigo 5',
+    'codigo civil',
+    'código civil',
+    'cpc',
+    'processo civil',
+    'ctn',
+    'codigo tributario',
+    'código tributário',
+    'codigo penal',
+    'código penal',
+    'cpp',
+    'clt',
+    'cdc',
+    'consumidor',
+    'jurisprudencia',
+    'jurisprudência',
+    'sumula',
+    'súmula',
+    'precedente',
+    'acordao',
+    'acórdão',
+    'stf',
+    'stj',
+    'tst',
+    'tse',
+    'stm',
+    'trf',
+    'tribunal de justica',
+    'juridico',
+    'jurídico',
+    'direito',
+    'acao direta',
+    'ação direta',
+    'adi',
+    'adpf',
+    'recurso especial',
+    'repercussao geral',
+    'repercussão geral',
+    'repetitivo',
+  ]
+  const ehJuridico = GATILHOS.some((g) => tn.indexOf(g) >= 0)
+  if (!ehJuridico) return null
+
+  const TRIBUNAIS = [
+    ['STF', 'Supremo Tribunal Federal', 'https://portal.stf.jus.br/jurisprudencia/', true],
+    ['STJ', 'Superior Tribunal de Justiça', 'https://scon.stj.jus.br/SCON/', true],
+    ['TST', 'Tribunal Superior do Trabalho', 'https://www.tst.jus.br/jurisprudencia', true],
+    ['STM', 'Superior Tribunal Militar', 'https://www.stm.jus.br', true],
+    ['TSE', 'Tribunal Superior Eleitoral', 'https://www.tse.jus.br/jurisprudencia', false],
+    ['CNJ', 'Conselho Nacional de Justiça (DataJud)', 'https://www.cnj.jus.br', true],
+  ]
+
+  const CODIGOS = [
+    ['Código Civil', 'Lei 10.406/2002'],
+    ['Código de Processo Civil', 'Lei 13.105/2015'],
+    ['Código Tributário Nacional', 'Lei 5.172/1966'],
+    ['Código Penal', 'Decreto-Lei 2.848/1940'],
+    ['Código de Processo Penal', 'Decreto-Lei 3.689/1941'],
+    ['CLT', 'Decreto-Lei 5.452/1943'],
+    ['Código de Defesa do Consumidor', 'Lei 8.078/1990'],
+    ['Lei de Recuperação e Falência', 'Lei 11.101/2005'],
+    ['Lei de Execução Fiscal', 'Lei 6.830/1980'],
+    ['Lei de Licitações', 'Lei 14.133/2021'],
+    ['Lei de Improbidade', 'Lei 8.429/1992'],
+  ]
+
+  // código citado na pergunta
+  const codigosCitados = []
+  for (let i = 0; i < CODIGOS.length; i++) {
+    if (tn.indexOf(normal(CODIGOS[i][0])) >= 0) codigosCitados.push(CODIGOS[i])
+  }
+
+  const itens = []
+  itens.push({
+    tipo: 'Constituição',
+    numero: 'CF/1988',
+    ano: '1988',
+    data: 'Promulgada em 05/10/1988 · atualizada até a EC 141/2026 (16/10/2026)',
+    ementa:
+      'Constituição da República Federativa do Brasil, no topo da hierarquia. Passou por 141 emendas ' +
+      'constitucionais, que alteraram, incluíram e suprimiram dispositivos desde a promulgação. ' +
+      'As três últimas: EC 139 (05/05/2026, acumulação de cargo de professor), EC 140 e EC 141 ' +
+      '(16/10/2026 — agentes de saúde e jornada de 40 horas com dois dias de repouso). A EC 132/2023 ' +
+      'é a da Reforma Tributária (IBS, CBS e IS).',
+    dispositivos_chave:
+      'CF arts. 5º (direitos), 37 (administração), 145-162 (sistema tributário), 155 (ICMS), ' +
+      '156 (ISS), 195 (contribuições); ADCT arts. 124-136 (transição da reforma).',
+    vigencia: 'Vigente, com 141 emendas.',
+    fonte: 'Câmara dos Deputados (texto compilado) e DOU (promulgação de cada emenda)',
+    fonte_url:
+      'https://www2.camara.leg.br/atividade-legislativa/legislacao/Constituicoes_Brasileiras/constituicao-cidada/constituicao1988',
+    confianca: 'OFICIAL institucional',
+  })
+
+  if (codigosCitados.length > 0) {
+    var lc = []
+    for (var c = 0; c < codigosCitados.length; c++) {
+      lc.push(codigosCitados[c][0] + ' (' + codigosCitados[c][1] + ')')
+    }
+    itens.push({
+      tipo: 'Código',
+      numero: 'Código citado',
+      ano: '2026',
+      data: 'Vigente',
+      ementa: 'Código citado na consulta: ' + lc.join('; ') + '.',
+      dispositivos_chave: 'Texto integral em normas.leg.br; alterações no DOU.',
+      fonte: 'normas.leg.br / DOU',
+      fonte_url: 'https://normas.leg.br',
+      confianca: 'OFICIAL institucional',
+    })
+  }
+
+  var texto = '=== ACERVO JURÍDICO (Constituição · Códigos · Jurisprudência) ===\n'
+  texto += 'HIERARQUIA — use nesta ordem e diga ao usuário em que degrau está a resposta:\n'
+  texto +=
+    '  1. CONSTITUIÇÃO FEDERAL (1988, 141 emendas) — vincula todos. Nenhuma lei, decreto ou ' +
+    'decisão sobrevive a ela.\n'
+  texto +=
+    '  2. STF — guarda da Constituição. Súmula vinculante e repercussão geral VINCULAM os demais.\n'
+  texto +=
+    '  3. STJ — uniformiza a lei FEDERAL infraconstitucional (CTN, CPC, CC). Repetitivos vinculam.\n'
+  texto += '  4. TST / TSE / STM — CLT, matéria eleitoral e penal militar, respectivamente.\n'
+  texto +=
+    '  5. TRFs e TJs — segunda instância; decidem o caso concreto, NÃO vinculam os superiores.\n'
+  texto +=
+    'REGRA DE CITAÇÃO: nunca trate acórdão de TJ/TRF como se vinculasse o STJ ou o STF. Se a ' +
+    'resposta se apoia em lei, cite o artigo; se em jurisprudência, diga o tribunal e se é ' +
+    'vinculante (súmula vinculante, repetitivo, repercussão geral) ou apenas precedente.\n\n'
+  texto +=
+    'CONSTITUIÇÃO: 141 emendas. Últimas — EC 139 (05/05/2026), EC 140 e EC 141 (16/10/2026). ' +
+    'EC 132/2023 = Reforma Tributária.\n'
+  texto += 'Texto compilado: Câmara dos Deputados. Promulgação: DOU.\n\n'
+  texto += 'CÓDIGOS E SUAS NORMAS:\n'
+  for (var k = 0; k < CODIGOS.length; k++) {
+    texto += '  • ' + CODIGOS[k][0] + ' → ' + CODIGOS[k][1] + '\n'
+  }
+  texto += '\nTRIBUNAIS (disponibilidade medida em 02/11/2026):\n'
+  for (var t = 0; t < TRIBUNAIS.length; t++) {
+    texto +=
+      '  • ' +
+      TRIBUNAIS[t][0] +
+      ' — ' +
+      TRIBUNAIS[t][1] +
+      ' — ' +
+      (TRIBUNAIS[t][3]
+        ? 'abre'
+        : 'NÃO abriu deste servidor (403/bloqueio); o link vale para o usuário') +
+      '\n    ' +
+      TRIBUNAIS[t][2] +
+      '\n'
+  }
+  texto +=
+    '\nLIMITES DECLARADOS: (1) o PLANALTO devolve HTTP 200 com a página "Acesso Negado!" de 814 ' +
+    'bytes — é bloqueio por IP, não queda; não afirme ter lido o texto lá. (2) A CÂMARA não fecha ' +
+    'conexão deste servidor; o link é para o usuário. (3) A API DataJud do CNJ exige chave (401). ' +
+    '(4) TSE devolve 403. A jurisprudência citável deve vir de STF, STJ, TST ou STM, que responderam.\n'
+  if (codigosCitados.length > 0) {
+    texto += '\nCÓDIGO CITADO NA CONSULTA:\n'
+    for (var c2 = 0; c2 < codigosCitados.length; c2++) {
+      texto += '  • ' + codigosCitados[c2][0] + ' → ' + codigosCitados[c2][1] + '\n'
+    }
+  }
+
+  return {
+    fonte: 'acervo_juridico',
+    itens: itens,
+    normas: itens,
+    codigos_citados: codigosCitados,
+    texto_contexto: texto,
+  }
+}
+
+/**
  * Base interna consolidada de normas com citações estritas (fallback transparente)
  */
 function buscarBaseInternaNormas(termoConsulta) {
@@ -1673,6 +1872,24 @@ globalThis.buscarDadosExternosAgente = function (termoConsulta, segmento) {
     console.log('Erro no acervo do Departamento Fiscal: ' + String(errFiscal))
   }
 
+  // 9d. ACERVO JURÍDICO — Constituição, códigos e hierarquia dos tribunais
+  //      (pedido do CEO, 02/11/2026). Antes do fallback: pergunta de direito não
+  //      pode receber resposta da LC 214 como se fosse a mesma coisa.
+  var blocosJuridico = ''
+  try {
+    var resJuridico = buscarAcervoJuridico(termoConsulta)
+    if (resJuridico && resJuridico.itens && resJuridico.itens.length > 0) {
+      fontesConsultadas.push('Acervo Jurídico (CF · Códigos · STF · STJ · TST)')
+      fontesComSucesso.push('Acervo Jurídico e Jurisprudência')
+      for (var ji = 0; ji < resJuridico.itens.length; ji++) {
+        normas.push(resJuridico.itens[ji])
+      }
+      blocosJuridico = resJuridico.texto_contexto
+    }
+  } catch (errJuridico) {
+    console.log('Erro no acervo jurídico: ' + String(errJuridico))
+  }
+
   // 10. Se não obteve normas online suficientes, utiliza fallback interno consolidado
   if (normas.length === 0) {
     usouFallback = true
@@ -1699,6 +1916,10 @@ globalThis.buscarDadosExternosAgente = function (termoConsulta, segmento) {
 
   if (blocosFiscal) {
     textoContexto += '\n' + blocosFiscal + '\n'
+  }
+
+  if (blocosJuridico) {
+    textoContexto += '\n' + blocosJuridico + '\n'
   }
 
   textoContexto += 'Fontes consultadas: ' + fontesConsultadas.join('; ') + '\n'

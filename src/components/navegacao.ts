@@ -310,6 +310,50 @@ const SETORES_NOVOS: LinkNavegacao[] = [
     dominio: 'setores',
     setor: 'departamento-fiscal',
   },
+  /* ── ACERVO JURÍDICO (02/11/2026) ──
+   * Terceiro setor pedido pelo CEO, agora na Plataforma Jurídica. A Constituição
+   * no topo, os códigos por área e a jurisprudência dos tribunais, em hierarquia
+   * institucional. Tecla 'l' (de legal/acervo). Consome o Radar, não duplica. */
+  {
+    href: '#acervo-juridico',
+    label: 'Acervo Jurídico',
+    curto: 'Acervo',
+    tecla: 'l',
+    numero: '30',
+    /* Scale e não Gavel: Gavel não está no import de navegacao.ts, e usar um
+       símbolo não importado quebra o build inteiro (não é aviso — é erro). */
+    Icon: Scale,
+    cor: 'text-indigo-700',
+    bg: 'bg-indigo-50',
+    borda: 'border-indigo-300',
+    descricao: 'Constituição, códigos, jurisprudência e hierarquia dos tribunais',
+    tags: [
+      'acervo',
+      'juridico',
+      'jurídico',
+      'constituição',
+      'constituicao',
+      'cf',
+      'emenda constitucional',
+      'código',
+      'codigo',
+      'jurisprudência',
+      'jurisprudencia',
+      'stf',
+      'stj',
+      'tst',
+      'tribunal',
+      'súmula',
+      'sumula',
+      'cpc',
+      'ctn',
+      'clt',
+      'civil',
+      'penal',
+    ],
+    dominio: 'nucleo',
+    setor: 'acervo-juridico',
+  },
 ]
 
 /* ────────────────────────────── GRUPO 1 ────────────────────────────── */
@@ -1037,6 +1081,10 @@ const INDICADORES: LinkNavegacao[] = [
 
 /* ── três plataformas: micromenus ── */
 const SECOES_JURIDICA = [
+  /* Acervo Jurídico entra PRIMEIRO: é a porta de entrada de quem advoga — a
+     Constituição no topo, os códigos e a jurisprudência antes das seções de
+     conteúdo da reforma. */
+  '#acervo-juridico',
   '#secao-1',
   '#historico-revisoes',
   '#historico-exclusoes',
