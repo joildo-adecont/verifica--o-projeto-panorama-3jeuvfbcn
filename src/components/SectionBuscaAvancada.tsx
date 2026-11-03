@@ -32,6 +32,7 @@ import {
   Landmark,
 } from 'lucide-react'
 import { AdecontLogo } from '@/components/AdecontLogo'
+import { SeloNivelConfianca } from '@/components/SeloNivelConfianca'
 import {
   buscarAvancado,
   type AssuntoEspecialItem,
@@ -1198,11 +1199,15 @@ export function SectionBuscaAvancada() {
                   {/* Rodapé do Card: Selo Oficial do Planalto e Download Mediado */}
                   <div className="pt-3 border-t border-slate-200/80 space-y-2">
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-1.5 flex-wrap">
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10.5px] font-bold bg-emerald-100 text-emerald-900 border border-emerald-300">
                           <BadgeCheck className="w-3.5 h-3.5 text-emerald-600" />
                           {anexo.fonteOficial.selo}
                         </span>
+                        <SeloNivelConfianca
+                          fonte={anexo.fonteOficial.nome || anexo.fonteOficial.selo || 'Planalto'}
+                          compacto
+                        />
                         <a
                           href={anexo.fonteOficial.url}
                           target="_blank"
@@ -1396,16 +1401,18 @@ export function SectionBuscaAvancada() {
                       </span>
                       <div className="flex flex-wrap items-center gap-1.5">
                         {esp.fontesOficiais.map((fonte, idx) => (
-                          <a
-                            key={idx}
-                            href={fonte.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10.5px] font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 transition-colors"
-                          >
-                            <span>{fonte.orgao}</span>
-                            <ExternalLink className="w-2.5 h-2.5 text-slate-400" />
-                          </a>
+                          <div key={idx} className="inline-flex items-center gap-1">
+                            <a
+                              href={fonte.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10.5px] font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 transition-colors"
+                            >
+                              <span>{fonte.orgao}</span>
+                              <ExternalLink className="w-2.5 h-2.5 text-slate-400" />
+                            </a>
+                            <SeloNivelConfianca fonte={fonte.orgao} compacto />
+                          </div>
                         ))}
                       </div>
                     </div>
@@ -1468,10 +1475,13 @@ export function SectionBuscaAvancada() {
                         <div className="text-slate-600 leading-snug">{item.descricao}</div>
                       </td>
                       <td className="py-2.5 px-3 align-top">
-                        <span className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded">
-                          <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                          {item.fonte}
-                        </span>
+                        <div className="flex flex-col gap-1 items-start">
+                          <span className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded">
+                            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                            {item.fonte}
+                          </span>
+                          <SeloNivelConfianca fonte={item.fonte} compacto />
+                        </div>
                         {item.tabela_origem && (
                           <div
                             className="text-[10px] text-slate-400 mt-0.5 truncate max-w-[150px]"
@@ -1572,9 +1582,12 @@ export function SectionBuscaAvancada() {
                 </div>
 
                 <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
-                  <span className="text-[11px] text-slate-500 font-medium truncate">
-                    Origem: <strong>{norma.origin || 'Planalto / CGIBS'}</strong>
-                  </span>
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <span className="text-[11px] text-slate-500 font-medium truncate">
+                      Origem: <strong>{norma.origin || 'Planalto / CGIBS'}</strong>
+                    </span>
+                    <SeloNivelConfianca fonte={norma.origin || 'Planalto / CGIBS'} compacto />
+                  </div>
                   <div className="flex items-center gap-1.5 shrink-0">
                     <button
                       onClick={() =>
@@ -1642,7 +1655,13 @@ export function SectionBuscaAvancada() {
                 </div>
 
                 <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
-                  <span>{ato.fonte_oficial || ato.ente_nome || 'Diário Oficial'}</span>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span>{ato.fonte_oficial || ato.ente_nome || 'Diário Oficial'}</span>
+                    <SeloNivelConfianca
+                      fonte={ato.fonte_oficial || ato.ente_nome || 'Diário Oficial'}
+                      compacto
+                    />
+                  </div>
                   {ato.url && (
                     <a
                       href={ato.url}
@@ -1809,8 +1828,11 @@ export function SectionBuscaAvancada() {
                 </div>
 
                 <div className="pt-2 border-t border-slate-100 space-y-1">
-                  <div className="text-[11px] text-slate-500">
-                    Fonte: <strong>{an.autoridadeOuFonte}</strong>
+                  <div className="flex items-center gap-1.5 flex-wrap text-[11px] text-slate-500">
+                    <span>
+                      Fonte: <strong>{an.autoridadeOuFonte}</strong>
+                    </span>
+                    <SeloNivelConfianca fonte={an.autoridadeOuFonte} compacto />
                   </div>
                   <div className="text-[11.5px] font-medium text-emerald-700 bg-emerald-50/70 p-2 rounded-lg border border-emerald-100">
                     <strong>Impacto / Projeção:</strong> {an.impactoOuProjecao}

@@ -27,6 +27,7 @@ import type { ContentReviewItem, OfficialDocumentItem } from '@/types/panorama'
 import { Tag, History } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { AdecontLogo } from '@/components/AdecontLogo'
+import { SeloNivelConfianca } from '@/components/SeloNivelConfianca'
 
 export function SectionFontes() {
   const { toast } = useToast()
@@ -249,6 +250,17 @@ export function SectionFontes() {
       badgeStatus: 'Coberta via CGIBS',
       badgeCor: 'bg-blue-100 text-blue-800 border-blue-300',
     },
+    {
+      orgao: 'Lefisc (Serviço Privado de Confronto)',
+      fonte: 'lefisc.com.br (Radar de Confronto)',
+      conteudo:
+        'Serviço privado comercial de confronto e localização rápida. Sem validade jurídica legal.',
+      url: 'https://www.lefisc.com.br',
+      statusNota:
+        'serviço privado de comparação, sem validade jurídica. Utilizado apenas como espelho referencial e conferência cruzada com os Diários Oficiais.',
+      badgeStatus: 'Serviço Privado / Confronto',
+      badgeCor: 'bg-amber-100 text-amber-900 border-amber-300',
+    },
   ]
 
   const rotinas = [
@@ -338,13 +350,20 @@ export function SectionFontes() {
               <tr key={idx} className="hover:bg-slate-50/70 transition-colors">
                 <td className="py-3 px-4 align-top">
                   <div className="font-bold text-slate-900">{item.orgao}</div>
-                  {item.badgeStatus && (
-                    <span
-                      className={`inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded border ${item.badgeCor}`}
-                    >
-                      {item.badgeStatus}
-                    </span>
-                  )}
+                  <div className="flex flex-col gap-1 items-start mt-1">
+                    <SeloNivelConfianca
+                      fonte={item.orgao}
+                      compacto
+                      exibirAvisoJuridico={item.orgao.toLowerCase().includes('lefisc')}
+                    />
+                    {item.badgeStatus && (
+                      <span
+                        className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded border ${item.badgeCor}`}
+                      >
+                        {item.badgeStatus}
+                      </span>
+                    )}
+                  </div>
                 </td>
                 <td className="py-3 px-4 align-top font-mono text-xs text-blue-700">
                   <a
@@ -737,6 +756,7 @@ export function SectionFontes() {
                         <span>
                           {isAlternative ? 'alter.' : isHumanOnly ? 'humano' : src.status}
                         </span>
+                        <SeloNivelConfianca fonte={src.name} tier={src.confidence_tier} compacto />
                       </span>
                     )
                   })}

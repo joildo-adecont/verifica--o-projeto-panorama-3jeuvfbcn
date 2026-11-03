@@ -30,6 +30,7 @@ import {
   type RadarAtoItem,
   type RadarEstatisticasNacionais,
 } from '@/services/radarMunicipios'
+import { SeloNivelConfianca } from '@/components/SeloNivelConfianca'
 import {
   OPCOES_NIVEIS_RADAR,
   filtrarAtosRadar,
@@ -1393,12 +1394,13 @@ export function RadarNacional({ initialUf = '' }: RadarNacionalProps) {
                       <p className="text-[10px] text-slate-600 leading-relaxed">{ato.resumo}</p>
                     )}
 
-                    {ato.assoc && (
-                      <p className="text-[9px] text-slate-500 font-medium">
-                        Diário Oficial / Fonte: {ato.assoc}
+                    <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+                      <span className="text-[9px] text-slate-500 font-medium">
+                        Diário Oficial / Fonte: {ato.assoc || 'Diário Oficial'}
                         {ato.data && ` • Data: ${ato.data}`}
-                      </p>
-                    )}
+                      </span>
+                      <SeloNivelConfianca fonte={ato.assoc || 'Diário Oficial'} compacto />
+                    </div>
                   </div>
 
                   {ato.url && (

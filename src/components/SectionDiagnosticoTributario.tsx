@@ -24,6 +24,7 @@ import {
 } from 'lucide-react'
 import { AdecontLogo } from '@/components/AdecontLogo'
 import { RelatorioDiagnosticoModerno } from '@/components/RelatorioDiagnosticoModerno'
+import { SeloNivelConfianca } from '@/components/SeloNivelConfianca'
 import {
   enviarMensagemDiagnostico,
   listarSessoesDiagnostico,
@@ -567,12 +568,15 @@ export function SectionDiagnosticoTributario() {
                         {msg.citations.map((c, idx) => (
                           <span
                             key={idx}
-                            className="text-[10.5px] px-2 py-0.5 rounded bg-indigo-50 text-indigo-900 border border-indigo-200 font-mono"
+                            className="text-[10.5px] px-2 py-0.5 rounded bg-slate-100 text-slate-900 border border-slate-200 font-mono inline-flex items-center gap-1.5 flex-wrap"
                           >
-                            [{c.n}] {c.excerpt.slice(0, 75)}...
+                            <span>
+                              [{c.n}] {c.excerpt.slice(0, 80)}...
+                            </span>
+                            <SeloNivelConfianca fonte={c.excerpt} compacto />
                           </span>
                         ))}
-                      </div>
+                      </div>{' '}
                     </div>
                   )}
 

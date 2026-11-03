@@ -20,6 +20,7 @@ import {
   FileText,
 } from 'lucide-react'
 import { AdecontLogo } from '@/components/AdecontLogo'
+import { SeloNivelConfianca } from '@/components/SeloNivelConfianca'
 import { Badge } from '@/components/ui/badge'
 import {
   fetchClassifications,
@@ -478,15 +479,18 @@ export function SectionFontesAgregador() {
                       {tab.sublabel}
                     </p>
                   </div>
-                  <span
-                    className={`mt-2 text-[9px] font-mono font-semibold uppercase px-1.5 py-0.5 rounded self-start ${
-                      isSelected
-                        ? 'bg-white/20 text-panorama-gold-light'
-                        : 'bg-slate-100 text-slate-600'
-                    }`}
-                  >
-                    {tab.orgao}
-                  </span>
+                  <div className="mt-2 flex items-center gap-1 flex-wrap self-start">
+                    <span
+                      className={`text-[9px] font-mono font-semibold uppercase px-1.5 py-0.5 rounded ${
+                        isSelected
+                          ? 'bg-white/20 text-panorama-gold-light'
+                          : 'bg-slate-100 text-slate-600'
+                      }`}
+                    >
+                      {tab.orgao}
+                    </span>
+                    <SeloNivelConfianca fonte={tab.orgao} compacto />
+                  </div>
                 </button>
               )
             })}
@@ -967,6 +971,7 @@ export function SectionFontesAgregador() {
                             <ShieldCheck className="w-3 h-3 text-blue-600 shrink-0" />
                             <span>{row.fonte}</span>
                           </span>
+                          <SeloNivelConfianca fonte={row.fonte} compacto />
                         </div>
                       </td>
 
@@ -1058,16 +1063,22 @@ export function SectionFontesAgregador() {
           </h3>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
-            <div className="p-3 rounded-lg border border-slate-200 bg-white space-y-1">
-              <span className="font-bold text-slate-800">Tributos da Reforma (IBS / CBS)</span>
+            <div className="p-3 rounded-lg border border-slate-200 bg-white space-y-1.5">
+              <div className="flex items-center justify-between gap-1">
+                <span className="font-bold text-slate-800">Tributos da Reforma (IBS / CBS)</span>
+                <SeloNivelConfianca fonte="RFB / CGIBS" compacto />
+              </div>
               <p className="text-slate-600">
                 <strong>cClassTrib, CST e cCredPres:</strong> IT 2025.002 v1.70, Atos Técnicos
                 Conjuntos RFB/CGIBS e Portal da Conformidade Fácil (SVRS).
               </p>
             </div>
 
-            <div className="p-3 rounded-lg border border-slate-200 bg-white space-y-1">
-              <span className="font-bold text-slate-800">Comércio Exterior &amp; Serviços</span>
+            <div className="p-3 rounded-lg border border-slate-200 bg-white space-y-1.5">
+              <div className="flex items-center justify-between gap-1">
+                <span className="font-bold text-slate-800">Comércio Exterior &amp; Serviços</span>
+                <SeloNivelConfianca fonte="Siscomex / MDIC / RFB" compacto />
+              </div>
               <p className="text-slate-600">
                 <strong>NCM:</strong> TIPI e Sistema CLASSIF do Portal Único Siscomex.
                 <br />
@@ -1075,8 +1086,11 @@ export function SectionFontesAgregador() {
               </p>
             </div>
 
-            <div className="p-3 rounded-lg border border-slate-200 bg-white space-y-1">
-              <span className="font-bold text-slate-800">Estadual &amp; Atividades</span>
+            <div className="p-3 rounded-lg border border-slate-200 bg-white space-y-1.5">
+              <div className="flex items-center justify-between gap-1">
+                <span className="font-bold text-slate-800">Estadual &amp; Atividades</span>
+                <SeloNivelConfianca fonte="CONFAZ / IBGE" compacto />
+              </div>
               <p className="text-slate-600">
                 <strong>CEST, MVA-ST e CFOP:</strong> CONFAZ e SINIEF.
                 <br />
