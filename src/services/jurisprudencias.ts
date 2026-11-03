@@ -58,9 +58,23 @@ function token(): string {
   }
 }
 
+/**
+ * Base das rotas do backend.
+ *
+ * NÃO é caminho relativo. O host publicado serve o app React: pedir
+ * `/backend/v1/...` devolve o HTML do próprio app com HTTP 200 — foi exatamente
+ * o que aconteceu no primeiro teste deste módulo (parecia "token ok", era a
+ * página do sistema). O backend vive em outro host, o do Skip Cloud, exposto em
+ * `VITE_POCKETBASE_URL`, como todos os outros serviços do projeto já fazem
+ * (diagnosticoTributario, programaManifesto).
+ */
 function base(): string {
-  // As rotas do backend ficam no mesmo host, sob /backend/v1
-  return '/backend/v1/jurisprudencias'
+  const url = import.meta.env.VITE_POCKETBASE_URL as string | undefined
+  if (!url) {
+    // Falha alto: sem a URL, toda chamada cairia no app e devolveria HTML.
+    throw new Error('VITE_POCKETBASE_URL não configurada — o backend não é alcançável.')
+  }
+  return `${url.replace(/\/$/, '')}/backend/v1/jurisprudencias`
 }
 
 export class SemTokenError extends Error {
