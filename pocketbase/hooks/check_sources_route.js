@@ -12,6 +12,23 @@ routerAdd('OPTIONS', '/backend/v1/check-sources', (e) => {
 routerAdd('POST', '/backend/v1/check-sources', (e) => {
   e.response.header().set('Access-Control-Allow-Origin', '*')
 
+  /*
+   * TRAVA DE SEGURANÇA (auditoria de 03/11/2026)
+   * Esta rota é MANUTENÇÃO: varre 20 fontes externas e leva ~23 s de execução.
+   * Estava aberta: qualquer estranho disparava a varredura quantas vezes
+   * quisesse, consumindo tempo de backend e podendo derrubar a cota de rede do
+   * pod. Não devolve dado sigiloso — o risco é custo/indisponibilidade, não
+   * vazamento. Fechada com o token do painel, o mesmo que o resto do sistema usa.
+   */
+  var esperado = $secrets.get('SIMUL_PAINEL_TOKEN') || ''
+  var recebido = e.request.header.get('X-Painel-Token') || ''
+  if (!esperado || recebido !== esperado) {
+    return e.json(401, {
+      success: false,
+      error: 'Token do painel ausente ou inválido (X-Painel-Token).',
+    })
+  }
+
   const sources = [
     {
       key: 'cgibs',

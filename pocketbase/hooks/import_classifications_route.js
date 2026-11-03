@@ -187,6 +187,35 @@ routerAdd('GET', '/backend/v1/test-siscomex-health', (e) => {
 routerAdd('GET', '/backend/v1/import-classifications', (e) => {
   e.response.header().set('Access-Control-Allow-Origin', '*')
 
+  /*
+   * TRAVA DE SEGURANÇA (auditoria de 03/11/2026)
+   * Esta rota ESCREVE no banco (importa tabelas de classificação) e respondia a
+   * GET sem credencial — ou seja, um estranho disparava importação. GET que
+   * escreve já é frágil por si (um prefetch de navegador pode executá-lo); com
+   * a rota aberta, o problema dobra. Exigimos o token do painel.
+   * A exportação (leitura da base pública NCM/CEST) continua aberta de
+   * propósito: é dado oficial público e o app baixa pelo navegador do usuário.
+   */
+  /*
+   * DUAS ROTAS NUMA SÓ — e é isso que precisa ficar claro:
+   *   GET /import-classifications            → só LÊ contagens (o app usa)
+   *   GET /import-classifications?tipo=NCM   → IMPORTA (escreve no banco)
+   * Trancar a rota inteira quebraria a tela que mostra as contagens; deixar
+   * aberta permite que um estranho dispare importação. Então a credencial é
+   * exigida SÓ quando há `tipo`, que é exatamente o gatilho da escrita.
+   */
+  var temGatilho = !!e.request.url.query().get('tipo')
+  if (temGatilho) {
+    var esperadoImp = $secrets.get('SIMUL_PAINEL_TOKEN') || ''
+    var recebidoImp = e.request.header.get('X-Painel-Token') || ''
+    if (!esperadoImp || recebidoImp !== esperadoImp) {
+      return e.json(401, {
+        success: false,
+        error: 'Importação exige token do painel (X-Painel-Token).',
+      })
+    }
+  }
+
   try {
     const counts = {}
     const types = [
