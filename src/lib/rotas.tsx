@@ -15,6 +15,7 @@ import { SectionAnexos } from '@/components/SectionAnexos'
 import { SectionTabelaGeral } from '@/components/SectionTabelaGeral'
 import { SectionCronograma } from '@/components/SectionCronograma'
 import { SectionIndicadores } from '@/components/SectionIndicadores'
+import { SectionIndicadoresEconomicos } from '@/components/SectionIndicadoresEconomicos'
 import { SectionCadastroEnvios } from '@/components/SectionCadastroEnvios'
 import { SectionFontes } from '@/components/SectionFontes'
 import { SectionFontesAgregador } from '@/components/SectionFontesAgregador'
@@ -152,6 +153,7 @@ const COMPONENTES: Record<string, ComponentType<PropsAba>> = {
   '#tabela-geral': SectionTabelaGeral,
   '#secao-8': SectionCronograma,
   '#indicadores': SectionIndicadores,
+  '#indicadores-economicos': SectionIndicadoresEconomicos,
   '#secao-9': SectionFontes,
   '#fontes-agregador': SectionFontesAgregador,
   '#fontes-primarias': SectionFontesPrimarias,
