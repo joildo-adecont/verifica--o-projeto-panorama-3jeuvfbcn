@@ -336,6 +336,24 @@ export function SectionBuscaAvancada({ segmentoInicial }: SectionBuscaAvancadaPr
       return
     }
     setJurisCarregando(true)
+
+    /* Trava de segurança: se a busca não responder em 12 s, sai do "Buscando…"
+       e avisa. Sem isto, uma promise pendurada deixa a tela girando sem fim —
+       foi exatamente o que aconteceu com o import dinâmico. */
+    const trava = setTimeout(() => {
+      if (ativo) {
+        setJurisCarregando(false)
+        setJuris({
+          itens: [],
+          total: 0,
+          porFonte: { oficial: 0, escritorio: 0 },
+          porTribunal: {},
+          semToken: false,
+          aviso: 'A busca demorou demais e foi interrompida. Tente novamente.',
+        })
+      }
+    }, 12000)
+
     const t = setTimeout(() => {
       buscarJurisprudencias({
         termo: termoJuris,
@@ -351,12 +369,14 @@ export function SectionBuscaAvancada({ segmentoInicial }: SectionBuscaAvancadaPr
           if (ativo) setJuris(null)
         })
         .finally(() => {
+          clearTimeout(trava)
           if (ativo) setJurisCarregando(false)
         })
     }, 350)
     return () => {
       ativo = false
       clearTimeout(t)
+      clearTimeout(trava)
     }
   }, [
     jurisTermoLocal,

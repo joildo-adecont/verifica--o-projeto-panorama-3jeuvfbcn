@@ -22,6 +22,8 @@
  * aparecendo. Um erro de credencial não pode esconder as 2.963 súmulas públicas.
  */
 
+import { listarJurisprudencias } from '@/services/jurisprudencias'
+
 export type FonteJuris = 'oficial' | 'escritorio'
 
 export interface JurisResultado {
@@ -236,7 +238,11 @@ export async function buscarJurisprudencias(
    * primeira versão: a exceção subia e a tela ficava em "Buscando…". */
   if (incluirEscritorio) {
     try {
-      const { listarJurisprudencias } = await import('@/services/jurisprudencias')
+      /* Import ESTÁTICO, no topo do arquivo. O `await import()` dinâmico com o
+         alias `@/` não resolve no bundle e a promise fica PENDURADA — sintoma:
+         a tela ficava em "Buscando…" para sempre, sem erro no console, sem
+         requisição de rede. Custou uma rodada de diagnóstico: o `.finally()`
+         nunca executava porque a importação nunca terminava. */
       const r = await listarJurisprudencias({})
       const lista = r.itens.filter((j) => j.situacao !== 'arquivada')
       for (let i = 0; i < lista.length; i++) {
