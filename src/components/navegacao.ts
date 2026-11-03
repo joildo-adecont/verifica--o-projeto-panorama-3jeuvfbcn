@@ -83,8 +83,6 @@ export interface LinkNavegacao {
    * devolve vazio para o sinônimo e o usuário conclui que o sistema não tem.
    */
   tags: string[]
-  dominio?: string
-  setor?: string
 }
 
 export interface GrupoNavegacao {
@@ -93,6 +91,7 @@ export interface GrupoNavegacao {
   segmentoKey?: string
   /** domínios que este segmento agrupa (fonte única da divisão) */
   dominios?: string[]
+  secoes?: string[]
   nome: string
   /** frase curta: para que serve este grupo */
   proposito: string
@@ -952,6 +951,55 @@ const INDICADORES: LinkNavegacao[] = [
  * Cada segmento filtra esta lista por `dominio`. A vantagem: mover uma seção de
  * segmento é mover um domínio de lista, nunca reescrever 41 itens.
  */
+
+/* ── três plataformas: micromenus ── */
+const SECOES_JURIDICA = [
+  '#secao-1',
+  '#secao-2',
+  '#secao-3',
+  '#secao-4',
+  '#secao-5',
+  '#secao-6',
+  '#secao-8',
+  '#secao-7',
+  '#fontes-primarias',
+  '#radar-nacional',
+  '#monitor-legislativo',
+  '#fontes-agregador',
+  '#secao-9',
+  '#lefisc',
+  '#historico-atualizacoes',
+]
+const SECOES_CONTABIL = [
+  '#regime-imobiliario',
+  '#agronegocio',
+  '#consorcios',
+  '#financeiros',
+  '#simples',
+  '#profissionais-plataformas',
+  '#setor-combustiveis',
+  '#setor-saude',
+  '#setor-educacao',
+  '#setor-turismo',
+  '#setor-cooperativas',
+  '#setor-futebol',
+  '#setor-exterior',
+  '#setor-diplomatico',
+  '#tabela-geral',
+  '#busca-avancada',
+  '#diagnostico-tributario',
+]
+const SECOES_ADMINISTRATIVA = [
+  '#mapa',
+  '#indicadores',
+  '#cadastro-envios',
+  '#central-entrega',
+  '#assistentes-seguranca',
+  '#controle-acesso',
+  '#responsividade-celulares',
+  '#instalador-versao',
+]
+
 export const HOME: LinkNavegacao = {
   href: '#inicio',
   label: 'Início',
@@ -963,7 +1011,6 @@ export const HOME: LinkNavegacao = {
   bg: 'bg-slate-100',
   borda: 'border-slate-300',
   descricao: 'Painel de acompanhamento e atalhos',
-  tags: ['inicio', 'home', 'painel', 'atalhos'],
 }
 
 export const ITEM_INSTALADOR_CEO: LinkNavegacao = {
@@ -991,116 +1038,79 @@ export const ITEM_INSTALADOR_CEO: LinkNavegacao = {
   setor: 'manutencao',
 }
 
-function todosItens(): LinkNavegacao[] {
-  return [
-    ...INDICADORES,
-    ...FUNDAMENTOS,
-    ...SETORES_NOVOS,
-    ...SIMULACAO,
-    ...TABELAS,
-    ...FONTES,
-    ...SISTEMA,
-    ITEM_INSTALADOR_CEO,
-    HOME,
-  ]
+const TODOS_ITENS: LinkNavegacao[] = [
+  ...INDICADORES,
+  ...FUNDAMENTOS,
+  ...SETORES_NOVOS,
+  ...SIMULACAO,
+  ...TABELAS,
+  ...FONTES,
+  ...SISTEMA,
+  ITEM_INSTALADOR_CEO,
+  HOME,
+]
+
+function itensDaPlataforma(secoes: string[]): LinkNavegacao[] {
+  return secoes
+    .map((h) => TODOS_ITENS.find((i) => i.href === h))
+    .filter((i): i is LinkNavegacao => Boolean(i))
 }
 
+/* ══════════════════════════════════════════════════════════════════════
+ * TRÊS PLATAFORMAS NO MENU LATERAL (03/11/2026 — decisão do CEO)
+ * "Redimensione para o menu lateral: jurídica, contábil e administrativa,
+ *  a um macro menu. Posteriormente redimensionarei os micromenus."
+ *
+ * Divisão por ÁREA DE CONHECIMENTO, não por tipo de tela:
+ *   JURÍDICA       a norma, a interpretação e a régua de fontes
+ *   CONTÁBIL       apuração por setor, classificação e cálculo
+ *   ADMINISTRATIVA clientes, envios, entrega, indicadores, manutenção
+ *
+ * REDIMENSIONAR MICROMENU = mover uma string entre SECOES_* abaixo.
+ * Nenhum item, tecla ou texto precisa ser tocado.
+ * ══════════════════════════════════════════════════════════════════════ */
 export const GRUPOS: GrupoNavegacao[] = [
-  /* ══════════════════════════════════════════════════════════════════════
-   * QUATRO SEGMENTOS (decisão do CEO, 02/11/2026)
-   *
-   * "Reestruture o menu com os quatro segmentos, estruturados. Os quais,
-   *  posteriormente, serão redefinidos e redimensionados."
-   *
-   * ── O QUE MUDOU ──
-   * Antes eram SETE grupos com tamanhos muito desiguais (1, 7, 14, 1, 3, 6, 7).
-   * Sete abas para 41 itens é menu demais: o primeiro grupo tinha UM item,
-   * enquanto outro tinha catorze. Agora são quatro, com peso equilibrado:
-   *
-   *   SEGMENTO 1 · BASE LEGAL ............  7 itens  a lei e o que ela alcança
-   *   SEGMENTO 2 · SETORES ............... 14 itens  cada regime, um setor
-   *   SEGMENTO 3 · SIMULAÇÃO E TABELAS ...  5 itens  calcular e classificar
-   *   SEGMENTO 4 · FONTES E SISTEMA ...... 14 itens  de onde vem e como se opera
-   *
-   * ── COMO REDEFINIR DEPOIS (é para isso que foi feito assim) ──
-   * Cada segmento declara apenas DUAS coisas: o nome e a lista de domínios que
-   * ele agrupa (`dominios`). Mudar o tamanho de um segmento = mover um domínio
-   * de uma lista para outra. Nenhum item precisa ser tocado, e nenhuma tecla
-   * muda, porque as teclas vivem no ITEM, não no grupo.
-   *
-   *   Para criar um 5º segmento:  acrescente um objeto neste array com nome,
-   *   proposito, ícone e a lista `dominios`. O menu e a home se ajustam.
-   * ══════════════════════════════════════════════════════════════════════ */
-
-  // ── SEGMENTO 1 — BASE LEGAL ───────────────────────────────────────────
   {
-    id: 'base-legal',
-    segmentoKey: 'base-legal',
-    nome: 'Base Legal',
-    proposito: 'A lei, o fato gerador, o que fica de fora e o cronograma',
+    id: 'juridica',
+    segmentoKey: 'juridica',
+    nome: 'Plataforma Jurídica',
+    proposito: 'A norma, sua interpretação e a régua de fontes oficiais',
     Icon: Scale,
     cor: 'text-indigo-700',
     bg: 'bg-indigo-50',
     borda: 'border-indigo-300',
     dominios: ['nucleo'],
-    itens: todosItens().filter((i) => i.dominio === 'nucleo'),
+    secoes: SECOES_JURIDICA,
+    itens: itensDaPlataforma(SECOES_JURIDICA),
   },
-
-  // ── SEGMENTO 2 — SETORES ──────────────────────────────────────────────
   {
-    id: 'setores',
-    segmentoKey: 'setores',
-    nome: 'Setores',
-    proposito: 'Cada regime da LC 214 aplicado ao setor — 14 setores',
-    Icon: Factory,
-    cor: 'text-rose-700',
-    bg: 'bg-rose-50',
-    borda: 'border-rose-300',
-    dominios: ['setores'],
-    itens: todosItens().filter((i) => i.dominio === 'setores'),
-  },
-
-  // ── SEGMENTO 3 — SIMULAÇÃO E TABELAS ──────────────────────────────────
-  {
-    id: 'simulacao-tabelas',
-    segmentoKey: 'simulacao-tabelas',
-    nome: 'Simulação e Tabelas',
-    proposito: 'Calcular o impacto e achar onde cada item está classificado',
+    id: 'contabil',
+    segmentoKey: 'contabil',
+    nome: 'Plataforma Contábil',
+    proposito: 'Apuração por setor, classificação do item e cálculo',
     Icon: Calculator,
     cor: 'text-emerald-700',
     bg: 'bg-emerald-50',
     borda: 'border-emerald-300',
-    dominios: ['simulacao', 'tabelas'],
-    itens: todosItens().filter((i) => ['simulacao', 'tabelas'].includes(i.dominio || '')),
+    dominios: ['setores', 'simulacao', 'tabelas'],
+    secoes: SECOES_CONTABIL,
+    itens: itensDaPlataforma(SECOES_CONTABIL),
   },
-
-  // ── SEGMENTO 4 — FONTES E SISTEMA ─────────────────────────────────────
   {
-    id: 'fontes-sistema',
-    segmentoKey: 'fontes-sistema',
-    nome: 'Fontes e Sistema',
-    proposito: 'De onde vem o dado, o que mudou, e a operação do programa',
-    Icon: Radio,
-    cor: 'text-fuchsia-700',
-    bg: 'bg-fuchsia-50',
-    borda: 'border-fuchsia-300',
-    dominios: ['fontes', 'sistema'],
-    itens: todosItens().filter((i) => ['fontes', 'sistema'].includes(i.dominio || '')),
+    id: 'administrativa',
+    segmentoKey: 'administrativa',
+    nome: 'Plataforma Administrativa',
+    proposito: 'Clientes, envios, entrega, indicadores e manutenção',
+    Icon: Settings2,
+    cor: 'text-slate-700',
+    bg: 'bg-slate-100',
+    borda: 'border-slate-300',
+    dominios: ['sistema'],
+    secoes: SECOES_ADMINISTRATIVA,
+    itens: itensDaPlataforma(SECOES_ADMINISTRATIVA),
   },
 ]
 
-/** Lista achatada — para quem precisa de todos os itens em sequência. */
-export const NAVEGACAO: LinkNavegacao[] = GRUPOS.flatMap((g) => g.itens)
-
-/** Item do painel inicial (não é uma seção do conteúdo). */
-
-/* ══════════════════════════════════════════════════════════════════════════
- * SEGMENTOS DO SISTEMA — filtro rápido do menu lateral
- *
- * O menu tem 41 seções. Antes de abrir, o CEO escolhe o segmento ("quero ver
- * só Simulação") e a lista encolhe. É o degrau 0: menos do que domínio, é um
- * recorte de conveniência sobre o que já existe.
- * ══════════════════════════════════════════════════════════════════════════ */
 export interface SegmentoSistema {
   id: string
   nome: string
@@ -1116,291 +1126,45 @@ export interface SegmentoSistema {
   itens: LinkNavegacao[]
 }
 
-/**
- * SEGMENTOS DO SISTEMA — a porta de entrada (PlataformaHome)
- *
- * Este array alimenta a home: cada segmento vira um CARD com o agente da área.
- * Os `itens` são derivados da NAVEGACAO por `dominio`, então nunca divergem do
- * menu — mas precisam existir aqui: o card mostra as seções do segmento.
- */
 export const SEGMENTOS_SISTEMA: SegmentoSistema[] = [
   {
-    id: 'base-legal',
-    nome: 'Base Legal',
-    descricao:
-      'A lei e o que ela alcança: normas, fato gerador, cesta básica, imunidades, alíquotas e cronograma.',
+    id: 'juridica',
+    nome: 'Plataforma Jurídica',
+    descricao: 'A norma, sua interpretação, os anexos e a régua de fontes oficiais.',
     Icon: Scale,
     cor: 'text-indigo-700',
     bg: 'bg-indigo-50',
     borda: 'border-indigo-300',
     hrefAgente: '#secao-1',
     agenteNome: 'Jurídico',
-    itens: todosItens().filter((i) => i.dominio === 'nucleo'),
+    itens: itensDaPlataforma(SECOES_JURIDICA),
   },
   {
-    id: 'setores',
-    nome: 'Setores',
-    descricao: 'Cada regime da LC 214 aplicado ao setor — 14 setores, de imóveis a combustíveis.',
-    Icon: Factory,
-    cor: 'text-rose-700',
-    bg: 'bg-rose-50',
-    borda: 'border-rose-300',
+    id: 'contabil',
+    nome: 'Plataforma Contábil',
+    descricao: 'Apuração por setor (14 regimes), classificação do item e cálculo.',
+    Icon: Calculator,
+    cor: 'text-emerald-700',
+    bg: 'bg-emerald-50',
+    borda: 'border-emerald-300',
     hrefAgente: '#setor-combustiveis',
     agenteNome: 'Contábil',
-    itens: todosItens().filter((i) => i.dominio === 'setores'),
+    itens: itensDaPlataforma(SECOES_CONTABIL),
   },
   {
-    id: 'simulacao-tabelas',
-    nome: 'Simulação e Tabelas',
-    descricao: 'Calcular o impacto antes de decidir e achar onde cada item está classificado.',
-    Icon: Calculator,
-    cor: 'text-emerald-700',
-    bg: 'bg-emerald-50',
-    borda: 'border-emerald-300',
-    hrefAgente: '#busca-avancada',
-    agenteNome: 'Contábil',
-    itens: todosItens().filter((i) => ['simulacao', 'tabelas'].includes(i.dominio || '')),
-  },
-  {
-    id: 'fontes-sistema',
-    nome: 'Fontes e Sistema',
-    descricao: 'De onde vem o dado, com selo de oficialidade, e a operação do programa.',
-    Icon: Radio,
-    cor: 'text-fuchsia-700',
-    bg: 'bg-fuchsia-50',
-    borda: 'border-fuchsia-300',
-    hrefAgente: '#radar-nacional',
-    agenteNome: 'Administrativo',
-    itens: todosItens().filter((i) => ['fontes', 'sistema'].includes(i.dominio || '')),
-  },
-]
-
-/**
- * ITEM DO TOPO DO MENU — o Instalador e Controle de Versão.
- *
- * Regra permanente do CEO: o controle do programa fica no #1 do menu, sempre
- * visível, com selo próprio. É o primeiro item que ele procura ao abrir o app
- * em outro aparelho.
- */
-
-/* ══════════════════════════════════════════════════════════════════════════
- * HIERARQUIA — domínio → setor → seção (três degraus)
- *
- * Pedido do CEO (02/11/2026): "remontar o sistema em degraus, partindo de um
- * menu geral e acoplando todos os demais menus".
- *
- * O menu lateral lista seções; esta estrutura as ORGANIZA. Quem chega não
- * precisa saber que existe "seção 6B" — abre Agronegócio.
- * ══════════════════════════════════════════════════════════════════════════ */
-export interface SetorHierarquia {
-  id: string
-  nome: string
-  base: string
-  Icon: React.ComponentType<{ className?: string }>
-}
-
-export interface DominioHierarquia {
-  id: string
-  numero: string
-  nome: string
-  proposito: string
-  Icon: React.ComponentType<{ className?: string }>
-  cor: string
-  bg: string
-  borda: string
-  setores: SetorHierarquia[]
-}
-
-export const DOMINIOS_HIERARQUIA: DominioHierarquia[] = [
-  {
-    id: 'nucleo',
-    numero: '1',
-    nome: 'Núcleo Tributário',
-    proposito: 'A lei, o fato gerador e o que fica de fora',
-    Icon: Scale,
-    cor: 'text-indigo-700',
-    bg: 'bg-indigo-50',
-    borda: 'border-indigo-300',
-    setores: [
-      {
-        id: 'regras-gerais',
-        nome: 'Regras Gerais',
-        base: 'EC 132/2023 · LC 214/2025 · LC 227/2026',
-        Icon: Scale,
-      },
-      {
-        id: 'regimes-especificos',
-        nome: 'Regimes Específicos',
-        base: 'LC 214/2025, arts. 172 a 307',
-        Icon: Layers,
-      },
-    ],
-  },
-  {
-    id: 'setores',
-    numero: '2',
-    nome: 'Setores da Economia',
-    proposito: 'Cada setor tem regra própria — ache a sua',
-    Icon: Factory,
-    cor: 'text-rose-700',
-    bg: 'bg-rose-50',
-    borda: 'border-rose-300',
-    setores: [
-      {
-        id: 'imobiliario',
-        nome: 'Bens Imóveis',
-        base: 'LC 214, arts. 251-261 e 485-488 (RET)',
-        Icon: Building2,
-      },
-      {
-        id: 'agro',
-        nome: 'Agronegócio',
-        base: 'LC 214, arts. 110, 137-138, 164-171',
-        Icon: Tractor,
-      },
-      { id: 'consorcios', nome: 'Consórcios', base: 'LC 214, arts. 204-206', Icon: Handshake },
-      {
-        id: 'financeiro',
-        nome: 'Serviços Financeiros',
-        base: 'LC 214, arts. 181-233',
-        Icon: Landmark,
-      },
-      { id: 'simples', nome: 'Simples Nacional', base: 'LC 123/2006 · art. 343', Icon: Store },
-      {
-        id: 'profissionais',
-        nome: 'Profissionais e Plataformas',
-        base: 'LC 214, arts. 22 e 127',
-        Icon: Users,
-      },
-      {
-        id: 'combustiveis',
-        nome: 'Combustíveis e Energia',
-        base: 'LC 214, arts. 172-180',
-        Icon: Fuel,
-      },
-      {
-        id: 'saude',
-        nome: 'Saúde e Planos',
-        base: 'Regimes específico e diferenciado',
-        Icon: HeartPulse,
-      },
-      { id: 'educacao', nome: 'Educação', base: 'Serviços de educação', Icon: GraduationCap },
-      {
-        id: 'turismo',
-        nome: 'Bares, Restaurantes e Turismo',
-        base: 'Regime específico de turismo',
-        Icon: UtensilsCrossed,
-      },
-      { id: 'cooperativas', nome: 'Cooperativas', base: 'LC 214, arts. 271-272', Icon: UsersRound },
-      {
-        id: 'futebol',
-        nome: 'Sociedade Anônima do Futebol',
-        base: 'Regime específico da SAF',
-        Icon: Trophy,
-      },
-      {
-        id: 'exterior',
-        nome: 'Comércio Exterior e ZFM',
-        base: 'LC 214, art. 93 e ss.',
-        Icon: Ship,
-      },
-      {
-        id: 'diplomatico',
-        nome: 'Missões Diplomáticas',
-        base: 'Tratados internacionais',
-        Icon: Globe,
-      },
-    ],
-  },
-  {
-    id: 'simulacao',
-    numero: '3',
-    nome: 'Simuladores',
-    proposito: 'Calcular o impacto antes de decidir',
-    Icon: Calculator,
-    cor: 'text-emerald-700',
-    bg: 'bg-emerald-50',
-    borda: 'border-emerald-300',
-    setores: [
-      {
-        id: 'sim-geral',
-        nome: 'Simulador Geral',
-        base: 'Catálogo de 1.002 itens',
-        Icon: Calculator,
-      },
-      {
-        id: 'sim-setoriais',
-        nome: 'Simuladores por Setor',
-        base: 'Um por regime',
-        Icon: SlidersHorizontal,
-      },
-    ],
-  },
-  {
-    id: 'tabelas',
-    numero: '4',
-    nome: 'Tabelas e Anexos',
-    proposito: 'Onde o item está classificado',
-    Icon: Paperclip,
-    cor: 'text-cyan-700',
-    bg: 'bg-cyan-50',
-    borda: 'border-cyan-300',
-    setores: [
-      {
-        id: 'anexos',
-        nome: 'Anexos da LC 214 e do RIBS',
-        base: '23 LC 214 · 5 RIBS · 5 Dec. 12.955',
-        Icon: Paperclip,
-      },
-    ],
-  },
-  {
-    id: 'fontes',
-    numero: '5',
-    nome: 'Fontes e Monitoramento',
-    proposito: 'De onde vem o dado e o que mudou',
-    Icon: Radio,
-    cor: 'text-fuchsia-700',
-    bg: 'bg-fuchsia-50',
-    borda: 'border-fuchsia-300',
-    setores: [
-      {
-        id: 'fontes-oficiais',
-        nome: 'Fontes Oficiais',
-        base: 'Publicadores primários',
-        Icon: Landmark,
-      },
-      { id: 'fontes-agregadores', nome: 'Agregadores', base: 'Nunca base legal', Icon: Layers },
-      { id: 'monitor', nome: 'Monitoramento', base: 'Radar e acompanhamento', Icon: Radio },
-    ],
-  },
-  {
-    id: 'sistema',
-    numero: '6',
-    nome: 'Sistema',
-    proposito: 'Gestão, entrega, segurança e manutenção',
+    id: 'administrativa',
+    nome: 'Plataforma Administrativa',
+    descricao: 'Clientes, envios, central de entrega, indicadores e manutenção.',
     Icon: Settings2,
     cor: 'text-slate-700',
-    bg: 'bg-slate-50',
+    bg: 'bg-slate-100',
     borda: 'border-slate-300',
-    setores: [
-      { id: 'gestao', nome: 'Gestão e Entrega', base: 'Operação do escritório', Icon: Gauge },
-      { id: 'seguranca', nome: 'Segurança e Acesso', base: 'Controle interno', Icon: ShieldCheck },
-      { id: 'manutencao', nome: 'Manutenção', base: 'Controle do programa', Icon: Wrench },
-    ],
+    hrefAgente: '#mapa',
+    agenteNome: 'Administrativo',
+    itens: itensDaPlataforma(SECOES_ADMINISTRATIVA),
   },
 ]
 
-/** Setores de um domínio, já com as seções que pertencem a eles. */
-export function setoresDoDominio(dominioId: string) {
-  const dom = DOMINIOS_HIERARQUIA.find((d) => d.id === dominioId)
-  if (!dom) return []
-  return dom.setores.map((s) => ({
-    ...s,
-    itens: NAVEGACAO.filter((n) => n.dominio === dominioId && n.setor === s.id),
-  }))
-}
-
-/** Total de seções de conteúdo — usado no painel inicial. */
+export const NAVEGACAO: LinkNavegacao[] = GRUPOS.flatMap((g) => g.itens)
 export const TOTAL_ITENS = NAVEGACAO.length
 export const TOTAL_GRUPOS = GRUPOS.length
