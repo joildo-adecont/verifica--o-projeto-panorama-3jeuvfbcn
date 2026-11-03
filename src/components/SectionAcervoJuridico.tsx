@@ -32,6 +32,7 @@ import {
   TRIBUNais_RESPONDEM,
 } from '@/data/acervoJuridico'
 import { fetchAtosMunicipaisPorCodigo, type RadarAtoItem } from '@/services/radarMunicipios'
+import { SumulasTeses } from '@/components/SumulasTeses'
 
 /**
  * ACERVO JURÍDICO — Seção 30 (pedido do CEO, 02/11/2026)
@@ -55,7 +56,14 @@ import { fetchAtosMunicipaisPorCodigo, type RadarAtoItem } from '@/services/rada
  * links ficam, com aviso, porque abrem no computador do usuário.
  */
 
-type Aba = 'constituicao' | 'hierarquia' | 'acervos' | 'codigos' | 'cronologia' | 'acervo-atos'
+type Aba =
+  | 'constituicao'
+  | 'sumulas'
+  | 'hierarquia'
+  | 'acervos'
+  | 'codigos'
+  | 'cronologia'
+  | 'acervo-atos'
 
 const ICONE_ACERVO: Record<string, React.ComponentType<{ className?: string }>> = {
   constitucional: Landmark,
@@ -124,6 +132,7 @@ export function SectionAcervoJuridico() {
 
   const abas: [Aba, string, React.ComponentType<{ className?: string }>][] = [
     ['constituicao', 'Constituição', Landmark],
+    ['sumulas', 'Súmulas e teses', Gavel],
     ['hierarquia', 'Hierarquia e tribunais', Layers],
     ['acervos', 'Acervos legais', BookOpen],
     ['codigos', 'Códigos', FileText],
@@ -310,6 +319,9 @@ export function SectionAcervoJuridico() {
           </button>
         </div>
       )}
+
+      {/* ══════════ ABA — SÚMULAS E TESES EM TEXTO ══════════ */}
+      {aba === 'sumulas' && <SumulasTeses />}
 
       {/* ══════════ ABA 2 — HIERARQUIA ══════════ */}
       {aba === 'hierarquia' && (
