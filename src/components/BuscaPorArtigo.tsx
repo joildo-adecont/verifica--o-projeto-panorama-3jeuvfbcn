@@ -62,7 +62,13 @@ const semAcento = (s: string) =>
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
 
-export function BuscaPorArtigo({ verbetes }: { verbetes: Record<string, any[]> }) {
+export function BuscaPorArtigo({
+  verbetes,
+  onUsarTese,
+}: {
+  verbetes: Record<string, any[]>
+  onUsarTese?: (dados: Partial<Jurisprudencia>) => void
+}) {
   const [indice, setIndice] = useState<Indice | null>(null)
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState('')
@@ -336,6 +342,18 @@ export function BuscaPorArtigo({ verbetes }: { verbetes: Record<string, any[]> }
                         <p className="mt-1 text-[11.5px] leading-relaxed text-slate-800">
                           {v ? v.t : '— texto não carregado nesta aba; veja em Súmulas e teses —'}
                         </p>
+                        {onUsarTese && v && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const [trib, tipo] = grupoParaTribunal(g.id, v)
+                              onUsarTese(verbeteParaJurisprudencia(trib, tipo, v))
+                            }}
+                            className="mt-1 inline-flex min-h-[28px] items-center gap-1 rounded border border-panorama-navy bg-panorama-navy px-2 text-[10px] font-bold text-white hover:bg-slate-900"
+                          >
+                            <Send className="h-2.5 w-2.5 text-panorama-gold" /> Usar esta tese
+                          </button>
+                        )}
                       </div>
                     )
                   })}

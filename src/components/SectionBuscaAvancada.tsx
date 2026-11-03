@@ -549,6 +549,68 @@ export function SectionBuscaAvancada({ segmentoInicial }: SectionBuscaAvancadaPr
           ))}
         </div>
 
+        {/* Campo dedicado de Busca por PALAVRA-CHAVE no Acervo Carregado */}
+        <div className="p-3 sm:p-4 rounded-xl bg-gradient-to-r from-amber-50/70 via-slate-50 to-blue-50/40 border border-amber-200/80 space-y-2">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <label
+              htmlFor="busca-palavra-chave-input"
+              className="text-xs font-bold text-slate-800 flex items-center gap-1.5 uppercase tracking-wider"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+              <span>Busca por Palavra-Chave no Acervo</span>
+              <span className="text-[10.5px] font-normal normal-case text-slate-500">
+                (filtra títulos, ementas, normas, atos e tabelas com realce visual)
+              </span>
+            </label>
+            {buscaPalavraChave.trim() && (
+              <span className="text-[11px] text-amber-900 font-bold bg-amber-100 px-2 py-0.5 rounded-md border border-amber-300 inline-flex items-center gap-1 self-start sm:self-auto">
+                <Check className="w-3 h-3 text-amber-700" />
+                {palavrasChave.length} termo(s) em regra &ldquo;E&rdquo; (
+                {totalFiltradoPalavraChave} itens correspondentes)
+              </span>
+            )}
+          </div>
+
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search className="h-4 w-4 text-amber-600" />
+            </div>
+            <input
+              id="busca-palavra-chave-input"
+              type="text"
+              value={buscaPalavraChave}
+              onChange={(e) => setBuscaPalavraChave(e.target.value)}
+              placeholder="Filtrar por palavras-chave (ex: credito presumido, aliquota zero, trigo, cooperativa)... Múltiplas palavras operam como 'E'"
+              className="w-full pl-9 pr-9 py-2 bg-white border border-slate-300 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 rounded-lg text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none transition-colors"
+            />
+            {buscaPalavraChave && (
+              <button
+                type="button"
+                onClick={() => setBuscaPalavraChave('')}
+                className="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
+                title="Limpar palavra-chave"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+          <div className="flex items-center justify-between text-[11px] text-slate-500">
+            <span>
+              💡 Dica: Não diferencia acentos nem maiúsculas (ex.: &ldquo;credito&rdquo; localiza
+              &ldquo;crédito&rdquo;). Trechos correspondentes são destacados em amarelo.
+            </span>
+            {buscaPalavraChave && (
+              <button
+                type="button"
+                onClick={() => setBuscaPalavraChave('')}
+                className="text-rose-600 hover:underline font-semibold cursor-pointer shrink-0 ml-2"
+              >
+                Limpar palavra-chave
+              </button>
+            )}
+          </div>
+        </div>
+
         {/* Barra de Filtros e Painel Facetado Expandível */}
         <div className="space-y-3 pt-3 border-t border-slate-100">
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
@@ -614,7 +676,11 @@ export function SectionBuscaAvancada({ segmentoInicial }: SectionBuscaAvancadaPr
                 </span>
               ) : resultado ? (
                 <span>
-                  <strong>{resultado.totalGeralEncontrado.toLocaleString('pt-BR')}</strong>{' '}
+                  <strong>
+                    {buscaPalavraChave.trim()
+                      ? `${totalFiltradoPalavraChave} de ${resultado.totalGeralEncontrado.toLocaleString('pt-BR')}`
+                      : resultado.totalGeralEncontrado.toLocaleString('pt-BR')}
+                  </strong>{' '}
                   registros correlacionados às {resultado.timestamp}
                 </span>
               ) : null}
@@ -930,6 +996,20 @@ export function SectionBuscaAvancada({ segmentoInicial }: SectionBuscaAvancadaPr
                 </span>
               ))}
 
+              {buscaPalavraChave.trim() && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-950 border border-amber-300 text-[11px] font-semibold">
+                  <span>Palavra-chave: &ldquo;{buscaPalavraChave}&rdquo;</span>
+                  <button
+                    type="button"
+                    onClick={() => setBuscaPalavraChave('')}
+                    className="hover:text-amber-700 cursor-pointer"
+                    title="Remover filtro de palavra-chave"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
+
               <button
                 type="button"
                 onClick={limparFiltros}
@@ -992,7 +1072,7 @@ export function SectionBuscaAvancada({ segmentoInicial }: SectionBuscaAvancadaPr
             <FileSpreadsheet className="w-4 h-4 text-blue-600" />
             <span>Cards dos Anexos (LC 214)</span>
             <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-blue-600 text-white">
-              {resultado?.anexosReforma.total || 0}
+              {anexosReformaFiltrados.length}
             </span>
           </button>
 
@@ -1007,7 +1087,7 @@ export function SectionBuscaAvancada({ segmentoInicial }: SectionBuscaAvancadaPr
             <AlertOctagon className="w-4 h-4 text-amber-600" />
             <span>Assuntos Especiais (fora da trib. geral)</span>
             <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-amber-500 text-white">
-              {resultado?.assuntosEspeciais.total || 0}
+              {assuntosEspeciaisFiltrados.length}
             </span>
           </button>
 
@@ -1022,7 +1102,7 @@ export function SectionBuscaAvancada({ segmentoInicial }: SectionBuscaAvancadaPr
             <Layers className="w-4 h-4 text-amber-600" />
             Classificações Oficiais (NCM/cClassTrib)
             <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
-              {resultado?.classificacoes.totalItems.toLocaleString('pt-BR') || 0}
+              {classificacoesFiltradas.length.toLocaleString('pt-BR')}
             </span>
           </button>
 
@@ -1037,7 +1117,7 @@ export function SectionBuscaAvancada({ segmentoInicial }: SectionBuscaAvancadaPr
             <Scale className="w-4 h-4 text-blue-600" />
             Atos Normativos & Radar
             <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800">
-              {(resultado?.normas.total || 0) + (resultado?.radarAtos.total || 0)}
+              {normasFiltradas.length + radarAtosFiltrados.length}
             </span>
           </button>
 
@@ -1052,7 +1132,7 @@ export function SectionBuscaAvancada({ segmentoInicial }: SectionBuscaAvancadaPr
             <Percent className="w-4 h-4 text-emerald-600" />
             Alíquotas & Tratamentos
             <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
-              {resultado?.aliquotasTratamentos.length || 0}
+              {aliquotasFiltradas.length}
             </span>
           </button>
 
@@ -1067,7 +1147,7 @@ export function SectionBuscaAvancada({ segmentoInicial }: SectionBuscaAvancadaPr
             <Compass className="w-4 h-4 text-teal-600" />
             Conexões Legais
             <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-teal-100 text-teal-800">
-              {resultado?.conexoesLegais.length || 0}
+              {conexoesFiltradas.length}
             </span>
           </button>
 
@@ -1082,7 +1162,7 @@ export function SectionBuscaAvancada({ segmentoInicial }: SectionBuscaAvancadaPr
             <TrendingUp className="w-4 h-4 text-indigo-600" />
             Análises & Projeções
             <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-800">
-              {resultado?.analisesEspecialistas.length || 0}
+              {analisesFiltradas.length}
             </span>
           </button>
         </nav>
@@ -1179,7 +1259,7 @@ export function SectionBuscaAvancada({ segmentoInicial }: SectionBuscaAvancadaPr
 
             {/* Grid dos Cards de Anexos da Reforma */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {resultado.anexosReforma.items.map((anexo: AnexoReformaItem) => (
+              {anexosReformaFiltrados.map((anexo: AnexoReformaItem) => (
                 <div
                   key={anexo.id}
                   className="bg-white rounded-xl border-2 border-blue-200/90 p-5 shadow-sm hover:border-blue-400 hover:shadow-md transition-all flex flex-col justify-between space-y-4"
@@ -1189,7 +1269,7 @@ export function SectionBuscaAvancada({ segmentoInicial }: SectionBuscaAvancadaPr
                     <div className="flex items-center justify-between gap-2 flex-wrap">
                       <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-extrabold uppercase tracking-wide bg-blue-900 text-white shadow-xs">
                         <FileSpreadsheet className="w-3 h-3 text-blue-300" />
-                        {anexo.numero}
+                        {destacarTrechos(anexo.numero, palavrasChave)}
                       </span>
                       <span
                         className={`px-2.5 py-0.5 rounded-md text-[11px] font-extrabold ${
@@ -1202,18 +1282,20 @@ export function SectionBuscaAvancada({ segmentoInicial }: SectionBuscaAvancadaPr
                                 : 'bg-slate-100 text-slate-800 border border-slate-300'
                         }`}
                       >
-                        {anexo.reducaoRotulo}
+                        {destacarTrechos(anexo.reducaoRotulo, palavrasChave)}
                       </span>
                     </div>
 
                     <h4 className="text-base font-bold text-slate-900 leading-snug">
-                      {anexo.titulo}
+                      {destacarTrechos(anexo.titulo, palavrasChave)}
                     </h4>
 
-                    <p className="text-xs font-medium text-slate-600 italic">{anexo.subtitulo}</p>
+                    <p className="text-xs font-medium text-slate-600 italic">
+                      {destacarTrechos(anexo.subtitulo, palavrasChave)}
+                    </p>
 
                     <p className="text-xs text-slate-700 leading-relaxed bg-slate-50/90 p-3 rounded-lg border border-slate-200">
-                      {anexo.resumo}
+                      {destacarTrechos(anexo.resumo, palavrasChave)}
                     </p>
 
                     {/* Capitulação Legal Oficial do Planalto */}
@@ -1223,7 +1305,7 @@ export function SectionBuscaAvancada({ segmentoInicial }: SectionBuscaAvancadaPr
                         Capitulação Legal (Texto Oficial do Planalto):
                       </span>
                       <p className="text-sky-900 font-mono font-semibold text-[11.5px] leading-relaxed">
-                        {anexo.capitulacaoLegal}
+                        {destacarTrechos(anexo.capitulacaoLegal, palavrasChave)}
                       </p>
                       <div className="flex items-center gap-2 pt-0.5 text-[10.5px] text-sky-800">
                         <span>Remissões diretas:</span>
@@ -1232,7 +1314,7 @@ export function SectionBuscaAvancada({ segmentoInicial }: SectionBuscaAvancadaPr
                             key={idx}
                             className="bg-sky-200/70 text-sky-900 font-bold px-1.5 py-0.2 rounded"
                           >
-                            {art}
+                            {destacarTrechos(art, palavrasChave)}
                           </span>
                         ))}
                       </div>
@@ -1245,11 +1327,11 @@ export function SectionBuscaAvancada({ segmentoInicial }: SectionBuscaAvancadaPr
                           Alíquota Efetiva de Referência (IBS 18,7% + CBS 11,3%):
                         </span>
                         <span className="font-mono font-extrabold text-emerald-800 bg-white px-2 py-0.5 rounded border border-emerald-300">
-                          {anexo.aliquotaEfetivaIbsCbs}
+                          {destacarTrechos(anexo.aliquotaEfetivaIbsCbs, palavrasChave)}
                         </span>
                       </div>
                       <p className="text-[11px] text-emerald-950 leading-relaxed">
-                        {anexo.baseCalculoTexto}
+                        {destacarTrechos(anexo.baseCalculoTexto, palavrasChave)}
                       </p>
                     </div>
 
@@ -1273,10 +1355,12 @@ export function SectionBuscaAvancada({ segmentoInicial }: SectionBuscaAvancadaPr
                           >
                             <div className="space-y-0.5">
                               <span className="font-semibold text-slate-800">
-                                {prod.item}. {prod.descricao}
+                                {prod.item}. {destacarTrechos(prod.descricao, palavrasChave)}
                               </span>
                               {prod.detalhes && (
-                                <p className="text-[11px] text-slate-500 italic">{prod.detalhes}</p>
+                                <p className="text-[11px] text-slate-500 italic">
+                                  {destacarTrechos(prod.detalhes, palavrasChave)}
+                                </p>
                               )}
                             </div>
                             {prod.codigo && (
@@ -1284,7 +1368,7 @@ export function SectionBuscaAvancada({ segmentoInicial }: SectionBuscaAvancadaPr
                                 <span className="text-amber-700 font-semibold">
                                   {prod.tipoCodigo}:
                                 </span>
-                                <span>{prod.codigo}</span>
+                                <span>{destacarTrechos(prod.codigo, palavrasChave)}</span>
                               </span>
                             )}
                           </div>
@@ -1301,7 +1385,7 @@ export function SectionBuscaAvancada({ segmentoInicial }: SectionBuscaAvancadaPr
                             key={cIdx}
                             className="font-mono text-[10px] font-bold bg-slate-100 text-slate-700 px-1.5 py-0.2 rounded border border-slate-200"
                           >
-                            {cod}
+                            {destacarTrechos(cod, palavrasChave)}
                           </span>
                         ))}
                       </div>
@@ -1410,7 +1494,7 @@ export function SectionBuscaAvancada({ segmentoInicial }: SectionBuscaAvancadaPr
 
             {/* Grid dos Cards de Assuntos Especiais */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {resultado.assuntosEspeciais.items.map((esp: AssuntoEspecialItem) => (
+              {assuntosEspeciaisFiltrados.map((esp: AssuntoEspecialItem) => (
                 <div
                   key={esp.id}
                   className="bg-white rounded-xl border-2 border-amber-200/90 p-5 shadow-sm hover:border-amber-400 hover:shadow-md transition-all flex flex-col justify-between space-y-4"
@@ -1420,21 +1504,23 @@ export function SectionBuscaAvancada({ segmentoInicial }: SectionBuscaAvancadaPr
                     <div className="flex items-center justify-between gap-2 flex-wrap">
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-extrabold uppercase tracking-wide bg-amber-100 text-amber-900 border border-amber-300">
                         <Flame className="w-3 h-3 text-amber-700" />
-                        {esp.categoria}
+                        {destacarTrechos(esp.categoria, palavrasChave)}
                       </span>
                       <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-orange-50 text-orange-800 border border-orange-200">
-                        {esp.badgeExcecao}
+                        {destacarTrechos(esp.badgeExcecao, palavrasChave)}
                       </span>
                     </div>
 
                     <h4 className="text-base font-bold text-slate-900 leading-snug">
-                      {esp.titulo}
+                      {destacarTrechos(esp.titulo, palavrasChave)}
                     </h4>
 
-                    <p className="text-xs font-medium text-slate-600 italic">{esp.subtitulo}</p>
+                    <p className="text-xs font-medium text-slate-600 italic">
+                      {destacarTrechos(esp.subtitulo, palavrasChave)}
+                    </p>
 
                     <p className="text-xs text-slate-700 leading-relaxed bg-slate-50/80 p-3 rounded-lg border border-slate-200">
-                      {esp.descricao}
+                      {destacarTrechos(esp.descricao, palavrasChave)}
                     </p>
 
                     {/* Destaque "O que muda" */}
@@ -1442,14 +1528,16 @@ export function SectionBuscaAvancada({ segmentoInicial }: SectionBuscaAvancadaPr
                       <span className="font-bold text-amber-900 block text-[11px] uppercase tracking-wider">
                         O que muda na Reforma Tributária:
                       </span>
-                      <p className="text-amber-950 leading-relaxed text-[11.5px]">{esp.oQueMuda}</p>
+                      <p className="text-amber-950 leading-relaxed text-[11.5px]">
+                        {destacarTrechos(esp.oQueMuda, palavrasChave)}
+                      </p>
                     </div>
 
                     {/* Alíquota / Efeito tributário */}
                     <div className="flex items-center justify-between gap-2 text-xs pt-1">
                       <span className="text-slate-500 font-medium">Tratamento / Alíquota:</span>
                       <span className="font-bold font-mono text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                        {esp.aliquotaOuTratamento}
+                        {destacarTrechos(esp.aliquotaOuTratamento, palavrasChave)}
                       </span>
                     </div>
 
@@ -1467,12 +1555,16 @@ export function SectionBuscaAvancada({ segmentoInicial }: SectionBuscaAvancadaPr
                           >
                             <div className="space-y-0.5">
                               <div className="font-bold text-slate-800 flex items-center gap-1.5">
-                                <span className="font-mono text-blue-700">{con.codigoNorma}</span>
-                                <span>· {con.dispositivo}</span>
+                                <span className="font-mono text-blue-700">
+                                  {destacarTrechos(con.codigoNorma, palavrasChave)}
+                                </span>
+                                <span>· {destacarTrechos(con.dispositivo, palavrasChave)}</span>
                               </div>
-                              <div className="text-[11px] text-slate-600">{con.titulo}</div>
+                              <div className="text-[11px] text-slate-600">
+                                {destacarTrechos(con.titulo, palavrasChave)}
+                              </div>
                               <div className="text-[10px] text-emerald-700 font-medium">
-                                Efeito: {con.efeitoOuTratamento}
+                                Efeito: {destacarTrechos(con.efeitoOuTratamento, palavrasChave)}
                               </div>
                             </div>
                             {con.linkProxyPdf && (
@@ -1502,7 +1594,7 @@ export function SectionBuscaAvancada({ segmentoInicial }: SectionBuscaAvancadaPr
                     <div className="text-[11px] text-slate-600 flex items-start gap-1">
                       <Scale className="w-3.5 h-3.5 text-slate-500 shrink-0 mt-0.5" />
                       <span>
-                        <strong>Base Legal:</strong> {esp.baseLegal}
+                        <strong>Base Legal:</strong> {destacarTrechos(esp.baseLegal, palavrasChave)}
                       </span>
                     </div>
 
@@ -1520,7 +1612,7 @@ export function SectionBuscaAvancada({ segmentoInicial }: SectionBuscaAvancadaPr
                               rel="noopener noreferrer"
                               className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10.5px] font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 transition-colors"
                             >
-                              <span>{fonte.orgao}</span>
+                              <span>{destacarTrechos(fonte.orgao, palavrasChave)}</span>
                               <ExternalLink className="w-2.5 h-2.5 text-slate-400" />
                             </a>
                             <SeloNivelConfianca fonte={fonte.orgao} compacto />

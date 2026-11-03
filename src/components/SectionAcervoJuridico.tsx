@@ -35,6 +35,7 @@ import {
 import { fetchAtosMunicipaisPorCodigo, type RadarAtoItem } from '@/services/radarMunicipios'
 import { SumulasTeses } from '@/components/SumulasTeses'
 import { SectionJurisprudencias } from '@/components/SectionJurisprudencias'
+import type { Jurisprudencia } from '@/services/jurisprudencias'
 
 /**
  * ACERVO JURÍDICO — Seção 30 (pedido do CEO, 02/11/2026)
@@ -91,6 +92,25 @@ const ICONE_ESFERA: Record<string, React.ComponentType<{ className?: string }>> 
 
 export function SectionAcervoJuridico() {
   const [aba, setAba] = useState<Aba>('constituicao')
+
+  /**
+   * "Usar esta tese" (03/11/2026): a súmula escolhida em Súmulas e teses vira
+   * rascunho na aba de publicação. O estado mora AQUI porque as duas abas são
+   * irmãs — passar direto de uma para a outra exigiria contexto global para uma
+   * única passagem, e estado local no pai resolve com menos peça móvel.
+   */
+  const [rascunhoVerbete, setRascunhoVerbete] = useState<Partial<Jurisprudencia> | null>(null)
+
+  const usarTese = (dados: Partial<Jurisprudencia>) => {
+    setRascunhoVerbete(dados)
+    setAba('jurisprudencias')
+    // Sobe ao topo: o formulário abre em modal e a pessoa precisa vê-lo.
+    try {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    } catch {
+      /* ambiente sem scroll — não é motivo para quebrar a ação */
+    }
+  }
   const [acervoAberto, setAcervoAberto] = useState<string>('constitucional')
   const [buscaCodigo, setBuscaCodigo] = useState('')
   const [atos, setAtos] = useState<RadarAtoItem[]>([])
@@ -325,13 +345,18 @@ export function SectionAcervoJuridico() {
       )}
 
       {/* ══════════ ABA — SÚMULAS E TESES EM TEXTO ══════════ */}
-      {aba === 'sumulas' && <SumulasTeses />}
+      {aba === 'sumulas' && <SumulasTeses onUsarTese={usarTese} />}
 
       {/* ══════════ ABA — PUBLICAR JURISPRUDÊNCIAS ══════════
           Ícone separado pedido pelo CEO (03/11/2026). Aqui é o acervo DO
           ESCRITÓRIO (com tese, aplicação prática e ciclo de revisão), não a
           fonte oficial dos tribunais — essa continua em "Súmulas e teses". */}
-      {aba === 'jurisprudencias' && <SectionJurisprudencias />}
+      {aba === 'jurisprudencias' && (
+        <SectionJurisprudencias
+          prefill={rascunhoVerbete}
+          onPrefillConsumido={() => setRascunhoVerbete(null)}
+        />
+      )}
 
       {/* ══════════ ABA 2 — HIERARQUIA ══════════ */}
       {aba === 'hierarquia' && (

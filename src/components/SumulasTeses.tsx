@@ -10,8 +10,11 @@ import {
   X,
   Download,
   Hash,
+  Send,
 } from 'lucide-react'
 import { BuscaPorArtigo } from './BuscaPorArtigo'
+import { verbeteParaJurisprudencia, type VerbeteLike } from '@/lib/verbeteParaJurisprudencia'
+import type { Jurisprudencia } from '@/services/jurisprudencias'
 
 /**
  * SÚMULAS E TESES EM TEXTO — aba do Acervo Jurídico
@@ -167,7 +170,12 @@ function filtrar(c: Conjunto, arr: Verbete[]): Verbete[] {
   return arr
 }
 
-export function SumulasTeses() {
+export function SumulasTeses({
+  onUsarTese,
+}: {
+  /** leva o verbete escolhido para o formulário de publicação */
+  onUsarTese?: (dados: Partial<Jurisprudencia>) => void
+} = {}) {
   const [conjuntoId, setConjuntoId] = useState<ConjuntoId>('stf-vinculantes')
   const [dados, setDados] = useState<Record<string, Verbete[]>>({})
   const [carregando, setCarregando] = useState(false)
@@ -300,6 +308,7 @@ export function SumulasTeses() {
             '2': dados[ARQ_TST] || [],
             '3': dados[ARQ_TEMAS] || [],
           }}
+          onUsarTese={onUsarTese}
         />
       </div>
     )
@@ -417,6 +426,31 @@ export function SumulasTeses() {
               </p>
             )}
             <p className="mt-1 text-[12px] leading-relaxed text-slate-800">{v.t}</p>
+            {onUsarTese && (
+              <button
+                type="button"
+                onClick={() => {
+                  const t =
+                    conjunto.id === 'stf-vinculantes' || conjunto.id === 'stf-simples'
+                      ? 'STF'
+                      : conjunto.id === 'stj-temas'
+                        ? 'STJ'
+                        : conjunto.id === 'stj-sumulas'
+                          ? 'STJ'
+                          : 'TST'
+                  const tipo =
+                    conjunto.id === 'stj-temas'
+                      ? 'tema repetitivo'
+                      : conjunto.id === 'stf-vinculantes'
+                        ? 'súmula vinculante'
+                        : 'súmula'
+                  onUsarTese(verbeteParaJurisprudencia(t, tipo, v as VerbeteLike))
+                }}
+                className="mt-1.5 inline-flex min-h-[30px] items-center gap-1 rounded border border-panorama-navy bg-panorama-navy px-2 text-[10.5px] font-bold text-white hover:bg-slate-900"
+              >
+                <Send className="h-3 w-3 text-panorama-gold" /> Usar esta tese
+              </button>
+            )}
           </article>
         ))}
       </div>

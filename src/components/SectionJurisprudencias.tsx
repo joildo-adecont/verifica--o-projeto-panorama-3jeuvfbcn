@@ -127,7 +127,14 @@ const FORM_VAZIO: Partial<Jurisprudencia> = {
   destaque: false,
 }
 
-export function SectionJurisprudencias() {
+export function SectionJurisprudencias({
+  prefill,
+  onPrefillConsumido,
+}: {
+  /** rascunho vindo de "usar esta tese" (Súmulas e teses / Por artigo de lei) */
+  prefill?: Partial<Jurisprudencia> | null
+  onPrefillConsumido?: () => void
+} = {}) {
   const [lista, setLista] = useState<Jurisprudencia[]>([])
   const [resumo, setResumo] = useState<ResumoJuris | null>(null)
   const [totalAcervo, setTotalAcervo] = useState(0)
@@ -144,6 +151,21 @@ export function SectionJurisprudencias() {
   const [editandoId, setEditandoId] = useState<string | null>(null)
   const [salvando, setSalvando] = useState(false)
   const [erroForm, setErroForm] = useState('')
+
+  /**
+   * "Usar esta tese": abre o formulário JÁ PREENCHIDO com o verbete escolhido.
+   * Não cria o registro sozinho — o advogado revisa antes de salvar, porque o
+   * que veio do tribunal é a tese, não a leitura da casa.
+   */
+  useEffect(() => {
+    if (!prefill) return
+    setForm({ ...FORM_VAZIO, ...prefill })
+    setEditandoId(null)
+    setErroForm('')
+    setDetalhe(null)
+    if (onPrefillConsumido) onPrefillConsumido()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prefill])
 
   const [detalhe, setDetalhe] = useState<Jurisprudencia | null>(null)
   const [historico, setHistorico] = useState<
