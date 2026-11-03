@@ -283,37 +283,36 @@ export function PlataformaHome() {
         <div className="relative z-10 space-y-6">
           {/* Topo do Hero: Logo em destaque + Badges de autoridade */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-white/10">
-            <div className="flex items-center gap-4">
-              {/* Marca em destaque: o logo oficial ocupa espaço nobre, com halo
-               * dourado. Antes eram 40-48px dentro de um quadrado; agora 56-72px
-               * direto sobre o navy, que é como a marca se lê melhor. */}
-              <div className="relative shrink-0">
-                <div className="absolute -inset-3 rounded-2xl bg-panorama-gold/10 blur-xl" />
-                <AdecontLogo variant="white" className="relative h-14 w-auto sm:h-16 lg:h-[72px]" />
+            {/* ── LOGOMARCA OFICIAL EM DESTAQUE (03/11/2026) ──
+             * O CEO pediu "aumente o nome" e "a logomarca não aparece".
+             * O PNG branco oficial é 1368×784 e traz o símbolo E o nome
+             * ADECONT — mas renderizava a 56×32px, pequeno demais para se ler.
+             * Agora: largura fluida grande (até 340px), altura automática. */}
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
+              <div className="relative w-full max-w-[200px] shrink-0 sm:max-w-[260px] lg:max-w-[300px]">
+                <div className="absolute -inset-4 rounded-3xl bg-panorama-gold/10 blur-2xl" />
+                <AdecontLogo variant="white" className="relative h-auto w-full object-contain" />
               </div>
-              <div className="min-w-0 border-l border-panorama-gold/40 pl-4">
-                <span className="block font-serif text-lg font-black uppercase tracking-[0.22em] text-panorama-gold sm:text-xl">
-                  ADECONT
-                </span>
-                <span className="mt-0.5 block text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-300 sm:text-xs">
+              <div className="min-w-0 border-panorama-gold/40 sm:border-l sm:pl-6">
+                <span className="block text-[13px] font-semibold leading-relaxed text-slate-200 sm:text-sm">
                   Assessoria Contábil e Administrativa
                 </span>
-                <span className="mt-1 block text-[10px] font-medium uppercase tracking-[0.18em] text-slate-400">
+                <span className="mt-0.5 block text-[11px] font-medium text-slate-400">
                   Inteligência fiscal · conformidade · governança
                 </span>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-panorama-gold text-panorama-navy shadow-sm">
-                <Sparkles className="w-3.5 h-3.5" />
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-white/10 px-3 py-1 text-[11px] font-semibold text-slate-200">
+                <Sparkles className="h-3.5 w-3.5" />
                 Portal Unificado
               </span>
-              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-bold bg-white/10 text-amber-200 border border-white/20">
-                <Layers className="w-3.5 h-3.5 text-amber-300" />4 Segmentos Estruturados
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-white/10 px-3 py-1 text-[11px] font-semibold text-slate-200">
+                <Layers className="h-3.5 w-3.5" />4 Plataformas
               </span>
-              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                <Bot className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-white/10 px-3 py-1 text-[11px] font-semibold text-slate-200">
+                <Bot className="h-3.5 w-3.5" />
                 Agentes Especialistas
               </span>
             </div>
@@ -321,20 +320,8 @@ export function PlataformaHome() {
 
           {/* Título Principal Exato: Plataforma Contábil, Jurídica e Administrativa ADECONT */}
           <div className="space-y-3 max-w-4xl">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-[2.65rem] font-black tracking-tight text-white leading-tight font-serif">
-              Plataforma{' '}
-              <span className="text-amber-300 underline decoration-amber-400/60 decoration-2 underline-offset-4">
-                Contábil
-              </span>
-              ,{' '}
-              <span className="text-indigo-300 underline decoration-indigo-400/60 decoration-2 underline-offset-4">
-                Jurídica
-              </span>{' '}
-              e{' '}
-              <span className="text-sky-300 underline decoration-sky-400/60 decoration-2 underline-offset-4">
-                Administrativa
-              </span>{' '}
-              ADECONT
+            <h1 className="font-serif text-[1.7rem] font-bold leading-tight tracking-tight text-white sm:text-3xl md:text-4xl lg:text-[2.6rem]">
+              Plataforma Contábil, Jurídica e Administrativa ADECONT
             </h1>
 
             <p className="text-xs sm:text-sm md:text-base text-slate-300 leading-relaxed max-w-3xl font-sans">

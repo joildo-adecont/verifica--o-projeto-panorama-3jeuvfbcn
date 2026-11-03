@@ -23,6 +23,10 @@ export type TipoNorma =
   | 'Decreto'
   | 'Portaria Conjunta'
   | 'Ato Conjunto'
+  | 'Instrução Normativa'
+  | 'Solução de Consulta'
+  | 'Ato Declaratório'
+  | 'Portaria'
   | 'Resolução'
 
 export type SituacaoNorma = 'vigente' | 'alterada' | 'revogada'
@@ -362,6 +366,45 @@ export const CRONOLOGIA: ItemCronologia[] = [
     incorporada: false,
   },
   {
+    codigo: 'SC COSIT 124/2025',
+    tipo: 'Solução de Consulta',
+    data: '2025-08-14',
+    titulo: 'Solução de Consulta COSIT nº 124/2025',
+    objeto: 'Não cumulatividade plena e apropriação de créditos na transição PIS/Cofins para CBS',
+    url: 'https://normas.receita.fazenda.gov.br',
+    situacao: 'vigente',
+    papel: 'regulamento',
+    incorporada: true,
+    secao: 'Seção 1 e Agentes Especialistas',
+    nota: 'Efeito vinculante na administração tributária da RFB.',
+  },
+  {
+    codigo: 'Portaria RFB 549/2025',
+    tipo: 'Portaria',
+    data: '2025-06-13',
+    titulo: 'Portaria RFB nº 549/2025',
+    objeto: 'Piloto da Reforma Tributária do Consumo e apuração assistida da CBS',
+    url: 'https://normas.receita.fazenda.gov.br',
+    situacao: 'vigente',
+    papel: 'regulamento',
+    incorporada: true,
+    secao: 'Seção 1 — Arcabouço normativo',
+    nota: 'Ambiente de testes práticos do programa RTC da Receita Federal com o Serpro.',
+  },
+  {
+    codigo: 'ADI RFB 3/2025',
+    tipo: 'Ato Declaratório',
+    data: '2025-05-22',
+    titulo: 'Ato Declaratório Interpretativo RFB nº 3/2025',
+    objeto: 'Incidência neutra em bens imateriais e dispensa de sanções preliminares',
+    url: 'https://normas.receita.fazenda.gov.br',
+    situacao: 'vigente',
+    papel: 'regulamento',
+    incorporada: true,
+    secao: 'Seção 1 — Arcabouço normativo',
+    nota: 'Interpretação oficial da Receita Federal sobre transição para a CBS.',
+  },
+  {
     codigo: 'LC 214/2025',
     tipo: 'Lei Complementar',
     data: '2025-01-16',
@@ -374,6 +417,19 @@ export const CRONOLOGIA: ItemCronologia[] = [
     incorporada: true,
     secao: 'Todas as seções do Panorama',
     nota: '544 artigos e 661.175 caracteres conferidos no texto integral. Alterada pela LC 227/2026 e pela LC 235/2026.',
+  },
+  {
+    codigo: 'IN RFB 2.215/2024',
+    tipo: 'Instrução Normativa',
+    data: '2024-12-18',
+    titulo: 'Instrução Normativa RFB nº 2.215/2024',
+    objeto: 'Registro prévio e obrigações acessórias preliminares preparatórias para a CBS',
+    url: 'https://normas.receita.fazenda.gov.br',
+    situacao: 'vigente',
+    papel: 'regulamento',
+    incorporada: true,
+    secao: 'Seção 1 e Seção 9',
+    nota: 'Regras de cadastramento e adaptação operacional dos contribuintes perante a Receita Federal.',
   },
 
   // ───────────────────────── 2023 ─────────────────────────

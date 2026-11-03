@@ -78,6 +78,10 @@ const CORES_TIPO: Record<TipoNorma, string> = {
   Decreto: 'bg-purple-100 text-purple-800',
   'Portaria Conjunta': 'bg-amber-100 text-amber-800',
   'Ato Conjunto': 'bg-emerald-100 text-emerald-800',
+  'Instrução Normativa': 'bg-teal-100 text-teal-800',
+  'Solução de Consulta': 'bg-cyan-100 text-cyan-800',
+  'Ato Declaratório': 'bg-sky-100 text-sky-800',
+  Portaria: 'bg-indigo-100 text-indigo-800',
   Resolução: 'bg-blue-100 text-blue-800',
 }
 
@@ -171,6 +175,10 @@ export function SectionMonitorLegislativo() {
     'Lei Complementar',
     'Decreto',
     'Resolução',
+    'Instrução Normativa',
+    'Solução de Consulta',
+    'Ato Declaratório',
+    'Portaria',
     'Portaria Conjunta',
     'Ato Conjunto',
   ]
@@ -467,11 +475,16 @@ export function SectionMonitorLegislativo() {
                             fonte={
                               i.url.includes('planalto')
                                 ? 'Portal da Legislação (Planalto)'
-                                : i.url.includes('cgibs')
-                                  ? 'CGIBS'
-                                  : i.url.includes('in.gov.br')
-                                    ? 'DOU'
-                                    : 'Senado Federal'
+                                : i.url.includes('receita') ||
+                                    i.url.includes('rfb') ||
+                                    i.codigo.includes('RFB') ||
+                                    i.codigo.includes('COSIT')
+                                  ? 'Receita Federal'
+                                  : i.url.includes('cgibs')
+                                    ? 'CGIBS'
+                                    : i.url.includes('in.gov.br')
+                                      ? 'DOU'
+                                      : 'Senado Federal'
                             }
                             compacto
                           />

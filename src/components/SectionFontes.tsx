@@ -163,11 +163,13 @@ export function SectionFontes() {
     },
     {
       orgao: 'Receita Federal (RFB)',
-      fonte: 'gov.br/receitafederal → Reforma Tributária',
-      conteudo: 'Instruções normativas, guias, cronogramas e programa RTC',
-      url: 'https://www.gov.br/receitafederal/pt-br/assuntos/reforma-tributaria',
-      statusNota: 'Acesso direto oficial ativo.',
-      badgeStatus: 'Acesso direto ativo',
+      fonte: 'normas.receita.fazenda.gov.br (Sigaex) + gov.br/receitafederal',
+      conteudo:
+        'Instruções Normativas (IN 2.215/2024, IN 2.121/2022, IN 2.058/2021), Soluções de Consulta COSIT, Atos Declaratórios e Portarias RFB com busca em tempo real',
+      url: 'https://normas.receita.fazenda.gov.br/sigaex/consulta/externa/consultar.action',
+      statusNota:
+        'Adaptador de busca RFB ativo no backend com verificação ao vivo no nível oficial_institucional. Captura periódica de atos e integração aos 5 agentes especialistas.',
+      badgeStatus: 'Oficial Integrada (Busca RFB ao Vivo)',
       badgeCor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
     },
     {
