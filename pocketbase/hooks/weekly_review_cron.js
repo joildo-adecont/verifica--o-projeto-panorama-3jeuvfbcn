@@ -630,6 +630,42 @@ cronAdd('weekly_content_review', '0 11 * * 1', () => {
             'Revisão registrada automaticamente na rotina semanal de segunda-feira (Cron).',
           )
           $app.save(histRec)
+
+          // Registra Alerta de Nova Revisão (norm_alerts)
+          try {
+            const colAlerts = $app.findCollectionByNameOrId('norm_alerts')
+            const alertJaExiste = $app.findRecordsByFilter(
+              'norm_alerts',
+              'norm_code = {:c} && review_date = {:d}',
+              '',
+              1,
+              0,
+              { c: itemNorma.code, d: hojeStr },
+            )
+
+            if (alertJaExiste.length === 0) {
+              const alertRec = new Record(colAlerts)
+              alertRec.set('review_id', histRec.id)
+              alertRec.set('norm_code', itemNorma.code)
+              alertRec.set('norm_type', itemNorma.norm_type)
+              alertRec.set('norm_number', itemNorma.code.match(/(\d+[\.\d]*)/)?.[1] || '')
+              alertRec.set('norm_year', itemNorma.code.match(/(\d{4})/)?.[1] || '2026')
+              alertRec.set('norm_title', itemNorma.title)
+              alertRec.set('source_org', itemNorma.origin)
+              alertRec.set('confidence_tier', 'oficial_institucional')
+              alertRec.set('review_type', isNova ? 'inclusao' : 'alteracao')
+              alertRec.set('segment', 'Tributário')
+              alertRec.set('review_date', hojeStr)
+              alertRec.set('summary_change', itemNorma.summary)
+              alertRec.set('origin_record_id', recNorma.id)
+              alertRec.set('record_origin', 'rotina_semanal')
+              alertRec.set('is_read', false)
+              alertRec.set('link_url', itemNorma.link_url)
+              $app.save(alertRec)
+            }
+          } catch (alertErr) {
+            console.log('Erro ao gravar alerta em norm_alerts: ' + String(alertErr))
+          }
         }
       } catch (histErr) {
         console.log('Erro ao gravar evento de cron em norm_reviews_history: ' + String(histErr))

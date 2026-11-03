@@ -43,6 +43,7 @@ import {
   FILTROS_HISTORICO_INICIAIS,
   type FiltrosHistoricoNormas,
 } from '@/services/normReviewsHistory'
+import { criarAlertaParaRevisao } from '@/services/normAlerts'
 import { ModalDetalhesNorma } from '@/components/ModalDetalhesNorma'
 import { ModalNovaRevisao } from '@/components/ModalNovaRevisao'
 import { RelatorioRevisoesImprimivel } from '@/components/RelatorioRevisoesImprimivel'
@@ -82,6 +83,13 @@ export const SectionHistoricoRevisoes: React.FC = () => {
   const handleSalvarManual = async (dados: CreateNormReviewInput) => {
     const novo = await criarRegistroRevisaoManual(dados)
     setItens((prev) => [novo, ...prev])
+    // Dispara geração do alerta correspondente à nova revisão
+    try {
+      await criarAlertaParaRevisao(novo)
+      window.dispatchEvent(new CustomEvent('norm_alerts_updated'))
+    } catch (err) {
+      console.warn('Erro ao disparar alerta da nova revisão:', err)
+    }
   }
 
   // Estatísticas rápidas

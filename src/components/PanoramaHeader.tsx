@@ -3,6 +3,7 @@ import { RotateCw, Clock, ExternalLink, Search, Menu, X, FileText } from 'lucide
 import { Badge } from '@/components/ui/badge'
 import { AdecontLogo } from '@/components/AdecontLogo'
 import { AlternadorTema } from '@/components/AlternadorTema'
+import { NormAlertsBell } from '@/components/NormAlertsBell'
 import { NAVEGACAO } from '@/components/navegacao'
 import { fetchSourceStatuses, triggerSourceCheck } from '@/services/panorama'
 import { useToast } from '@/hooks/use-toast'
@@ -335,48 +336,53 @@ export function PanoramaHeader({
             )}
           </div>
 
-          {/* Actions */}
-          <div className="hidden sm:flex items-center gap-2">
-            <a
-              href="/panorama-reforma/envios.html"
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-panorama-navy bg-panorama-gold hover:bg-panorama-gold-light px-3 py-1.5 rounded-md shadow-sm transition-all hover:-translate-y-px hover:shadow-md"
-              title="Cadastro de Clientes & Protocolo de Envios"
-            >
-              <span>📇 Cadastro & Envios</span>
-            </a>
-            <a
-              href="/panorama-reforma/simulador.html"
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-[#1E4FD8] hover:bg-[#2A5BE8] px-3 py-1.5 rounded-md shadow-sm transition-all hover:-translate-y-px hover:shadow-md"
-              title="Simulador Didático de Transição — regime atual vs IBS/CBS"
-            >
-              <span>🧮 Simulador</span>
-            </a>
-            <a
-              href="https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 hover:text-blue-700 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-md transition-colors"
-            >
-              <FileText className="w-3.5 h-3.5" />
-              <span>Texto da LC 214</span>
-              <ExternalLink className="w-3 h-3 text-slate-400" />
-            </a>
-            <a
-              href="#secao-9"
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-panorama-navy hover:bg-panorama-navy-light px-3 py-1.5 rounded-md shadow-sm transition-colors border border-panorama-gold/40"
-            >
-              <span>Consultar Especialista</span>
-            </a>
-          </div>
+          {/* Actions & Alertas */}
+          <div className="flex items-center gap-2">
+            {/* Bell de Alertas de Novas Revisões */}
+            <NormAlertsBell />
 
-          {/* Mobile hamburger */}
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="flex min-h-[40px] min-w-[40px] items-center justify-center p-1.5 text-slate-600 hover:text-slate-900 focus:outline-none lg:hidden"
-            aria-label="Menu"
-          >
-            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
+            <div className="hidden sm:flex items-center gap-2">
+              <a
+                href="/panorama-reforma/envios.html"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-panorama-navy bg-panorama-gold hover:bg-panorama-gold-light px-3 py-1.5 rounded-md shadow-sm transition-all hover:-translate-y-px hover:shadow-md"
+                title="Cadastro de Clientes & Protocolo de Envios"
+              >
+                <span>📇 Cadastro & Envios</span>
+              </a>
+              <a
+                href="/panorama-reforma/simulador.html"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-[#1E4FD8] hover:bg-[#2A5BE8] px-3 py-1.5 rounded-md shadow-sm transition-all hover:-translate-y-px hover:shadow-md"
+                title="Simulador Didático de Transição — regime atual vs IBS/CBS"
+              >
+                <span>🧮 Simulador</span>
+              </a>
+              <a
+                href="https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 hover:text-blue-700 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-md transition-colors"
+              >
+                <FileText className="w-3.5 h-3.5" />
+                <span>Texto da LC 214</span>
+                <ExternalLink className="w-3 h-3 text-slate-400" />
+              </a>
+              <a
+                href="#secao-9"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-panorama-navy hover:bg-panorama-navy-light px-3 py-1.5 rounded-md shadow-sm transition-colors border border-panorama-gold/40"
+              >
+                <span>Consultar Especialista</span>
+              </a>
+            </div>
+
+            {/* Mobile hamburger */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="flex min-h-[40px] min-w-[40px] items-center justify-center p-1.5 text-slate-600 hover:text-slate-900 focus:outline-none lg:hidden"
+              aria-label="Menu"
+            >
+              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
         </div>
 
         {/* Mobile Search — normas + produtos/serviços */}

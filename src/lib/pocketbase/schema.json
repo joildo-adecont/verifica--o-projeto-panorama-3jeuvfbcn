@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-03T01:27:36.791Z",
+  "generatedAt": "2026-11-03T01:55:18.840Z",
   "collections": [
     {
       "name": "users",
@@ -2122,6 +2122,139 @@
         "CREATE INDEX idx_nrh_code ON norm_reviews_history (norm_code)",
         "CREATE INDEX idx_nrh_segment ON norm_reviews_history (segment)",
         "CREATE INDEX idx_nrh_type ON norm_reviews_history (review_type)"
+      ]
+    },
+    {
+      "name": "norm_alerts",
+      "type": "base",
+      "apiRules": {
+        "list": "",
+        "view": "",
+        "create": "",
+        "update": "",
+        "delete": ""
+      },
+      "fields": [
+        {
+          "name": "review_id",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "norm_code",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "norm_type",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "norm_number",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "norm_year",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "norm_title",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "source_org",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "confidence_tier",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": ["diario_oficial", "oficial_institucional", "comparacao"]
+        },
+        {
+          "name": "review_type",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": ["inclusao", "alteracao", "exclusao"]
+        },
+        {
+          "name": "segment",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": ["Tributário", "Jurídico", "Contábil", "Administrativo"]
+        },
+        {
+          "name": "review_date",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "summary_change",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "origin_record_id",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "record_origin",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": ["rotina_semanal", "manual", "backfill_inicial"]
+        },
+        {
+          "name": "is_read",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "link_url",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": [
+        "CREATE INDEX idx_norm_alerts_date ON norm_alerts (review_date DESC)",
+        "CREATE INDEX idx_norm_alerts_code ON norm_alerts (norm_code)",
+        "CREATE INDEX idx_norm_alerts_type ON norm_alerts (review_type)",
+        "CREATE INDEX idx_norm_alerts_segment ON norm_alerts (segment)"
       ]
     }
   ]

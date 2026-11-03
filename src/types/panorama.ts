@@ -154,6 +154,28 @@ export interface NormReviewHistoryItem {
   updated?: string
 }
 
+export interface NormAlertItem {
+  id: string
+  review_id?: string
+  norm_code: string
+  norm_type: string
+  norm_number?: string
+  norm_year?: string
+  norm_title: string
+  source_org: string
+  confidence_tier: ConfidenceTier
+  review_type: ReviewType
+  segment: NormSegment
+  review_date: string
+  summary_change: string
+  origin_record_id?: string
+  record_origin: NormRecordOrigin
+  is_read: boolean
+  link_url?: string
+  created?: string
+  updated?: string
+}
+
 export interface CreateNormReviewInput {
   norm_code: string
   norm_type: string

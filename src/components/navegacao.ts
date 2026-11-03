@@ -976,6 +976,9 @@ const SECOES_JURIDICA = [
   '#historico-atualizacoes',
 ]
 const SECOES_CONTABIL = [
+  /* Recursos Humanos entra PRIMEIRO: para quem opera a folha, é a porta de
+     entrada do setor — o resto da plataforma é apuração de IBS/CBS. */
+  '#recursos-humanos',
   '#regime-imobiliario',
   '#agronegocio',
   '#consorcios',
