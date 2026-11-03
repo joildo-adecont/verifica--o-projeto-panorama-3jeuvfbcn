@@ -28,6 +28,7 @@ import { SectionSetor } from '@/components/SectionSetor'
 import { SectionControleVersao } from '@/components/SectionControleVersao'
 import { SectionBuscaAvancada } from '@/components/SectionBuscaAvancada'
 import { SectionDiagnosticoTributario } from '@/components/SectionDiagnosticoTributario'
+import { SectionRecursosHumanos } from '@/components/SectionRecursosHumanos'
 import { PainelDegraus } from '@/components/PainelDegraus'
 import { SectionHistoricoAtualizacoes } from '@/components/SectionHistoricoAtualizacoes'
 import { SectionHistoricoRevisoes } from '@/components/SectionHistoricoRevisoes'
@@ -135,6 +136,7 @@ const COMPONENTES: Record<string, ComponentType<PropsAba>> = {
   '#setor-futebol': SetorFutebol,
   '#setor-exterior': SetorExterior,
   '#setor-diplomatico': SetorDiplomatico,
+  '#recursos-humanos': SectionRecursosHumanos,
   '#secao-7': SectionAnexos,
   '#tabela-geral': SectionTabelaGeral,
   '#secao-8': SectionCronograma,

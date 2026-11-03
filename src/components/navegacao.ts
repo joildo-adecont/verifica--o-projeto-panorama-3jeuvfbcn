@@ -231,6 +231,44 @@ const SETORES_NOVOS: LinkNavegacao[] = [
     dominio: 'setores',
     setor: 'diplomatico',
   },
+  /* ── RECURSOS HUMANOS (02/11/2026) ──
+   * Setor pedido pelo CEO dentro da Plataforma Contábil. Não é regime da LC 214:
+   * é o acervo trabalhista/previdenciário/sindical/NR que o escritório precisa
+   * ter à mão. Tecla 'h' (de RH) não colide com nenhuma existente. */
+  {
+    href: '#recursos-humanos',
+    label: 'Recursos Humanos',
+    curto: 'RH',
+    tecla: 'h',
+    numero: '28',
+    Icon: Users,
+    cor: 'text-orange-700',
+    bg: 'bg-orange-50',
+    borda: 'border-orange-300',
+    descricao: 'Trabalhista, previdenciário, sindical e as NRs de segurança',
+    tags: [
+      'rh',
+      'recursos humanos',
+      'trabalhista',
+      'clt',
+      'previdenciario',
+      'previdenciaria',
+      'inss',
+      'sindical',
+      'sindicato',
+      'nr',
+      'norma regulamentadora',
+      'seguranca do trabalho',
+      'sst',
+      'folha',
+      'empregado',
+      'empregador',
+      'convencao coletiva',
+      'acordo coletivo',
+    ],
+    dominio: 'setores',
+    setor: 'recursos-humanos',
+  },
 ]
 
 /* ────────────────────────────── GRUPO 1 ────────────────────────────── */

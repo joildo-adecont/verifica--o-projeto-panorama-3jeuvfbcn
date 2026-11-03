@@ -210,7 +210,10 @@ export function SectionRecursosHumanos() {
                         </p>
                         <ul className="space-y-1">
                           {m.recepciona.map((item, i) => (
-                            <li key={i} className="flex items-start gap-1.5 text-[11.5px] text-slate-700">
+                            <li
+                              key={i}
+                              className="flex items-start gap-1.5 text-[11.5px] text-slate-700"
+                            >
                               <CheckCircle2 className="mt-0.5 h-3 w-3 shrink-0 text-emerald-600" />
                               <span>{item}</span>
                             </li>
@@ -278,10 +281,10 @@ export function SectionRecursosHumanos() {
             </p>
             <p className="mt-1 text-[11.5px] leading-relaxed text-slate-700">
               Base oficial do <b>MTE / CNES</b> (arquivo &quot;Sindicatos do Brasil&quot;) —{' '}
-              <b>{TOTAL_SINDICATOS.toLocaleString('pt-BR')} sindicatos</b> registrados, com categoria,
-              abrangência e a base territorial município a município. O arquivo publicado é de{' '}
-              <b>28/07/2021</b>: os totais são dessa data e a situação de um sindicato específico deve
-              ser confirmada no CNES, que é on-line.
+              <b>{TOTAL_SINDICATOS.toLocaleString('pt-BR')} sindicatos</b> registrados, com
+              categoria, abrangência e a base territorial município a município. O arquivo publicado
+              é de <b>28/07/2021</b>: os totais são dessa data e a situação de um sindicato
+              específico deve ser confirmada no CNES, que é on-line.
             </p>
           </div>
 
@@ -435,7 +438,9 @@ export function SectionRecursosHumanos() {
                       {a.total.toLocaleString('pt-BR')}
                     </span>
                   </div>
-                  <p className="mt-0.5 text-[10.5px] leading-snug text-slate-500">{a.significado}</p>
+                  <p className="mt-0.5 text-[10.5px] leading-snug text-slate-500">
+                    {a.significado}
+                  </p>
                 </div>
               ))}
             </div>
@@ -477,7 +482,9 @@ export function SectionRecursosHumanos() {
           {(['primaria', 'complementar'] as const).map((tipo) => (
             <div key={tipo}>
               <p className="mb-1.5 mt-2 text-[10px] font-black uppercase tracking-wider text-slate-500">
-                {tipo === 'primaria' ? 'Fontes primárias — o texto oficial' : 'Fontes complementares — interpretação e prática'}
+                {tipo === 'primaria'
+                  ? 'Fontes primárias — o texto oficial'
+                  : 'Fontes complementares — interpretação e prática'}
               </p>
               <div className="grid gap-1.5 md:grid-cols-2">
                 {FONTES_RH.filter((f) => f.tipo === tipo).map((f) => (
@@ -531,7 +538,10 @@ export function SectionRecursosHumanos() {
               </p>
               <ul className="space-y-1.5">
                 {NOTA_REFORMA_E_RH.mudou.map((t, i) => (
-                  <li key={i} className="flex items-start gap-1.5 text-[11.5px] leading-relaxed text-slate-700">
+                  <li
+                    key={i}
+                    className="flex items-start gap-1.5 text-[11.5px] leading-relaxed text-slate-700"
+                  >
                     <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500" />
                     <span>{t}</span>
                   </li>
@@ -544,7 +554,10 @@ export function SectionRecursosHumanos() {
               </p>
               <ul className="space-y-1.5">
                 {NOTA_REFORMA_E_RH.naoMudou.map((t, i) => (
-                  <li key={i} className="flex items-start gap-1.5 text-[11.5px] leading-relaxed text-slate-700">
+                  <li
+                    key={i}
+                    className="flex items-start gap-1.5 text-[11.5px] leading-relaxed text-slate-700"
+                  >
                     <CheckCircle2 className="mt-0.5 h-3 w-3 shrink-0 text-emerald-600" />
                     <span>{t}</span>
                   </li>
