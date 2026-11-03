@@ -23,16 +23,15 @@ import {
   RefreshCw,
   Clock,
   ArrowRight,
-  ShieldCheck,
   AlertCircle,
   FileX,
-  FileText,
-  AlertTriangle,
+  X,
+  Layers,
+  Check,
 } from 'lucide-react'
 import type {
   NormExclusionHistoryItem,
   CreateNormExclusionInput,
-  ConfidenceTier,
   NormSegment,
 } from '@/types/panorama'
 import {
@@ -40,8 +39,10 @@ import {
   filtrarHistoricoExclusoes,
   criarRegistroExclusaoManual,
   calcularMetricasExclusoes,
+  extrairFontesComExclusoes,
   FILTROS_EXCLUSOES_INICIAIS,
   type FiltrosHistoricoExclusoes,
+  type FonteDisponivelExclusao,
 } from '@/services/normExclusionsHistory'
 import { criarAlertaParaExclusao } from '@/services/normAlerts'
 import { ModalDetalhesExclusao } from '@/components/ModalDetalhesExclusao'
@@ -84,6 +85,11 @@ export const SectionHistoricoExclusoes: React.FC = () => {
     }
   }, [])
 
+  // Lista dinâmica de fontes que realmente possuem exclusões registradas no acervo
+  const fontesDisponiveis = useMemo<FonteDisponivelExclusao[]>(() => {
+    return extrairFontesComExclusoes(itens)
+  }, [itens])
+
   const itensFiltrados = useMemo(() => {
     return filtrarHistoricoExclusoes(itens, filtros)
   }, [itens, filtros])
@@ -91,6 +97,20 @@ export const SectionHistoricoExclusoes: React.FC = () => {
   const metricas = useMemo(() => {
     return calcularMetricasExclusoes(itens)
   }, [itens])
+
+  const fonteAtivaInfo = useMemo(() => {
+    if (filtros.fonte === 'TODAS') return null
+    return fontesDisponiveis.find((f) => f.id === filtros.fonte) || null
+  }, [filtros.fonte, fontesDisponiveis])
+
+  const temFiltrosAtivos = useMemo(() => {
+    return (
+      Boolean(filtros.busca) ||
+      filtros.segmento !== 'TODOS' ||
+      filtros.fonte !== 'TODAS' ||
+      filtros.periodo !== 'todos'
+    )
+  }, [filtros])
 
   const handleSalvarManual = async (dados: CreateNormExclusionInput) => {
     const novo = await criarRegistroExclusaoManual(dados)
@@ -219,11 +239,11 @@ export const SectionHistoricoExclusoes: React.FC = () => {
         </Card>
       </div>
 
-      {/* Barra de Filtros e Busca */}
+      {/* Barra de Filtros e Busca com Seletor Especializado por Fonte */}
       <Card className="border-slate-200 dark:border-slate-800 shadow-sm">
-        <CardContent className="p-4 space-y-3">
+        <CardContent className="p-4 space-y-3.5">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-            {/* Campo de Busca */}
+            {/* Campo de Busca Textual */}
             <div className="relative">
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
               <Input
@@ -255,22 +275,50 @@ export const SectionHistoricoExclusoes: React.FC = () => {
               </Select>
             </div>
 
-            {/* Filtro por Fonte */}
+            {/* Filtro Funcional por Fonte (com selo e contagem de exclusões) */}
             <div>
               <Select
                 value={filtros.fonte}
                 onValueChange={(val) => setFiltros((prev) => ({ ...prev, fonte: val }))}
               >
                 <SelectTrigger className="text-xs">
-                  <SelectValue placeholder="Fonte Oficial" />
+                  <div className="flex items-center gap-1.5 truncate">
+                    <span className="text-slate-400 font-normal shrink-0">Fonte:</span>
+                    <span className="truncate font-medium">
+                      {filtros.fonte === 'TODAS'
+                        ? 'Todas as Fontes'
+                        : fontesDisponiveis.find((f) => f.id === filtros.fonte)?.label ||
+                          filtros.fonte}
+                    </span>
+                  </div>
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="TODAS">Todas as Fontes</SelectItem>
-                  <SelectItem value="Senado">Senado Federal</SelectItem>
-                  <SelectItem value="DOU">DOU / Imprensa Nacional</SelectItem>
-                  <SelectItem value="CGIBS">CGIBS (Comitê Gestor)</SelectItem>
-                  <SelectItem value="Receita Federal">Receita Federal (RFB)</SelectItem>
-                  <SelectItem value="Planalto">Planalto / Presidência</SelectItem>
+                <SelectContent className="max-h-80">
+                  <SelectItem value="TODAS">
+                    <div className="flex items-center justify-between gap-3 w-full py-0.5">
+                      <span className="font-semibold text-slate-800 dark:text-slate-200">
+                        Todas as fontes
+                      </span>
+                      <span className="text-[11px] text-slate-500 font-mono bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">
+                        {itens.length}
+                      </span>
+                    </div>
+                  </SelectItem>
+
+                  {fontesDisponiveis.map((f) => (
+                    <SelectItem key={f.id} value={f.id}>
+                      <div className="flex items-center justify-between gap-3 w-full py-0.5">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <span className="text-xs font-medium text-slate-900 dark:text-slate-100 truncate">
+                            {f.label}
+                          </span>
+                          <SeloNivelConfianca tier={f.confidence_tier} fonte={f.label} compacto />
+                        </div>
+                        <span className="text-[11px] text-slate-500 dark:text-slate-400 font-mono bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded shrink-0">
+                          {f.count}
+                        </span>
+                      </div>
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -300,21 +348,116 @@ export const SectionHistoricoExclusoes: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex items-center justify-between text-xs text-slate-500 pt-1">
-            <span>
-              Exibindo <strong>{itensFiltrados.length}</strong> de <strong>{itens.length}</strong>{' '}
-              exclusões e revogações registradas
-            </span>
-            {(filtros.busca ||
-              filtros.segmento !== 'TODOS' ||
-              filtros.fonte !== 'TODAS' ||
-              filtros.periodo !== 'todos') && (
+          {/* Chips de Acesso Rápido por Fonte Oficial (com Selo de Confiança e Contagem) */}
+          <div className="pt-2 border-t border-slate-100 dark:border-slate-800/80">
+            <div className="flex items-center justify-between gap-2 mb-2">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                <Layers className="h-3 w-3 text-rose-600" />
+                Filtrar por Fonte Primária:
+              </span>
+
+              {filtros.fonte !== 'TODAS' && (
+                <button
+                  type="button"
+                  onClick={() => setFiltros((prev) => ({ ...prev, fonte: 'TODAS' }))}
+                  className="text-[11px] text-rose-600 dark:text-rose-400 hover:underline inline-flex items-center gap-1 font-medium"
+                >
+                  <X className="h-3 w-3" />
+                  Voltar a todas as fontes
+                </button>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2 flex-wrap">
+              {/* Chip "Todas as fontes" */}
+              <button
+                type="button"
+                onClick={() => setFiltros((prev) => ({ ...prev, fonte: 'TODAS' }))}
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold transition-all border ${
+                  filtros.fonte === 'TODAS'
+                    ? 'bg-rose-600 text-white border-rose-600 shadow-sm'
+                    : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800'
+                }`}
+              >
+                {filtros.fonte === 'TODAS' && <Check className="h-3 w-3" />}
+                <span>Todas as fontes</span>
+                <span
+                  className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
+                    filtros.fonte === 'TODAS'
+                      ? 'bg-rose-700 text-rose-100'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
+                  }`}
+                >
+                  {itens.length}
+                </span>
+              </button>
+
+              {/* Chips de Fontes com Selo e Contagem */}
+              {fontesDisponiveis.map((f) => {
+                const ativa = filtros.fonte === f.id
+                return (
+                  <button
+                    key={f.id}
+                    type="button"
+                    onClick={() =>
+                      setFiltros((prev) => ({
+                        ...prev,
+                        fonte: ativa ? 'TODAS' : f.id,
+                      }))
+                    }
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all border ${
+                      ativa
+                        ? 'bg-rose-50 text-rose-900 border-rose-400 dark:bg-rose-950/60 dark:text-rose-200 dark:border-rose-700 ring-2 ring-rose-200 dark:ring-rose-900 shadow-sm'
+                        : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
+                    }`}
+                  >
+                    <span className="font-semibold">{f.id}</span>
+                    <SeloNivelConfianca tier={f.confidence_tier} fonte={f.label} compacto />
+                    <span
+                      className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
+                        ativa
+                          ? 'bg-rose-200/80 text-rose-900 dark:bg-rose-900 dark:text-rose-100'
+                          : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
+                      }`}
+                    >
+                      {f.count}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Linha Informativa com Contagem de Resultados e Limpeza */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs text-slate-500 dark:text-slate-400 pt-2 border-t border-slate-100 dark:border-slate-800 gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-medium text-slate-700 dark:text-slate-200">
+                <strong>{itensFiltrados.length}</strong>{' '}
+                {itensFiltrados.length === 1 ? 'exclusão encontrada' : 'exclusões encontradas'}
+              </span>
+              <span>
+                (de um total de <strong>{itens.length}</strong> registradas)
+              </span>
+
+              {fonteAtivaInfo && (
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-rose-50 dark:bg-rose-950/40 text-rose-800 dark:text-rose-300 border border-rose-200 dark:border-rose-800 font-medium">
+                  Fonte: {fonteAtivaInfo.label}
+                  <SeloNivelConfianca
+                    tier={fonteAtivaInfo.confidence_tier}
+                    fonte={fonteAtivaInfo.label}
+                    compacto
+                  />
+                </span>
+              )}
+            </div>
+
+            {temFiltrosAtivos && (
               <button
                 type="button"
                 onClick={() => setFiltros(FILTROS_EXCLUSOES_INICIAIS)}
-                className="text-rose-600 dark:text-rose-400 hover:underline font-medium"
+                className="text-rose-600 dark:text-rose-400 hover:underline font-semibold text-left sm:text-right"
               >
-                Limpar todos os filtros
+                Limpar todos os filtros ({itensFiltrados.length} de {itens.length})
               </button>
             )}
           </div>
@@ -334,14 +477,26 @@ export const SectionHistoricoExclusoes: React.FC = () => {
             <p className="text-sm text-rose-800 dark:text-rose-300 font-semibold">{erro}</p>
           </div>
         ) : itensFiltrados.length === 0 ? (
-          <div className="p-12 text-center bg-slate-50 dark:bg-slate-900/30 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-500 space-y-2">
-            <Filter className="h-6 w-6 mx-auto text-slate-400" />
-            <p className="text-sm font-semibold">
-              Nenhuma exclusão ou revogação encontrada para os filtros selecionados.
-            </p>
-            <p className="text-xs text-slate-400">
-              Tente buscar por outro termo ou limpar os filtros aplicados.
-            </p>
+          <div className="p-12 text-center bg-slate-50 dark:bg-slate-900/30 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-500 space-y-3">
+            <Filter className="h-8 w-8 mx-auto text-slate-400" />
+            <div className="space-y-1">
+              <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                Nenhuma exclusão ou revogação encontrada para os filtros selecionados.
+              </p>
+              <p className="text-xs text-slate-500">
+                {filtros.fonte !== 'TODAS'
+                  ? `Nenhum item com a fonte "${filtros.fonte}" combinada aos critérios de busca.`
+                  : 'Tente buscar por outro termo ou limpar os filtros aplicados.'}
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setFiltros(FILTROS_EXCLUSOES_INICIAIS)}
+              className="text-xs text-rose-600 border-rose-200 hover:bg-rose-50"
+            >
+              Restaurar todas as exclusões ({itens.length})
+            </Button>
           </div>
         ) : (
           <div className="relative pl-6 md:pl-8 space-y-6 before:absolute before:left-3 md:before:left-4 before:top-3 before:bottom-3 before:w-0.5 before:bg-slate-200 dark:before:bg-slate-800">
@@ -463,7 +618,14 @@ export const SectionHistoricoExclusoes: React.FC = () => {
                                 : 'Registro Manual'}
                           </span>
                         </span>
-                        <span>Fonte Primária: {item.source_org}</span>
+                        <div className="flex items-center gap-1.5">
+                          <span>Fonte Primária: {item.source_org}</span>
+                          <SeloNivelConfianca
+                            tier={item.confidence_tier}
+                            fonte={item.source_org}
+                            compacto
+                          />
+                        </div>
                       </div>
                     </CardContent>
                   </Card>

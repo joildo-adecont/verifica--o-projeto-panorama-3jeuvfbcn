@@ -75,7 +75,8 @@ migrate(
         norm_type: 'Revogação Parcial',
         norm_number: '2.110/2022',
         norm_year: '2026',
-        norm_title: 'Exclusão de exigência de retenção substituída pelo recolhimento na liquidação financeira',
+        norm_title:
+          'Exclusão de exigência de retenção substituída pelo recolhimento na liquidação financeira',
         source_org: 'Receita Federal (RFB)',
         confidence_tier: 'oficial_institucional',
         segment: 'Tributário',
@@ -138,7 +139,8 @@ migrate(
         norm_type: 'Exclusão de Confronto',
         norm_number: '88/2025',
         norm_year: '2026',
-        norm_title: 'Exclusão de hipótese não confirmada de retenção de ICMS-ST em produtos agropecuários',
+        norm_title:
+          'Exclusão de hipótese não confirmada de retenção de ICMS-ST em produtos agropecuários',
         source_org: 'Lefisc Legislação Fiscal',
         confidence_tier: 'comparacao',
         segment: 'Tributário',
@@ -152,7 +154,8 @@ migrate(
         origin_collection: 'tax_norms',
         record_origin: 'manual',
         link_url: 'https://www.lefisc.com.br',
-        notes: 'Registro informativo de comparação privada (sem validade jurídica) para auxílio da equipe de consultoria ADECONT.',
+        notes:
+          'Registro informativo de comparação privada (sem validade jurídica) para auxílio da equipe de consultoria ADECONT.',
       },
     ]
 

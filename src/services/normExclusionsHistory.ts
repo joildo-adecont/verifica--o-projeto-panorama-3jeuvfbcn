@@ -21,6 +21,13 @@ export const FILTROS_EXCLUSOES_INICIAIS: FiltrosHistoricoExclusoes = {
   periodo: 'todos',
 }
 
+export interface FonteDisponivelExclusao {
+  id: string
+  label: string
+  confidence_tier: ConfidenceTier
+  count: number
+}
+
 /**
  * Fallback estático e robusto caso o PocketBase esteja inacessível
  */
@@ -91,7 +98,229 @@ export const FALLBACK_NORM_EXCLUSIONS: NormExclusionHistoryItem[] = [
     link_url: 'https://www.cgibs.gov.br/',
     notes: 'Exclusão aprovada por unanimidade pelo Comitê Gestor.',
   },
+  {
+    id: 'excl-in-rfb-2110-2022',
+    norm_code: 'IN RFB nº 2.110/2022 — Exclusão de Retenções Previdenciárias Redundantes',
+    norm_type: 'Revogação Parcial',
+    norm_number: '2.110/2022',
+    norm_year: '2026',
+    norm_title:
+      'Exclusão de exigência de retenção substituída pelo recolhimento na liquidação financeira',
+    source_org: 'Receita Federal (RFB)',
+    confidence_tier: 'oficial_institucional',
+    segment: 'Tributário',
+    exclusion_date: '2026-10-18',
+    system_exclusion_date: '2026-10-18',
+    reason_description:
+      'Revogação de dispositivos de retenção sobre cessão de mão de obra unificados na compensação centralizada da CBS.',
+    revoked_article: 'arts. 112 e 114',
+    previous_content:
+      'Dever instrumental de retenção antecipada de 11% sem cômputo imediato no domicílio fiscal unificado.',
+    origin_collection: 'tax_norms',
+    record_origin: 'rotina_semanal',
+    link_url: 'https://www.receita.fazenda.gov.br',
+    notes: 'Ato de consolidação e exclusão de redundâncias fiscais emitido pela RFB.',
+  },
+  {
+    id: 'excl-dec-10854-planalto',
+    norm_code: 'Decreto Federal nº 10.854/2021 — Exclusão de Dispositivos Incompatíveis',
+    norm_type: 'Revogação de Decreto',
+    norm_number: '10.854/2021',
+    norm_year: '2026',
+    norm_title: 'Exclusão de regulamentos infralegais revogados pela transição tributária',
+    source_org: 'Planalto / Presidência da República',
+    confidence_tier: 'oficial_institucional',
+    segment: 'Administrativo',
+    exclusion_date: '2026-10-08',
+    system_exclusion_date: '2026-10-08',
+    reason_description:
+      'Exclusão formal assinada pelo Poder Executivo para revogar competências administrativas superadas pelo Comitê Gestor.',
+    revoked_article: 'arts. 45 a 49',
+    previous_content:
+      'Atribuições infralegais dispersas de órgãos do Executivo sobre cadastro de regimes especiais extintos.',
+    origin_collection: 'tax_norms',
+    record_origin: 'rotina_semanal',
+    link_url: 'https://www.planalto.gov.br',
+    notes: 'Compilação oficial publicada no Portal da Legislação do Planalto.',
+  },
+  {
+    id: 'excl-camara-plp68-2024',
+    norm_code: 'Câmara dos Deputados — Exclusão de Emenda Supressiva ao PLP 68/2024',
+    norm_type: 'Exclusão Legislativa',
+    norm_number: 'PLP 68/2024',
+    norm_year: '2025',
+    norm_title: 'Exclusão de limitação de crédito presumido de transporte interestadual',
+    source_org: 'Câmara dos Deputados',
+    confidence_tier: 'oficial_institucional',
+    segment: 'Jurídico',
+    exclusion_date: '2025-12-14',
+    system_exclusion_date: '2025-12-14',
+    reason_description:
+      'Supressão legislativa de restrição ao aproveitamento de créditos de bens de capital e combustíveis em frotas próprias.',
+    revoked_article: 'art. 219, § 4º da minuta',
+    previous_content:
+      'Glosa do crédito de IBS na aquisição de insumos de transporte intermunicipal e interestadual.',
+    origin_collection: 'tax_norms',
+    record_origin: 'backfill_inicial',
+    link_url: 'https://www.camara.leg.br',
+    notes: 'Ato de deliberação parlamentar formalizado no texto consolidado.',
+  },
+  {
+    id: 'excl-lefisc-item-88',
+    norm_code: 'Tabela Privada de Interpretação Lefisc nº 88/2025 — Item Excluído',
+    norm_type: 'Exclusão de Confronto',
+    norm_number: '88/2025',
+    norm_year: '2026',
+    norm_title:
+      'Exclusão de hipótese não confirmada de retenção de ICMS-ST em produtos agropecuários',
+    source_org: 'Lefisc Legislação Fiscal',
+    confidence_tier: 'comparacao',
+    segment: 'Tributário',
+    exclusion_date: '2026-10-02',
+    system_exclusion_date: '2026-10-02',
+    reason_description:
+      'Exclusão de orientação doutrinária privada do catálogo após publicação de ato oficial em sentido oposto pela Receita Federal e CGIBS.',
+    revoked_article: 'Parecer Orientativo Lefisc item 12',
+    previous_content:
+      'Interpretação que sugeria manutenção da MVA-ST original sem ajuste para o regime monofásico da CBS.',
+    origin_collection: 'tax_norms',
+    record_origin: 'manual',
+    link_url: 'https://www.lefisc.com.br',
+    notes:
+      'Registro informativo de comparação privada (sem validade jurídica) para auxílio da equipe de consultoria ADECONT.',
+  },
 ]
+
+/**
+ * Normaliza texto para correspondência insensível a acentos e maiúsculas
+ */
+export function normalizarTextoFonte(texto?: string): string {
+  return (texto || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+}
+
+/**
+ * Mapeia ou agrupa o nome do órgão a uma chave de fonte padronizada
+ */
+export function identificarChaveFonte(sourceOrg?: string): {
+  id: string
+  label: string
+  confidence_tier: ConfidenceTier
+} {
+  const norm = normalizarTextoFonte(sourceOrg)
+
+  if (norm.includes('dou') || norm.includes('imprensa') || norm.includes('diario oficial')) {
+    return {
+      id: 'DOU',
+      label: 'DOU / Imprensa Nacional',
+      confidence_tier: 'diario_oficial',
+    }
+  }
+
+  if (norm.includes('receita') || norm.includes('rfb')) {
+    return {
+      id: 'Receita Federal',
+      label: 'Receita Federal (RFB)',
+      confidence_tier: 'oficial_institucional',
+    }
+  }
+
+  if (norm.includes('cgibs') || norm.includes('comite gestor')) {
+    return {
+      id: 'CGIBS',
+      label: 'CGIBS (Comitê Gestor IBS)',
+      confidence_tier: 'oficial_institucional',
+    }
+  }
+
+  if (norm.includes('senado') || norm.includes('congresso')) {
+    return {
+      id: 'Senado',
+      label: 'Senado Federal',
+      confidence_tier: 'oficial_institucional',
+    }
+  }
+
+  if (norm.includes('planalto') || norm.includes('presidencia')) {
+    return {
+      id: 'Planalto',
+      label: 'Planalto / Presidência',
+      confidence_tier: 'oficial_institucional',
+    }
+  }
+
+  if (norm.includes('camara') || norm.includes('deputados')) {
+    return {
+      id: 'Câmara',
+      label: 'Câmara dos Deputados',
+      confidence_tier: 'oficial_institucional',
+    }
+  }
+
+  if (norm.includes('lefisc')) {
+    return {
+      id: 'Lefisc',
+      label: 'Lefisc Legislação Fiscal',
+      confidence_tier: 'comparacao',
+    }
+  }
+
+  // Fallback para órgão personalizado
+  const labelLimpo = (sourceOrg || 'Órgão Oficial').trim()
+  return {
+    id: labelLimpo,
+    label: labelLimpo,
+    confidence_tier: 'oficial_institucional',
+  }
+}
+
+/**
+ * Extrai a lista de fontes únicas que realmente têm exclusões registradas,
+ * computando contagem de registros e nível de confiança de cada uma.
+ */
+export function extrairFontesComExclusoes(
+  itens: NormExclusionHistoryItem[],
+): FonteDisponivelExclusao[] {
+  const mapa = new Map<string, FonteDisponivelExclusao>()
+
+  for (const item of itens || []) {
+    const info = identificarChaveFonte(item.source_org)
+    const existente = mapa.get(info.id)
+    if (existente) {
+      existente.count++
+    } else {
+      mapa.set(info.id, {
+        id: info.id,
+        label: info.label,
+        confidence_tier: item.confidence_tier || info.confidence_tier,
+        count: 1,
+      })
+    }
+  }
+
+  // Ordem prioritária de exibição das fontes
+  const ordemDesejada = [
+    'DOU',
+    'Receita Federal',
+    'Planalto',
+    'Senado',
+    'Câmara',
+    'CGIBS',
+    'Lefisc',
+  ]
+
+  return Array.from(mapa.values()).sort((a, b) => {
+    const idxA = ordemDesejada.indexOf(a.id)
+    const idxB = ordemDesejada.indexOf(b.id)
+    if (idxA !== -1 && idxB !== -1) return idxA - idxB
+    if (idxA !== -1) return -1
+    if (idxB !== -1) return 1
+    return b.count - a.count || a.label.localeCompare(b.label)
+  })
+}
 
 /**
  * Ordena lista de exclusões cronologicamente com a mais recente no topo (data decrescente)
@@ -147,7 +376,7 @@ function normalizarItemPocketBase(rec: Record<string, unknown>): NormExclusionHi
 export async function listarHistoricoExclusoes(): Promise<NormExclusionHistoryItem[]> {
   try {
     const records = await pb.collection('norm_exclusions_history').getFullList({
-      sort: '-exclusion_date,-created',
+      sort: '-exclusion_date',
       requestKey: null,
     })
 
@@ -225,6 +454,7 @@ export function filtrarHistoricoExclusoes(
 ): NormExclusionHistoryItem[] {
   const buscaTerm = filtros.busca.trim().toLowerCase()
   const hojeDate = new Date(hojeReferencia)
+  const fonteFiltroNorm = normalizarTextoFonte(filtros.fonte)
 
   return (itens || []).filter((item) => {
     // 1. Filtro por Segmento
@@ -233,11 +463,18 @@ export function filtrarHistoricoExclusoes(
     }
 
     // 2. Filtro por Fonte
-    if (
-      filtros.fonte !== 'TODAS' &&
-      !item.source_org.toLowerCase().includes(filtros.fonte.toLowerCase())
-    ) {
-      return false
+    if (filtros.fonte !== 'TODAS') {
+      const fonteItemNorm = normalizarTextoFonte(item.source_org)
+      const chaveItem = identificarChaveFonte(item.source_org)
+
+      const corresponde =
+        fonteItemNorm.includes(fonteFiltroNorm) ||
+        normalizarTextoFonte(chaveItem.id) === fonteFiltroNorm ||
+        normalizarTextoFonte(chaveItem.label).includes(fonteFiltroNorm)
+
+      if (!corresponde) {
+        return false
+      }
     }
 
     // 3. Filtro por Período
