@@ -25,6 +25,9 @@ import { SectionAssistentesSeguranca } from '@/components/SectionAssistentesSegu
 import { SectionControleAcesso } from '@/components/SectionControleAcesso'
 import { SectionResponsividade } from '@/components/SectionResponsividade'
 import { SectionSetor } from '@/components/SectionSetor'
+import { SectionControleVersao } from '@/components/SectionControleVersao'
+import { SectionBuscaAvancada } from '@/components/SectionBuscaAvancada'
+import { SectionDiagnosticoTributario } from '@/components/SectionDiagnosticoTributario'
 import { PainelDegraus } from '@/components/PainelDegraus'
 import { SectionHistoricoAtualizacoes } from '@/components/SectionHistoricoAtualizacoes'
 import { SectionHistoricoRevisoes } from '@/components/SectionHistoricoRevisoes'
@@ -54,12 +57,24 @@ import type { TaxNormItem } from '@/types/panorama'
  * no Monitor e no painel inicial) continuam funcionando sem alteração: mudar o hash
  * dispara o mesmo roteador. Estado interno quebraria esses 8 links espalhados.
  * Também dá link compartilhável e o botão Voltar do navegador funciona.
+ *
+ * ── A REGRA QUE FALTAVA (correção de 02/11/2026) ──
+ * `ABAS` é derivada de NAVEGACAO e DESCARTA em silêncio todo item cujo href não
+ * exista em COMPONENTES (`filter(a => Boolean(a.Componente))`). O menu continuava
+ * mostrando esses itens, `resolverRota` devolvia null e o Index caía na home: o
+ * usuário clicava em "Saúde e Planos" e continuava no painel inicial, sem erro
+ * visível. Eram 12 itens nessa situação — os 8 setores novos, o Instalador, a
+ * Busca Avançada, o Diagnóstico Tributário e o Histórico de Revisões.
+ *
+ * A verificação que pega isso: para cada href de NAVEGACAO, exigir entrada aqui.
+ * O filtro esconde a falha, então ela tem de ser checada ANTES — é o que o
+ * verificador de rotas faz no build.
  */
 
 /**
  * Props que o roteador injeta. Só a Seção 1 (Normas) precisa delas de fato — recebe
- * a lista de normas filtrada pela busca do header. As outras 25 não recebem nada, por
- * isso tudo é opcional: assim um único tipo serve para as 26 abas.
+ * a lista de normas filtrada pela busca do header. As outras não recebem nada, por
+ * isso tudo é opcional: assim um único tipo serve para todas as abas.
  */
 export interface PropsAba {
   norms?: TaxNormItem[]
@@ -76,6 +91,22 @@ export interface RotaAba {
   /** número/identificação da seção, para o contexto na trilha */
   grupo: string
 }
+
+/**
+ * OS 8 SETORES NOVOS usam UM componente só (`SectionSetor`) e se distinguem pelo
+ * `id`. O roteador injeta `norms`/`loading`, que SectionSetor não lê — daí um
+ * wrapper por setor, com o id fixo. Ficam no topo do módulo (e não dentro do
+ * render) para não criar um tipo de componente novo a cada render, o que faria o
+ * React desmontar e remontar a seção inteira a cada troca de estado.
+ */
+const SetorCombustiveis = () => <SectionSetor id="combustiveis" />
+const SetorSaude = () => <SectionSetor id="saude" />
+const SetorEducacao = () => <SectionSetor id="educacao" />
+const SetorTurismo = () => <SectionSetor id="turismo" />
+const SetorCooperativas = () => <SectionSetor id="cooperativas" />
+const SetorFutebol = () => <SectionSetor id="futebol" />
+const SetorExterior = () => <SectionSetor id="exterior" />
+const SetorDiplomatico = () => <SectionSetor id="diplomatico" />
 
 /**
  * Uma entrada por item de navegação — a fonte é `navegacao.ts`, sem lista paralela.
@@ -95,6 +126,15 @@ const COMPONENTES: Record<string, ComponentType<PropsAba>> = {
   '#financeiros': SectionFinanceiros,
   '#simples': SectionSimples,
   '#profissionais-plataformas': SectionProfissionaisPlataformas,
+  /* ── 8 setores novos (02/11/2026): estavam no menu e fora do roteador ── */
+  '#setor-combustiveis': SetorCombustiveis,
+  '#setor-saude': SetorSaude,
+  '#setor-educacao': SetorEducacao,
+  '#setor-turismo': SetorTurismo,
+  '#setor-cooperativas': SetorCooperativas,
+  '#setor-futebol': SetorFutebol,
+  '#setor-exterior': SetorExterior,
+  '#setor-diplomatico': SetorDiplomatico,
   '#secao-7': SectionAnexos,
   '#tabela-geral': SectionTabelaGeral,
   '#secao-8': SectionCronograma,
@@ -104,6 +144,9 @@ const COMPONENTES: Record<string, ComponentType<PropsAba>> = {
   '#fontes-primarias': SectionFontesPrimarias,
   '#monitor-legislativo': SectionMonitorLegislativo,
   '#historico-revisoes': SectionHistoricoRevisoes,
+  '#busca-avancada': SectionBuscaAvancada,
+  '#diagnostico-tributario': SectionDiagnosticoTributario,
+  '#instalador-versao': SectionControleVersao,
   '#cadastro-envios': SectionCadastroEnvios,
   '#central-entrega': SectionCentralEntrega,
   '#assistentes-seguranca': SectionAssistentesSeguranca,
@@ -114,6 +157,15 @@ const COMPONENTES: Record<string, ComponentType<PropsAba>> = {
   '#radar-nacional': SectionRadarNacional,
   '#mapa': PainelDegraus,
 }
+
+/**
+ * Itens de NAVEGACAO que NÃO conseguem abrir — usado pelo verificador de rotas.
+ * Vazio é o estado correto. Exportado porque um item de menu que não abre não
+ * aparece como erro em lugar nenhum: a tela simplesmente continua a anterior.
+ */
+export const ROTAS_ORFAS: string[] = NAVEGACAO.filter((item) => !COMPONENTES[item.href]).map(
+  (item) => item.href,
+)
 
 /**
  * Abas na ordem em que aparecem no menu — a mesma ordem de antes (grupo a grupo),

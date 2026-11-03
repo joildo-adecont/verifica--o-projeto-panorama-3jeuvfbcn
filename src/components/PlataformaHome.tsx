@@ -32,7 +32,7 @@ import {
   officialDocumentsList,
 } from '@/services/panorama'
 import { fetchClassificationCounts } from '@/services/classifications'
-import { ANEXOS_REFORMA_CATALOGO } from '@/data/anexosReforma'
+import { ANEXOS } from '@/data/anexosCatalogo'
 import { CRONOLOGIA } from '@/data/legislacaoCronologica'
 import type { SourceStatusItem, ContentReviewItem, TaxNormItem } from '@/types/panorama'
 
@@ -92,7 +92,12 @@ export function PlataformaHome() {
   const metricas = useMemo(() => {
     const totalNormas = norms.length || 16
     const totalDocsOficiais = officialDocumentsList.length || 16
-    const totalAnexos = ANEXOS_REFORMA_CATALOGO.length || 28
+    /* FONTE ÚNICA: ANEXOS é o catálogo analítico da Seção 7 (28 anexos: 5 do RIBS,
+       18 da LC 214 e 5 do Decreto 12.955). A home usava ANEXOS_REFORMA_CATALOGO,
+       que tem 26 entradas e é outra lista — resultado: a home dizia "26 anexos"
+       enquanto o menu, a Seção 7 e a Tabela Geral diziam 28. Dois números para o
+       mesmo fato na mesma tela. */
+    const totalAnexos = ANEXOS.length || 28
     const totalLinhasTabelaGeral = 1053 // contagem exata dos 28 anexos da Tabela Geral
     const totalSetores = 14 // 14 regimes setoriais da LC 214
     const totalFontesMonitoradas = sources.length || 21
@@ -160,7 +165,7 @@ export function PlataformaHome() {
       },
       {
         id: 'tributario',
-        nome: 'Plataforma Tributária',
+        nome: 'Reforma Tributária',
         tag: 'Cálculo e Transição',
         Icon: Percent,
         hrefPrincipal: '#secao-6',
