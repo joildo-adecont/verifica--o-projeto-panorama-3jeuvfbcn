@@ -138,6 +138,10 @@ const CONJUNTOS: Conjunto[] = [
 
 interface Verbete {
   n: number
+  /** chave de identidade: 'SV1' (vinculante) x 'S1' (simples) — só no STF.
+   *  Sem isto, SV 1 e Súmula 1 (decisões diferentes, mesmo número) se
+   *  confundem na lista e no "Usar esta tese". */
+  k?: string
   t: string
   v?: number
   o?: string
@@ -391,7 +395,7 @@ export function SumulasTeses({
       <div className="space-y-1.5">
         {amostra.map((v) => (
           <article
-            key={`${conjunto.id}-${v.n}`}
+            key={`${conjunto.id}-${v.k || v.n}`}
             className="rounded-lg border border-slate-200 bg-white p-2.5"
           >
             <div className="flex flex-wrap items-center gap-1.5">

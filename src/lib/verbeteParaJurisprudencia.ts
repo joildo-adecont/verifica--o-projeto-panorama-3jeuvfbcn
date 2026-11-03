@@ -20,6 +20,8 @@ import type { Jurisprudencia } from '@/services/jurisprudencias'
 
 export interface VerbeteLike {
   n: number
+  /** 'SV1' x 'S1' — distingue vinculante de simples, que têm numeração própria */
+  k?: string
   /** texto da tese / enunciado */
   t: string
   /** 1 = súmula vinculante (só nos conjuntos do STF) */
@@ -94,7 +96,12 @@ export function verbeteParaJurisprudencia(
   v: VerbeteLike,
 ): Partial<Jurisprudencia> {
   const ano = dataIso(v.d).slice(0, 4)
-  const rotulo = tipoDeDecisao === 'tema repetitivo' ? 'Tema' : 'Súmula'
+  const rotulo =
+    tipoDeDecisao === 'tema repetitivo'
+      ? 'Tema'
+      : tipoDeDecisao === 'súmula vinculante'
+        ? 'Súmula vinculante'
+        : 'Súmula'
   const titulo = `${rotulo} ${v.n}${v.o ? ` — ${v.o}` : ''}${ano ? ` (${ano})` : ''}`
 
   const partes: string[] = []
@@ -110,7 +117,17 @@ export function verbeteParaJurisprudencia(
     tribunal: FONTE_URL[tribunal] ? tribunal : 'Outro',
     tipo_decisao: tipoDeDecisao,
     materia: materiaDe(v.a || v.r),
-    numero: v.n ? String(v.n) : '',
+    /* O número é o oficial. Para súmula vinculante, grava o rótulo junto no
+       campo de número para não se confundir com a súmula simples de mesmo
+       número ao exportar o acervo. */
+    numero:
+      tipoDeDecisao === 'súmula vinculante'
+        ? `SV ${v.n}`
+        : tipoDeDecisao === 'tema repetitivo'
+          ? `Tema ${v.n}`
+          : v.n
+            ? String(v.n)
+            : '',
     tese: partes.join('\n\n'),
     orgao_julgador: v.o || '',
     data_julgamento: dataIso(v.d),

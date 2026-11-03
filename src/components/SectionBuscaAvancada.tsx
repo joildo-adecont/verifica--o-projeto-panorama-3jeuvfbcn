@@ -1663,26 +1663,32 @@ export function SectionBuscaAvancada({ segmentoInicial }: SectionBuscaAvancadaPr
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {resultado?.classificacoes.items && resultado.classificacoes.items.length > 0 ? (
-                  resultado.classificacoes.items.map((item) => (
+                {classificacoesFiltradas.length > 0 ? (
+                  classificacoesFiltradas.map((item) => (
                     <tr key={item.id} className="hover:bg-slate-50 transition-colors">
                       <td className="py-2.5 px-3 align-top font-bold">
                         <span className="inline-block px-2 py-0.5 rounded text-[10px] font-mono bg-amber-50 text-amber-800 border border-amber-200">
-                          {item.tipo}
+                          {destacarTrechos(item.tipo, palavrasChave)}
                         </span>
                       </td>
                       <td className="py-2.5 px-3 align-top font-mono font-bold text-slate-900 whitespace-nowrap">
-                        {item.codigo}
+                        {destacarTrechos(item.codigo, palavrasChave)}
                       </td>
                       <td className="py-2.5 px-3 align-top space-y-0.5">
-                        {item.nome && <div className="font-bold text-slate-800">{item.nome}</div>}
-                        <div className="text-slate-600 leading-snug">{item.descricao}</div>
+                        {item.nome && (
+                          <div className="font-bold text-slate-800">
+                            {destacarTrechos(item.nome, palavrasChave)}
+                          </div>
+                        )}
+                        <div className="text-slate-600 leading-snug">
+                          {destacarTrechos(item.descricao, palavrasChave)}
+                        </div>
                       </td>
                       <td className="py-2.5 px-3 align-top">
                         <div className="flex flex-col gap-1 items-start">
                           <span className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded">
                             <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                            {item.fonte}
+                            {destacarTrechos(item.fonte, palavrasChave)}
                           </span>
                           <SeloNivelConfianca fonte={item.fonte} compacto />
                         </div>
@@ -1691,12 +1697,15 @@ export function SectionBuscaAvancada({ segmentoInicial }: SectionBuscaAvancadaPr
                             className="text-[10px] text-slate-400 mt-0.5 truncate max-w-[150px]"
                             title={item.tabela_origem}
                           >
-                            {item.tabela_origem}
+                            {destacarTrechos(item.tabela_origem, palavrasChave)}
                           </div>
                         )}
                       </td>
                       <td className="py-2.5 px-3 align-top text-slate-700 text-[11.5px] leading-relaxed">
-                        {item.observacoes || 'Conforme legislação federal da Reforma Tributária.'}
+                        {destacarTrechos(
+                          item.observacoes || 'Conforme legislação federal da Reforma Tributária.',
+                          palavrasChave,
+                        )}
                       </td>
                     </tr>
                   ))
@@ -1715,7 +1724,7 @@ export function SectionBuscaAvancada({ segmentoInicial }: SectionBuscaAvancadaPr
           {resultado && resultado.classificacoes.totalPages > 1 && (
             <div className="flex items-center justify-between pt-2">
               <span className="text-xs text-slate-500">
-                Mostrando {resultado.classificacoes.items.length} de{' '}
+                Mostrando {classificacoesFiltradas.length} de{' '}
                 {resultado.classificacoes.totalItems.toLocaleString('pt-BR')} itens
               </span>
               <div className="flex items-center gap-2">
@@ -1763,7 +1772,7 @@ export function SectionBuscaAvancada({ segmentoInicial }: SectionBuscaAvancadaPr
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Normas Centrais */}
-            {resultado?.normas.items.map((norma) => (
+            {normasFiltradas.map((norma) => (
               <div
                 key={norma.id}
                 className="border border-slate-200 rounded-xl p-4 hover:border-blue-300 transition-all bg-gradient-to-br from-white to-slate-50/50 space-y-2.5 flex flex-col justify-between"
@@ -1771,24 +1780,28 @@ export function SectionBuscaAvancada({ segmentoInicial }: SectionBuscaAvancadaPr
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between gap-2 flex-wrap">
                     <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-800 border border-blue-200">
-                      {norma.norm_type || 'Norma Federal'}
+                      {destacarTrechos(norma.norm_type || 'Norma Federal', palavrasChave)}
                     </span>
                     <span className="text-[11px] font-mono font-bold text-slate-500">
-                      {norma.date || norma.dou_date}
+                      {destacarTrechos(norma.date || norma.dou_date, palavrasChave)}
                     </span>
                   </div>
                   <h4 className="font-bold text-slate-900 text-sm leading-snug">
-                    {norma.code}: {norma.title}
+                    {destacarTrechos(norma.code, palavrasChave)}:{' '}
+                    {destacarTrechos(norma.title, palavrasChave)}
                   </h4>
                   <p className="text-xs text-slate-600 leading-relaxed line-clamp-3">
-                    {norma.summary}
+                    {destacarTrechos(norma.summary, palavrasChave)}
                   </p>
                 </div>
 
                 <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
                   <div className="flex items-center gap-1.5 min-w-0">
                     <span className="text-[11px] text-slate-500 font-medium truncate">
-                      Origem: <strong>{norma.origin || 'Planalto / CGIBS'}</strong>
+                      Origem:{' '}
+                      <strong>
+                        {destacarTrechos(norma.origin || 'Planalto / CGIBS', palavrasChave)}
+                      </strong>
                     </span>
                     <SeloNivelConfianca fonte={norma.origin || 'Planalto / CGIBS'} compacto />
                   </div>
@@ -1824,7 +1837,7 @@ export function SectionBuscaAvancada({ segmentoInicial }: SectionBuscaAvancadaPr
             ))}
 
             {/* Radar de Atos dos 3 Níveis */}
-            {resultado?.radarAtos.items.map((ato) => (
+            {radarAtosFiltrados.map((ato) => (
               <div
                 key={ato.id}
                 className="border border-slate-200 rounded-xl p-4 hover:border-amber-300 transition-all bg-white space-y-2 flex flex-col justify-between"
@@ -1840,27 +1853,33 @@ export function SectionBuscaAvancada({ segmentoInicial }: SectionBuscaAvancadaPr
                             : 'bg-amber-100 text-amber-800'
                       }`}
                     >
-                      {ato.nivel} {ato.uf ? `· ${ato.uf}` : ''}
+                      {destacarTrechos(ato.nivel, palavrasChave)}{' '}
+                      {ato.uf ? `· ${destacarTrechos(ato.uf, palavrasChave)}` : ''}
                     </span>
                     {ato.data_publicacao && (
                       <span className="text-[11px] font-mono text-slate-500">
-                        {ato.data_publicacao}
+                        {destacarTrechos(ato.data_publicacao, palavrasChave)}
                       </span>
                     )}
                   </div>
                   <h4 className="font-bold text-slate-800 text-xs sm:text-sm leading-snug">
-                    {ato.titulo}
+                    {destacarTrechos(ato.titulo, palavrasChave)}
                   </h4>
                   {ato.trecho && (
                     <p className="text-xs text-slate-600 line-clamp-2 italic">
-                      &ldquo;{ato.trecho}&rdquo;
+                      &ldquo;{destacarTrechos(ato.trecho, palavrasChave)}&rdquo;
                     </p>
                   )}
                 </div>
 
                 <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <span>{ato.fonte_oficial || ato.ente_nome || 'Diário Oficial'}</span>
+                    <span>
+                      {destacarTrechos(
+                        ato.fonte_oficial || ato.ente_nome || 'Diário Oficial',
+                        palavrasChave,
+                      )}
+                    </span>
                     <SeloNivelConfianca
                       fonte={ato.fonte_oficial || ato.ente_nome || 'Diário Oficial'}
                       compacto
@@ -1911,30 +1930,30 @@ export function SectionBuscaAvancada({ segmentoInicial }: SectionBuscaAvancadaPr
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {resultado?.aliquotasTratamentos.map((trat) => (
+                {aliquotasFiltradas.map((trat) => (
                   <tr key={trat.id} className="hover:bg-slate-50 transition-colors">
                     <td className="py-2.5 px-3 align-top font-bold text-slate-900">
-                      <div>{trat.tema}</div>
+                      <div>{destacarTrechos(trat.tema, palavrasChave)}</div>
                       <span className="inline-block mt-1 px-1.5 py-0.2 rounded text-[10px] font-bold bg-slate-100 text-slate-600">
-                        {trat.categoria}
+                        {destacarTrechos(trat.categoria, palavrasChave)}
                       </span>
                     </td>
                     <td className="py-2.5 px-3 align-top font-semibold text-emerald-800">
-                      {trat.tipoTratamento}
+                      {destacarTrechos(trat.tipoTratamento, palavrasChave)}
                     </td>
                     <td className="py-2.5 px-3 align-top font-mono font-bold text-slate-700">
-                      {trat.reducaoOuFator}
+                      {destacarTrechos(trat.reducaoOuFator, palavrasChave)}
                     </td>
                     <td className="py-2.5 px-3 align-top font-mono font-bold text-blue-800 whitespace-nowrap">
-                      {trat.aliquotaEstimada}
+                      {destacarTrechos(trat.aliquotaEstimada, palavrasChave)}
                     </td>
                     <td className="py-2.5 px-3 align-top space-y-1">
                       <div className="font-bold text-slate-800 text-[11px] flex items-center gap-1">
                         <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
-                        {trat.fundamentoLegal}
+                        {destacarTrechos(trat.fundamentoLegal, palavrasChave)}
                       </div>
                       <p className="text-slate-600 text-[11px] leading-relaxed">
-                        {trat.observacao}
+                        {destacarTrechos(trat.observacao, palavrasChave)}
                       </p>
                     </td>
                   </tr>
@@ -1972,23 +1991,29 @@ export function SectionBuscaAvancada({ segmentoInicial }: SectionBuscaAvancadaPr
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {resultado?.conexoesLegais.map((con) => (
+                {conexoesFiltradas.map((con) => (
                   <tr key={con.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="py-2.5 px-3 align-top font-bold text-slate-900">{con.norma}</td>
+                    <td className="py-2.5 px-3 align-top font-bold text-slate-900">
+                      {destacarTrechos(con.norma, palavrasChave)}
+                    </td>
                     <td className="py-2.5 px-3 align-top font-mono font-bold text-blue-700">
-                      {con.dispositivo}
+                      {destacarTrechos(con.dispositivo, palavrasChave)}
                     </td>
                     <td className="py-2.5 px-3 align-top text-slate-600 font-mono text-[11px]">
-                      {con.remissao || '—'}
+                      {destacarTrechos(con.remissao || '—', palavrasChave)}
                     </td>
                     <td className="py-2.5 px-3 align-top font-semibold text-slate-800">
-                      {con.anexo}
+                      {destacarTrechos(con.anexo, palavrasChave)}
                     </td>
                     <td className="py-2.5 px-3 align-top space-y-1">
-                      <div className="font-bold text-slate-800">{con.rotulo}</div>
-                      <p className="text-slate-600 text-[11px] leading-relaxed">{con.detalhe}</p>
+                      <div className="font-bold text-slate-800">
+                        {destacarTrechos(con.rotulo, palavrasChave)}
+                      </div>
+                      <p className="text-slate-600 text-[11px] leading-relaxed">
+                        {destacarTrechos(con.detalhe, palavrasChave)}
+                      </p>
                       <span className="inline-block px-1.5 py-0.2 rounded text-[10px] font-bold bg-teal-50 text-teal-800 border border-teal-200">
-                        {con.aliquotaOuEfeito}
+                        {destacarTrechos(con.aliquotaOuEfeito, palavrasChave)}
                       </span>
                     </td>
                   </tr>
@@ -2015,7 +2040,7 @@ export function SectionBuscaAvancada({ segmentoInicial }: SectionBuscaAvancadaPr
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {resultado?.analisesEspecialistas.map((an) => (
+            {analisesFiltradas.map((an) => (
               <div
                 key={an.id}
                 className="border border-slate-200 rounded-xl p-4 bg-gradient-to-br from-slate-50/50 to-white hover:border-indigo-300 transition-all space-y-2 flex flex-col justify-between"
@@ -2023,23 +2048,30 @@ export function SectionBuscaAvancada({ segmentoInicial }: SectionBuscaAvancadaPr
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between gap-2">
                     <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
-                      {an.tag}
+                      {destacarTrechos(an.tag, palavrasChave)}
                     </span>
-                    <span className="text-[11px] font-mono text-slate-400">{an.dataOuMarco}</span>
+                    <span className="text-[11px] font-mono text-slate-400">
+                      {destacarTrechos(an.dataOuMarco, palavrasChave)}
+                    </span>
                   </div>
-                  <h4 className="font-bold text-slate-900 text-sm leading-snug">{an.tema}</h4>
-                  <p className="text-xs text-slate-600 leading-relaxed">{an.resumo}</p>
+                  <h4 className="font-bold text-slate-900 text-sm leading-snug">
+                    {destacarTrechos(an.tema, palavrasChave)}
+                  </h4>
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    {destacarTrechos(an.resumo, palavrasChave)}
+                  </p>
                 </div>
 
                 <div className="pt-2 border-t border-slate-100 space-y-1">
                   <div className="flex items-center gap-1.5 flex-wrap text-[11px] text-slate-500">
                     <span>
-                      Fonte: <strong>{an.autoridadeOuFonte}</strong>
+                      Fonte: <strong>{destacarTrechos(an.autoridadeOuFonte, palavrasChave)}</strong>
                     </span>
                     <SeloNivelConfianca fonte={an.autoridadeOuFonte} compacto />
                   </div>
                   <div className="text-[11.5px] font-medium text-emerald-700 bg-emerald-50/70 p-2 rounded-lg border border-emerald-100">
-                    <strong>Impacto / Projeção:</strong> {an.impactoOuProjecao}
+                    <strong>Impacto / Projeção:</strong>{' '}
+                    {destacarTrechos(an.impactoOuProjecao, palavrasChave)}
                   </div>
                   {an.linkSecao && (
                     <a

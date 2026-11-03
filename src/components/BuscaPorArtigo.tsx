@@ -323,7 +323,7 @@ export function BuscaPorArtigo({
                   {nums.map((n) => {
                     const v = (verbetes[g.id] || []).find((x: any) => x.n === n)
                     return (
-                      <div key={n} className="px-2.5 py-2">
+                      <div key={`${g.id}-${n}`} className="px-2.5 py-2">
                         <div className="flex flex-wrap items-center gap-1.5">
                           <span className="rounded bg-panorama-navy px-1.5 py-0.5 font-mono text-[9.5px] font-bold text-panorama-gold-light">
                             {g.id === '3' ? 'Tema' : 'Súmula'} {n}
