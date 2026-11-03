@@ -38,8 +38,17 @@ const REGRAS = [
     titulo: 'IBS e CBS dentro do DAS',
     badge: 'DAS único',
     detalhe:
-      'Os valores relativos ao IBS e à CBS devidos pelos optantes pelo Simples Nacional são recolhidos por meio de documento único de arrecadação (DAS), nos termos fixados pelo Comitê Gestor (LC 214, art. 343). Abrange empresas com receita até R$ 3,6 milhões/ano (LC 123, art. 13-A, incluído pela LC 214).',
-    base: 'LC 214, art. 343; LC 123, art. 13-A',
+      /*
+       * AUDITORIA DE MÉRITO (03/11/2026): a citação "LC 123, art. 13-A (incluído
+       * pela LC 214)" estava ERRADA. Conferido no texto oficial da LC 123:
+       * o art. 13-A foi acrescido pela LC 155/2016 e trata do limite de
+       * R$ 3,6 milhões para recolhimento de **ICMS e ISS** no Simples — não de
+       * IBS/CBS. A LC 214 apenas remete a ele ("Vide"), não o alterou.
+       * Quem trata do IBS/CBS no Simples é a própria LC 214: art. 343 e ss.
+       * e, para a opção pelo regime regular, o art. 41, §§ 1º a 4º.
+       */
+      'Os valores relativos ao IBS e à CBS devidos pelos optantes pelo Simples Nacional são recolhidos por meio de documento único de arrecadação (DAS), nos termos fixados pelo Comitê Gestor (LC 214, art. 343 e ss.). O limite de R$ 3,6 milhões/ano é o do art. 13-A da LC 123, que fixa esse teto para ICMS e ISS — o IBS/CBS no Simples segue a mesma faixa por remissão da LC 214.',
+    base: 'LC 214, arts. 343 e ss.; art. 41, §§ 1º a 4º; LC 123, art. 13-A (limite de R$ 3,6 mi, ICMS/ISS)',
   },
   {
     titulo: 'Opção e janelas',
@@ -232,7 +241,7 @@ const LC238 = [
     titulo: 'Sublimite do Simples para IBS/CBS',
     badge: 'R$ 3,6 mi',
     detalhe:
-      'O sublimite de R$ 3,6 milhões/ano para recolhimento do IBS e da CBS no Simples (LC 123, art. 13-A, incluído pela LC 214) permanece — a LC 238/2026 não o alterou. O teto geral de opção segue em R$ 4,8 milhões.',
+      'O sublimite de R$ 3,6 milhões/ano permanece — a LC 238/2026 não o alterou. Atenção à origem do número: esse teto vem do art. 13-A da LC 123, que o fixa para ICMS/ISS; o IBS/CBS no Simples segue a LC 214, arts. 343 e ss. O teto geral de opção segue em R$ 4,8 milhões.',
     base: 'LC 123, art. 13-A; LC 214/2025, art. 343',
   },
   {

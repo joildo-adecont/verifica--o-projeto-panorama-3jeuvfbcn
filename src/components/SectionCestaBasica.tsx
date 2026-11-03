@@ -108,9 +108,18 @@ export function SectionCestaBasica() {
       badgeColor: 'bg-purple-100 text-purple-800 border-purple-300',
     },
     {
+      /*
+       * AUDITORIA DE MÉRITO (03/11/2026) — TRÊS erros corrigidos numa linha:
+       *  1) "Art. 151" estava errado. O art. 151 trata do LAUDO que comprova
+       *     deficiência e autismo, não de cashback.
+       *  2) O cashback é o Capítulo I do Título III: arts. 112 a 120.
+       *  3) Os percentuais 100%/20% são do art. 118, inciso I — conferido no
+       *     texto oficial do Senado: 100% CBS e 20% IBS para botijão de até 13 kg
+       *     e para energia elétrica, água, esgoto e gás canalizado.
+       */
       produto: 'Medicamentos, transporte, gás de cozinha e energia elétrica (baixa renda)',
-      tratamento: 'Cashback 100% CBS / 20% IBS',
-      dispositivo: 'Art. 151, LC 214',
+      tratamento: 'Cashback: 100% da CBS e 20% do IBS',
+      dispositivo: 'LC 214, arts. 112 a 120 (cashback); percentuais no art. 118, I',
       badgeColor: 'bg-purple-100 text-purple-800 border-purple-300',
     },
     {

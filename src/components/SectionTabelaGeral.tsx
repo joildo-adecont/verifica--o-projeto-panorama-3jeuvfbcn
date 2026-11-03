@@ -94,7 +94,15 @@ const RESUMO: BlocoResumo[] = [
     instrumento: 'LC214',
     anexo: 'Anexo I',
     titulo: 'Cesta Básica Nacional de Alimentos',
-    baseLegal: 'LC 214, art. 125; art. 149',
+    /*
+     * AUDITORIA DE MÉRITO (03/11/2026): o art. 149 estava citado ao lado do 125
+     * como se fosse apoio da cesta básica. Não é: o art. 149 trata da redução a
+     * zero para AUTOMÓVEIS adquiridos por motorista de táxi e por pessoa com
+     * deficiência. Citar o 149 aqui manda o contador para o artigo errado.
+     * O dispositivo da cesta básica é o art. 125, que remete ao Anexo I.
+     */
+    baseLegal:
+      'LC 214, art. 125 e Anexo I (Cesta Básica Nacional de Alimentos, criada pelo art. 8º da EC 132/2023)',
     tratamento: 'Alíquota zero',
     aliquota: '0% (CBS e IBS)',
     totalItens: 35,

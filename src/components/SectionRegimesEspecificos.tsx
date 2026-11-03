@@ -64,10 +64,22 @@ export function SectionRegimesEspecificos() {
       isStar: false,
     },
     {
+      /*
+       * CORRIGIDO NA AUDITORIA DE MÉRITO DE 03/11/2026.
+       * Antes: "Alíquota reduzida de 50% / crédito presumido" citando
+       * "LC 214, arts. 149-A e ss." — TRÊS erros numa linha:
+       *   1) o art. 149 da LC 214 trata de automóveis (táxi e pessoa com
+       *      deficiência), não de sociedades de profissionais;
+       *   2) "149-A" não existe na LC 214 — a única ocorrência no texto oficial
+       *      é uma remissão ao art. 149-A da CONSTITUIÇÃO;
+       *   3) a redução é de 30%, não de 50%.
+       * O dispositivo correto é o art. 127, conferido no texto do Senado.
+       */
       regime: 'Sociedades de profissionais',
-      quem: 'Medicina, advocacia, engenharia etc.',
-      regra: 'Alíquota reduzida de 50% / crédito presumido',
-      dispositivo: 'LC 214, arts. 149-A e ss.',
+      quem: 'Advocacia, medicina, engenharia e mais 15 profissões regulamentadas',
+      regra:
+        'Redução de 30% das alíquotas (art. 127) quando o serviço é prestado por pessoa física ou por sociedade cujos sócios sejam todos das profissões listadas',
+      dispositivo: 'LC 214, art. 127 (18 profissões, incisos I a XVIII)',
       isStar: false,
     },
   ]
