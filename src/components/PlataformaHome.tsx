@@ -132,14 +132,14 @@ export function PlataformaHome() {
     return [
       {
         id: 'juridico',
-        nome: 'Segmento Jurídico',
+        nome: 'Plataforma Jurídica',
         tag: 'Legalidade e Conformidade',
         Icon: Scale,
         hrefPrincipal: '#secao-1',
         hrefAgente: '#secao-1',
         agenteNome: 'Consultor Jurídico',
         descricao:
-          'Interpretação sistemática das leis, controle de legalidade, segurança jurídica e conformidade das normas.',
+          'Ler a norma e saber o que ela alcança: o texto da LC 214 e da EC 132, o fato gerador, as imunidades, a cesta básica, o cronograma da transição e a régua de fontes oficiais que sustenta cada afirmação.',
         corTema: 'from-indigo-600 to-slate-900',
         badgeCor: 'bg-indigo-50 text-indigo-700 border-indigo-200',
         iconBg: 'bg-indigo-50 text-indigo-700 border-indigo-200',
@@ -159,14 +159,14 @@ export function PlataformaHome() {
       },
       {
         id: 'tributario',
-        nome: 'Segmento Tributário',
+        nome: 'Plataforma Tributária',
         tag: 'Cálculo e Transição',
         Icon: Percent,
         hrefPrincipal: '#secao-6',
         hrefAgente: '#diagnostico-tributario',
         agenteNome: 'Especialista Tributário',
         descricao:
-          'IVA Dual (IBS/CBS), Imposto Seletivo, regimes favorecidos, alíquotas de referência e transição 2026–2033.',
+          'Onde a reforma realmente pesa: IBS e CBS no modelo de IVA dual, Imposto Seletivo, os regimes diferenciados e específicos, as alíquotas de referência e o que muda em cada ano até 2033.',
         corTema: 'from-amber-600 to-slate-900',
         badgeCor: 'bg-amber-50 text-amber-800 border-amber-200',
         iconBg: 'bg-amber-50 text-amber-700 border-amber-200',
@@ -189,14 +189,14 @@ export function PlataformaHome() {
       },
       {
         id: 'contabil',
-        nome: 'Segmento Contábil',
+        nome: 'Plataforma Contábil',
         tag: 'Setores e Classificações',
         Icon: Calculator,
         hrefPrincipal: '#tabela-geral',
         hrefAgente: '#setor-combustiveis',
         agenteNome: 'Consultor Contábil',
         descricao:
-          'Apuração por setor nos 14 regimes da LC 214, cruzamento de NCM, NBS, cClassTrib e classificação fiscal.',
+          'Quanto se apura em cada um dos 14 setores da LC 214, com a classificação do item por NCM/NBS e a tabela geral dos anexos — a ponte entre a lei e o número na nota.',
         corTema: 'from-emerald-600 to-slate-900',
         badgeCor: 'bg-emerald-50 text-emerald-800 border-emerald-200',
         iconBg: 'bg-emerald-50 text-emerald-700 border-emerald-200',
@@ -216,14 +216,14 @@ export function PlataformaHome() {
       },
       {
         id: 'administrativo',
-        nome: 'Segmento Administrativo',
+        nome: 'Plataforma Administrativa',
         tag: 'Gestão, CRM e Envios',
         Icon: Building2,
         hrefPrincipal: '#cadastro-envios',
         hrefAgente: '#mapa',
         agenteNome: 'Gestor Administrativo',
         descricao:
-          'Cadastro de clientes (Seção 9A), Central de Entrega, simuladores executivos, indicadores e controle do instalador.',
+          'O dia a dia do escritório: cadastro e envio de simulações ao cliente com protocolo, central de entrega do material, indicadores de acompanhamento e o controle de versão do programa.',
         corTema: 'from-sky-600 to-slate-900',
         badgeCor: 'bg-sky-50 text-sky-800 border-sky-200',
         iconBg: 'bg-sky-50 text-sky-700 border-sky-200',
@@ -263,23 +263,41 @@ export function PlataformaHome() {
         aria-label="Apresentação institucional ADECONT"
         className="rounded-3xl border-2 border-panorama-gold/70 bg-gradient-to-br from-slate-950 via-panorama-navy to-slate-900 p-6 sm:p-8 lg:p-10 text-white shadow-2xl relative overflow-hidden"
       >
-        {/* Elemento de iluminação e padrão sutil */}
+        {/* ── IMAGEM DE FUNDO (03/11/2026) ──
+         * Arte institucional gerada para o hero: colunas e arco em dourado sobre
+         * navy, com grade discreta. O overlay escuro à esquerda existe para o
+         * texto continuar legível sobre qualquer parte da imagem — sem ele, o
+         * título branco perderia contraste onde a luz dourada é mais forte. */}
+        <img
+          src="/hero-adecont.jpg"
+          alt=""
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-70"
+        />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/85 to-slate-950/30" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent" />
         <div className="absolute right-0 top-0 w-1/2 h-full bg-gradient-to-l from-amber-500/10 via-blue-500/5 to-transparent pointer-events-none" />
-        <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-amber-400/5 blur-3xl pointer-events-none" />
 
         <div className="relative z-10 space-y-6">
           {/* Topo do Hero: Logo em destaque + Badges de autoridade */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-white/10">
-            <div className="flex items-center gap-3.5">
-              <div className="p-2.5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-md">
-                <AdecontLogo variant="white" className="h-10 sm:h-12 w-auto" />
+            <div className="flex items-center gap-4">
+              {/* Marca em destaque: o logo oficial ocupa espaço nobre, com halo
+               * dourado. Antes eram 40-48px dentro de um quadrado; agora 56-72px
+               * direto sobre o navy, que é como a marca se lê melhor. */}
+              <div className="relative shrink-0">
+                <div className="absolute -inset-3 rounded-2xl bg-panorama-gold/10 blur-xl" />
+                <AdecontLogo variant="white" className="relative h-14 w-auto sm:h-16 lg:h-[72px]" />
               </div>
-              <div>
-                <span className="text-[11px] sm:text-xs font-black uppercase tracking-widest text-amber-300 block font-sans">
+              <div className="min-w-0 border-l border-panorama-gold/40 pl-4">
+                <span className="block font-serif text-lg font-black uppercase tracking-[0.22em] text-panorama-gold sm:text-xl">
                   ADECONT
                 </span>
-                <span className="text-xs sm:text-sm font-semibold text-slate-200 block">
+                <span className="mt-0.5 block text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-300 sm:text-xs">
                   Assessoria Contábil e Administrativa
+                </span>
+                <span className="mt-1 block text-[10px] font-medium uppercase tracking-[0.18em] text-slate-400">
+                  Inteligência fiscal · conformidade · governança
                 </span>
               </div>
             </div>
