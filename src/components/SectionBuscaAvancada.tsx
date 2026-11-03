@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useTransition } from 'react'
+import { useState, useEffect, useRef, useTransition, useMemo } from 'react'
 import {
   Search,
   Sparkles,
@@ -33,6 +33,12 @@ import {
 } from 'lucide-react'
 import { AdecontLogo } from '@/components/AdecontLogo'
 import { SeloNivelConfianca } from '@/components/SeloNivelConfianca'
+import {
+  normalizarParaBusca,
+  extrairPalavrasChave,
+  correspondePalavrasChave,
+  destacarTrechos,
+} from '@/services/destaqueBusca'
 import {
   buscarAvancado,
   type AssuntoEspecialItem,
@@ -216,6 +222,7 @@ export interface SectionBuscaAvancadaProps {
 export function SectionBuscaAvancada({ segmentoInicial }: SectionBuscaAvancadaProps = {}) {
   const paramsIniciais = extrairParametrosUrl()
   const [termo, setTermo] = useState<string>(paramsIniciais.termo)
+  const [buscaPalavraChave, setBuscaPalavraChave] = useState<string>('')
   const [segmentoAtivo, setSegmentoAtivo] = useState<string | null>(
     () => segmentoInicial || paramsIniciais.segmento,
   )
@@ -331,11 +338,15 @@ export function SectionBuscaAvancada({ segmentoInicial }: SectionBuscaAvancadaPr
       tabelas: [],
       reducoes: [],
     })
+    setBuscaPalavraChave('')
     setTipoClassif('TODOS')
     setAtosNivel('todos')
     setCategoriaEspecial('TODAS')
     setFiltroAnexo('TODOS')
   }
+
+  // Lista de palavras-chave normalizadas para filtragem refinada em memória e realce visual
+  const palavrasChave = useMemo(() => extrairPalavrasChave(buscaPalavraChave), [buscaPalavraChave])
 
   const totalFiltrosAtivos =
     (filtros.grupos?.length || 0) +
