@@ -1231,7 +1231,7 @@ function buscarDepartamentoFiscal(termoConsulta) {
     '  • CONFAZ (convênios e protocolos ICMS): NÃO respondeu deste servidor (timeout). O link vale ' +
     'para o usuário; não afirme que conferiu um convênio aqui.\n'
   texto +=
-    '  • SEFAZ: 11 dos 27 portais responderam; 16 não responderam deste servidor (bloqueio de IP ' +
+    '  • SEFAZ: 18 dos 27 portais responderam; 9 não responderam deste servidor (bloqueio de IP ' +
     'de datacenter é o mais comum, NÃO é site fora do ar).\n'
   texto +=
     '  • Sindicatos e ISS municipal: a lei do ISS está no Diário Oficial do município. Não invente ' +

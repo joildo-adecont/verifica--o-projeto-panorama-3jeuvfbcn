@@ -27,10 +27,12 @@
  *  • ALÍQUOTAS: as modais de ICMS por UF e a faixa do ISS, com a norma quando
  *    conhecida. Onde não há confirmação, o campo fica vazio — não se estima.
  *  • DISPONIBILIDADE DAS SEFAZ: medida nesta data, host por host, com o código
- *    HTTP real (ver COBERTURA_SEFAZ). 11 confirmadas respondendo, 16 sem resposta
+ *    HTTP real (ver COBERTURA_SEFAZ). **18 confirmadas respondendo, 9 sem resposta**
  *    DESTE servidor — o que NÃO significa que o portal esteja fora do ar para uma
  *    pessoa (bloqueio de IP de datacenter é comum, como já aconteceu com o
- *    Planalto e a CONFAZ).
+ *    Planalto e a CONFAZ). O número é calculado de COBERTURA_SEFAZ, nunca escrito
+ *    à mão: já houve divergência entre o card (18) e o texto do agente (11)
+ *    porque a contagem foi digitada em dois lugares.
  */
 
 export interface EsferaFiscal {
