@@ -1231,8 +1231,13 @@ function buscarDepartamentoFiscal(termoConsulta) {
     '  • CONFAZ (convênios e protocolos ICMS): NÃO respondeu deste servidor (timeout). O link vale ' +
     'para o usuário; não afirme que conferiu um convênio aqui.\n'
   texto +=
-    '  • SEFAZ: 18 dos 27 portais responderam; 9 não responderam deste servidor (bloqueio de IP ' +
-    'de datacenter é o mais comum, NÃO é site fora do ar).\n'
+    '  • SEFAZ: 18 dos 27 portais respondem direto e 6 dos 9 restantes têm rota oficial alternativa ' +
+    'que responde (portal do governo do estado). Apenas 3 não têm caminho medido deste servidor. ' +
+    'Bloqueio de IP de datacenter é o motivo mais comum, NÃO é site fora do ar.\n'
+  texto +=
+    '  • MELHOR ROTA ESTADUAL: Sergipe tem o LegisOn (legislacao.se.gov.br) com API pública de busca ' +
+    '(api.legislacao.se.gov.br/api/v1/public/acts?search=TERMO) — 7.839 leis, 28.785 decretos e ' +
+    '2.271 atos consolidados, filtrando por termo de verdade. Use como modelo do que é possível.\n'
   texto +=
     '  • Sindicatos e ISS municipal: a lei do ISS está no Diário Oficial do município. Não invente ' +
     'alíquota municipal.\n\n'

@@ -21,9 +21,10 @@ import {
   LEIS_ICMS,
   COBERTURA_SEFAZ,
   SEFAZ_RESPONDEM,
-  SEFAZ_SEM_RESPOSTA,
+  SEFAZ_COM_ROTA_ALTERNATIVA,
+  SEFAZ_SEM_CAMINHO,
+  SEFAZ_ALCANCAVEIS,
   ISS_ESTRUTURA,
-  type EsferaFiscal,
 } from '@/data/departamentoFiscal'
 import { fetchAtosMunicipaisPorCodigo, type RadarAtoItem } from '@/services/radarMunicipios'
 
@@ -166,9 +167,9 @@ export function SectionDepartamentoFiscal() {
               </span>
             </div>
             <div className="rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 text-center">
-              <span className="block text-lg font-black text-sky-300">{SEFAZ_RESPONDEM}</span>
+              <span className="block text-lg font-black text-sky-300">{SEFAZ_ALCANCAVEIS}/27</span>
               <span className="block text-[9px] uppercase tracking-wider text-slate-300">
-                SEFAZ ok
+                UFs c/ rota
               </span>
             </div>
             <div className="rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 text-center">
@@ -368,28 +369,41 @@ export function SectionDepartamentoFiscal() {
                       </td>
                       <td className="px-2 py-1.5 text-center">
                         {cobertura ? (
-                          <a
-                            href={`https://${cobertura.host}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[9.5px] font-bold ${
-                              cobertura.responde
-                                ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200'
-                                : 'bg-amber-50 text-amber-700 ring-1 ring-amber-200'
-                            }`}
-                            title={
-                              cobertura.responde
-                                ? `${cobertura.host} — respondeu ${cobertura.codigo}`
-                                : `${cobertura.host} — não respondeu deste servidor (pode ser bloqueio de IP, não site fora do ar)`
-                            }
-                          >
-                            {cobertura.responde ? (
+                          /* Três estados: abre direto · abre por rota alternativa ·
+                             não abre daqui. O terceiro só aparece quando de fato não
+                             há caminho — antes ele era o rótulo de todo mundo que
+                             falhava, mesmo quando o portal do estado respondia. */
+                          cobertura.responde ? (
+                            <a
+                              href={`https://${cobertura.host}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 rounded bg-emerald-50 px-1.5 py-0.5 text-[9.5px] font-bold text-emerald-700 ring-1 ring-emerald-200"
+                              title={`${cobertura.host} — respondeu ${cobertura.codigo}`}
+                            >
                               <CheckCircle2 className="h-2.5 w-2.5" />
-                            ) : (
+                              abrir
+                            </a>
+                          ) : cobertura.rota ? (
+                            <a
+                              href={cobertura.rota}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 rounded bg-sky-50 px-1.5 py-0.5 text-[9.5px] font-bold text-sky-700 ring-1 ring-sky-200"
+                              title={cobertura.via}
+                            >
+                              <ArrowRight className="h-2.5 w-2.5" />
+                              {cobertura.busca ? 'legislação' : 'via gov'}
+                            </a>
+                          ) : (
+                            <span
+                              className="inline-flex items-center gap-1 rounded bg-rose-50 px-1.5 py-0.5 text-[9.5px] font-bold text-rose-700 ring-1 ring-rose-200"
+                              title={`${cobertura.host} — não responde deste servidor e não há rota alternativa medida`}
+                            >
                               <AlertTriangle className="h-2.5 w-2.5" />
-                            )}
-                            {cobertura.responde ? 'abrir' : 'conferir'}
-                          </a>
+                              sem rota
+                            </span>
+                          )
                         ) : (
                           '—'
                         )}
@@ -401,25 +415,40 @@ export function SectionDepartamentoFiscal() {
             </table>
           </div>
 
-          <div className="grid gap-2 sm:grid-cols-2">
+          <div className="grid gap-2 sm:grid-cols-3">
             <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-2.5">
               <p className="flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider text-emerald-800">
-                <CheckCircle2 className="h-3.5 w-3.5" /> {SEFAZ_RESPONDEM} SEFAZ respondendo
+                <CheckCircle2 className="h-3.5 w-3.5" /> {SEFAZ_RESPONDEM} abrem direto
               </p>
               <p className="mt-1 text-[10.5px] leading-snug text-emerald-900">
-                Portal abriu deste servidor agora. É por onde se confirma o RICMS vigente.
+                O portal da SEFAZ respondeu deste servidor agora. É por onde se confirma o RICMS.
               </p>
             </div>
-            <div className="rounded-lg border border-amber-200 bg-amber-50 p-2.5">
-              <p className="flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider text-amber-800">
-                <AlertTriangle className="h-3.5 w-3.5" /> {SEFAZ_SEM_RESPOSTA} sem resposta daqui
+            <div className="rounded-lg border border-sky-200 bg-sky-50 p-2.5">
+              <p className="flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider text-sky-800">
+                <ArrowRight className="h-3.5 w-3.5" /> {SEFAZ_COM_ROTA_ALTERNATIVA} por rota oficial
               </p>
-              <p className="mt-1 text-[10.5px] leading-snug text-amber-900">
-                Não respondeu <b>deste servidor</b> — o mais comum é bloqueio de IP de datacenter.
-                No seu computador o portal abre normalmente. O link continua na tabela.
+              <p className="mt-1 text-[10.5px] leading-snug text-sky-900">
+                A SEFAZ não abre daqui, mas o <b>portal do governo do estado</b> — ou o portal de
+                legislação, como o LegisOn de Sergipe — responde 200. Está na tabela como{' '}
+                <b>via gov</b>.
+              </p>
+            </div>
+            <div className="rounded-lg border border-rose-200 bg-rose-50 p-2.5">
+              <p className="flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider text-rose-800">
+                <AlertTriangle className="h-3.5 w-3.5" /> {SEFAZ_SEM_CAMINHO} sem caminho daqui
+              </p>
+              <p className="mt-1 text-[10.5px] leading-snug text-rose-900">
+                Nem a SEFAZ nem o portal do estado responderam deste servidor. O link oficial
+                continua na tabela — no seu computador abre.
               </p>
             </div>
           </div>
+
+          <p className="rounded-lg bg-slate-100 p-2 text-[11px] font-semibold text-slate-700">
+            Cobertura alcançável: <b>{SEFAZ_ALCANCAVEIS} de 27</b> UFs por um caminho oficial que
+            respondeu agora (direto ou por rota alternativa).
+          </p>
 
           <button
             onClick={() =>

@@ -255,9 +255,23 @@ export const LEIS_ICMS: LeiIcms[] = [
     aliquota: 20.5,
     fonte: 'SEFAZ-PE (tabela de alíquotas oficial)',
   },
-  { uf: 'PI', lei: 'Lei 4.261/1989', ano: '1989', aliquota: 21, fonte: 'Legislação estadual' },
+  {
+    uf: 'PI',
+    lei: 'Lei 4.257/1989',
+    ano: '1989',
+    aliquota: 21,
+    obs: 'A Lei 4.261/1989 é a do ITCMD, não a do ICMS',
+    fonte: 'Portal da Legislação SEFAZ-PI (portaldalegislacao.sefaz.pi.gov.br)',
+  },
   { uf: 'RJ', lei: 'Lei 2.657/1996', ano: '1996', aliquota: 22, fonte: 'Fazenda-RJ' },
-  { uf: 'RN', lei: 'Lei 6.968/1996', ano: '1996', aliquota: 18, fonte: 'Legislação estadual' },
+  {
+    uf: 'RN',
+    lei: 'Lei 6.968/1996',
+    ano: '1996',
+    aliquota: 18,
+    obs: 'RICMS é o Decreto 31.825/2022',
+    fonte: 'SEFAZ-RN (seção ICMS › Leis / Regulamentos)',
+  },
   { uf: 'RS', lei: 'Lei 8.820/1989', ano: '1989', aliquota: 17, fonte: 'Fazenda-RS' },
   { uf: 'RO', lei: 'Lei 688/1996', ano: '1996', aliquota: 19.5, fonte: 'Legislação estadual' },
   { uf: 'RR', lei: 'Lei 059/1993', ano: '1993', aliquota: 20, fonte: 'SEFAZ-RR' },
@@ -276,8 +290,22 @@ export const LEIS_ICMS: LeiIcms[] = [
     obs: 'Atualizada até a Lei 17.784/2023',
     fonte: 'AL-SP (texto compilado) + legislação.fazenda.sp.gov.br',
   },
-  { uf: 'SE', lei: 'Lei 3.796/1996', ano: '1996', aliquota: 19, fonte: 'Legislação estadual' },
-  { uf: 'TO', lei: 'Lei 1.287/2001', ano: '2001', aliquota: 20, fonte: 'Legislação estadual' },
+  {
+    uf: 'SE',
+    lei: 'Lei 3.796/1996',
+    ano: '1996',
+    aliquota: 19,
+    obs: 'RICMS é o Decreto 21.400/2002',
+    fonte: 'LegisLog SE (legislacao.se.gov.br) / AL-SE',
+  },
+  {
+    uf: 'TO',
+    lei: 'Lei 1.287/2001',
+    ano: '2001',
+    aliquota: 20,
+    obs: 'Código Tributário do Estado (CTE); RICMS é o Decreto 2.912/2006',
+    fonte: 'DTRI/SEFAZ-TO (Lei 1.287/01 consolidada)',
+  },
 ]
 
 /**
@@ -295,40 +323,106 @@ export interface CoberturaSefaz {
   host: string
   responde: boolean
   codigo?: string
+  /**
+   * Rota alternativa que RESPONDEU quando a SEFAZ não abre (medida em 02/11/2026).
+   * `rota` é o que abre; `via` diz o que é. Quando existe, a UF deixa de ser
+   * "sem caminho": o portal do governo ou o portal de legislação serve de acesso.
+   */
+  rota?: string
+  via?: string
+  /** true quando a rota é um portal de legislação com busca (vale mais que a home) */
+  busca?: boolean
 }
 
 export const COBERTURA_SEFAZ: CoberturaSefaz[] = [
   { uf: 'AC', host: 'www.sefaz.ac.gov.br', responde: true, codigo: '302' },
   { uf: 'AL', host: 'www.sefaz.al.gov.br', responde: true, codigo: '200' },
   { uf: 'AM', host: 'www.sefaz.am.gov.br', responde: true, codigo: '200' },
-  { uf: 'AP', host: 'www.sefaz.ap.gov.br', responde: false },
+  {
+    uf: 'AP',
+    host: 'www.sefaz.ap.gov.br',
+    responde: false,
+    rota: 'http://www.sefaz.ap.gov.br',
+    via: 'SEFAZ-AP em HTTP (porta 80). Em HTTPS não completa o handshake deste servidor; o portal redireciona para HTTPS no navegador do usuário.',
+  },
   { uf: 'BA', host: 'portal.sefaz.ba.gov.br', responde: true, codigo: '200' },
   { uf: 'CE', host: 'www.sefaz.ce.gov.br', responde: true, codigo: '301' },
-  { uf: 'DF', host: 'www.fazenda.df.gov.br', responde: false },
+  {
+    uf: 'DF',
+    host: 'www.fazenda.df.gov.br',
+    responde: false,
+    rota: 'https://fazenda.df.gov.br',
+    via: 'Secretaria de Economia do DF — responde 302 e leva ao portal de fazenda do DF.',
+  },
   { uf: 'ES', host: 'www.sefaz.es.gov.br', responde: true, codigo: '307' },
   { uf: 'GO', host: 'www.economia.go.gov.br', responde: true, codigo: '302' },
-  { uf: 'MA', host: 'www.sefaz.ma.gov.br', responde: false },
+  {
+    uf: 'MA',
+    host: 'www.sefaz.ma.gov.br',
+    responde: false,
+    rota: 'https://www.ma.gov.br',
+    via: 'Portal do Governo do Maranhão — a SEFAZ-MA derruba a conexão TLS deste servidor; o portal do estado responde.',
+  },
   { uf: 'MG', host: 'www.fazenda.mg.gov.br', responde: true, codigo: '200' },
   { uf: 'MS', host: 'www.sefaz.ms.gov.br', responde: true, codigo: '200' },
   { uf: 'MT', host: 'www.indea.mt.gov.br', responde: true, codigo: '200' },
-  { uf: 'PA', host: 'www.sefaz.pa.gov.br', responde: false },
+  {
+    uf: 'PA',
+    host: 'www.sefaz.pa.gov.br',
+    responde: false,
+    rota: 'https://www.pa.gov.br',
+    via: 'Portal do Governo do Pará — responde 200; a SEFAZ-PA não aceita conexão deste servidor.',
+  },
   { uf: 'PB', host: 'www.sefaz.pb.gov.br', responde: true, codigo: '200' },
   { uf: 'PE', host: 'www.sefaz.pe.gov.br', responde: true, codigo: '302' },
-  { uf: 'PI', host: 'www.sefaz.pi.gov.br', responde: false },
+  {
+    uf: 'PI',
+    host: 'www.sefaz.pi.gov.br',
+    responde: false,
+    rota: 'https://www.pi.gov.br/orgao/secretaria-de-estado-da-fazenda-sefaz/',
+    via: 'Portal do Governo do Piauí — página oficial da SEFAZ-PI. Responde 200; o domínio próprio da SEFAZ não abre daqui.',
+  },
   { uf: 'PR', host: 'www.fazenda.pr.gov.br', responde: true, codigo: '302' },
   { uf: 'RJ', host: 'www.fazenda.rj.gov.br', responde: true, codigo: '200' },
   { uf: 'RN', host: 'www.sefaz.rn.gov.br', responde: false },
-  { uf: 'RO', host: 'www.sefaz.ro.gov.br', responde: false },
+  {
+    uf: 'RO',
+    host: 'www.sefaz.ro.gov.br',
+    responde: false,
+    rota: 'https://www.ro.gov.br',
+    via: 'Portal do Governo de Rondônia — responde 200. A SEFIN-RO mantém portal próprio de legislação (legislacao.sefin.ro.gov.br), que não abre deste servidor.',
+  },
   { uf: 'RR', host: 'www.sefaz.rr.gov.br', responde: true, codigo: '200' },
   { uf: 'RS', host: 'www.fazenda.rs.gov.br', responde: true, codigo: '200' },
   { uf: 'SC', host: 'www.sefaz.sc.gov.br', responde: true, codigo: '301' },
-  { uf: 'SE', host: 'www.sefaz.se.gov.br', responde: false },
+  {
+    uf: 'SE',
+    host: 'www.sefaz.se.gov.br',
+    responde: false,
+    rota: 'https://legislacao.se.gov.br/',
+    via: 'LegisOn — Portal de Legislação do Governo de Sergipe, com API pública de busca. Responde 200 e é a MELHOR rota dos nove.',
+    busca: true,
+  },
   { uf: 'SP', host: 'portal.fazenda.sp.gov.br', responde: true, codigo: '301' },
-  { uf: 'TO', host: 'www.sefaz.to.gov.br', responde: false },
+  {
+    uf: 'TO',
+    host: 'www.sefaz.to.gov.br',
+    responde: false,
+    rota: 'https://dtri.sefaz.to.gov.br/legislacao/ntributaria/Leis/table_leis.htm',
+    via: 'DTRI/SEFAZ-TO — a página de leis do ICMS existe e é a fonte oficial, mas não responde deste servidor (nem em HTTP). O link fica para o usuário.',
+  },
 ]
 
 export const SEFAZ_RESPONDEM = COBERTURA_SEFAZ.filter((s) => s.responde).length
 export const SEFAZ_SEM_RESPOSTA = COBERTURA_SEFAZ.filter((s) => !s.responde).length
+/** Das que não respondem: quantas têm uma rota alternativa oficial que abre. */
+export const SEFAZ_COM_ROTA_ALTERNATIVA = COBERTURA_SEFAZ.filter(
+  (s) => !s.responde && s.rota,
+).length
+/** As que não respondem E não têm rota alternativa — o vermelho de verdade. */
+export const SEFAZ_SEM_CAMINHO = COBERTURA_SEFAZ.filter((s) => !s.responde && !s.rota).length
+/** Cobertura total = quem abre direto + quem abre por rota alternativa. */
+export const SEFAZ_ALCANCAVEIS = SEFAZ_RESPONDEM + SEFAZ_COM_ROTA_ALTERNATIVA
 
 /**
  * ISS / ISSQN — a lei nacional e a transição. A alíquota é MUNICIPAL: não existe
