@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-03T23:35:00.992Z",
+  "generatedAt": "2026-11-03T23:53:23.644Z",
   "collections": [
     {
       "name": "users",
@@ -3124,6 +3124,40 @@
         }
       ],
       "indexes": []
+    },
+    {
+      "name": "economic_indicators_cache",
+      "type": "base",
+      "apiRules": {
+        "list": null,
+        "view": null,
+        "create": null,
+        "update": null,
+        "delete": null
+      },
+      "fields": [
+        {
+          "name": "chave",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "payload",
+          "type": "json",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "atualizado_em",
+          "type": "text",
+          "required": false,
+          "system": false
+        }
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX idx_economic_indicators_cache_chave ON economic_indicators_cache (chave)"
+      ]
     }
   ]
 }
