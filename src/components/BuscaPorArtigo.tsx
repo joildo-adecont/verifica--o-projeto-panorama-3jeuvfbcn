@@ -11,6 +11,7 @@ import {
   Info,
   Send,
   ExternalLink,
+  Printer,
 } from 'lucide-react'
 import type { Jurisprudencia } from '@/services/jurisprudencias'
 import { verbeteParaJurisprudencia, grupoParaTribunal } from '@/lib/verbeteParaJurisprudencia'
@@ -118,7 +119,82 @@ export function BuscaPorArtigo({
     return true
   }
 
-  const rotuloNorma = (chave: string) => (indice?.normas[chave] || chave).replace(/\s*\(.*\)$/, '')
+  const rotuloNorma = (chave: string) =>
+  (indice?.normas[chave] || chave).replace(/\s*\(.*\)$/, '')
+
+/**
+ * EXPORTAR EM PDF A CONSULTA POR ARTIGO
+ * =====================================
+ * Segue o padrão do projeto (BotaoExportarPDF): imprimir a PRÓPRIA tela com
+ * CSS escopado, em vez de redesenhar o conteúdo num gerador de PDF. Assim o
+ * documento é exatamente o que se vê — sem risco de o PDF divergir da tela.
+ *
+ * ── O QUE VAI PARA O PAPEL ──
+ * Só o bloco do resultado (`#resultado-artigo-impressao`) mais um cabeçalho
+ * que existe apenas na impressão: norma, artigo, data/hora e a declaração de
+ * procedência das ligações. O resto (abas, menu, filtros, botões) fica de
+ * fora — um acervo impresso com menu lateral não serve para levar a reunião.
+ *
+ * ── POR QUE O CABEÇALHO É `print-only` ──
+ * Na tela o usuário já vê o dispositivo nos seletores. No papel, sem esse
+ * cabeçalho, a folha sairia com uma lista de súmulas sem dizer a que
+ * dispositivo se referem — inútil como documento.
+ */
+const imprimirArtigo = () => {
+  if (!document.getElementById('css-impressao-artigo')) {
+    const tag = document.createElement('style')
+    tag.id = 'css-impressao-artigo'
+    tag.textContent = `
+@media print {
+@page { size: A4 portrait; margin: 14mm 12mm; }
+aside, header.fixed, .fixed, footer, #painel-atalhos, [data-print="hide"] { display: none !important; }
+html, body { background: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.lg\\:pl-60 { padding-left: 0 !important; }
+main { padding: 0 !important; max-width: none !important; }
+
+/* isola o bloco do artigo: esconde tudo, revela só ele */
+body * { visibility: hidden !important; }
+#resultado-artigo-impressao, #resultado-artigo-impressao * { visibility: visible !important; }
+#resultado-artigo-impressao {
+  position: absolute !important;
+  left: 0 !important; top: 0 !important;
+  width: 100% !important;
+  border: none !important; box-shadow: none !important;
+}
+
+/* cabeçalho e rodapé só no papel — vencem o .hidden do Tailwind */
+.so-no-papel { display: block !important; }
+#resultado-artigo-impressao .so-no-papel { display: block !important; }
+.so-na-tela { display: none !important; }
+
+#resultado-artigo-impressao article,
+#resultado-artigo-impressao table { break-inside: avoid; page-break-inside: avoid; }
+a[href]::after { content: none !important; }
+}
+`
+    document.head.appendChild(tag)
+  }
+
+  // carimba a data para o rodapé do documento
+  const el = document.getElementById('resultado-artigo-impressao')
+  if (el) {
+    const h = new Date()
+    const data = `${String(h.getDate()).padStart(2, '0')}/${String(h.getMonth() + 1).padStart(
+      2,
+      '0',
+    )}/${h.getFullYear()} às ${String(h.getHours()).padStart(2, '0')}:${String(
+      h.getMinutes(),
+    ).padStart(2, '0')}`
+    el.setAttribute('data-gerado', data)
+  }
+
+  window.setTimeout(() => window.print(), 150)
+}
+
+/** quantos verbetes o dispositivo tem, somando os grupos */
+const totalDocumento = resultado && !resultado.vazio
+  ? Object.values(resultado.grupos).reduce((acc, ns) => acc + ns.length, 0)
+  : 0
   const [indice, setIndice] = useState<Indice | null>(null)
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState('')
@@ -337,9 +413,9 @@ export function BuscaPorArtigo({
         </div>
       )}
 
-      {/* atalho para a Busca Avançada: só quando há dispositivo escolhido */}
+      {/* atalho para a Busca Avançada + exportação: só com dispositivo escolhido */}
       {chaveAtiva && artigoAtivo && (
-        <div className="flex flex-wrap items-center gap-2 rounded-lg border border-panorama-gold/50 bg-amber-50/50 p-2.5">
+        <div className="flex flex-wrap items-center gap-2 rounded-lg border border-panorama-gold/50 bg-amber-50/50 p-2.5" data-print="hide">
           <p className="min-w-0 flex-1 text-[11px] leading-snug text-slate-700">
             Quer buscar por <b>palavra-chave</b> ou <b>tribunal</b> dentro deste dispositivo?
           </p>
@@ -353,6 +429,25 @@ export function BuscaPorArtigo({
             <span className="rounded bg-white/15 px-1 text-[9.5px]">
               art. {artigoAtivo} {rotuloNorma(chaveAtiva)}
             </span>
+          </button>
+          <button
+            type="button"
+            onClick={imprimirArtigo}
+            disabled={!totalDocumento}
+            className="inline-flex min-h-[32px] items-center gap-1.5 rounded-lg border border-panorama-gold bg-panorama-gold px-2.5 text-[11px] font-bold text-panorama-navy hover:bg-panorama-gold-light disabled:cursor-not-allowed disabled:opacity-40"
+            title={
+              totalDocumento
+                ? 'Imprimir ou salvar em PDF esta consulta'
+                : 'Sem verbetes para exportar'
+            }
+          >
+            <Printer className="h-3 w-3" />
+            Exportar PDF
+            {totalDocumento > 0 && (
+              <span className="rounded bg-panorama-navy/15 px-1 text-[9.5px]">
+                {totalDocumento}
+              </span>
+            )}
           </button>
         </div>
       )}
@@ -370,7 +465,29 @@ export function BuscaPorArtigo({
       )}
 
       {resultado && !resultado.vazio && (
-        <div className="space-y-2">
+        <div id="resultado-artigo-impressao" className="space-y-2">
+          {/* cabeçalho que só existe no papel: sem ele a folha sairia com uma
+              lista de súmulas sem dizer a que dispositivo se referem. */}
+          <div className="so-no-papel hidden border-b-2 border-panorama-navy pb-2">
+            <p className="text-[9pt] font-black uppercase tracking-wider text-slate-500">
+              ADECONT · Acervo Jurídico
+            </p>
+            <h2 className="mt-0.5 text-[15pt] font-black text-panorama-navy">
+              art. {artigoAtivo} — {indice?.normas[chaveAtiva] || chaveAtiva}
+            </h2>
+            <p className="mt-0.5 text-[9pt] text-slate-600">
+              {totalDocumento} verbete{totalDocumento === 1 ? '' : 's'} ligado
+              {totalDocumento === 1 ? '' : 's'} a este dispositivo · consulta gerada em{' '}
+              {new Date().toLocaleDateString('pt-BR')}
+            </p>
+            {NAO_VIGENTES.has(chaveAtiva) && (
+              <p className="mt-1 rounded border border-amber-400 bg-amber-50 p-1 text-[8.5pt] text-amber-900">
+                ATENÇÃO: norma não vigente ({indice?.normas[chaveAtiva]}). Serve como referência
+                histórica, não como dispositivo atual.
+              </p>
+            )}
+          </div>
+
           {GRUPOS.map((g) => {
             const nums = resultado.grupos[g.id] || []
             if (!nums.length) return null
@@ -439,6 +556,21 @@ export function BuscaPorArtigo({
               oficial é declaração do tribunal; o que veio do texto foi lido na própria tese.
             </span>
           </p>
+
+          {/* rodapé do documento impresso — a procedência tem de ir junto:
+              um PDF sem ela parece ter saído do tribunal. */}
+          <div className="so-no-papel hidden border-t border-slate-300 pt-1.5">
+            <p className="text-[8pt] leading-snug text-slate-500">
+              <b>Procedência das ligações:</b> STF — {indice?.origem['0']}; STJ —{' '}
+              {indice?.origem['1']}; TST — {indice?.origem['2']}; temas — {indice?.origem['3']}.
+            </p>
+            <p className="mt-1 text-[8pt] leading-snug text-slate-500">
+              Documento gerado pelo Acervo Jurídico da ADECONT. O texto integral de cada verbete é
+              extraído das fontes oficiais dos tribunais; onde a ligação ao dispositivo foi lida do
+              texto da tese (e não de campo oficial), isso está declarado acima. Confira sempre no
+              tribunal antes de citar.
+            </p>
+          </div>
         </div>
       )}
 
