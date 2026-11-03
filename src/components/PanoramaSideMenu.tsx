@@ -442,7 +442,11 @@ export function PanoramaSideMenu({
                   </button>
                 )}
               </div>
-              <div className="grid grid-cols-4 gap-1">
+              {/* grid-cols-2 e não 4: com 4 colunas cada chip ficava com 51px e o
+                  rótulo era cortado ("Reforma Tribut…", "Plataforma Juríd…"), o que
+                  na prática escondia o nome da plataforma. Com 2 colunas cabem os
+                  nomes inteiros, já sem o prefixo "Plataforma". */}
+              <div className="grid grid-cols-2 gap-1">
                 {SEGMENTOS_SISTEMA.map((seg) => {
                   const ativo = segmentoFiltro === seg.id
                   return (
@@ -456,7 +460,9 @@ export function PanoramaSideMenu({
                       }`}
                       title={seg.nome}
                     >
-                      <span className="block truncate">{seg.nome.replace('Segmento ', '')}</span>
+                      <span className="block truncate">
+                        {seg.nome.replace('Plataforma ', '').replace('Segmento ', '')}
+                      </span>
                     </button>
                   )
                 })}

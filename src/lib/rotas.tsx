@@ -193,6 +193,10 @@ export const ID_INICIO = 'inicio'
 const DENTRO_DE_UMA_ABA: Record<string, string> = {
   contato: 'secao-9',
   inicio: ID_INICIO,
+  /* `#cronograma` é o endereço antigo do Cronograma e ainda aparece num link
+     interno (Central de Indicadores / Monitor). Sem este alias ele caía na
+     home: o usuário clicava em "Cronograma 2026–2033" e continuava no painel. */
+  cronograma: 'secao-8',
 }
 
 /**
