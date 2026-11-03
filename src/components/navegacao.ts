@@ -1069,7 +1069,70 @@ function itensDaPlataforma(secoes: string[]): LinkNavegacao[] {
  * REDIMENSIONAR MICROMENU = mover uma string entre SECOES_* abaixo.
  * Nenhum item, tecla ou texto precisa ser tocado.
  * ══════════════════════════════════════════════════════════════════════ */
+
+/* ══════════════════════════════════════════════════════════════════════════
+ * PLATAFORMA MACRO — REFORMA TRIBUTÁRIA (03/11/2026, decisão do CEO)
+ *
+ * "Criar uma plataforma macro chamada segmento reforma tributária. Todos os
+ *  ícones dos assuntos de reforma tributária para esta plataforma. Pode manter
+ *  a estrutura nas demais. Posteriormente irei reconfigurá-las."
+ *
+ * ── O QUE ESTA PLATAFORMA É ──
+ * O AGREGADO de tudo que é assunto da reforma: a norma, o fato gerador, a
+ * cesta, as imunidades, as alíquotas, os regimes específicos, o cronograma, os
+ * anexos, os 14 setores, a tabela geral e a busca por item. 25 seções.
+ *
+ * ── POR QUE ELA CONVIVE COM AS OUTRAS TRÊS ──
+ * As plataformas Jurídica, Contábil e Administrativa seguem intactas: são
+ * RECORTES por área de quem trabalha. Esta é o recorte por ASSUNTO. A mesma
+ * seção aparece nos dois lugares, de propósito — quem procura "tudo sobre a
+ * reforma" vem aqui; quem é do contábil abre a contábil.
+ *
+ * Por isso `NAVEGACAO` deduplica por href: a tecla de atalho e a busca do menu
+ * continuam apontando para UMA seção, não duas.
+ * ══════════════════════════════════════════════════════════════════════════ */
+const SECOES_REFORMA = [
+  '#secao-1',
+  '#secao-2',
+  '#secao-3',
+  '#secao-4',
+  '#secao-5',
+  '#secao-6',
+  '#secao-8',
+  '#secao-7',
+  '#tabela-geral',
+  '#regime-imobiliario',
+  '#agronegocio',
+  '#consorcios',
+  '#financeiros',
+  '#simples',
+  '#profissionais-plataformas',
+  '#setor-combustiveis',
+  '#setor-saude',
+  '#setor-educacao',
+  '#setor-turismo',
+  '#setor-cooperativas',
+  '#setor-futebol',
+  '#setor-exterior',
+  '#setor-diplomatico',
+  '#busca-avancada',
+]
+
 export const GRUPOS: GrupoNavegacao[] = [
+  /* ── MACRO: tudo que é assunto da reforma num lugar só ── */
+  {
+    id: 'reforma-tributaria',
+    segmentoKey: 'reforma-tributaria',
+    nome: 'Reforma Tributária',
+    proposito: 'Todos os assuntos da reforma: norma, setores, tabelas e cálculo',
+    Icon: Landmark,
+    cor: 'text-panorama-gold',
+    bg: 'bg-panorama-navy/5',
+    borda: 'border-panorama-gold',
+    dominios: ['nucleo', 'setores', 'tabelas', 'simulacao'],
+    secoes: SECOES_REFORMA,
+    itens: itensDaPlataforma(SECOES_REFORMA),
+  },
   {
     id: 'juridica',
     segmentoKey: 'juridica',
@@ -1127,6 +1190,19 @@ export interface SegmentoSistema {
 }
 
 export const SEGMENTOS_SISTEMA: SegmentoSistema[] = [
+  {
+    id: 'reforma-tributaria',
+    nome: 'Reforma Tributária',
+    descricao:
+      'Todos os assuntos da reforma num lugar: norma, setores, anexos, tabela geral e cálculo.',
+    Icon: Landmark,
+    cor: 'text-panorama-gold',
+    bg: 'bg-panorama-navy/5',
+    borda: 'border-panorama-gold',
+    hrefAgente: '#secao-1',
+    agenteNome: 'Jurídico',
+    itens: itensDaPlataforma(SECOES_REFORMA),
+  },
   {
     id: 'juridica',
     nome: 'Plataforma Jurídica',
@@ -1353,6 +1429,17 @@ export function setoresDoDominio(dominioId: string) {
   }))
 }
 
-export const NAVEGACAO: LinkNavegacao[] = GRUPOS.flatMap((g) => g.itens)
+/**
+ * Lista achatada e SEM DUPLICATAS.
+ *
+ * Com a macro Reforma Tributária, a mesma seção passa a existir em duas
+ * plataformas (a macro e a de área). Sem deduplicar, o menu lateral mostraria
+ * "Normas" duas vezes e a busca por tecla encontraria dois destinos — o
+ * usuário apertaria "1" e não saberia qual abrir. Aqui a primeira ocorrência
+ * vence, e a ordem das plataformas define qual é.
+ */
+export const NAVEGACAO: LinkNavegacao[] = GRUPOS.flatMap((g) => g.itens).filter(
+  (item, i, arr) => arr.findIndex((x) => x.href === item.href) === i,
+)
 export const TOTAL_ITENS = NAVEGACAO.length
 export const TOTAL_GRUPOS = GRUPOS.length
