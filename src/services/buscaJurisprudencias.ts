@@ -243,8 +243,15 @@ export async function buscarJurisprudencias(
          a tela ficava em "Buscando…" para sempre, sem erro no console, sem
          requisição de rede. Custou uma rodada de diagnóstico: o `.finally()`
          nunca executava porque a importação nunca terminava. */
-      const r = await listarJurisprudencias({})
-      const lista = r.itens.filter((j) => j.situacao !== 'arquivada')
+      /* Corrida com prazo: o acervo do escritório é acessório. Se o backend
+         demorar (ou a URL não estiver configurada), seguimos SEM ele em 6 s em
+         vez de segurar a busca inteira. A tela dirá que o acervo não foi lido —
+         verdade — enquanto as 2.963 súmulas oficiais aparecem normalmente. */
+      const prazo = new Promise<{ itens: any[] }>((resolve) =>
+        setTimeout(() => resolve({ itens: [] }), 6000),
+      )
+      const r = await Promise.race([listarJurisprudencias({}), prazo])
+      const lista = (r.itens || []).filter((j: any) => j.situacao !== 'arquivada')
       for (let i = 0; i < lista.length; i++) {
         const j = lista[i]
         if (tribs.length && tribs.indexOf(j.tribunal.toUpperCase()) < 0) continue
