@@ -79,6 +79,21 @@ interface Cliente {
   telefone?: string
   carga_atual_pct?: number
   tributos_atuais?: string[]
+  /*
+   * Permissões (migration 0107). Declaradas aqui porque a lista de clientes
+   * passou a mostrar o selo de acesso — sem estes campos o TypeScript acusaria
+   * erro ao ler `c.acesso_situacao`, e mais importante: quem lê o código
+   * precisa saber que o cadastro carrega regra de acesso.
+   */
+  acesso_situacao?: string
+  acesso_nivel?: string
+  acesso_restricoes?: string[]
+  acesso_liberacoes?: string[]
+  acesso_validade_dias?: number
+  acesso_expira_em?: string
+  acesso_motivo?: string
+  acesso_autorizado_por?: string
+  acesso_atualizado_em?: string
 }
 
 /** Fator de redução por regime — igual ao usado no painel Por cliente. */
@@ -242,6 +257,16 @@ export function SectionCadastroEnvios() {
    */
   const [restricoes, setRestricoes] = useState<string[]>([])
   const [liberacoes, setLiberacoes] = useState<string[]>([])
+  /**
+   * EDIÇÃO DE PERMISSÕES E LOTE (03/11/2026)
+   * `editando` guarda o cliente aberto no modal; `selecionados` guarda os ids
+   * marcados na lista para a aplicação em massa. São estados separados porque
+   * são ações diferentes: uma muda UM cliente, a outra muda N — e misturar os
+   * dois num estado só faria a seleção da lista vazar para dentro do modal.
+   */
+  const [editando, setEditando] = useState<Cliente | null>(null)
+  const [selecionados, setSelecionados] = useState<string[]>([])
+  const [salvandoLote, setSalvandoLote] = useState(false)
 
   // importação
   const [textoImport, setTextoImport] = useState('')
@@ -454,6 +479,144 @@ export function SectionCadastroEnvios() {
       return
     }
     await executarSalvar(token)
+  }
+
+  /**
+   * GRAVA PERMISSÕES EM UM OU VÁRIOS CLIENTES
+   *
+   * Uma função só para os dois casos porque, no backend, a operação é a mesma:
+   * a rota recebe uma lista de ids. Editar um cliente é a lista de tamanho 1.
+   * Duplicar aqui seria duplicar a regra de gravação — e a regra tem detalhe
+   * (arrays sempre gravados, inclusive vazios), então duplicação é risco de
+   * divergir.
+   *
+   * `perm` são os campos de permissão; os dados cadastrais não passam por aqui,
+   * para que aplicar um bloqueio em 30 clientes não corra o risco de tocar em
+   * nome, e-mail ou receita de nenhum deles.
+   */
+  const gravarPermissoes = async (
+    ids: string[],
+    perm: {
+      situacao: string
+      nivel: string
+      restricoes: string[]
+      liberacoes: string[]
+      validadeDias: string
+      motivo: string
+      autor: string
+    },
+  ): Promise<{ ok: boolean; aplicados: number; falhas: number }> => {
+    if (!token || !tokenValidado || ids.length === 0) {
+      return { ok: false, aplicados: 0, falhas: 0 }
+    }
+    try {
+      const r = await fetch(`${BACKEND}/backend/v1/simul-acesso-permissoes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Painel-Token': token },
+        body: JSON.stringify({
+          cliente_ids: ids,
+          acesso_situacao: perm.situacao,
+          acesso_nivel: perm.nivel,
+          acesso_restricoes: perm.restricoes,
+          acesso_liberacoes: perm.liberacoes,
+          acesso_validade_dias: perm.validadeDias,
+          acesso_motivo: perm.motivo,
+          acesso_autorizado_por: perm.autor,
+        }),
+      })
+      if (!r.ok) {
+        const j = await r.json().catch(() => ({}))
+        setMsg({
+          tipo: 'erro',
+          txt: j.error || `Falha ao gravar permissões (código ${r.status}).`,
+        })
+        return { ok: false, aplicados: 0, falhas: 0 }
+      }
+      const j = await r.json()
+      await carregar(token)
+      return { ok: true, aplicados: j.aplicados || 0, falhas: j.falhas || 0 }
+    } catch {
+      setMsg({ tipo: 'erro', txt: 'Não foi possível falar com o servidor.' })
+      return { ok: false, aplicados: 0, falhas: 0 }
+    }
+  }
+
+  /** Abre o modal de permissões já com o estado lido do servidor. */
+  const abrirEdicao = async (c: Cliente) => {
+    setEditando(c)
+    if (!token) return
+    try {
+      const r = await fetch(
+        `${BACKEND}/backend/v1/simul-acesso-permissoes?cliente_id=${encodeURIComponent(c.id)}`,
+        { headers: { 'X-Painel-Token': token } },
+      )
+      if (!r.ok) return
+      const j = await r.json()
+      const d = j.cliente || {}
+      setForm((f) => ({
+        ...f,
+        acesso_situacao: d.acesso_situacao || 'liberado',
+        acesso_nivel: d.acesso_nivel || 'N3_confirmacao',
+        acesso_validade_dias: d.acesso_validade_dias ? String(d.acesso_validade_dias) : '',
+        acesso_motivo: d.acesso_motivo || '',
+        acesso_autorizado_por: d.acesso_autorizado_por || '',
+      }))
+      setRestricoes(d.acesso_restricoes || [])
+      setLiberacoes(d.acesso_liberacoes || [])
+    } catch {
+      /* mantém o que está na tela; o operador ainda pode gravar */
+    }
+  }
+
+  /** Grava o que está no modal para o cliente aberto. */
+  const salvarEdicao = async () => {
+    if (!editando) return
+    setSalvandoLote(true)
+    setMsg(null)
+    const res = await gravarPermissoes([editando.id], {
+      situacao: form.acesso_situacao || 'liberado',
+      nivel: form.acesso_nivel || 'N3_confirmacao',
+      restricoes,
+      liberacoes,
+      validadeDias: form.acesso_validade_dias || '',
+      motivo: form.acesso_motivo || '',
+      autor: form.acesso_autorizado_por || '',
+    })
+    setSalvandoLote(false)
+    if (res.ok) {
+      setMsg({
+        tipo: 'ok',
+        txt: `Permissões de ${editando.nome_fantasia || editando.nome} gravadas.`,
+      })
+      setEditando(null)
+    }
+  }
+
+  /** Aplica as permissões do modal a todos os clientes marcados na lista. */
+  const aplicarLote = async () => {
+    if (selecionados.length === 0) return
+    setSalvandoLote(true)
+    setMsg(null)
+    const res = await gravarPermissoes(selecionados, {
+      situacao: form.acesso_situacao || 'liberado',
+      nivel: form.acesso_nivel || 'N3_confirmacao',
+      restricoes,
+      liberacoes,
+      validadeDias: form.acesso_validade_dias || '',
+      motivo: form.acesso_motivo || '',
+      autor: form.acesso_autorizado_por || '',
+    })
+    setSalvandoLote(false)
+    if (res.ok) {
+      setMsg({
+        tipo: 'ok',
+        txt:
+          `Permissões aplicadas a ${res.aplicados} cliente(s)` +
+          (res.falhas ? ` · ${res.falhas} falha(s).` : '.'),
+      })
+      setSelecionados([])
+      setEditando(null)
+    }
   }
 
   /** Pré-visualização da planilha colada: primeira linha é o cabeçalho. */
@@ -732,6 +895,43 @@ export function SectionCadastroEnvios() {
                   <RefreshCw className={`w-3 h-3 ${carregando ? 'animate-spin' : ''}`} />
                   {carregando ? 'Carregando' : 'Atualizar'}
                 </button>
+                {/* Barra de ação em lote: só aparece quando há seleção.
+                    Fixa no fluxo (não flutuante) para não cobrir a tabela. */}
+                {selecionados.length > 0 && (
+                  <div className="flex items-center gap-2 flex-wrap rounded-lg border-2 border-panorama-gold bg-amber-50 px-2.5 py-1.5">
+                    <span className="text-[11px] font-bold text-slate-800 tabular-nums">
+                      {selecionados.length} selecionado{selecionados.length > 1 ? 's' : ''}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditando(null)
+                        setForm((f) => ({
+                          ...f,
+                          acesso_situacao: 'liberado',
+                          acesso_nivel: 'N3_confirmacao',
+                          acesso_validade_dias: '',
+                          acesso_motivo: '',
+                          acesso_autorizado_por: '',
+                        }))
+                        setRestricoes([])
+                        setLiberacoes([])
+                      }}
+                      className="inline-flex items-center gap-1 rounded-lg bg-panorama-navy px-2.5 py-1 text-[10.5px] font-bold text-panorama-gold-light hover:bg-slate-900 cursor-pointer"
+                    >
+                      <ShieldAlert className="w-3 h-3" />
+                      Definir permissões em lote
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelecionados([])}
+                      className="inline-flex items-center gap-1 rounded border border-slate-300 bg-white px-2 py-1 text-[10.5px] font-bold text-slate-600 hover:bg-slate-50 cursor-pointer"
+                    >
+                      <X className="w-3 h-3" />
+                      Limpar seleção
+                    </button>
+                  </div>
+                )}
                 <span className="text-[10px] text-slate-500 tabular-nums">
                   {filtrados.length} de {clientes.length}
                 </span>
@@ -753,6 +953,28 @@ export function SectionCadastroEnvios() {
                   <table className="w-full text-[10.5px] min-w-[820px]">
                     <thead>
                       <tr className="bg-panorama-navy text-white">
+                        {/* caixa-mestra: marca/desmarca todos os clientes FILTRADOS,
+                            não os 500 da base — aplicar em lote só faz sentido sobre
+                            o que o operador está vendo depois de filtrar */}
+                        <th className="px-2 py-1.5 w-8">
+                          <input
+                            type="checkbox"
+                            aria-label="Selecionar todos os clientes filtrados"
+                            checked={
+                              filtrados.length > 0 &&
+                              filtrados.every((c) => selecionados.includes(c.id))
+                            }
+                            onChange={(e) => {
+                              const ids = filtrados.map((c) => c.id)
+                              setSelecionados((v) =>
+                                e.target.checked
+                                  ? Array.from(new Set([...v, ...ids]))
+                                  : v.filter((x) => !ids.includes(x)),
+                              )
+                            }}
+                            className="cursor-pointer accent-panorama-gold"
+                          />
+                        </th>
                         <th className="text-left px-2.5 py-1.5 font-bold">Cliente</th>
                         <th className="text-left px-2 py-1.5 font-bold">Documento</th>
                         <th className="text-left px-2 py-1.5 font-bold">Regime</th>
@@ -760,6 +982,7 @@ export function SectionCadastroEnvios() {
                         <th className="text-right px-2 py-1.5 font-bold">Carga hoje</th>
                         <th className="text-left px-2 py-1.5 font-bold">UF</th>
                         <th className="text-center px-2 py-1.5 font-bold">Perfil</th>
+                        <th className="text-center px-2 py-1.5 font-bold">Acesso</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -770,7 +993,29 @@ export function SectionCadastroEnvios() {
                           c.carga_atual_pct
                         )
                         return (
-                          <tr key={c.id} className={i % 2 ? 'bg-slate-50' : 'bg-white'}>
+                          <tr
+                            key={c.id}
+                            className={`${
+                              selecionados.includes(c.id)
+                                ? 'bg-amber-50'
+                                : i % 2
+                                  ? 'bg-slate-50'
+                                  : 'bg-white'
+                            }`}
+                          >
+                            <td className="px-2 py-1.5 border-b border-slate-100 text-center">
+                              <input
+                                type="checkbox"
+                                aria-label={`Selecionar ${c.nome}`}
+                                checked={selecionados.includes(c.id)}
+                                onChange={(e) =>
+                                  setSelecionados((v) =>
+                                    e.target.checked ? [...v, c.id] : v.filter((x) => x !== c.id),
+                                  )
+                                }
+                                className="cursor-pointer accent-panorama-gold"
+                              />
+                            </td>
                             <td className="px-2.5 py-1.5 border-b border-slate-100">
                               <p className="font-bold text-slate-900 leading-tight truncate max-w-[190px]">
                                 {c.nome_fantasia || c.empresa || c.nome}
@@ -807,6 +1052,41 @@ export function SectionCadastroEnvios() {
                               >
                                 {completo ? 'completo' : 'faltando'}
                               </span>
+                            </td>
+                            <td className="px-2 py-1.5 border-b border-slate-100 text-center">
+                              {/*
+                                Selo de acesso + botão de editar. O selo mostra a
+                                SITUAÇÃO em cor (verde/âmbar/vermelho) porque, numa
+                                lista de centenas, ler "restrito" em texto cinza não
+                                salta aos olhos — e é disso que se trata: quem está
+                                barrado hoje.
+                              */}
+                              <div className="flex items-center justify-center gap-1">
+                                <span
+                                  className={`inline-block rounded-full px-1.5 py-0.5 text-[9px] font-bold ${
+                                    (c.acesso_situacao || 'liberado') === 'bloqueado'
+                                      ? 'bg-rose-100 text-rose-800'
+                                      : (c.acesso_situacao || 'liberado') === 'restrito'
+                                        ? 'bg-amber-100 text-amber-900'
+                                        : 'bg-emerald-100 text-emerald-800'
+                                  }`}
+                                  title={`Nível: ${c.acesso_nivel || 'N3_confirmacao'}`}
+                                >
+                                  {c.acesso_situacao || 'liberado'}
+                                  {(c.acesso_restricoes?.length ?? 0) > 0
+                                    ? ` · ${c.acesso_restricoes?.length}`
+                                    : ''}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => abrirEdicao(c)}
+                                  disabled={!tokenValidado}
+                                  title="Editar permissões deste cliente"
+                                  className="rounded border border-slate-300 p-0.5 text-slate-500 hover:border-panorama-gold hover:text-panorama-navy disabled:opacity-40 cursor-pointer"
+                                >
+                                  <ShieldAlert className="w-3 h-3" />
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         )
@@ -1477,6 +1757,192 @@ export function SectionCadastroEnvios() {
           </div>
         </div>
       </div>
+
+      {/*
+        MODAL DE PERMISSÕES — serve à edição de UM cliente e à aplicação em LOTE.
+        É o mesmo formulário de propósito: o operador aprende uma vez. O que muda
+        é só o título e o alvo da gravação. Ler o cadastro de 30 clientes e
+        definir regra diferente para cada um não se faz num modal — isso é
+        cliente a cliente, pelo botão de escudo na linha.
+      */}
+      {editando !== null || selecionados.length > 0 ? (
+        <div className="fixed inset-0 z-[70] flex items-start justify-center overflow-y-auto bg-slate-900/60 p-3 sm:p-6">
+          <div className="relative w-full max-w-2xl rounded-2xl bg-white shadow-2xl border-t-4 border-panorama-gold my-4">
+            <div className="flex items-start justify-between gap-2 border-b border-slate-200 px-4 py-3">
+              <div className="min-w-0">
+                <h3 className="flex items-center gap-1.5 text-[13px] font-bold text-slate-900">
+                  <ShieldAlert className="w-4 h-4 text-panorama-gold-dark" />
+                  {editando
+                    ? 'Permissões do cliente'
+                    : `Permissões em lote — ${selecionados.length} cliente(s)`}
+                </h3>
+                <p className="mt-0.5 truncate text-[11px] text-slate-500">
+                  {editando
+                    ? `${editando.nome_fantasia || editando.empresa || editando.nome}${editando.email ? ` · ${editando.email}` : ''}`
+                    : 'A regra abaixo substitui a de TODOS os clientes selecionados.'}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setEditando(null)
+                  if (selecionados.length > 0) setSelecionados([])
+                }}
+                className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 cursor-pointer"
+                aria-label="Fechar"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="max-h-[70vh] overflow-y-auto px-4 py-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <label>
+                  <span className={rotulo}>Situação do acesso</span>
+                  <select
+                    value={form.acesso_situacao ?? 'liberado'}
+                    onChange={(e) => set('acesso_situacao', e.target.value)}
+                    className={campo}
+                  >
+                    <option value="liberado">Liberado</option>
+                    <option value="restrito">Restrito (com proibições)</option>
+                    <option value="bloqueado">Bloqueado (não acessa)</option>
+                  </select>
+                </label>
+                <label>
+                  <span className={rotulo}>Nível de acesso</span>
+                  <select
+                    value={form.acesso_nivel ?? 'N3_confirmacao'}
+                    onChange={(e) => set('acesso_nivel', e.target.value)}
+                    className={campo}
+                  >
+                    <option value="N1_consulta">N1 — só consulta</option>
+                    <option value="N2_relatorio">N2 — vê o relatório</option>
+                    <option value="N3_confirmacao">N3 — relatório + confirmação</option>
+                    <option value="N4_total">N4 — acesso total</option>
+                  </select>
+                </label>
+                <label>
+                  <span className={rotulo}>Validade (dias)</span>
+                  <input
+                    inputMode="numeric"
+                    value={form.acesso_validade_dias ?? ''}
+                    onChange={(e) => set('acesso_validade_dias', e.target.value)}
+                    className={campo}
+                    placeholder="vazio = sem prazo"
+                  />
+                </label>
+              </div>
+
+              <p className={`${rotulo} mt-2.5`}>Proibições — o que NÃO pode</p>
+              <div className="flex flex-wrap gap-1.5">
+                {RESTRICOES.map((r) => {
+                  const on = restricoes.includes(r.id)
+                  return (
+                    <button
+                      key={r.id}
+                      type="button"
+                      title={r.desc}
+                      onClick={() =>
+                        setRestricoes((v) => (on ? v.filter((x) => x !== r.id) : [...v, r.id]))
+                      }
+                      className={`rounded-lg border px-2 py-1 text-[10.5px] font-bold cursor-pointer transition-colors ${
+                        on
+                          ? 'bg-rose-700 text-white border-rose-700'
+                          : 'bg-white text-slate-600 border-slate-300 hover:border-rose-400'
+                      }`}
+                    >
+                      {r.nome}
+                    </button>
+                  )
+                })}
+              </div>
+
+              <p className={`${rotulo} mt-2.5`}>Liberações — exceções que vencem a proibição</p>
+              <div className="flex flex-wrap gap-1.5">
+                {LIBERACOES.map((l) => {
+                  const on = liberacoes.includes(l.id)
+                  return (
+                    <button
+                      key={l.id}
+                      type="button"
+                      title={l.desc}
+                      onClick={() =>
+                        setLiberacoes((v) => (on ? v.filter((x) => x !== l.id) : [...v, l.id]))
+                      }
+                      className={`rounded-lg border px-2 py-1 text-[10.5px] font-bold cursor-pointer transition-colors ${
+                        on
+                          ? 'bg-emerald-700 text-white border-emerald-700'
+                          : 'bg-white text-slate-600 border-slate-300 hover:border-emerald-400'
+                      }`}
+                    >
+                      {l.nome}
+                    </button>
+                  )
+                })}
+              </div>
+
+              <label className="block mt-2.5">
+                <span className={rotulo}>Motivo da restrição / autorização</span>
+                <textarea
+                  value={form.acesso_motivo ?? ''}
+                  onChange={(e) => set('acesso_motivo', e.target.value)}
+                  className={`${campo} min-h-[52px]`}
+                  placeholder="ex.: cliente pediu para não receber novos laudos"
+                />
+              </label>
+              <label className="block mt-1.5">
+                <span className={rotulo}>Autorizado por</span>
+                <input
+                  value={form.acesso_autorizado_por ?? ''}
+                  onChange={(e) => set('acesso_autorizado_por', e.target.value)}
+                  className={campo}
+                  placeholder="quem decidiu"
+                />
+              </label>
+
+              {!editando && (
+                <p className="mt-2 rounded-lg border border-amber-300 bg-amber-50 p-2 text-[10px] leading-snug text-amber-900">
+                  <b>Atenção:</b> as proibições e liberações marcadas aqui <b>substituem</b> as dos{' '}
+                  {selecionados.length} clientes selecionados. Não há como mesclar regra diferente
+                  por cliente nesta ação — para isso, edite um a um.
+                </p>
+              )}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 border-t border-slate-200 px-4 py-3">
+              <button
+                type="button"
+                onClick={editando ? salvarEdicao : aplicarLote}
+                disabled={salvandoLote || !tokenValidado}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-panorama-navy px-3.5 py-2 text-[11.5px] font-bold text-panorama-gold-light hover:bg-slate-900 disabled:opacity-40 cursor-pointer"
+              >
+                <Save className={`w-3.5 h-3.5 ${salvandoLote ? 'animate-spin' : ''}`} />
+                {salvandoLote
+                  ? 'Gravando…'
+                  : editando
+                    ? 'Gravar permissões'
+                    : `Aplicar a ${selecionados.length} cliente(s)`}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setEditando(null)
+                  if (selecionados.length > 0) setSelecionados([])
+                }}
+                className="rounded-lg border border-slate-300 px-3 py-2 text-[11px] font-bold text-slate-600 hover:bg-slate-50 cursor-pointer"
+              >
+                Cancelar
+              </button>
+              {!tokenValidado && (
+                <span className="text-[10px] font-semibold text-amber-800">
+                  Informe o token do painel.
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : null}
     </section>
   )
 }
