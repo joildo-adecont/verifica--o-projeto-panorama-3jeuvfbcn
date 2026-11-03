@@ -190,6 +190,28 @@ a[href]::after { content: none !important; }
     window.setTimeout(() => window.print(), 150)
   }
 
+  /**
+   * ALIAS DE NORMA — declarado no TOPO do componente, antes de qualquer uso.
+   *
+   * O índice veio de fontes diferentes: o STJ nomeia o Código Tributário pelo
+   * número da lei ("LEI5172"), enquanto a tela e o usuário falam "CTN". Sem
+   * este mapa, "art. 173 do CTN" devolvia ZERO — e zero, num acervo jurídico,
+   * se lê como "não existe jurisprudência sobre isso", que é mentira.
+   *
+   * POSIÇÃO IMPORTA: `artigosDaNorma` (useMemo) o consome. Declarado depois,
+   * o bundle compila e a aba cai em runtime com
+   * "Cannot access 'C' before initialization" — a tela fica em branco.
+   * Manter em sincronia com o mapa de `buscaJurisprudencias`.
+   */
+  const ALIAS_NORMA: Record<string, string[]> = {
+    CTN: ['CTN', 'LEI5172'],
+    LEF: ['LEF', 'LEI6830'],
+    LIC: ['LIC', 'LEI14133'],
+    LIA: ['LIA', 'LEI8429'],
+    LRF: ['LRF', 'LEI11101'],
+    MS: ['MS', 'LEI12016'],
+  }
+
   const [indice, setIndice] = useState<Indice | null>(null)
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState('')
@@ -287,18 +309,6 @@ a[href]::after { content: none !important; }
    * Se um dia entrar outra norma com dois nomes, é AQUI e no serviço — manter
    * os dois em sincronia, senão a tela e a Busca Avançada divergem.
    */
-  const ALIAS_NORMA: Record<string, string[]> = useMemo(
-    () => ({
-      CTN: ['CTN', 'LEI5172'],
-      LEF: ['LEF', 'LEI6830'],
-      LIC: ['LIC', 'LEI14133'],
-      LIA: ['LIA', 'LEI8429'],
-      LRF: ['LRF', 'LEI11101'],
-      MS: ['MS', 'LEI12016'],
-    }),
-    [],
-  )
-
   const resultado = useMemo(() => {
     if (!indice || !chaveAtiva || !artigoAtivo) return null
     const num = parseInt(artigoAtivo, 10)
