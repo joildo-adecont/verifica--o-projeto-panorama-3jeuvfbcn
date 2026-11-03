@@ -54,16 +54,16 @@ export interface RadarLefisc {
 export const FONTE_MESTRA = 'DOU'
 
 export const RADAR_LEFISC: RadarLefisc = {
-  executadoEm: '2026-11-02T08:02:19-03:00',
+  executadoEm: '2026-11-03T08:01:25-03:00',
   janelaDouDias: 3,
   fontes: {
     lefisc: { itens: 63, ok: true },
-    dou: { itens: 2, ok: true },
+    dou: { itens: 1, ok: true },
   },
   resumo: {
     divergentes: 0,
     confirmados: 1,
-    soOficial: 1,
+    soOficial: 0,
     soLefisc: 1,
     foraDoEscopo: 61,
   },
@@ -88,18 +88,6 @@ export const RADAR_LEFISC: RadarLefisc = {
       criterioTrecho: 'Art. 1º',
       caracteresIntegra: 4483,
       origemIntegra: 'Lefisc',
-    },
-    {
-      veredito: 'SO_OFICIAL',
-      titulo: 'ATO TÉCNICO CONJUNTO RFB/CGIBS Nº 9, DE 20 DE OUTUBRO DE 2026',
-      link: 'https://www.in.gov.br/web/dou/-/ato-tecnico-conjunto-rfb/cgibs-n-9-de-20-de-outubro-de-2026-740391670',
-      data: '26/10/2026',
-      secao: 'DO1',
-      trechoIntegra:
-        'Art. 1º Este Ato Técnico Conjunto disciplina a organização e o funcionamento dos trabalhos de cooperação entre a Secretaria Especial da Receita Federal do Brasil - RFB e a Diretoria Executiva do Comitê Gestor do Imposto sobre Bens e Serviços - DIREX, destinados à implementação da reforma tributária sobre o consumo, instituída pela Emenda Constitucional nº 132, de 20 de dezembro de 2023. § 1º Para a execução dos trabalhos conjuntos, ficam instituídos Grupos de Trabalho Interinstitucionais - GTI, compostos por representantes da RFB e da DIREX, na forma deste Ato Técnico Conjunto.',
-      criterioTrecho: 'Art. 1º',
-      caracteresIntegra: 29457,
-      origemIntegra: 'DOU',
     },
   ],
   erros: [],
