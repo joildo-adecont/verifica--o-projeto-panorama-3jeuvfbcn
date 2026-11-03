@@ -20,6 +20,7 @@ import {
   ListOrdered,
   ChevronDown,
   Database,
+  Send,
 } from 'lucide-react'
 import {
   TRIBUNAIS,
@@ -33,6 +34,7 @@ import {
 } from '@/data/acervoJuridico'
 import { fetchAtosMunicipaisPorCodigo, type RadarAtoItem } from '@/services/radarMunicipios'
 import { SumulasTeses } from '@/components/SumulasTeses'
+import { SectionJurisprudencias } from '@/components/SectionJurisprudencias'
 
 /**
  * ACERVO JURÍDICO — Seção 30 (pedido do CEO, 02/11/2026)
@@ -59,6 +61,7 @@ import { SumulasTeses } from '@/components/SumulasTeses'
 type Aba =
   | 'constituicao'
   | 'sumulas'
+  | 'jurisprudencias'
   | 'hierarquia'
   | 'acervos'
   | 'codigos'
@@ -133,6 +136,7 @@ export function SectionAcervoJuridico() {
   const abas: [Aba, string, React.ComponentType<{ className?: string }>][] = [
     ['constituicao', 'Constituição', Landmark],
     ['sumulas', 'Súmulas e teses', Gavel],
+    ['jurisprudencias', 'Publicar jurisprudências', Send],
     ['hierarquia', 'Hierarquia e tribunais', Layers],
     ['acervos', 'Acervos legais', BookOpen],
     ['codigos', 'Códigos', FileText],
@@ -322,6 +326,12 @@ export function SectionAcervoJuridico() {
 
       {/* ══════════ ABA — SÚMULAS E TESES EM TEXTO ══════════ */}
       {aba === 'sumulas' && <SumulasTeses />}
+
+      {/* ══════════ ABA — PUBLICAR JURISPRUDÊNCIAS ══════════
+          Ícone separado pedido pelo CEO (03/11/2026). Aqui é o acervo DO
+          ESCRITÓRIO (com tese, aplicação prática e ciclo de revisão), não a
+          fonte oficial dos tribunais — essa continua em "Súmulas e teses". */}
+      {aba === 'jurisprudencias' && <SectionJurisprudencias />}
 
       {/* ══════════ ABA 2 — HIERARQUIA ══════════ */}
       {aba === 'hierarquia' && (
