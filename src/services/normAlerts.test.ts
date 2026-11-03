@@ -88,4 +88,23 @@ describe('normAlerts service', () => {
     expect(ordenados[0].review_date >= ordenados[1].review_date).toBe(true)
     expect(ordenados.every((a) => a.norm_code && a.review_type && a.segment)).toBe(true)
   })
+
+  it('permite criar alerta em fallback para exclusões', async () => {
+    const { criarAlertaParaExclusao } = await import('./normAlerts')
+    const alerta = await criarAlertaParaExclusao({
+      id: 'excl-teste-1',
+      norm_code: 'Revogação Teste Art. 1º',
+      norm_type: 'Exclusão Legislativa',
+      norm_title: 'Revogação teste',
+      source_org: 'Senado Federal',
+      confidence_tier: 'oficial_institucional',
+      segment: 'Tributário',
+      exclusion_date: '2026-11-03',
+      reason_description: 'Revogação expressa para teste',
+    })
+
+    expect(alerta.review_type).toBe('exclusao')
+    expect(alerta.norm_code).toBe('Revogação Teste Art. 1º')
+    expect(alerta.is_read).toBe(false)
+  })
 })

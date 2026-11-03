@@ -13,6 +13,7 @@ import {
   ArrowRight,
   ShieldCheck,
   X,
+  Ban,
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -116,8 +117,9 @@ export const NormAlertsBell: React.FC = () => {
     }
     setAberto(false)
 
-    // Navega para #historico-revisoes
-    const destino = '#historico-revisoes'
+    // Se o alerta for do tipo exclusão, leva para a seção dedicada de exclusões (#historico-exclusoes)
+    const destino =
+      alerta?.review_type === 'exclusao' ? '#historico-exclusoes' : '#historico-revisoes'
     if (window.location.hash === destino) {
       window.scrollTo({ top: 0, behavior: 'smooth' })
     } else {
@@ -261,7 +263,7 @@ export const NormAlertsBell: React.FC = () => {
                     <div className="flex items-center justify-between gap-2 flex-wrap">
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <span
-                          className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                          className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full flex items-center gap-1 ${
                             alerta.review_type === 'inclusao'
                               ? 'bg-emerald-100 text-emerald-800'
                               : alerta.review_type === 'alteracao'
@@ -269,6 +271,9 @@ export const NormAlertsBell: React.FC = () => {
                                 : 'bg-rose-100 text-rose-800'
                           }`}
                         >
+                          {alerta.review_type === 'exclusao' && (
+                            <Ban className="h-2.5 w-2.5 text-rose-700" />
+                          )}
                           {alerta.review_type === 'inclusao'
                             ? 'Inclusão'
                             : alerta.review_type === 'alteracao'

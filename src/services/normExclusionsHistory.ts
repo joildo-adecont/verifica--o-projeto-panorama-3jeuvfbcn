@@ -133,8 +133,7 @@ function normalizarItemPocketBase(rec: Record<string, unknown>): NormExclusionHi
     origin_record_id: rec.origin_record_id ? String(rec.origin_record_id) : undefined,
     origin_collection: rec.origin_collection ? String(rec.origin_collection) : undefined,
     review_history_id: rec.review_history_id ? String(rec.review_history_id) : undefined,
-    record_origin:
-      (rec.record_origin as NormRecordOrigin) || 'rotina_semanal',
+    record_origin: (rec.record_origin as NormRecordOrigin) || 'rotina_semanal',
     link_url: rec.link_url ? String(rec.link_url) : undefined,
     notes: rec.notes ? String(rec.notes) : undefined,
     created: rec.created ? String(rec.created) : undefined,
@@ -234,7 +233,10 @@ export function filtrarHistoricoExclusoes(
     }
 
     // 2. Filtro por Fonte
-    if (filtros.fonte !== 'TODAS' && !item.source_org.toLowerCase().includes(filtros.fonte.toLowerCase())) {
+    if (
+      filtros.fonte !== 'TODAS' &&
+      !item.source_org.toLowerCase().includes(filtros.fonte.toLowerCase())
+    ) {
       return false
     }
 

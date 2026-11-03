@@ -38,7 +38,9 @@ export const RelatorioExclusoesImprimivel: React.FC<RelatorioExclusoesImprimivel
         <div className="flex items-center justify-between px-6 py-4 bg-slate-100 border-b border-slate-200 print:hidden">
           <div className="flex items-center gap-2 text-sm text-slate-700">
             <Printer className="h-4 w-4 text-rose-600" />
-            <span className="font-semibold">Relatório de Exclusões e Revogações de Normas — Impressão A4</span>
+            <span className="font-semibold">
+              Relatório de Exclusões e Revogações de Normas — Impressão A4
+            </span>
           </div>
           <div className="flex items-center gap-3">
             <Button
@@ -183,7 +185,9 @@ export const RelatorioExclusoesImprimivel: React.FC<RelatorioExclusoesImprimivel
 
                     {/* Motivo e Justificativa da Exclusão */}
                     <div className="text-xs text-slate-700 bg-rose-50/50 p-2.5 rounded border border-rose-200/80">
-                      <span className="font-semibold text-rose-900">Motivo da Exclusão / Revogação: </span>
+                      <span className="font-semibold text-rose-900">
+                        Motivo da Exclusão / Revogação:{' '}
+                      </span>
                       {item.reason_description}
                     </div>
 
@@ -219,11 +223,10 @@ export const RelatorioExclusoesImprimivel: React.FC<RelatorioExclusoesImprimivel
             <div className="font-semibold text-slate-700">
               ADECONT — Assessoria Contábil e Administrativa
             </div>
-            <div>
-              Plataforma Panorama da Reforma Tributária — Módulo de Histórico de Exclusões
-            </div>
+            <div>Plataforma Panorama da Reforma Tributária — Módulo de Histórico de Exclusões</div>
             <div className="text-[10px] text-slate-400">
-              Documento emitido para controle técnico interno, rastreabilidade legislativa e conformidade legal institucional.
+              Documento emitido para controle técnico interno, rastreabilidade legislativa e
+              conformidade legal institucional.
             </div>
           </div>
         </div>

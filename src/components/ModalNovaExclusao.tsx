@@ -20,11 +20,7 @@ import {
 } from '@/components/ui/select'
 import { AdecontLogo } from '@/components/AdecontLogo'
 import { SeloNivelConfianca } from '@/components/SeloNivelConfianca'
-import type {
-  CreateNormExclusionInput,
-  ConfidenceTier,
-  NormSegment,
-} from '@/types/panorama'
+import type { CreateNormExclusionInput, ConfidenceTier, NormSegment } from '@/types/panorama'
 import { Ban, ShieldCheck } from 'lucide-react'
 
 export interface ModalNovaExclusaoProps {
@@ -133,7 +129,8 @@ export const ModalNovaExclusao: React.FC<ModalNovaExclusaoProps> = ({
             Registrar Exclusão / Revogação Legislativa
           </DialogTitle>
           <DialogDescription className="text-xs text-slate-500">
-            Cadastre a exclusão, revogação expressa ou perda de eficácia de um ato legislativo no histórico oficial ADECONT.
+            Cadastre a exclusão, revogação expressa ou perda de eficácia de um ato legislativo no
+            histórico oficial ADECONT.
           </DialogDescription>
         </DialogHeader>
 
@@ -169,9 +166,13 @@ export const ModalNovaExclusao: React.FC<ModalNovaExclusaoProps> = ({
                 <SelectContent>
                   <SelectItem value="Exclusão Legislativa">Exclusão Legislativa</SelectItem>
                   <SelectItem value="Revogação Expressa">Revogação Expressa</SelectItem>
-                  <SelectItem value="Revogação Tácita">Revogação Tácita / Incompatibilidade</SelectItem>
+                  <SelectItem value="Revogação Tácita">
+                    Revogação Tácita / Incompatibilidade
+                  </SelectItem>
                   <SelectItem value="Perda de Eficácia">Perda de Eficácia / Vencimento</SelectItem>
-                  <SelectItem value="Inconstitucionalidade STF">Inconstitucionalidade (STF/ADI)</SelectItem>
+                  <SelectItem value="Inconstitucionalidade STF">
+                    Inconstitucionalidade (STF/ADI)
+                  </SelectItem>
                   <SelectItem value="Resolução CGIBS Revogada">Resolução CGIBS Revogada</SelectItem>
                   <SelectItem value="Outro">Outro Tipo de Exclusão</SelectItem>
                 </SelectContent>
@@ -270,7 +271,10 @@ export const ModalNovaExclusao: React.FC<ModalNovaExclusaoProps> = ({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label htmlFor="revoked_article" className="text-xs font-semibold text-rose-700 dark:text-rose-400">
+              <Label
+                htmlFor="revoked_article"
+                className="text-xs font-semibold text-rose-700 dark:text-rose-400"
+              >
                 Dispositivo / Artigo Revogado (Opcional)
               </Label>
               <Input
@@ -282,7 +286,10 @@ export const ModalNovaExclusao: React.FC<ModalNovaExclusaoProps> = ({
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="prev_content" className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+              <Label
+                htmlFor="prev_content"
+                className="text-xs font-semibold text-slate-700 dark:text-slate-300"
+              >
                 Redação Anterior Revogada (Opcional)
               </Label>
               <Textarea

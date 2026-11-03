@@ -563,7 +563,11 @@ routerAdd('POST', '/backend/v1/trigger-weekly-review', (e) => {
 
           // Se for exclusão/revogação, grava também em norm_exclusions_history
           const tipoRev = isNova ? 'inclusao' : 'alteracao'
-          if (tipoRev === 'exclusao' || itemNorma.status_incidence === 'Revogado' || itemNorma.status_incidence === 'Excluído') {
+          if (
+            tipoRev === 'exclusao' ||
+            itemNorma.status_incidence === 'Revogado' ||
+            itemNorma.status_incidence === 'Excluído'
+          ) {
             try {
               const colExcl = $app.findCollectionByNameOrId('norm_exclusions_history')
               const exclJaExiste = $app.findRecordsByFilter(

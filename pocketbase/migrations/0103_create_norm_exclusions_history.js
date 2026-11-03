@@ -134,7 +134,7 @@ migrate(
           "review_type = 'exclusao'",
           '-review_date',
           100,
-          0
+          0,
         )
 
         for (const rev of exclusoes) {
@@ -149,7 +149,7 @@ migrate(
               `review_history_id = '${revId}' || norm_code = '${code.replace(/'/g, "\\'")}'`,
               '',
               1,
-              0
+              0,
             )
             if (existentes && existentes.length > 0) {
               jaExiste = true
@@ -168,9 +168,15 @@ migrate(
             novo.set('source_org', rev.get('source_org') || 'Órgão Oficial')
             novo.set('confidence_tier', rev.get('confidence_tier') || 'oficial_institucional')
             novo.set('segment', rev.get('segment') || 'Tributário')
-            novo.set('exclusion_date', rev.get('review_date') || rev.getString('created').slice(0, 10))
+            novo.set(
+              'exclusion_date',
+              rev.get('review_date') || rev.getString('created').slice(0, 10),
+            )
             novo.set('system_exclusion_date', rev.getString('created').slice(0, 10))
-            novo.set('reason_description', rev.get('summary_change') || 'Dispositivo revogado/excluído')
+            novo.set(
+              'reason_description',
+              rev.get('summary_change') || 'Dispositivo revogado/excluído',
+            )
             novo.set('revoked_article', '')
             novo.set('previous_content', rev.get('previous_version') || '')
             novo.set('origin_record_id', rev.get('origin_record_id') || '')
@@ -178,7 +184,10 @@ migrate(
             novo.set('review_history_id', revId)
             novo.set('record_origin', rev.get('record_origin') || 'rotina_semanal')
             novo.set('link_url', rev.get('link_url') || '')
-            novo.set('notes', rev.get('notes') || 'Backfill inicial de exclusões a partir do histórico de revisões')
+            novo.set(
+              'notes',
+              rev.get('notes') || 'Backfill inicial de exclusões a partir do histórico de revisões',
+            )
 
             app.save(novo)
           }
@@ -197,5 +206,5 @@ migrate(
     } catch (_) {
       // Ignora erro se não existir
     }
-  }
+  },
 )

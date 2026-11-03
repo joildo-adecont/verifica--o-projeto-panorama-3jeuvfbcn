@@ -32,6 +32,7 @@ import { SectionRecursosHumanos } from '@/components/SectionRecursosHumanos'
 import { PainelDegraus } from '@/components/PainelDegraus'
 import { SectionHistoricoAtualizacoes } from '@/components/SectionHistoricoAtualizacoes'
 import { SectionHistoricoRevisoes } from '@/components/SectionHistoricoRevisoes'
+import { SectionHistoricoExclusoes } from '@/components/SectionHistoricoExclusoes'
 import { SectionLefisc } from '@/components/SectionLefisc'
 import { SectionRadarNacional } from '@/components/SectionRadarNacional'
 import { NAVEGACAO } from '@/components/navegacao'
@@ -146,6 +147,7 @@ const COMPONENTES: Record<string, ComponentType<PropsAba>> = {
   '#fontes-primarias': SectionFontesPrimarias,
   '#monitor-legislativo': SectionMonitorLegislativo,
   '#historico-revisoes': SectionHistoricoRevisoes,
+  '#historico-exclusoes': SectionHistoricoExclusoes,
   '#busca-avancada': SectionBuscaAvancada,
   '#diagnostico-tributario': SectionDiagnosticoTributario,
   '#instalador-versao': SectionControleVersao,

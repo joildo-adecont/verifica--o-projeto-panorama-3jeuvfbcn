@@ -22,6 +22,7 @@ import {
   ChevronRight,
   BookOpen,
   History,
+  Ban,
 } from 'lucide-react'
 import { AdecontLogo } from '@/components/AdecontLogo'
 import { SeloNivelConfianca } from '@/components/SeloNivelConfianca'
@@ -189,6 +190,7 @@ export function PlataformaHome() {
         atalhos: [
           { label: 'Regimes Específicos', href: '#secao-6' },
           { label: 'Histórico de Revisões de Normas', href: '#historico-revisoes' },
+          { label: 'Histórico de Exclusões', href: '#historico-exclusoes' },
           { label: 'Diagnóstico Tributário (CEO)', href: '#diagnostico-tributario' },
           { label: 'Cronograma 2026–2033', href: '#secao-8' },
         ],
@@ -439,6 +441,15 @@ export function PlataformaHome() {
           >
             <History className="w-4 h-4 text-emerald-700 group-hover:scale-110 transition-transform" />
             <span>Histórico de Revisões</span>
+          </button>
+
+          {/* Histórico de Exclusões */}
+          <button
+            onClick={() => navegarPara('#historico-exclusoes')}
+            className="group px-3.5 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-900 border border-rose-300 text-xs font-bold flex items-center gap-2 transition-all hover:shadow-sm hover:-translate-y-0.5 cursor-pointer"
+          >
+            <Ban className="w-4 h-4 text-rose-700 group-hover:scale-110 transition-transform" />
+            <span>Histórico de Exclusões</span>
           </button>
 
           {/* Monitor Legislativo */}

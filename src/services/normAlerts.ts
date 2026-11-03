@@ -288,6 +288,58 @@ export async function criarAlertaParaRevisao(
 }
 
 /**
+ * Cria um alerta correspondente a uma exclusão legislativa
+ */
+export async function criarAlertaParaExclusao(exclusao: {
+  id: string
+  norm_code: string
+  norm_type: string
+  norm_number?: string
+  norm_year?: string
+  norm_title: string
+  source_org: string
+  confidence_tier: ConfidenceTier
+  segment: NormSegment
+  exclusion_date: string
+  reason_description: string
+  origin_record_id?: string
+  record_origin?: NormRecordOrigin
+  link_url?: string
+}): Promise<NormAlertItem> {
+  const payload = {
+    review_id: exclusao.id,
+    norm_code: exclusao.norm_code,
+    norm_type: exclusao.norm_type || 'Exclusão Legislativa',
+    norm_number: exclusao.norm_number || '',
+    norm_year: exclusao.norm_year || '2026',
+    norm_title: exclusao.norm_title || exclusao.norm_code,
+    source_org: exclusao.source_org,
+    confidence_tier: exclusao.confidence_tier,
+    review_type: 'exclusao' as ReviewType,
+    segment: exclusao.segment,
+    review_date: exclusao.exclusion_date || new Date().toISOString().slice(0, 10),
+    summary_change: exclusao.reason_description,
+    origin_record_id: exclusao.origin_record_id || '',
+    record_origin: exclusao.record_origin || 'manual',
+    is_read: false,
+    link_url: exclusao.link_url || '',
+  }
+
+  try {
+    const created = await pb.collection('norm_alerts').create(payload)
+    return normalizarAlertaPocketBase(created as unknown as Record<string, unknown>, new Set())
+  } catch (err) {
+    console.warn('criarAlertaParaExclusao: gerando alerta em memória local', err)
+    return {
+      id: `alert-excl-local-${Date.now()}`,
+      ...payload,
+      created: new Date().toISOString(),
+      updated: new Date().toISOString(),
+    }
+  }
+}
+
+/**
  * Marca um alerta como lido (no PocketBase e no localStorage)
  */
 export async function marcarAlertaComoLido(alertaId: string): Promise<void> {

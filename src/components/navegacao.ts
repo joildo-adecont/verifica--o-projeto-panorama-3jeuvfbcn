@@ -62,6 +62,7 @@ import {
   Globe,
   Search,
   BrainCircuit,
+  Ban,
 } from 'lucide-react'
 
 export interface LinkNavegacao {
@@ -998,6 +999,7 @@ const INDICADORES: LinkNavegacao[] = [
 const SECOES_JURIDICA = [
   '#secao-1',
   '#historico-revisoes',
+  '#historico-exclusoes',
   '#secao-2',
   '#secao-3',
   '#secao-4',
@@ -1143,6 +1145,31 @@ const EXTRAS: LinkNavegacao[] = [
     dominio: 'nucleo',
     setor: 'regras-gerais',
   },
+  {
+    href: '#historico-exclusoes',
+    label: 'Histórico de Exclusões',
+    curto: 'Exclusões de Normas',
+    tecla: 'x',
+    numero: '12D',
+    Icon: Ban,
+    cor: 'text-rose-700',
+    bg: 'bg-rose-50',
+    borda: 'border-rose-300',
+    descricao: 'Linha do tempo de exclusões legislativas, revogações e perda de eficácia',
+    tags: [
+      'exclusao',
+      'exclusoes',
+      'revogacao',
+      'revogado',
+      'ineficaz',
+      'perda de eficacia',
+      'historico exclusoes',
+      'norma revogada',
+      'artigo revogado',
+    ],
+    dominio: 'nucleo',
+    setor: 'regras-gerais',
+  },
 ]
 
 const TODOS_ITENS: LinkNavegacao[] = [
@@ -1202,6 +1229,7 @@ function itensDaPlataforma(secoes: string[]): LinkNavegacao[] {
 const SECOES_REFORMA = [
   '#secao-1',
   '#historico-revisoes',
+  '#historico-exclusoes',
   '#secao-2',
   '#secao-3',
   '#secao-4',

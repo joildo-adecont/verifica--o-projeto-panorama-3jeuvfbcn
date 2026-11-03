@@ -633,7 +633,11 @@ cronAdd('weekly_content_review', '0 11 * * 1', () => {
 
           // Se for exclusão/revogação, grava também em norm_exclusions_history
           const tipoRev = isNova ? 'inclusao' : 'alteracao'
-          if (tipoRev === 'exclusao' || itemNorma.status_incidence === 'Revogado' || itemNorma.status_incidence === 'Excluído') {
+          if (
+            tipoRev === 'exclusao' ||
+            itemNorma.status_incidence === 'Revogado' ||
+            itemNorma.status_incidence === 'Excluído'
+          ) {
             try {
               const colExcl = $app.findCollectionByNameOrId('norm_exclusions_history')
               const exclJaExiste = $app.findRecordsByFilter(
@@ -664,7 +668,10 @@ cronAdd('weekly_content_review', '0 11 * * 1', () => {
                 exclRec.set('review_history_id', histRec.id)
                 exclRec.set('record_origin', 'rotina_semanal')
                 exclRec.set('link_url', itemNorma.link_url)
-                exclRec.set('notes', 'Exclusão registrada automaticamente pela rotina semanal de segunda-feira (Cron).')
+                exclRec.set(
+                  'notes',
+                  'Exclusão registrada automaticamente pela rotina semanal de segunda-feira (Cron).',
+                )
                 $app.save(exclRec)
               }
             } catch (exclErr) {
