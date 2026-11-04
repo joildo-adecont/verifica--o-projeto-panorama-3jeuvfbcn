@@ -64,6 +64,8 @@ const SINONIMOS: Record<string, string> = {
   saldo_empregos: 'geracao postos emprego formal saldo',
   divida: 'divida publica federal bruta pib tesouro',
   salmin: 'salario minimo piso nacional renda',
+  ibovespa: 'bolsa valores b3 acoes pontos mercado financeiro indice bovespa',
+  ifix: 'fundos imobiliarios fii b3 mercado financeiro indice',
 }
 
 /** Lista os indicadores que correspondem à consulta (todos os termos, "E"). */
@@ -99,6 +101,8 @@ export const SUGESTOES_BUSCA_INDICADORES = [
   'IDEB',
   'FipeZap',
   'desemprego',
+  'Ibovespa',
+  'IFIX',
 ]
 
 /** Catálogo agrupado por categoria para a listagem padrão da aba Histórico. */

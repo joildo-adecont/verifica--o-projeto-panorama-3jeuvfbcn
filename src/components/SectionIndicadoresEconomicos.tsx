@@ -36,6 +36,7 @@ import {
   SUGESTOES_BUSCA_INDICADORES,
   type ResultadoBuscaIndicador,
 } from '@/services/buscadorIndicadores'
+import { AbaMercadoFinanceiro } from '@/components/AbaMercadoFinanceiro'
 import type { ChaveSerieHistorica } from '@/services/seriesHistoricas'
 import {
   fetchIndicadoresEconomicos,
@@ -46,7 +47,7 @@ import {
   type RespostaIndicadores,
 } from '@/services/indicadoresEconomicos'
 
-type AbaId = 'inflacao' | 'taxas' | 'estatisticas' | 'cambio' | 'historico'
+type AbaId = 'inflacao' | 'taxas' | 'estatisticas' | 'mercado' | 'cambio' | 'historico'
 
 const ABAS: { id: AbaId; label: string; Icon: typeof TrendingUp; descricao: string }[] = [
   {
@@ -67,6 +68,13 @@ const ABAS: { id: AbaId; label: string; Icon: typeof TrendingUp; descricao: stri
     Icon: BarChart3,
     descricao:
       'Séries oficiais do IBGE (IPCA, PIB, desemprego), Tesouro Nacional (SICONFI) e IPEA (IGP-M, INPC, salário mínimo)',
+  },
+  {
+    id: 'mercado',
+    label: 'Mercado Financeiro',
+    Icon: TrendingUp,
+    descricao:
+      'Ibovespa e IFIX — índices de mercado financeiro da B3, consultados via Banco Central (SGS 7) e IPEADATA',
   },
   {
     id: 'cambio',
@@ -531,6 +539,8 @@ export function SectionIndicadoresEconomicos() {
         <AbaCambio resposta={resposta} />
       ) : aba === 'estatisticas' ? (
         <AbaEstatisticas />
+      ) : aba === 'mercado' ? (
+        <AbaMercadoFinanceiro />
       ) : aba === 'historico' ? (
         <AbaHistoricoIndicadores
           selecionado={historicoSelecionado}
@@ -551,6 +561,7 @@ export function SectionIndicadoresEconomicos() {
         taxas.length === 0 &&
         aba !== 'cambio' &&
         aba !== 'estatisticas' &&
+        aba !== 'mercado' &&
         aba !== 'historico' && (
           <div className="p-8 rounded-2xl border-2 border-dashed border-slate-300 bg-white text-center text-sm text-slate-500">
             Nenhum indicador disponível no momento. Use o botão “Atualizar” para tentar novamente.

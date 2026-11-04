@@ -1,3 +1,4 @@
+import { TrendingUp } from 'lucide-react'
 /**
  * ABA — Estatísticas do portal de Indicadores Econômicos e Financeiros.
  *
@@ -36,7 +37,7 @@ import {
   type RespostaFontesEstatisticas,
 } from '@/services/indicadoresEconomicos'
 
-const ICONE_POR_FONTE: Record<FonteEstatisticaId, typeof BarChart3> = {
+const ICONE_POR_FONTE: Record<string, typeof BarChart3> = {
   ibge: BarChart3,
   tesouro: Landmark,
   ipea: BarChart3,
@@ -50,6 +51,7 @@ const ICONE_POR_FONTE: Record<FonteEstatisticaId, typeof BarChart3> = {
   snis: Droplets,
   ibge_pnad: Briefcase,
   caged: Users,
+  b3_mercado: TrendingUp,
 }
 
 const ROSTO_POR_FONTE: Record<FonteEstatisticaId, string> = {
@@ -67,6 +69,8 @@ const ROSTO_POR_FONTE: Record<FonteEstatisticaId, string> = {
   ibge_pnad:
     'PNAD Contínua — taxa de desemprego (desocupados) · renda média do trabalhador · população ocupada',
   caged: 'Novo CAGED — admissões · desligamentos · saldo de empregos formais (carteira assinada)',
+  b3_mercado:
+    'B3 — Ibovespa (bolsa de valores) · IFIX (fundos imobiliários) — índices de mercado financeiro',
 }
 
 function formatarVariacao(v: number): string {

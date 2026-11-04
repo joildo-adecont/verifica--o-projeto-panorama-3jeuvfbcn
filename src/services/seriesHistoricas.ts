@@ -49,6 +49,8 @@ export type ChaveSerieHistorica =
   | 'saldo_empregos'
   | 'divida'
   | 'salmin'
+  | 'ibovespa'
+  | 'ifix'
 
 export type GranularidadeHistorica = 'mensal' | 'trimestral' | 'anual'
 
@@ -582,6 +584,32 @@ export const CATALOGO_SERIES: CatalogoSerie[] = [
     termo: 'renda salario minimo ipea ipeadata',
     formatoValor: 'pct',
   },
+  {
+    chave: 'ibovespa',
+    nome: 'Ibovespa',
+    descricao: 'Ibovespa — pontos da B3, fechamento mensal — BCB SGS 7 (base interna)',
+    categoria: 'Mercado Financeiro',
+    unidade: 'pontos',
+    modoAcumulado: 'nivel',
+    fonte: 'B3 / Banco Central — SGS 7',
+    fonteUrl: 'https://www.b3.com.br',
+    selo: 'oficial_institucional',
+    termo: 'ibovespa b3 bolsa acoes mercado financeiro indice',
+    formatoValor: 'bruto',
+  },
+  {
+    chave: 'ifix',
+    nome: 'IFIX',
+    descricao: 'IFIX — índice de fundos imobiliários da B3 (base interna)',
+    categoria: 'Mercado Financeiro',
+    unidade: 'pontos',
+    modoAcumulado: 'nivel',
+    fonte: 'B3 / IPEA — IPEADATA',
+    fonteUrl: 'https://www.ipeadata.gov.br',
+    selo: 'oficial_institucional',
+    termo: 'ifix fundo imobiliario fii b3 mercado financeiro',
+    formatoValor: 'bruto',
+  },
 ]
 
 const CATALOGO_MAP = new Map(CATALOGO_SERIES.map((c) => [c.chave, c]))
@@ -616,6 +644,8 @@ function serieBaseInterna(item: CatalogoSerie): PontoSerie[] {
     saldo_empregos: [110, 95, 140, 165, 165, 165],
     divida: [74.2, 75.1, 75.9, 76.8, 76.8, 76.8],
     salmin: [3.9, 4.1, 4.2, 4.5, 4.5, 4.5],
+    ibovespa: [128400, 131200, 134600, 138500, 138500, 138500],
+    ifix: [2040, 2055, 2071, 2080, 2080, 2080],
   }
   const valores = base[item.chave]
   if (!valores) return []

@@ -151,6 +151,11 @@ export const FONTES_ESTATISTICAS_META: Record<
     url: 'https://www.gov.br/trabalho-e-emprego/pt-br/assuntos/inspecao-do-trabalho/emprego-e-salario',
     tier: 'oficial_institucional',
   },
+  b3_mercado: {
+    rotulo: 'B3 — Bolsa de Valores do Brasil (Ibovespa · IFIX)',
+    url: 'https://www.b3.com.br',
+    tier: 'oficial_institucional',
+  },
 }
 
 export interface IndicadorEstatistico {
@@ -774,6 +779,32 @@ export function respostaFontesEstatisticasFallback(aviso: string): RespostaFonte
           baseInterna: true,
         },
       ],
+      b3_mercado: [
+        {
+          chave: 'ibovespa',
+          nome: 'Ibovespa — pontos da B3 (base interna)',
+          categoria: 'mercado_financeiro',
+          unidade: 'pontos',
+          valor: 138500,
+          periodo: 'último pregão disponível',
+          variacao: 1250,
+          serie: [128400, 131200, 134600, 138500],
+          fonte: 'B3 / Banco Central SGS 7',
+          baseInterna: true,
+        },
+        {
+          chave: 'ifix',
+          nome: 'IFIX — índice de fundos imobiliários da B3 (base interna)',
+          categoria: 'mercado_financeiro',
+          unidade: 'pontos',
+          valor: 2080,
+          periodo: 'último pregão disponível',
+          variacao: 6.5,
+          serie: [2040, 2055, 2071, 2080],
+          fonte: 'B3 / IPEADATA',
+          baseInterna: true,
+        },
+      ],
     }
     const nomes: Record<FonteEstatisticaId, string> = {
       ibge: 'IBGE',
@@ -789,6 +820,7 @@ export function respostaFontesEstatisticasFallback(aviso: string): RespostaFonte
       snis: 'SNIS — Ministério das Cidades',
       ibge_pnad: 'IBGE — PNAD Contínua',
       caged: 'CAGED — Ministério do Trabalho e Emprego',
+      b3_mercado: 'B3 — Mercado Financeiro',
     }
     return {
       fonte,
@@ -821,6 +853,7 @@ export function respostaFontesEstatisticasFallback(aviso: string): RespostaFonte
       interna('snis', 'SNIS — Ministério das Cidades'),
       interna('ibge_pnad', 'IBGE — PNAD Contínua'),
       interna('caged', 'CAGED — Ministério do Trabalho e Emprego'),
+      interna('b3_mercado', 'B3 — Mercado Financeiro'),
     ],
   }
 }
@@ -887,7 +920,9 @@ export async function fetchFontesEstatisticas(
                                 ? 'ibge_pnad'
                                 : chaveFonte === 'CAGED — Ministério do Trabalho e Emprego'
                                   ? 'caged'
-                                  : 'ibge'
+                                  : chaveFonte === 'B3 — Mercado Financeiro'
+                                    ? 'b3_mercado'
+                                    : 'ibge'
         return {
           fonte: id,
           fonteNome: chaveFonte,
@@ -1130,6 +1165,19 @@ const SINONIMOS_BUSCA: Record<string, string[]> = {
     'mortalidade infantil',
     'aih',
     'ministério da saúde',
+  ],
+  mercadoFinanceiro: [
+    'ibovespa',
+    'bolsa',
+    'b3',
+    'ifix',
+    'ações',
+    'acoes',
+    'fundo imobiliario',
+    'fundo imobiliário',
+    'fii',
+    'mercado financeiro',
+    'pontos ibovespa',
   ],
   emprego: [
     'emprego',
