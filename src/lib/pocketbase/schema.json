@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-04T02:13:37.179Z",
+  "generatedAt": "2026-11-04T02:39:45.292Z",
   "collections": [
     {
       "name": "users",
@@ -3685,6 +3685,176 @@
         }
       ],
       "indexes": []
+    },
+    {
+      "name": "series_cache",
+      "type": "base",
+      "apiRules": {
+        "list": null,
+        "view": null,
+        "create": null,
+        "update": null,
+        "delete": null
+      },
+      "fields": [
+        {
+          "name": "chave",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "payload",
+          "type": "json",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "fonte",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "fetched_at",
+          "type": "date",
+          "required": false,
+          "system": false
+        }
+      ],
+      "indexes": ["CREATE UNIQUE INDEX idx_series_cache_chave ON series_cache (chave)"]
+    },
+    {
+      "name": "news_cache",
+      "type": "base",
+      "apiRules": {
+        "list": null,
+        "view": null,
+        "create": null,
+        "update": null,
+        "delete": null
+      },
+      "fields": [
+        {
+          "name": "feed_key",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "guid",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "titulo",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "link",
+          "type": "url",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "resumo",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "publicado_em",
+          "type": "date",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "fonte_nome",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "fetched_at",
+          "type": "date",
+          "required": false,
+          "system": false
+        }
+      ],
+      "indexes": ["CREATE UNIQUE INDEX idx_news_cache_feed_guid ON news_cache (feed_key, guid)"]
+    },
+    {
+      "name": "market_alerts",
+      "type": "base",
+      "apiRules": {
+        "list": null,
+        "view": null,
+        "create": null,
+        "update": null,
+        "delete": null
+      },
+      "fields": [
+        {
+          "name": "indice",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "titulo",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "mensagem",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "variacao_pct",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "direcao",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "alert_date",
+          "type": "date",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "fonte",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "link_url",
+          "type": "url",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "is_read",
+          "type": "bool",
+          "required": false,
+          "system": false
+        }
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX idx_market_alerts_indice_data ON market_alerts (indice, alert_date)"
+      ]
     }
   ]
 }
