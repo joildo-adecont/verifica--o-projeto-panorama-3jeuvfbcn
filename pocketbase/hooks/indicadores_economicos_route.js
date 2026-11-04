@@ -14,7 +14,7 @@
  * do callback do routerAdd; `globalThis.buscarContextoIndicadoresBCB` é
  * totalmente autossuficiente (só usa $app/$http, que são builtins do pool).
  */
-routerAdd('GET /backend/v1/indicadores-economicos', (e) => {
+routerAdd('GET', '/backend/v1/indicadores-economicos', (e) => {
   const CABECALHO_BCB = {
     'User-Agent':
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',

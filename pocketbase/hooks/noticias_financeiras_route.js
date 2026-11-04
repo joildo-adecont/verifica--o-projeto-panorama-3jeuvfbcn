@@ -10,7 +10,7 @@
  * com o que há no cache + aviso transparente (nunca erro cru). Se não houver
  * cache, devolve lista vazia + aviso.
  */
-routerAdd('GET /backend/v1/noticias-financeiras', (e) => {
+routerAdd('GET', '/backend/v1/noticias-financeiras', (e) => {
   const FEED_KEY = 'bcb_noticias'
   const FONTES_FEED = [
     'https://www.bcb.gov.br/api/conteudo/rss/pt-br/noticias',

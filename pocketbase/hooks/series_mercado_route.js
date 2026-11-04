@@ -10,7 +10,7 @@
  * Fonte falhou? o indicador sai da resposta e o grupo vem com fonteViva=false
  * + aviso transparente — nunca erro cru.
  */
-routerAdd('GET /backend/v1/series-mercado', (e) => {
+routerAdd('GET', '/backend/v1/series-mercado', (e) => {
   const CAB = {
     'User-Agent':
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',

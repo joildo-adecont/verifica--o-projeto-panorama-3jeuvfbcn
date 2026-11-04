@@ -11,6 +11,7 @@ import {
   FileText,
   Folder,
   Scale,
+  ClipboardList,
   Layers,
   RefreshCw,
   ScanLine,
@@ -390,6 +391,7 @@ export function SectionParametrizador() {
               { id: 'analisador' as const, nome: 'Analisador tributário', Icon: Scale },
               /* LISTA DE CONFERÊNCIA (04/11/2026): os NCMs sem regra de alíquota,
                  separados por rendimento da conferência (caso A × caso B). */
+              { id: 'conferencia' as const, nome: 'Conferência de NCM', Icon: ClipboardList },
             ].map((t) => (
               <button
                 key={t.id}

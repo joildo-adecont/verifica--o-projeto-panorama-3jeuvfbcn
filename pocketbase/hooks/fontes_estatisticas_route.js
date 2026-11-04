@@ -30,7 +30,7 @@
  * - bcb_sfh   : índices de correção de financiamentos SFH
  *               (SGS 226 TR · 254 TJLP · 36 IGP-M 12 meses)
  */
-routerAdd('GET /backend/v1/fontes-estatisticas', (e) => {
+routerAdd('GET', '/backend/v1/fontes-estatisticas', (e) => {
   const fonte = String((e.requestInfo().query && e.requestInfo().query['fonte']) || 'todas')
   const timeoutMs = 9000
 
