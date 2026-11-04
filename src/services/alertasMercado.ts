@@ -66,6 +66,19 @@ export async function fetchAlertasMercado(): Promise<{
   }
 }
 
+/**
+ * Marca um alerta de mercado como lido (update em market_alerts.is_read).
+ * Falha silenciosa — o sino já aplicou o estado otimista.
+ */
+export async function marcarAlertaMercadoLido(id: string): Promise<void> {
+  if (!id) return
+  try {
+    await pb.collection('market_alerts').update(id, { is_read: true })
+  } catch (err) {
+    console.warn('marcarAlertaMercadoLido: falha ao sincronizar com o backend:', err)
+  }
+}
+
 /** Data em pt-BR a partir de 'YYYY-MM-DD …' ou ISO. */
 export function formatarDataAlerta(iso: string): string {
   if (!iso) return '—'
