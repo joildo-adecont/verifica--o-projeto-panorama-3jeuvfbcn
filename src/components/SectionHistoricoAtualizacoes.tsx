@@ -72,6 +72,32 @@ const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
     data: '03/11/2026',
+    hora: '22:20',
+    titulo:
+      'Parametrizador Fase 4 — importador em lotes de NF de entrada e saída, totalizadores por período e analisador do IBS em cada ano da transição',
+    conteudo:
+      'A pedido do CEO (03/11/2026). (1) IMPORTADOR EM LOTES: seleção múltipla de XMLs, até 300 arquivos por leva, misturando NF de entrada e de saída. A DIREÇÃO DE CADA DOCUMENTO VEM DO CFOP declarado nele — primeiro dígito 1/2/3 = entrada, 5/6/7 = saída —, não de suposição sobre quem é o emitente: o sistema lê o que o contribuinte declarou. Documento com itens de direções opostas não é corrigido no chute: é marcado como conflito e aparece na auditoria. (2) DEDUPLICAÇÃO POR CHAVE DE ACESSO: reimportar o mês inteiro não dobra o valor do período; o lote devolve quantos entraram, quantos foram reconhecidos como repetidos e quantos eram inválidos — repetido não é erro. (3) TOTALIZADORES POR PERÍODO: cada competência com entradas, saídas, resultado e contagens separadas, mais gráfico de barras e linha de total; documento sem direção aparece em coluna própria em vez de sumir. (4) ANALISADOR DO IBS POR ANO: projeta 2026 a 2033 sobre a média mensal REAL do que foi importado, aplicando a série de transição de aliquotas.ts (fonte única do sistema), calculando débito sobre saídas e crédito sobre entradas — porque o que se apura é a diferença, e projetar só um dos lados daria número inflado. O analisador declara em destaque que é DIMENSIONAMENTO, não apuração: aplica alíquota plena e ignora o tratamento por NCM, logo o valor é teto. (5) RETROATIVIDADE: uma NF-e REAL já existente no banco (SEGALAS ALIMENTOS LTDA FILIAL 2, SC, CFOP 6102, R$ 1.133,67) estava sem direção porque foi importada antes de o campo existir — a migration 0111 preencheu pelo CFOP dos próprios itens, e ela passou a contar corretamente em saídas. Nenhum documento foi apagado. VALIDAÇÃO EM PRODUÇÃO: lote de teste com 2 entradas e 2 saídas importou 4 e reconheceu 1 repetido (R$ 15.000 de entrada contra R$ 55.000 de saída); totalizadores fecharam setembro em R$ 10.000/30.000 e outubro em R$ 5.000/25.000; regra do CFOP conferida em 5 casos incluindo vazio. Todas as rotas temporárias de validação foram removidas (404) e o segredo de teste, apagado. PENDÊNCIA PARA O CEO DECIDIR: há DUAS NF-e com a mesma chave de acesso (42261101333984000276550010101726871612138166) no banco, importadas antes de existir deduplicação — a rota aponta a duplicidade, mas não apaga dado do usuário por conta própria.',
+    fontes: [
+      {
+        titulo: 'LC 214/2025 — texto integral (normas.leg.br, Senado Federal)',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
+      },
+      {
+        titulo: 'Resolução CGIBS nº 14/2026 — alíquota de referência do IBS',
+        url: 'https://www.cgibs.gov.br/resolucoes',
+      },
+      {
+        titulo: 'Portal Nacional dos DF-e / SVRS — tabelas e layouts',
+        url: 'https://dfe-portal.svrs.rs.gov.br/Dfe/Documentos',
+      },
+    ],
+    caminho:
+      'src/components/ParametrizadorLote.tsx + src/components/SectionParametrizador.tsx + pocketbase/hooks/parametrizador_fase4.js + pocketbase/migrations/0110_lote.js + pocketbase/migrations/0111_backfill.js',
+    versao: 'v0.0.501',
+    bloco: 'sistema',
+  },
+  {
+    data: '03/11/2026',
     hora: '21:45',
     titulo:
       'Parametrizador de Documentos Fiscais da Reforma — Fase 3: auditoria por item, comparativo entre competências, concentração por NCM e relatório imprimível',
