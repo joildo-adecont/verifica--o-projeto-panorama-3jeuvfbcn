@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   AlertTriangle,
+  BarChart3,
   CheckCircle2,
   ChevronRight,
   Database,
@@ -14,6 +15,7 @@ import {
   Upload,
   XCircle,
 } from 'lucide-react'
+import { ParametrizadorAnalise } from '@/components/ParametrizadorAnalise'
 
 /**
  * PARAMETRIZADOR DE DOCUMENTOS FISCAIS DA REFORMA — Seção 31
@@ -227,7 +229,7 @@ const ROTULO_RT: Record<string, { txt: string; cls: string }> = {
 
 export function SectionParametrizador() {
   const [token, setToken] = useState('')
-  const [aba, setAba] = useState<'catalogo' | 'importar' | 'documentos'>('catalogo')
+  const [aba, setAba] = useState<'catalogo' | 'importar' | 'documentos' | 'analise'>('catalogo')
   const [xml, setXml] = useState('')
   const [nomeArquivo, setNomeArquivo] = useState('documento.xml')
   const [resultado, setResultado] = useState<any>(null)
@@ -349,6 +351,12 @@ export function SectionParametrizador() {
               { id: 'catalogo' as const, nome: 'Catálogo de documentos', Icon: FileText },
               { id: 'importar' as const, nome: 'Importar e quebrar', Icon: Upload },
               { id: 'documentos' as const, nome: 'Documentos processados', Icon: Database },
+              /* FASE 3 (03/11/2026): auditoria, comparativo e concentração vivem
+                 aqui, e não numa seção nova, porque só fazem sentido sobre os
+                 documentos que ESTA seção importa. Seção separada obrigaria o
+                 usuário a pular de tela para ver o resultado do que acabou de
+                 subir. */
+              { id: 'analise' as const, nome: 'Análise e auditoria', Icon: BarChart3 },
             ].map((t) => (
               <button
                 key={t.id}
@@ -826,6 +834,9 @@ export function SectionParametrizador() {
               )}
             </>
           )}
+
+          {/* ══════════ FASE 3: ANÁLISE E AUDITORIA ══════════ */}
+          {aba === 'analise' && <ParametrizadorAnalise />}
 
           {/* rodapé */}
           <div className="flex items-center gap-1.5 flex-wrap rounded-lg bg-slate-50 px-2 py-1.5 text-[9px] text-slate-500">
