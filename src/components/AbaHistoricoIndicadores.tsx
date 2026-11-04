@@ -18,9 +18,24 @@ import {
 import { catalogoAgrupado } from '@/services/buscadorIndicadores'
 import type { ChaveSerieHistorica } from '@/services/seriesHistoricas'
 
-export function AbaHistoricoIndicadores() {
+/**
+ * Aba CONTROLADA pelo portal: `selecionado` e os callbacks vêm de
+ * SectionIndicadoresEconomicos, que também alimenta a partir do buscador
+ * nativo do topo (clicar num resultado muda para a aba Histórico com o
+ * indicador aberto).
+ */
+export interface AbaHistoricoIndicadoresProps {
+  selecionado: ChaveSerieHistorica | null
+  onSelecionar: (chave: ChaveSerieHistorica) => void
+  onFechar: () => void
+}
+
+export function AbaHistoricoIndicadores({
+  selecionado,
+  onSelecionar,
+  onFechar,
+}: AbaHistoricoIndicadoresProps) {
   const [consulta, setConsulta] = useState('')
-  const [selecionado, setSelecionado] = useState<ChaveSerieHistorica | null>(null)
 
   const resultados = useMemo(() => buscarIndicadores(consulta), [consulta])
   const agrupado = useMemo(() => catalogoAgrupado(), [])
@@ -30,7 +45,7 @@ export function AbaHistoricoIndicadores() {
   if (aberto) {
     return (
       <div className="mt-4">
-        <GraficoIndicadorHistorico chave={selecionado!} onVoltar={() => setSelecionado(null)} />
+        <GraficoIndicadorHistorico chave={selecionado!} onVoltar={onFechar} />
       </div>
     )
   }
@@ -107,7 +122,7 @@ export function AbaHistoricoIndicadores() {
             baseInterna: r.baseInterna,
           }))}
           vazioHint="Tente outro termo: inflação, câmbio, emprego, saúde, saneamento…"
-          onAbrir={setSelecionado}
+          onAbrir={onSelecionar}
         />
       )}
 
@@ -119,7 +134,7 @@ export function AbaHistoricoIndicadores() {
               <h4 className="text-xs font-black text-slate-900 uppercase tracking-wide mb-3">
                 {categoria}
               </h4>
-              <ListaIndicadores titulo="" itens={itens} onAbrir={setSelecionado} ocultarTitulo />
+              <ListaIndicadores titulo="" itens={itens} onAbrir={onSelecionar} ocultarTitulo />
             </section>
           ))}
         </div>

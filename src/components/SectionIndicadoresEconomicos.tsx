@@ -23,11 +23,21 @@ import {
   Minus,
   ArrowLeftRight,
   Check,
+  History,
+  Search,
 } from 'lucide-react'
 import { AdecontLogo } from '@/components/AdecontLogo'
 import { SeloNivelConfianca } from '@/components/SeloNivelConfianca'
 import type { ConfidenceTier } from '@/types/panorama'
 import { AbaEstatisticas } from '@/components/AbaEstatisticas'
+import { AbaHistoricoIndicadores } from '@/components/AbaHistoricoIndicadores'
+import {
+  buscarIndicadores,
+  SUGESTOES_BUSCA_INDICADORES,
+  type ResultadoBuscaIndicador,
+} from '@/services/buscadorIndicadores'
+import type { ChaveSerieHistorica } from '@/services/seriesHistoricas'
+import { destacarTrechos } from '@/services/destaqueBusca'
 import {
   fetchIndicadoresEconomicos,
   paridadeEntre,
@@ -37,7 +47,7 @@ import {
   type RespostaIndicadores,
 } from '@/services/indicadoresEconomicos'
 
-type AbaId = 'inflacao' | 'taxas' | 'estatisticas' | 'cambio'
+type AbaId = 'inflacao' | 'taxas' | 'estatisticas' | 'cambio' | 'historico'
 
 const ABAS: { id: AbaId; label: string; Icon: typeof TrendingUp; descricao: string }[] = [
   {
@@ -64,6 +74,13 @@ const ABAS: { id: AbaId; label: string; Icon: typeof TrendingUp; descricao: stri
     label: 'Câmbio',
     Icon: Coins,
     descricao: 'Cotações PTAX do Banco Central, com comparativo entre moedas',
+  },
+  {
+    id: 'historico',
+    label: 'Histórico',
+    Icon: History,
+    descricao:
+      'Séries evolutivas com acumulados por ano e por período, granularidade mensal, trimestral ou anual',
   },
 ]
 
@@ -423,6 +440,20 @@ export function SectionIndicadoresEconomicos() {
   const [resposta, setResposta] = useState<RespostaIndicadores | null>(null)
   const [carregando, setCarregando] = useState(true)
   const [aba, setAba] = useState<AbaId>('inflacao')
+  const [consulta, setConsulta] = useState('')
+  const [historicoSelecionado, setHistoricoSelecionado] = useState<ChaveSerieHistorica | null>(null)
+
+  const resultadosBusca = useMemo(
+    () => (consulta.trim() ? buscarIndicadores(consulta).slice(0, 8) : []),
+    [consulta],
+  )
+
+  /** Clicar num resultado do buscador: muda para a aba Histórico com o indicador aberto. */
+  const abrirIndicadorHistorico = useCallback((chave: ChaveSerieHistorica) => {
+    setHistoricoSelecionado(chave)
+    setAba('historico')
+    setConsulta('')
+  }, [])
 
   const carregar = useCallback(async (forcar = false) => {
     setCarregando(true)
@@ -452,6 +483,14 @@ export function SectionIndicadoresEconomicos() {
         resposta={resposta}
         carregando={carregando}
         onAtualizar={() => void carregar(true)}
+      />
+
+      {/* Buscador nativo de índices — visível no topo do portal, em TODAS as abas */}
+      <BuscadorIndicadores
+        consulta={consulta}
+        setConsulta={setConsulta}
+        resultados={resultadosBusca}
+        onAbrir={abrirIndicadorHistorico}
       />
 
       {resposta && !resposta.fonteViva && <AvisoFallback aviso={resposta.aviso} />}
@@ -493,6 +532,12 @@ export function SectionIndicadoresEconomicos() {
         <AbaCambio resposta={resposta} />
       ) : aba === 'estatisticas' ? (
         <AbaEstatisticas />
+      ) : aba === 'historico' ? (
+        <AbaHistoricoIndicadores
+          selecionado={historicoSelecionado}
+          onSelecionar={setHistoricoSelecionado}
+          onFechar={() => setHistoricoSelecionado(null)}
+        />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {(aba === 'inflacao' ? inflacao : taxas).map((item) => (
@@ -506,7 +551,8 @@ export function SectionIndicadoresEconomicos() {
         inflacao.length === 0 &&
         taxas.length === 0 &&
         aba !== 'cambio' &&
-        aba !== 'estatisticas' && (
+        aba !== 'estatisticas' &&
+        aba !== 'historico' && (
           <div className="p-8 rounded-2xl border-2 border-dashed border-slate-300 bg-white text-center text-sm text-slate-500">
             Nenhum indicador disponível no momento. Use o botão “Atualizar” para tentar novamente.
           </div>
@@ -525,6 +571,90 @@ export function SectionIndicadoresEconomicos() {
           — IPEADATA · consulta via proxy do backend
         </span>
       </div>
+    </div>
+  )
+}
+
+/** Buscador nativo do portal — no topo, visível em todas as abas. */
+function BuscadorIndicadores({
+  consulta,
+  setConsulta,
+  resultados,
+  onAbrir,
+}: {
+  consulta: string
+  setConsulta: (v: string) => void
+  resultados: ResultadoBuscaIndicador[]
+  onAbrir: (chave: ChaveSerieHistorica) => void
+}) {
+  return (
+    <div className="relative">
+      <div className="flex items-center gap-2 p-3 rounded-2xl border border-slate-200 bg-white">
+        <Search className="w-4 h-4 text-slate-400 shrink-0" />
+        <input
+          type="text"
+          value={consulta}
+          onChange={(e) => setConsulta(e.target.value)}
+          placeholder="Buscar índice por nome (ex.: IPCA, Selic, dólar, soja, IDEB)…"
+          aria-label="Buscar índice por nome"
+          className="flex-1 min-w-0 text-sm bg-transparent outline-none placeholder:text-slate-400"
+        />
+        {consulta.trim() !== '' && (
+          <button
+            type="button"
+            onClick={() => setConsulta('')}
+            className="text-xs font-bold text-slate-500 hover:text-slate-800 cursor-pointer shrink-0"
+          >
+            Limpar
+          </button>
+        )}
+      </div>
+
+      {consulta.trim() !== '' && (
+        <div className="mt-2 p-3 rounded-2xl border border-slate-200 bg-white space-y-1">
+          {SUGESTOES_BUSCA_INDICADORES.length > 0 && resultados.length === 0 && (
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="text-[10.5px] font-bold text-slate-500 uppercase tracking-wide">
+                Sugestões:
+              </span>
+              {SUGESTOES_BUSCA_INDICADORES.map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => setConsulta(s)}
+                  className="px-2 py-0.5 rounded-full border border-slate-200 bg-slate-50 text-[11px] text-slate-600 hover:bg-slate-100 cursor-pointer"
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          )}
+          {resultados.length === 0 ? (
+            <p className="text-xs text-slate-500 py-1">
+              Nenhum índice encontrado para “{consulta.trim()}”.
+            </p>
+          ) : (
+            <ul className="divide-y divide-slate-100">
+              {resultados.map((r) => (
+                <li key={r.chave}>
+                  <button
+                    type="button"
+                    onClick={() => onAbrir(r.chave)}
+                    className="w-full text-left px-2 py-2 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer"
+                  >
+                    <p className="text-sm font-bold text-slate-900">{r.nome}</p>
+                    <p className="text-[10.5px] text-slate-500 line-clamp-1">{r.descricao}</p>
+                    <p className="text-[10px] text-slate-400 mt-0.5">
+                      {r.categoria} · fonte: {r.fonte}
+                      {r.baseInterna ? ' (base interna aproximada)' : ''}
+                    </p>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
     </div>
   )
 }
