@@ -23,6 +23,7 @@ import { ParametrizadorLote } from '@/components/ParametrizadorLote'
 import { ParametrizadorTesteIndividual } from '@/components/ParametrizadorTesteIndividual'
 import { ParametrizadorPastas } from '@/components/ParametrizadorPastas'
 import { ParametrizadorAnalisador } from '@/components/ParametrizadorAnalisador'
+import { ParametrizadorConferencia } from '@/components/ParametrizadorConferencia'
 
 /**
  * PARAMETRIZADOR DE DOCUMENTOS FISCAIS DA REFORMA — Seção 31
@@ -237,7 +238,15 @@ const ROTULO_RT: Record<string, { txt: string; cls: string }> = {
 export function SectionParametrizador() {
   const [token, setToken] = useState('')
   const [aba, setAba] = useState<
-    'catalogo' | 'importar' | 'documentos' | 'analise' | 'lote' | 'teste' | 'pastas' | 'analisador'
+    | 'catalogo'
+    | 'importar'
+    | 'documentos'
+    | 'analise'
+    | 'lote'
+    | 'teste'
+    | 'pastas'
+    | 'analisador'
+    | 'conferencia'
   >('catalogo')
   const [xml, setXml] = useState('')
   const [nomeArquivo, setNomeArquivo] = useState('documento.xml')
@@ -873,6 +882,9 @@ export function SectionParametrizador() {
 
           {/* ══════════ ANALISADOR TRIBUTÁRIO ══════════ */}
           {aba === 'analisador' && <ParametrizadorAnalisador />}
+
+          {/* ══════════ LISTA DE CONFERÊNCIA DE NCM ══════════ */}
+          {aba === 'conferencia' && <ParametrizadorConferencia />}
 
           {/* rodapé */}
           <div className="flex items-center gap-1.5 flex-wrap rounded-lg bg-slate-50 px-2 py-1.5 text-[9px] text-slate-500">
