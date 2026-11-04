@@ -318,6 +318,35 @@ const SETORES_NOVOS: LinkNavegacao[] = [
    * no topo, os códigos por área e a jurisprudência dos tribunais, em hierarquia
    * institucional. Tecla 'l' (de legal/acervo). Consome o Radar, não duplica. */
   {
+    /* PARAMETRIZADOR DE DOCUMENTOS FISCAIS (03/11/2026) — pedido do CEO.
+       Tecla 'shift+p' porque 'j', 'n' e 'o' já foram tomadas na correção de
+       colisões da auditoria de 03/11, e a colisão silenciosa deixa a seção
+       inacessível por teclado (o handler usa NAVEGACAO.find: o primeiro vence). */
+    href: '#parametrizador',
+    label: 'Parametrizador Fiscal',
+    curto: 'Parametrizador',
+    tecla: 'shift+p',
+    numero: '31',
+    Icon: Database,
+    cor: 'text-teal-700',
+    bg: 'bg-teal-50',
+    borda: 'border-teal-300',
+    descricao: 'Importa, quebra e classifica XMLs de NF-e e demais documentos fiscais',
+    tags: [
+      'parametrizador',
+      'documento fiscal',
+      'xml',
+      'nfe',
+      'nota fiscal',
+      'importar xml',
+      'quebra',
+      'classificacao fiscal',
+      'cclasstrib',
+      'apropriacao',
+      'auditoria fiscal',
+    ],
+  },
+  {
     href: '#acervo-juridico',
     label: 'Acervo Jurídico',
     curto: 'Acervo',

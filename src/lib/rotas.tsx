@@ -33,6 +33,7 @@ import { SectionDiagnosticoTributario } from '@/components/SectionDiagnosticoTri
 import { SectionRecursosHumanos } from '@/components/SectionRecursosHumanos'
 import { SectionDepartamentoFiscal } from '@/components/SectionDepartamentoFiscal'
 import { SectionAcervoJuridico } from '@/components/SectionAcervoJuridico'
+import { SectionParametrizador } from '@/components/SectionParametrizador'
 import { PainelDegraus } from '@/components/PainelDegraus'
 import { SectionHistoricoAtualizacoes } from '@/components/SectionHistoricoAtualizacoes'
 import { SectionHistoricoRevisoes } from '@/components/SectionHistoricoRevisoes'
@@ -149,6 +150,7 @@ const COMPONENTES: Record<string, ComponentType<PropsAba>> = {
   '#recursos-humanos': SectionRecursosHumanos,
   '#departamento-fiscal': SectionDepartamentoFiscal,
   '#acervo-juridico': SectionAcervoJuridico,
+  '#parametrizador': SectionParametrizador,
   '#secao-7': SectionAnexos,
   '#tabela-geral': SectionTabelaGeral,
   '#secao-8': SectionCronograma,
