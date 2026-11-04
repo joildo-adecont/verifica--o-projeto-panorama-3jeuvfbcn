@@ -3,7 +3,8 @@
  *
  * Consome EXCLUSIVAMENTE `fetchFontesEstatisticas` (rota backend
  * /backend/v1/fontes-estatisticas — proxy IBGE SIDRA / Tesouro SICONFI /
- * IPEADATA). O navegador nunca fala direto com as fontes — padrão anti-bloqueio.
+ * IPEADATA / CONAB / Cepea-Esalq / FipeZap / BCB SFH). O navegador nunca fala
+ * direto com as fontes — padrão anti-bloqueio.
  *
  * Regras de resiliência: fonte viva falhou? o serviço devolve a base interna
  * com `fonteViva: false` — aqui exibimos o aviso transparente "base interna —
@@ -17,6 +18,9 @@ import {
   ArrowDownRight,
   Minus,
   Landmark,
+  Wheat,
+  Building2,
+  Home,
 } from 'lucide-react'
 import { SeloNivelConfianca } from '@/components/SeloNivelConfianca'
 import {
@@ -31,12 +35,22 @@ const ICONE_POR_FONTE: Record<FonteEstatisticaId, typeof BarChart3> = {
   ibge: BarChart3,
   tesouro: Landmark,
   ipea: BarChart3,
+  ibge_agro: Wheat,
+  conab: Wheat,
+  cepea: Wheat,
+  fipezap: Building2,
+  bcb_sfh: Home,
 }
 
 const ROSTO_POR_FONTE: Record<FonteEstatisticaId, string> = {
   ibge: 'IPCA · PIB · desemprego (PNAD Contínua)',
   tesouro: 'SICONFI — contas públicas (RREO/RGF)',
   ipea: 'IGP-M · INPC · salário mínimo',
+  ibge_agro: 'SIDRA — produção da agropecuária · PIB do agronegócio',
+  conab: 'Safras de grãos · estoques (boletins oficiais)',
+  cepea: 'Boi gordo · soja · milho (indicadores Esalq)',
+  fipezap: 'Índice de preços de imóveis residenciais anunciados',
+  bcb_sfh: 'TR · TJLP · IGP-M — correção de financiamentos SFH',
 }
 
 function formatarVariacao(v: number): string {

@@ -1,15 +1,15 @@
 /**
  * Serviço de Indicadores Econômicos e Financeiros (Plataforma Administrativa).
  *
- * Os dados vêm SEMPRE do backend (rota /backend/v1/indicadores-economicos em
- * pb_hooks/), que consulta as APIs públicas do Banco Central do lado do
- * servidor — SGS (séries temporais) e PTAX/Olinda (câmbio) — com timeout curto
- * e cache interno. NUNCA chamada direta do navegador (padrão anti-bloqueio do
- * projeto, como no download-resolution).
+ * Os dados vêm SEMPRE do backend (rotas /backend/v1/indicadores-economicos e
+ * /backend/v1/fontes-estatisticas em pb_hooks/), que consulta as APIs públicas
+ * do lado do servidor — Banco Central (SGS/PTAX/Olinda), IBGE SIDRA, Tesouro
+ * SICONFI, IPEADATA, CONAB, Cepea-Esalq e FipeZap — com timeout curto. NUNCA
+ * chamada direta do navegador (padrão anti-bloqueio do projeto).
  *
- * Se a fonte viva falhar, o hook devolve o último snapshot em cache com
- * `fonteViva: false` e um aviso transparente; se nem o cache existir, este
- * serviço cai para uma base interna aproximada, também com aviso explícito.
+ * Se a fonte viva falhar, o hook devolve a base interna aproximada com
+ * `fonteViva: false` e um aviso transparente; se nem o proxy responder, este
+ * serviço cai para o mesmo fallback interno, também com aviso explícito.
  */
 import pb from '@/lib/pocketbase/client'
 
@@ -63,7 +63,15 @@ export interface ItemIndicadorBusca {
 const URL_ROTA = `${import.meta.env.VITE_POCKETBASE_URL}/backend/v1/indicadores-economicos`
 const URL_ROTA_ESTATISTICAS = `${import.meta.env.VITE_POCKETBASE_URL}/backend/v1/fontes-estatisticas`
 
-export type FonteEstatisticaId = 'ibge' | 'tesouro' | 'ipea'
+export type FonteEstatisticaId =
+  | 'ibge'
+  | 'tesouro'
+  | 'ipea'
+  | 'ibge_agro'
+  | 'conab'
+  | 'cepea'
+  | 'fipezap'
+  | 'bcb_sfh'
 
 export const FONTES_ESTATISTICAS_META: Record<
   FonteEstatisticaId,
@@ -579,9 +587,69 @@ const SINONIMOS_BUSCA: Record<string, string[]> = {
     'estatísticas',
     'estatisticas',
   ],
+  agronegocio: [
+    'agronegocio',
+    'agronegócio',
+    'agro',
+    'agropecuaria',
+    'agropecuária',
+    'producao agropecuaria',
+    'produção agropecuária',
+    'safra',
+    'safras',
+    'colheita',
+    'grao',
+    'grão',
+    'graos',
+    'grãos',
+    'estoque',
+    'estoques',
+    'conab',
+    'cepea',
+    'esalq',
+    'soja',
+    'milho',
+    'boi',
+    'boi gordo',
+    'arroba',
+    'pecuaria',
+    'pecuária',
+    'cana',
+    'cafe',
+    'café',
+    'algodao',
+    'algodão',
+  ],
+  imobiliario: [
+    'imobiliario',
+    'imobiliário',
+    'imovel',
+    'imóvel',
+    'imoveis',
+    'imóveis',
+    'aluguel',
+    'aluguéis',
+    'alugueis',
+    'fipezap',
+    'fipe zap',
+    'fipe',
+    'zap',
+    'sfh',
+    'financiamento imobiliario',
+    'financiamento imobiliário',
+    'financiamento da casa',
+    'casa propria',
+    'casa própria',
+    'habitação',
+    'habitacao',
+    'caixa economica',
+    'caixa econômica',
+    'tjlp',
+    'tr',
+  ],
 }
 
-/** Itens pesquisáveis das fontes estatísticas (IBGE, Tesouro Nacional e IPEA). */
+/** Itens pesquisáveis das fontes estatísticas (IBGE, Tesouro, IPEA, agronegócio e imobiliário). */
 export function itensFontesEstatisticasParaBusca(
   res: RespostaFontesEstatisticas,
 ): ItemIndicadorBusca[] {
