@@ -7,6 +7,7 @@ import {
   Database,
   FileCode2,
   FileSearch,
+  FileStack,
   FileText,
   Layers,
   RefreshCw,
@@ -16,6 +17,7 @@ import {
   XCircle,
 } from 'lucide-react'
 import { ParametrizadorAnalise } from '@/components/ParametrizadorAnalise'
+import { ParametrizadorLote } from '@/components/ParametrizadorLote'
 
 /**
  * PARAMETRIZADOR DE DOCUMENTOS FISCAIS DA REFORMA — Seção 31
@@ -229,7 +231,9 @@ const ROTULO_RT: Record<string, { txt: string; cls: string }> = {
 
 export function SectionParametrizador() {
   const [token, setToken] = useState('')
-  const [aba, setAba] = useState<'catalogo' | 'importar' | 'documentos' | 'analise'>('catalogo')
+  const [aba, setAba] = useState<'catalogo' | 'importar' | 'documentos' | 'analise' | 'lote'>(
+    'catalogo',
+  )
   const [xml, setXml] = useState('')
   const [nomeArquivo, setNomeArquivo] = useState('documento.xml')
   const [resultado, setResultado] = useState<any>(null)
@@ -357,6 +361,9 @@ export function SectionParametrizador() {
                  usuário a pular de tela para ver o resultado do que acabou de
                  subir. */
               { id: 'analise' as const, nome: 'Análise e auditoria', Icon: BarChart3 },
+              /* FASE 4 (03/11/2026): importador em lotes, totalizadores por
+                 período e analisador do IBS por ano. */
+              { id: 'lote' as const, nome: 'Lotes e totalizadores', Icon: FileStack },
             ].map((t) => (
               <button
                 key={t.id}
@@ -837,6 +844,9 @@ export function SectionParametrizador() {
 
           {/* ══════════ FASE 3: ANÁLISE E AUDITORIA ══════════ */}
           {aba === 'analise' && <ParametrizadorAnalise />}
+
+          {/* ══════════ FASE 4: LOTES, TOTALIZADORES E IBS POR ANO ══════════ */}
+          {aba === 'lote' && <ParametrizadorLote />}
 
           {/* rodapé */}
           <div className="flex items-center gap-1.5 flex-wrap rounded-lg bg-slate-50 px-2 py-1.5 text-[9px] text-slate-500">

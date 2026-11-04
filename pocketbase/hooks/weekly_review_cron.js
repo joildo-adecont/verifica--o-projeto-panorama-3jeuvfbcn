@@ -391,6 +391,60 @@ cronAdd('weekly_content_review', '0 11 * * 1', () => {
       alternative: 'Portal FAMEP e Radar Nacional ADECONT',
       coverageStatus: 'coberta_direta',
     },
+    // FONTES ESTATÍSTICAS — INDICADORES ECONÔMICOS/AGRO/IMOBILIÁRIO (proxy /backend/v1/fontes-estatisticas)
+    {
+      key: 'ibge_agro',
+      name: 'IBGE — Agronegócio (SIDRA: produção agropecuária e PIB do agronegócio)',
+      url: 'https://www.ibge.gov.br',
+      order: 39,
+      confidenceTier: 'oficial_institucional',
+      isAccessible: true,
+      alternative: 'API SIDRA (apisidra.ibge.gov.br) — tabelas de produção agropecuária',
+      coverageStatus: 'coberta_direta',
+    },
+    {
+      key: 'conab',
+      name: 'CONAB — Companhia Nacional de Abastecimento (safras e estoques)',
+      url: 'https://portaldeinformacoes.conab.gov.br',
+      order: 40,
+      confidenceTier: 'oficial_institucional',
+      isAccessible: true,
+      alternative: 'Portal de Informações CONAB e boletins oficiais de safras (gov.br/conab)',
+      coverageStatus: 'coberta_direta',
+    },
+    {
+      key: 'cepea_esalq',
+      name: 'Cepea-Esalq/USP — Centro de Estudos Avançados em Economia Aplicada',
+      url: 'https://www.cepea.esalq.usp.br',
+      order: 41,
+      confidenceTier: 'oficial_institucional',
+      isAccessible: true,
+      alternative:
+        'Indicadores Cepea divulgados pelo BCB/SGS (séries 23447 boi gordo, 23448 soja, 23449 milho) e portal Cepea',
+      coverageStatus: 'coberta_direta',
+    },
+    {
+      key: 'fipezap',
+      name: 'FipeZap — Índice Fipe/ZAP+ de Preços de Imóveis Residenciais Anunciados',
+      url: 'https://www.fipe.org.br',
+      order: 42,
+      confidenceTier: 'oficial_institucional',
+      isAccessible: true,
+      alternative:
+        'Índice FipeZap divulgado pelo BCB/SGS (série 19967 — variação mensal) e portal Fipe',
+      coverageStatus: 'coberta_direta',
+    },
+    {
+      key: 'bcb_sfh',
+      name: 'Banco Central — Índices de Correção de Financiamentos SFH (Caixa Econômica Federal)',
+      url: 'https://www.bcb.gov.br/estabilidadefinanceira/seriedados',
+      order: 43,
+      confidenceTier: 'oficial_institucional',
+      isAccessible: true,
+      alternative:
+        'Séries SGS do BCB (226 TR, 254 TJLP, 36 IGP-M 12 meses) e Portal da Caixa (SFH/SFN)',
+      coverageStatus: 'coberta_direta',
+    },
   ]
 
   const checkedSources = []
@@ -729,10 +783,10 @@ cronAdd('weekly_content_review', '0 11 * * 1', () => {
     const reviewRecord = new Record(colReviews)
 
     const notes =
-      'Revisão semanal com rotas alternativas oficiais ativas para o arcabouço amplo da Reforma Tributária (Emendas, Leis Complementares, Decretos, Resoluções CGIBS, Instruções Normativas RFB, Soluções de Consulta COSIT, Atos Declaratórios RFB, Portarias MEF, CARF, ANP, SUFRAMA e Diários Municipais AMM/FAMEP). Portal da Legislação do Planalto integrado como fonte primária oficial compilada. Receita Federal do Brasil (RFB) integrada com busca ao vivo de normas e captura de atos (IN RFB 2.215/2024, Portaria RFB 549/2025, SC COSIT 124/2025 e ADI RFB 3/2025). Fontes de jurisprudência (STF/STJ) referenciadas. Fontes protegidas por WAF (Planalto/Presidência) e sem rota de rede do pod (Câmara, CONFAZ, Calculadora Serpro, reformadoconsumo, dadosreceita) possuem cobertura e captura de normas garantidas via proxy intermediado do backend (/backend/v1/download-resolution), API de Dados Abertos do Senado, normas.leg.br, DOU/InLabs, Portal Nacional NF-e/SVRS, CGIBS e Catálogo Dados Abertos Gov.br. Lefisc registrada como única fonte de comparação sem validade legal.'
+      'Revisão semanal com rotas alternativas oficiais ativas para o arcabouço amplo da Reforma Tributária (Emendas, Leis Complementares, Decretos, Resoluções CGIBS, Instruções Normativas RFB, Soluções de Consulta COSIT, Atos Declaratórios RFB, Portarias MEF, CARF, ANP, SUFRAMA e Diários Municipais AMM/FAMEP). Portal da Legislação do Planalto integrado como fonte primária oficial compilada. Receita Federal do Brasil (RFB) integrada com busca ao vivo de normas e captura de atos (IN RFB 2.215/2024, Portaria RFB 549/2025, SC COSIT 124/2025 e ADI RFB 3/2025). Fontes de jurisprudência (STF/STJ) referenciadas. Fontes protegidas por WAF (Planalto/Presidência) e sem rota de rede do pod (Câmara, CONFAZ, Calculadora Serpro, reformadoconsumo, dadosreceita) possuem cobertura e captura de normas garantidas via proxy intermediado do backend (/backend/v1/download-resolution), API de Dados Abertos do Senado, normas.leg.br, DOU/InLabs, Portal Nacional NF-e/SVRS, CGIBS e Catálogo Dados Abertos Gov.br. Lefisc registrada como única fonte de comparação sem validade legal. Fontes estatísticas de indicadores (BCB, IBGE, Tesouro, IPEA, IBGE-Agro, CONAB, Cepea-Esalq e FipeZap; SFH via BCB) registradas como oficiais institucionais, consultadas pelo proxy /backend/v1/fontes-estatisticas com cache e fallback transparente para a base interna.'
 
     const summaryText =
-      'Rotina semanal de segunda-feira executada com sucesso. Cobertura legislativa e captura de normas federais compiladas mantidas ativas e contínuas via Receita Federal (RFB — INs, SC COSIT e Portarias), Planalto (planalto.gov.br/LexML), DOU/InLabs, diários municipais AMM/FAMEP, MEF, CARF, ANP, SUFRAMA, Senado Dados Abertos, normas.leg.br, CGIBS e Portal NF-e/SVRS para todos os atos normativos.'
+      'Rotina semanal de segunda-feira executada com sucesso. Cobertura legislativa e captura de normas federais compiladas mantidas ativas e contínuas via Receita Federal (RFB — INs, SC COSIT e Portarias), Planalto (planalto.gov.br/LexML), DOU/InLabs, diários municipais AMM/FAMEP, MEF, CARF, ANP, SUFRAMA, Senado Dados Abertos, normas.leg.br, CGIBS e Portal NF-e/SVRS para todos os atos normativos. Fontes estatísticas (BCB, IBGE, Tesouro, IPEA, IBGE-Agro, CONAB, Cepea-Esalq, FipeZap e SFH/BCB) verificadas com proxy /backend/v1/fontes-estatisticas ativo.'
 
     reviewRecord.set('review_date', nowIso)
     reviewRecord.set('status', 'ok')
