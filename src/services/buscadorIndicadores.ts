@@ -116,4 +116,5 @@ export function catalogoAgrupado(): Map<string, ResultadoBuscaIndicador[]> {
       baseInterna: /base interna/i.test(item.descricao),
     })
   }
+  return mapa
 }

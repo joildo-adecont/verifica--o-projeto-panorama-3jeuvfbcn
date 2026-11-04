@@ -37,7 +37,6 @@ import {
   type ResultadoBuscaIndicador,
 } from '@/services/buscadorIndicadores'
 import type { ChaveSerieHistorica } from '@/services/seriesHistoricas'
-import { destacarTrechos } from '@/services/destaqueBusca'
 import {
   fetchIndicadoresEconomicos,
   paridadeEntre,
