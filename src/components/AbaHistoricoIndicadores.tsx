@@ -16,6 +16,7 @@ import {
   type ResultadoBuscaIndicador,
 } from '@/services/buscadorIndicadores'
 import { catalogoAgrupado } from '@/services/buscadorIndicadores'
+import { TabelaComparacaoIndices } from '@/components/TabelaComparacaoIndices'
 import type { ChaveSerieHistorica } from '@/services/seriesHistoricas'
 
 /**
@@ -52,6 +53,9 @@ export function AbaHistoricoIndicadores({
 
   return (
     <div className="mt-4 space-y-4">
+      {/* Tabela de comparação — no mínimo 5 índices */}
+      <TabelaComparacaoIndices />
+
       {/* Cabeçalho com logo ADECONT */}
       <div className="flex items-center justify-between gap-3 p-4 rounded-2xl border border-slate-200 bg-white">
         <div className="min-w-0">

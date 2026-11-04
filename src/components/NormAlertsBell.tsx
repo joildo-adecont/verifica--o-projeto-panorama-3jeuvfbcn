@@ -25,12 +25,22 @@ import {
   marcarAlertaComoLido,
   marcarTodosAlertasComoLidos,
 } from '@/services/normAlerts'
+import {
+  fetchAlertasMercado,
+  marcarAlertaMercadoLido,
+  nomeIndiceAlerta,
+  formatarDataAlerta,
+  type AlertaMercado,
+} from '@/services/alertasMercado'
+import { TrendingUp, TrendingDown } from 'lucide-react'
 
 export const NormAlertsBell: React.FC = () => {
   const [aberto, setAberto] = useState(false)
   const [alertas, setAlertas] = useState<NormAlertItem[]>([])
+  const [alertasMercado, setAlertasMercado] = useState<AlertaMercado[]>([])
+  const [avisoMercado, setAvisoMercado] = useState('')
   const [carregando, setCarregando] = useState(false)
-  const [filtroAba, setFiltroAba] = useState<'todos' | 'nao_lidos'>('todos')
+  const [filtroAba, setFiltroAba] = useState<'todos' | 'nao_lidos' | 'mercado'>('todos')
   const popoverRef = useRef<HTMLDivElement>(null)
 
   const carregarAlertas = async () => {
@@ -40,6 +50,13 @@ export const NormAlertsBell: React.FC = () => {
       setAlertas(lista)
     } catch (err) {
       console.warn('Erro ao carregar alertas:', err)
+    }
+    try {
+      const resMercado = await fetchAlertasMercado()
+      setAlertasMercado(resMercado.itens)
+      setAvisoMercado(resMercado.erro ? resMercado.aviso : '')
+    } catch {
+      setAvisoMercado('Alertas de mercado indisponíveis neste momento.')
     } finally {
       setCarregando(false)
     }
@@ -87,7 +104,10 @@ export const NormAlertsBell: React.FC = () => {
     }
   }, [aberto])
 
-  const totalNaoLidos = useMemo(() => alertas.filter((a) => !a.is_read).length, [alertas])
+  const totalNaoLidos = useMemo(
+    () => alertas.filter((a) => !a.is_read).length + alertasMercado.filter((a) => !a.isRead).length,
+    [alertas, alertasMercado],
+  )
 
   const alertasExibidos = useMemo(() => {
     if (filtroAba === 'nao_lidos') {
@@ -95,6 +115,21 @@ export const NormAlertsBell: React.FC = () => {
     }
     return alertas
   }, [alertas, filtroAba])
+
+  const alertasMercadoExibidos = useMemo(() => {
+    if (filtroAba === 'nao_lidos') {
+      return alertasMercado.filter((a) => !a.isRead)
+    }
+    return alertasMercado
+  }, [alertasMercado, filtroAba])
+
+  const handleMarcarAlertaMercadoLido = async (alerta: AlertaMercado, e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation()
+    }
+    setAlertasMercado((prev) => prev.map((a) => (a.id === alerta.id ? { ...a, isRead: true } : a)))
+    await marcarAlertaMercadoLido(alerta.id)
+  }
 
   const handleMarcarLido = async (alerta: NormAlertItem, e?: React.MouseEvent) => {
     if (e) {
@@ -164,7 +199,7 @@ export const NormAlertsBell: React.FC = () => {
               </div>
               <div>
                 <h4 className="text-xs font-bold leading-tight flex items-center gap-1.5 text-slate-100">
-                  <span>Alertas de Revisões</span>
+                  <span>Alertas</span>
                   {totalNaoLidos > 0 && (
                     <span className="bg-rose-500 text-white text-[10px] font-extrabold px-1.5 py-0.2 rounded-full">
                       {totalNaoLidos} novo{totalNaoLidos > 1 ? 's' : ''}
@@ -172,7 +207,7 @@ export const NormAlertsBell: React.FC = () => {
                   )}
                 </h4>
                 <p className="text-[10px] text-slate-300 leading-tight">
-                  Atos, resoluções e alterações legislativas
+                  Normas da Reforma Tributária e mercado financeiro
                 </p>
               </div>
             </div>
@@ -218,6 +253,17 @@ export const NormAlertsBell: React.FC = () => {
               >
                 Não Lidos ({totalNaoLidos})
               </button>
+              <button
+                onClick={() => setFiltroAba('mercado')}
+                className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-colors cursor-pointer flex items-center gap-1 ${
+                  filtroAba === 'mercado'
+                    ? 'bg-panorama-navy text-white shadow-xs'
+                    : 'text-slate-600 hover:bg-slate-200/60'
+                }`}
+              >
+                <TrendingUp className="h-3 w-3" />
+                Mercado ({alertasMercado.length})
+              </button>
             </div>
 
             {totalNaoLidos > 0 && (
@@ -233,7 +279,96 @@ export const NormAlertsBell: React.FC = () => {
 
           {/* Lista de Alertas com a Mais Recente no Topo */}
           <div className="overflow-y-auto flex-1 divide-y divide-slate-100 max-h-[380px] sm:max-h-[440px]">
-            {alertasExibidos.length === 0 ? (
+            {filtroAba === 'mercado' ? (
+              <>
+                {avisoMercado && (
+                  <p className="px-3 py-2 text-[11px] text-amber-800 bg-amber-50 border-b border-amber-200">
+                    {avisoMercado}
+                  </p>
+                )}
+                {alertasMercadoExibidos.length === 0 ? (
+                  <div className="p-8 text-center text-slate-500 space-y-2">
+                    <TrendingUp className="h-7 w-7 text-slate-300 mx-auto" />
+                    <p className="text-xs font-semibold text-slate-700">
+                      Nenhum alerta de mercado registrado.
+                    </p>
+                    <p className="text-[11px] text-slate-400">
+                      A rotina do backend monitora diariamente Ibovespa, IFIX e dólar (PTAX) e grava
+                      alertas quando a variação diária supera os limites definidos.
+                    </p>
+                  </div>
+                ) : (
+                  alertasMercadoExibidos.map((alerta) => (
+                    <div
+                      key={alerta.id}
+                      className={`p-3 sm:p-3.5 flex flex-col gap-2 border-l-4 ${
+                        !alerta.isRead
+                          ? 'bg-amber-50/40 border-l-amber-500'
+                          : 'bg-white border-l-transparent opacity-85'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span
+                            className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full flex items-center gap-1 ${
+                              alerta.direcao === 'alta'
+                                ? 'bg-emerald-100 text-emerald-800'
+                                : 'bg-rose-100 text-rose-800'
+                            }`}
+                          >
+                            {alerta.direcao === 'alta' ? (
+                              <TrendingUp className="h-2.5 w-2.5" />
+                            ) : (
+                              <TrendingDown className="h-2.5 w-2.5" />
+                            )}
+                            {alerta.direcao === 'alta' ? 'Alta' : 'Queda'}{' '}
+                            {alerta.variacaoPct.toFixed(2)}%
+                          </span>
+                          <Badge
+                            variant="outline"
+                            className="text-[10px] py-0 px-1.5 font-semibold text-slate-600 bg-white"
+                          >
+                            {nomeIndiceAlerta(alerta.indice)}
+                          </Badge>
+                          {!alerta.isRead && (
+                            <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
+                          )}
+                        </div>
+                        <span className="text-[10px] font-semibold text-slate-500 flex items-center gap-1">
+                          <Calendar className="h-3 w-3 text-slate-400" />
+                          {formatarDataAlerta(alerta.alertDate)}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-700 bg-slate-50/80 p-2 rounded border border-slate-100">
+                        {alerta.mensagem}
+                      </p>
+                      <div className="flex items-center justify-between text-[10px] pt-1 border-t border-slate-100/80">
+                        <span className="text-slate-500 font-medium flex items-center gap-1.5">
+                          Fonte: {alerta.fonte}
+                          <SeloNivelConfianca
+                            tier="oficial_institucional"
+                            fonte={alerta.fonte}
+                            compacto
+                          />
+                        </span>
+                        {!alerta.isRead ? (
+                          <button
+                            onClick={(e) => handleMarcarAlertaMercadoLido(alerta, e)}
+                            className="inline-flex items-center gap-0.5 text-emerald-700 hover:text-emerald-800 font-bold hover:underline p-1"
+                            title="Marcar este alerta como lido"
+                          >
+                            <Check className="h-3 w-3" />
+                            Lido
+                          </button>
+                        ) : (
+                          <span className="text-slate-400 italic">Lido</span>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </>
+            ) : alertasExibidos.length === 0 ? (
               <div className="p-8 text-center text-slate-500 space-y-2">
                 <Bell className="h-7 w-7 text-slate-300 mx-auto" />
                 <p className="text-xs font-semibold text-slate-700">

@@ -66,6 +66,10 @@ const SINONIMOS: Record<string, string> = {
   salmin: 'salario minimo piso nacional renda',
   ibovespa: 'bolsa valores b3 acoes pontos mercado financeiro indice bovespa',
   ifix: 'fundos imobiliarios fii b3 mercado financeiro indice',
+  sp500: 's&p s&p500 standard poor bolsa internacional nova york indices americanos',
+  dowjones: 'dow jones industrial average bolsa internacional nova york indices americanos',
+  nasdaq: 'nasdaq composite bolsa internacional tecnologia indices americanos',
+  cambio: 'cambio dolar euro moeda estrangeira ptax divisa',
 }
 
 /** Lista os indicadores que correspondem à consulta (todos os termos, "E"). */
@@ -103,6 +107,10 @@ export const SUGESTOES_BUSCA_INDICADORES = [
   'desemprego',
   'Ibovespa',
   'IFIX',
+  'S&P 500',
+  'Dow Jones',
+  'Nasdaq',
+  'câmbio',
 ]
 
 /** Catálogo agrupado por categoria para a listagem padrão da aba Histórico. */

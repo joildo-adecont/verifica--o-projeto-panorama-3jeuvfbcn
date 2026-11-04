@@ -17,8 +17,16 @@ import {
   ArrowDownRight,
   Minus,
   Building2,
+  Newspaper,
+  RefreshCw,
+  ShieldCheck,
 } from 'lucide-react'
 import { SeloNivelConfianca } from '@/components/SeloNivelConfianca'
+import {
+  fetchNoticiasFinanceiras,
+  type NoticiaFinanceira,
+  type RespostaNoticias,
+} from '@/services/noticiasFinanceiras'
 import {
   fetchFontesEstatisticas,
   FONTES_ESTATISTICAS_META,
@@ -142,6 +150,115 @@ function formatarDataSeguro(iso: string): string {
   return d.toLocaleDateString('pt-BR')
 }
 
+function BlocoNoticias() {
+  const [noticias, setNoticias] = useState<RespostaNoticias | null>(null)
+  const [carregandoNoticias, setCarregandoNoticias] = useState(true)
+
+  useEffect(() => {
+    let montado = true
+    fetchNoticiasFinanceiras().then((res) => {
+      if (!montado) return
+      setNoticias(res)
+      setCarregandoNoticias(false)
+    })
+    return () => {
+      montado = false
+    }
+  }, [])
+
+  const atualizar = () => {
+    setCarregandoNoticias(true)
+    fetchNoticiasFinanceiras().then((res) => {
+      setNoticias(res)
+      setCarregandoNoticias(false)
+    })
+  }
+
+  return (
+    <section className="p-4 rounded-2xl border border-slate-200 bg-white space-y-3">
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-panorama-navy text-panorama-gold-light shrink-0">
+            <Newspaper className="w-4 h-4" />
+          </span>
+          <div className="min-w-0">
+            <h3 className="text-sm font-black text-slate-900 leading-snug">
+              Notícias financeiras — Banco Central do Brasil
+            </h3>
+            <p className="text-[10.5px] text-slate-500">
+              Agência de Notícias do BCB — via proxy do backend (RSS oficial, cache próprio).
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <SeloNivelConfianca tier="oficial_institucional" compacto />
+          <button
+            type="button"
+            onClick={atualizar}
+            title="Atualizar notícias"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-panorama-gold hover:bg-slate-100 cursor-pointer"
+          >
+            <RefreshCw className={'w-3.5 h-3.5 ' + (carregandoNoticias ? 'animate-spin' : '')} />
+          </button>
+        </div>
+      </div>
+
+      {carregandoNoticias ? (
+        <div className="space-y-2">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="h-12 rounded-xl bg-slate-100 animate-pulse" />
+          ))}
+        </div>
+      ) : noticias && noticias.itens.length > 0 ? (
+        <ul className="space-y-2">
+          {noticias.itens.slice(0, 8).map((n: NoticiaFinanceira) => (
+            <li key={n.guid}>
+              <a
+                href={n.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block p-2.5 rounded-xl border border-slate-200 bg-slate-50/60 hover:border-panorama-gold hover:bg-slate-50 transition-colors group"
+              >
+                <span className="flex items-start justify-between gap-2">
+                  <span className="text-xs font-bold text-slate-800 leading-snug">{n.titulo}</span>
+                  <ExternalLink className="w-3 h-3 text-slate-400 group-hover:text-panorama-gold shrink-0 mt-0.5" />
+                </span>
+                {n.resumo && (
+                  <span className="block text-[10.5px] text-slate-500 mt-0.5 line-clamp-2">
+                    {n.resumo}
+                  </span>
+                )}
+                <span className="flex items-center gap-1.5 mt-1">
+                  <span className="text-[9.5px] px-1.5 py-0.5 rounded bg-slate-200 text-[9.5px] font-bold text-slate-600">
+                    fonte oficial institucional
+                  </span>
+                  {n.publicadoEm && (
+                    <span className="text-[10px] text-slate-400">
+                      {formatarDataSeguro(n.publicadoEm)}
+                    </span>
+                  )}
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-xs text-amber-800 bg-amber-50 border border-amber-300 rounded-lg p-2.5">
+          {noticias?.aviso ||
+            'Notícias financeiras indisponíveis neste momento — tente atualizar o portal mais tarde.'}
+        </p>
+      )}
+
+      {noticias && noticias.aviso && noticias.itens.length > 0 && (
+        <p className="text-[10.5px] text-amber-700 flex items-start gap-1.5">
+          <ShieldCheck className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+          {noticias.aviso}
+        </p>
+      )}
+    </section>
+  )
+}
+
 export function AbaMercadoFinanceiro() {
   const [resposta, setResposta] = useState<RespostaFontesEstatisticas | null>(null)
   const [carregando, setCarregando] = useState(true)
@@ -197,6 +314,9 @@ export function AbaMercadoFinanceiro() {
           Nenhum índice de mercado financeiro disponível no momento. Tente atualizar o portal.
         </div>
       )}
+
+      {/* Bloco de notícias financeiras — RSS oficial do Banco Central */}
+      <BlocoNoticias />
     </div>
   )
 }

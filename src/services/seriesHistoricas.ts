@@ -51,6 +51,9 @@ export type ChaveSerieHistorica =
   | 'salmin'
   | 'ibovespa'
   | 'ifix'
+  | 'sp500'
+  | 'dowjones'
+  | 'nasdaq'
 
 export type GranularidadeHistorica = 'mensal' | 'trimestral' | 'anual'
 
@@ -600,7 +603,7 @@ export const CATALOGO_SERIES: CatalogoSerie[] = [
   {
     chave: 'ifix',
     nome: 'IFIX',
-    descricao: 'IFIX — índice de fundos imobiliários da B3 (base interna)',
+    descricao: 'IFIX — índice de fundos imobiliários da B3, fechamento mensal — IPEA/IPEADATA',
     categoria: 'Mercado Financeiro',
     unidade: 'pontos',
     modoAcumulado: 'nivel',
@@ -608,6 +611,45 @@ export const CATALOGO_SERIES: CatalogoSerie[] = [
     fonteUrl: 'https://www.ipeadata.gov.br',
     selo: 'oficial_institucional',
     termo: 'ifix fundo imobiliario fii b3 mercado financeiro',
+    formatoValor: 'bruto',
+  },
+  {
+    chave: 'sp500',
+    nome: 'S&P 500',
+    descricao: 'Índice S&P 500 (bolsa de NY) — fechamento mensal — IPEA/IPEADATA',
+    categoria: 'Mercado Financeiro',
+    unidade: 'pontos',
+    modoAcumulado: 'nivel',
+    fonte: 'IPEA — IPEADATA (S&P 500)',
+    fonteUrl: 'https://www.ipeadata.gov.br',
+    selo: 'oficial_institucional',
+    termo: 'sp500 s&p standard poor bolsas internacionais nova york',
+    formatoValor: 'bruto',
+  },
+  {
+    chave: 'dowjones',
+    nome: 'Dow Jones',
+    descricao: 'Índice Dow Jones Industrial Average — fechamento mensal — IPEA/IPEADATA',
+    categoria: 'Mercado Financeiro',
+    unidade: 'pontos',
+    modoAcumulado: 'nivel',
+    fonte: 'IPEA — IPEADATA (Dow Jones)',
+    fonteUrl: 'https://www.ipeadata.gov.br',
+    selo: 'oficial_institucional',
+    termo: 'dow jones industrial average bolsas internacionais nova york',
+    formatoValor: 'bruto',
+  },
+  {
+    chave: 'nasdaq',
+    nome: 'Nasdaq',
+    descricao: 'Índice Nasdaq Composite — fechamento mensal — IPEA/IPEADATA',
+    categoria: 'Mercado Financeiro',
+    unidade: 'pontos',
+    modoAcumulado: 'nivel',
+    fonte: 'IPEA — IPEADATA (Nasdaq)',
+    fonteUrl: 'https://www.ipeadata.gov.br',
+    selo: 'oficial_institucional',
+    termo: 'nasdaq composite bolsas internacionais tecnologia',
     formatoValor: 'bruto',
   },
 ]
@@ -646,6 +688,9 @@ function serieBaseInterna(item: CatalogoSerie): PontoSerie[] {
     salmin: [3.9, 4.1, 4.2, 4.5, 4.5, 4.5],
     ibovespa: [128400, 131200, 134600, 138500, 138500, 138500],
     ifix: [2040, 2055, 2071, 2080, 2080, 2080],
+    sp500: [4766, 4796, 5074, 5672, 5672, 5672],
+    dowjones: [36187, 37690, 39807, 42630, 42630, 42630],
+    nasdaq: [10464, 11394, 16794, 18249, 18249, 18249],
   }
   const valores = base[item.chave]
   if (!valores) return []
