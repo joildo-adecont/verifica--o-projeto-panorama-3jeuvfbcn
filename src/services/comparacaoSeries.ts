@@ -40,21 +40,45 @@ export interface LinhaComparacao {
 
 /** Índices oferecidos para comparação (todos com série oficial no backend). */
 export const CHAVES_COMPARACAO: ChaveSerieHistorica[] = [
+  // Inflação e correção
   'ipca',
+  'ipca15',
   'igpm',
+  'igpdi',
   'inpc',
   'ipc',
+  // Taxas
   'selic',
   'cdi',
+  'tr',
   'poupanca',
+  'tjlp',
+  'juros_medio',
+  'juros_pessoal',
+  'inadimplencia',
+  // Câmbio
   'usd',
   'eur',
+  'gbp',
+  'jpy',
+  'yuan',
+  // Mercado financeiro
   'fipezap',
   'ibovespa',
   'ifix',
   'sp500',
   'dowjones',
   'nasdaq',
+  // Agronegócio
+  'boi_gordo',
+  'soja',
+  'milho',
+  // Atividade e emprego
+  'pib',
+  'desemprego',
+  'renda_media',
+  'producao_industrial',
+  'venda_varejo',
 ]
 
 /** Seleção padrão — 6 índices (mínimo exigido: 5). */

@@ -130,6 +130,36 @@ const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
     data: '04/11/2026',
+    hora: '20:00',
+    titulo:
+      'Analisador Tributário — comparação fina entre a tributação de hoje e a da reforma, por produto, grupo, ramo e atividade, com simulação até 2033 e busca avançada',
+    conteudo:
+      'A pedido do CEO: criar no Parametrizador um icone chamado Analisador Tributario, responsavel por analises finas da tributacao atual contra a da reforma, com comparativos das duas, indicando por produto, grupo, ramo e atividades relacionadas ao cliente o melhor caminho e a melhor tributacao, com simulacoes futuras e busca avancada nativa, sempre com agentes especialistas de cada quebra dos XMLs. Entregue como 8a aba da Secao 31, com CINCO ESPECIALISTAS identificados na tela: PRODUTO (classifica o NCM e compara item a item), GRUPO (agrega por tratamento, ponderando por valor), RAMO (cruza os NCMs com as atividades tipicas), TRANSICAO (projeta 2026 a 2033) e CAMINHO (consolida e aponta onde agir primeiro). A DECISAO CENTRAL foi separar o que e calculavel do que e estimativa: a carga de hoje e a aliquota MODAL do ICMS do estado mais PIS/COFINS 9,25%, declarada em aliquotasAtuais.ts com a norma de cada UF e marcando os tres estados onde as fontes publicas divergem (AL, PI, RN); a carga da reforma vem de aliquotas.ts, fonte unica, com o fator do tratamento de cada NCM. O consolidado e entregue em FAIXA, nao em numero unico, porque a incerteza dos itens sem regra se acumula. NOVA TABELA aliquotasAtuais.ts com as 27 UFs, adicional de fundo separado (FECOEP/FECP/FECOP), aliquota interestadual por regiao e a ressalva de que nada disso considera beneficio fiscal, substituicao tributaria ou credito outorgado. FUNCIONALIDADES: simulacao ano a ano com a maior DIFERENCA separada da maior CARGA absoluta (em 2026 a reforma esta em teste e a diferenca e maxima por quase nada ser cobrado, o que seria ler o numero ao contrario); recomendacoes ordenadas por prioridade, cada uma com motivo, acao e impacto; busca avancada com varios termos em E logico, filtros por tratamento, tendencia, Imposto Seletivo e itens que exigem conferencia, com ordenacao por valor, variacao ou NCM; exportacao em CSV e impressao. RESULTADO NO CLIENTE REAL (DIO SANTO TRATTORIA, 10 itens, R$ 1.109,92, UF RS): carga de hoje 26,25% contra 21,90% na reforma, reducao de 4,35 pontos percentuais, em faixa de -5,75 a -2,95. Mussarela e manteiga com aliquota zero; extrato de tomate com reducao de 60%; 7 dos 10 itens sem regra de aliquota, que receberam a integral por presuncao. DEFEITO GRAVE CORRIGIDO NO CAMINHO: a primeira versao pedia todos os itens da base e tentava filtrar no navegador com um return true que nao filtrava nada — o analisador mostraria a carteira inteira do escritorio como se fosse a de um cliente. Corrigido com rota propria que filtra no servidor pelo campo pasta do item e pelo CNPJ nas partes do documento; validado: 10 itens do DIO SANTO e ZERO de outros clientes.',
+    fontes: [
+      {
+        titulo: 'LC 214/2025 — Anexos I a XVIII e art. 349 (normas.leg.br)',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
+      },
+      {
+        titulo: 'Resolução CGIBS 6/2026 — Regulamento do IBS',
+        url: 'https://www.cgibs.gov.br/resolucoes',
+      },
+      {
+        titulo: 'Resolução CGIBS nº 14/2026 — alíquota de referência do IBS (18,70%)',
+        url: 'https://www.cgibs.gov.br/resolucoes',
+      },
+      {
+        titulo: 'RICMS/RS, Livro I, art. 27, X — alíquota interna de 17% (Decreto 37.699/1997)',
+        url: 'https://www.sefaz.rs.gov.br/',
+      },
+    ],
+    caminho:
+      'src/components/ParametrizadorAnalisador.tsx + src/data/analisadorTributario.ts + src/data/aliquotasAtuais.ts + pocketbase/hooks/itens_cliente.js + src/components/SectionParametrizador.tsx',
+    versao: 'v0.0.550',
+    bloco: 'sistema',
+  },
+  {
+    data: '04/11/2026',
     hora: '02:20',
     titulo:
       'Corrigido erro grave de direção: o CFOP é a ótica do EMITENTE — compra do cliente ia para Vendas',
