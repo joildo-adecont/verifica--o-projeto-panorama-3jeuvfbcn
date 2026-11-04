@@ -39,6 +39,8 @@ export interface FonteVigiada {
   motivo?: string
   /** Quem cobre a função dela quando ela falha */
   substituto?: string[]
+  /** Canal oficial (e-mail) para solicitar desbloqueio da fonte */
+  canalDesbloqueio?: string
   /** Se a assinatura divergiu na última varredura */
   mudou: boolean
   ultimoStatus?: string

@@ -10,6 +10,7 @@ import {
   FileStack,
   FileText,
   Folder,
+  Scale,
   Layers,
   RefreshCw,
   ScanLine,
@@ -21,6 +22,7 @@ import { ParametrizadorAnalise } from '@/components/ParametrizadorAnalise'
 import { ParametrizadorLote } from '@/components/ParametrizadorLote'
 import { ParametrizadorTesteIndividual } from '@/components/ParametrizadorTesteIndividual'
 import { ParametrizadorPastas } from '@/components/ParametrizadorPastas'
+import { ParametrizadorAnalisador } from '@/components/ParametrizadorAnalisador'
 
 /**
  * PARAMETRIZADOR DE DOCUMENTOS FISCAIS DA REFORMA — Seção 31
@@ -235,7 +237,7 @@ const ROTULO_RT: Record<string, { txt: string; cls: string }> = {
 export function SectionParametrizador() {
   const [token, setToken] = useState('')
   const [aba, setAba] = useState<
-    'catalogo' | 'importar' | 'documentos' | 'analise' | 'lote' | 'teste' | 'pastas'
+    'catalogo' | 'importar' | 'documentos' | 'analise' | 'lote' | 'teste' | 'pastas' | 'analisador'
   >('catalogo')
   const [xml, setXml] = useState('')
   const [nomeArquivo, setNomeArquivo] = useState('documento.xml')
@@ -373,6 +375,10 @@ export function SectionParametrizador() {
               /* FASE 6 (03/11/2026): pastas por cliente. "Não misturar" exige
                  trava na gravação, não só separação visual. */
               { id: 'pastas' as const, nome: 'Pastas por cliente', Icon: Folder },
+              /* ANALISADOR TRIBUTÁRIO (04/11/2026): comparação fina entre a
+                 tributação de hoje e a da reforma, por produto, grupo e ramo,
+                 com simulação da transição e o melhor caminho. */
+              { id: 'analisador' as const, nome: 'Analisador tributário', Icon: Scale },
             ].map((t) => (
               <button
                 key={t.id}
@@ -862,6 +868,9 @@ export function SectionParametrizador() {
 
           {/* ══════════ FASE 6: PASTAS POR CLIENTE ══════════ */}
           {aba === 'pastas' && <ParametrizadorPastas />}
+
+          {/* ══════════ ANALISADOR TRIBUTÁRIO ══════════ */}
+          {aba === 'analisador' && <ParametrizadorAnalisador />}
 
           {/* rodapé */}
           <div className="flex items-center gap-1.5 flex-wrap rounded-lg bg-slate-50 px-2 py-1.5 text-[9px] text-slate-500">

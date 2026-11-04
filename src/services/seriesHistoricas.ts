@@ -1,38 +1,57 @@
 /**
- * SERVIÇO — Séries históricas e acumulados dos indicadores do portal de
- * Indicadores Econômicos e Financeiros (aba Histórico).
+ * SÉRIES HISTÓRICAS E ACUMULADOS — portal de Indicadores Econômicos e
+ * Financeiros (aba Histórico).
  *
  * Consome EXCLUSIVAMENTE o proxy do backend /backend/v1/series-historicas
  * (hook pocketbase/hooks/series_historicas_route.js) — o navegador nunca fala
  * direto com BCB/IBGE (padrão anti-bloqueio do projeto). Quando a fonte viva
  * falha, cada indicador cai na base interna aproximada com o aviso transparente
  * "Base interna — dado aproximado", mesmo padrão do portal.
+ *
+ * CONTRATO COM O HOOK (versão implantada):
+ * GET /backend/v1/series-historicas?chave=<chave>
+ *   → { ok, chave, fonteViva, baseInterna, fonte,
+ *       serie: [{ periodo, valor }], aviso }
+ *   - periodo normalizado no hook: 'YYYY-MM' (mensal, incluindo séries diárias
+ *     colapsadas em "mensal_ultimo"), 'YYYY-Qn' (trimestral) ou 'YYYY'.
+ *   - ordenação ASCENDENTE, teto de 3.000 pontos truncando pelo mais recente e
+ *     resposta final limitada a 360 pontos mensais.
+ *   - fonte morta/sem API aberta ⇒ fonteViva=false + baseInterna=true com o
+ *     aviso transparente — o frontend cai na base interna, nunca erro cru.
  */
 import pb from '@/lib/pocketbase/client'
 
 export type ChaveSerieHistorica =
   | 'ipca'
+  | 'ipca15'
   | 'igpm'
+  | 'igpdi'
   | 'inpc'
   | 'ipc'
   | 'selic'
   | 'cdi'
   | 'tr'
   | 'poupanca'
+  | 'tjlp'
+  | 'juros_medio'
+  | 'juros_pessoal'
+  | 'inadimplencia'
   | 'usd'
   | 'eur'
   | 'gbp'
   | 'jpy'
+  | 'yuan'
   | 'pib'
   | 'desemprego'
   | 'renda_media'
+  | 'producao_industrial'
+  | 'venda_varejo'
   | 'populacao_ocupada'
   | 'agro_producao'
   | 'boi_gordo'
   | 'soja'
   | 'milho'
   | 'fipezap'
-  | 'tjlp'
   | 'matriculas_basica'
   | 'ideb_anos_iniciais'
   | 'ideb_anos_finais'
@@ -91,7 +110,12 @@ export interface CatalogoSerie {
   formatoValor: 'pct' | 'real' | 'bruto'
 }
 
+const SEL_PADRAO = {
+  selo: 'oficial_institucional',
+} as const
+
 export const CATALOGO_SERIES: CatalogoSerie[] = [
+  // — Inflação e correção (variação % mensal) —
   {
     chave: 'ipca',
     nome: 'IPCA',
@@ -101,8 +125,21 @@ export const CATALOGO_SERIES: CatalogoSerie[] = [
     modoAcumulado: 'variacao_mensal',
     fonte: 'IBGE / BCB',
     fonteUrl: 'https://www.ibge.gov.br',
-    selo: 'oficial_institucional',
+    ...SEL_PADRAO,
     termo: 'inflacao ipca preco consumidor correcao monetaria',
+    formatoValor: 'pct',
+  },
+  {
+    chave: 'ipca15',
+    nome: 'IPCA-15',
+    descricao: 'Índice de Preços ao Consumidor Amplo 15 — prévia do IPCA — BCB SGS 7478',
+    categoria: 'Inflação e correção',
+    unidade: '% a.m.',
+    modoAcumulado: 'variacao_mensal',
+    fonte: 'IBGE / BCB',
+    fonteUrl: 'https://www.ibge.gov.br',
+    ...SEL_PADRAO,
+    termo: 'inflacao ipca15 previa preco consumidor amplo',
     formatoValor: 'pct',
   },
   {
@@ -114,8 +151,21 @@ export const CATALOGO_SERIES: CatalogoSerie[] = [
     modoAcumulado: 'variacao_mensal',
     fonte: 'FGV / BCB',
     fonteUrl: 'https://www.fgv.br',
-    selo: 'oficial_institucional',
+    ...SEL_PADRAO,
     termo: 'inflacao igpm aluguel correcao fgv mercado',
+    formatoValor: 'pct',
+  },
+  {
+    chave: 'igpdi',
+    nome: 'IGP-DI',
+    descricao: 'Índice Geral de Preços — Disponibilidade Interna — FGV/BCB SGS 190',
+    categoria: 'Inflação e correção',
+    unidade: '% a.m.',
+    modoAcumulado: 'variacao_mensal',
+    fonte: 'FGV / BCB',
+    fonteUrl: 'https://www.fgv.br',
+    ...SEL_PADRAO,
+    termo: 'inflacao igpdi disponibilidade interna fgv correcao',
     formatoValor: 'pct',
   },
   {
@@ -127,7 +177,7 @@ export const CATALOGO_SERIES: CatalogoSerie[] = [
     modoAcumulado: 'variacao_mensal',
     fonte: 'IBGE / BCB',
     fonteUrl: 'https://www.ibge.gov.br',
-    selo: 'oficial_institucional',
+    ...SEL_PADRAO,
     termo: 'inflacao inpc salario consumidor correcao',
     formatoValor: 'pct',
   },
@@ -140,7 +190,7 @@ export const CATALOGO_SERIES: CatalogoSerie[] = [
     modoAcumulado: 'variacao_mensal',
     fonte: 'Fipe / BCB',
     fonteUrl: 'https://www.fipe.org.br',
-    selo: 'oficial_institucional',
+    ...SEL_PADRAO,
     termo: 'inflacao ipc fipe consumidor sao paulo correcao',
     formatoValor: 'pct',
   },
@@ -153,7 +203,7 @@ export const CATALOGO_SERIES: CatalogoSerie[] = [
     modoAcumulado: 'variacao_mensal',
     fonte: 'Banco Central do Brasil',
     fonteUrl: 'https://www.bcb.gov.br',
-    selo: 'oficial_institucional',
+    ...SEL_PADRAO,
     termo: 'taxa tr referencial poupanca sfh correcao',
     formatoValor: 'pct',
   },
@@ -166,10 +216,11 @@ export const CATALOGO_SERIES: CatalogoSerie[] = [
     modoAcumulado: 'variacao_mensal',
     fonte: 'Banco Central do Brasil',
     fonteUrl: 'https://www.bcb.gov.br',
-    selo: 'oficial_institucional',
+    ...SEL_PADRAO,
     termo: 'taxa poupanca rendimento caderneta',
     formatoValor: 'pct',
   },
+  // — Taxas de juros e crédito —
   {
     chave: 'selic',
     nome: 'Selic',
@@ -179,7 +230,7 @@ export const CATALOGO_SERIES: CatalogoSerie[] = [
     modoAcumulado: 'nivel',
     fonte: 'Banco Central do Brasil',
     fonteUrl: 'https://www.bcb.gov.br',
-    selo: 'oficial_institucional',
+    ...SEL_PADRAO,
     termo: 'taxa selic juros copom basica',
     formatoValor: 'pct',
   },
@@ -192,7 +243,7 @@ export const CATALOGO_SERIES: CatalogoSerie[] = [
     modoAcumulado: 'nivel',
     fonte: 'B3 / BCB',
     fonteUrl: 'https://www.bcb.gov.br',
-    selo: 'oficial_institucional',
+    ...SEL_PADRAO,
     termo: 'taxa cdi di juros b3',
     formatoValor: 'pct',
   },
@@ -205,62 +256,116 @@ export const CATALOGO_SERIES: CatalogoSerie[] = [
     modoAcumulado: 'nivel',
     fonte: 'Banco Central do Brasil',
     fonteUrl: 'https://www.bcb.gov.br',
-    selo: 'oficial_institucional',
+    ...SEL_PADRAO,
     termo: 'taxa tjlp longo prazo financiamento',
     formatoValor: 'pct',
   },
   {
+    chave: 'juros_medio',
+    nome: 'Juros médio',
+    descricao: 'Taxa média de juros das operações de crédito — BCB SGS 20714',
+    categoria: 'Crédito e inadimplência',
+    unidade: '% a.a.',
+    modoAcumulado: 'nivel',
+    fonte: 'Banco Central do Brasil',
+    fonteUrl: 'https://www.bcb.gov.br',
+    ...SEL_PADRAO,
+    termo: 'credito juros medio taxa operacoes bancario',
+    formatoValor: 'pct',
+  },
+  {
+    chave: 'juros_pessoal',
+    nome: 'Juros pessoal',
+    descricao: 'Taxa média de juros do crédito pessoal — BCB SGS 20746',
+    categoria: 'Crédito e inadimplência',
+    unidade: '% a.a.',
+    modoAcumulado: 'nivel',
+    fonte: 'Banco Central do Brasil',
+    fonteUrl: 'https://www.bcb.gov.br',
+    ...SEL_PADRAO,
+    termo: 'credito juros pessoal taxa emprestimo rotativo',
+    formatoValor: 'pct',
+  },
+  {
+    chave: 'inadimplencia',
+    nome: 'Inadimplência',
+    descricao: 'Inadimplência da carteira de crédito — % da carteira — BCB SGS 21114',
+    categoria: 'Crédito e inadimplência',
+    unidade: '% da carteira',
+    modoAcumulado: 'nivel',
+    fonte: 'Banco Central do Brasil',
+    fonteUrl: 'https://www.bcb.gov.br',
+    ...SEL_PADRAO,
+    termo: 'credito inadimplencia carteira banca default',
+    formatoValor: 'pct',
+  },
+  // — Câmbio —
+  {
     chave: 'usd',
     nome: 'Dólar (USD)',
-    descricao: 'Câmbio — dólar comercial PTAX compra, mensal — BCB SGS 10813',
+    descricao: 'Câmbio — dólar comercial PTAX compra, último do mês — BCB SGS 10813',
     categoria: 'Câmbio',
     unidade: 'R$/USD',
     modoAcumulado: 'nivel',
     fonte: 'Banco Central do Brasil',
     fonteUrl: 'https://www.bcb.gov.br',
-    selo: 'oficial_institucional',
+    ...SEL_PADRAO,
     termo: 'cambio dolar usd moeda ptax',
     formatoValor: 'bruto',
   },
   {
     chave: 'eur',
     nome: 'Euro (EUR)',
-    descricao: 'Câmbio — euro PTAX compra, mensal — BCB SGS 21619',
+    descricao: 'Câmbio — euro PTAX compra, último do mês — BCB SGS 21619',
     categoria: 'Câmbio',
     unidade: 'R$/EUR',
     modoAcumulado: 'nivel',
     fonte: 'Banco Central do Brasil',
     fonteUrl: 'https://www.bcb.gov.br',
-    selo: 'oficial_institucional',
+    ...SEL_PADRAO,
     termo: 'cambio euro eur moeda ptax',
     formatoValor: 'bruto',
   },
   {
     chave: 'gbp',
     nome: 'Libra (GBP)',
-    descricao: 'Câmbio — libra esterlina PTAX compra, mensal — BCB SGS 21621',
+    descricao: 'Câmbio — libra esterlina PTAX compra, último do mês — BCB SGS 21621',
     categoria: 'Câmbio',
     unidade: 'R$/GBP',
     modoAcumulado: 'nivel',
     fonte: 'Banco Central do Brasil',
     fonteUrl: 'https://www.bcb.gov.br',
-    selo: 'oficial_institucional',
+    ...SEL_PADRAO,
     termo: 'cambio libra gbp esterlina moeda ptax',
     formatoValor: 'bruto',
   },
   {
     chave: 'jpy',
     nome: 'Iene (JPY)',
-    descricao: 'Câmbio — iene japonês PTAX compra, mensal — BCB SGS 21620',
+    descricao: 'Câmbio — iene japonês PTAX compra, último do mês — BCB SGS 21620',
     categoria: 'Câmbio',
     unidade: 'R$/JPY',
     modoAcumulado: 'nivel',
     fonte: 'Banco Central do Brasil',
     fonteUrl: 'https://www.bcb.gov.br',
-    selo: 'oficial_institucional',
+    ...SEL_PADRAO,
     termo: 'cambio iene jpy japao moeda ptax',
     formatoValor: 'bruto',
   },
+  {
+    chave: 'yuan',
+    nome: 'Yuan (CNY)',
+    descricao: 'Câmbio — yuan chinês PTAX compra, último do mês — BCB SGS 21623',
+    categoria: 'Câmbio',
+    unidade: 'R$/CNY',
+    modoAcumulado: 'nivel',
+    fonte: 'Banco Central do Brasil',
+    fonteUrl: 'https://www.bcb.gov.br',
+    ...SEL_PADRAO,
+    termo: 'cambio yuan cny china renminbi moeda ptax',
+    formatoValor: 'bruto',
+  },
+  // — Estatísticas —
   {
     chave: 'pib',
     nome: 'PIB',
@@ -270,7 +375,7 @@ export const CATALOGO_SERIES: CatalogoSerie[] = [
     modoAcumulado: 'nivel',
     fonte: 'IBGE — SIDRA',
     fonteUrl: 'https://www.ibge.gov.br',
-    selo: 'oficial_institucional',
+    ...SEL_PADRAO,
     termo: 'pib produto interno bruto atividade economia',
     formatoValor: 'pct',
   },
@@ -283,49 +388,76 @@ export const CATALOGO_SERIES: CatalogoSerie[] = [
     modoAcumulado: 'nivel',
     fonte: 'IBGE — PNAD Contínua',
     fonteUrl: 'https://www.ibge.gov.br',
-    selo: 'oficial_institucional',
+    ...SEL_PADRAO,
     termo: 'desemprego emprego pnad desocupados trabalho',
     formatoValor: 'pct',
   },
   {
     chave: 'renda_media',
     nome: 'Renda média',
-    descricao: 'Renda média real habitual do trabalhador — PNAD t5935',
+    descricao: 'Renda média real habitual do trabalhador — PNAD t5932',
     categoria: 'Estatísticas',
     unidade: 'R$/mês',
     modoAcumulado: 'nivel',
     fonte: 'IBGE — PNAD Contínua',
     fonteUrl: 'https://www.ibge.gov.br',
-    selo: 'oficial_institucional',
+    ...SEL_PADRAO,
     termo: 'renda media trabalhador salario pnad',
     formatoValor: 'real',
   },
   {
+    chave: 'producao_industrial',
+    nome: 'Produção industrial',
+    descricao: 'Produção industrial — PIM-PF, variação % — IBGE SIDRA t8885',
+    categoria: 'Estatísticas',
+    unidade: '%',
+    modoAcumulado: 'nivel',
+    fonte: 'IBGE — PIM-PF',
+    fonteUrl: 'https://www.ibge.gov.br',
+    ...SEL_PADRAO,
+    termo: 'industria producao industrial pim pf fabricacao',
+    formatoValor: 'pct',
+  },
+  {
+    chave: 'venda_varejo',
+    nome: 'Vendas varejo',
+    descricao: 'Vendas no varejo nominal — PMS, variação % — IBGE SIDRA t8883',
+    categoria: 'Estatísticas',
+    unidade: '%',
+    modoAcumulado: 'nivel',
+    fonte: 'IBGE — PMS',
+    fonteUrl: 'https://www.ibge.gov.br',
+    ...SEL_PADRAO,
+    termo: 'varejo vendas comercio pms consumo',
+    formatoValor: 'pct',
+  },
+  {
     chave: 'populacao_ocupada',
     nome: 'População ocupada',
-    descricao: 'População ocupada — PNAD Contínua t4099',
+    descricao: 'População ocupada — PNAD Contínua t4099 (base interna)',
     categoria: 'Estatísticas',
     unidade: 'mil pessoas',
     modoAcumulado: 'nivel',
     fonte: 'IBGE — PNAD Contínua',
     fonteUrl: 'https://www.ibge.gov.br',
-    selo: 'oficial_institucional',
+    ...SEL_PADRAO,
     termo: 'populacao ocupada emprego trabalhadores pnad',
     formatoValor: 'bruto',
   },
   {
     chave: 'agro_producao',
     nome: 'Produção agropecuária',
-    descricao: 'Produção da agropecuária — variação % anual — IBGE t6588',
+    descricao: 'Produção da agropecuária — variação % anual — IBGE t6588 (base interna)',
     categoria: 'Agronegócio',
     unidade: '% a.a.',
     modoAcumulado: 'nivel',
     fonte: 'IBGE — LSPA',
     fonteUrl: 'https://www.ibge.gov.br',
-    selo: 'oficial_institucional',
+    ...SEL_PADRAO,
     termo: 'agro agronegocio producao agropecuaria safra lspa',
     formatoValor: 'pct',
   },
+  // — Agronegócio —
   {
     chave: 'boi_gordo',
     nome: 'Boi gordo',
@@ -335,7 +467,7 @@ export const CATALOGO_SERIES: CatalogoSerie[] = [
     modoAcumulado: 'nivel',
     fonte: 'Cepea-Esalq/USP',
     fonteUrl: 'https://www.cepea.esalq.usp.br',
-    selo: 'oficial_institucional',
+    ...SEL_PADRAO,
     termo: 'agro boi gordo cepea arroba pecuaria preco',
     formatoValor: 'real',
   },
@@ -348,7 +480,7 @@ export const CATALOGO_SERIES: CatalogoSerie[] = [
     modoAcumulado: 'nivel',
     fonte: 'Cepea-Esalq/USP',
     fonteUrl: 'https://www.cepea.esalq.usp.br',
-    selo: 'oficial_institucional',
+    ...SEL_PADRAO,
     termo: 'agro soja cepea saca grao preco',
     formatoValor: 'real',
   },
@@ -361,10 +493,11 @@ export const CATALOGO_SERIES: CatalogoSerie[] = [
     modoAcumulado: 'nivel',
     fonte: 'Cepea-Esalq/USP',
     fonteUrl: 'https://www.cepea.esalq.usp.br',
-    selo: 'oficial_institucional',
+    ...SEL_PADRAO,
     termo: 'agro milho cepea saca grao preco',
     formatoValor: 'real',
   },
+  // — Imobiliário —
   {
     chave: 'fipezap',
     nome: 'FipeZap',
@@ -374,9 +507,75 @@ export const CATALOGO_SERIES: CatalogoSerie[] = [
     modoAcumulado: 'variacao_mensal',
     fonte: 'FipeZap (Fipe/ZAP+)',
     fonteUrl: 'https://www.fipe.org.br',
-    selo: 'oficial_institucional',
+    ...SEL_PADRAO,
     termo: 'imobiliario fipezap imovel residencial aluguel preco',
     formatoValor: 'pct',
+  },
+  // — Mercado Financeiro —
+  {
+    chave: 'ibovespa',
+    nome: 'Ibovespa',
+    descricao: 'Ibovespa — pontos da B3, último do mês — BCB SGS 7',
+    categoria: 'Mercado Financeiro',
+    unidade: 'pontos',
+    modoAcumulado: 'nivel',
+    fonte: 'B3 / Banco Central — SGS 7',
+    fonteUrl: 'https://www.b3.com.br',
+    ...SEL_PADRAO,
+    termo: 'ibovespa b3 bolsa acoes mercado financeiro indice',
+    formatoValor: 'bruto',
+  },
+  {
+    chave: 'ifix',
+    nome: 'IFIX',
+    descricao: 'IFIX — índice de fundos imobiliários da B3, último do mês — IPEA/IPEADATA',
+    categoria: 'Mercado Financeiro',
+    unidade: 'pontos',
+    modoAcumulado: 'nivel',
+    fonte: 'B3 / IPEA — IPEADATA',
+    fonteUrl: 'https://www.ipeadata.gov.br',
+    ...SEL_PADRAO,
+    termo: 'ifix fundo imobiliario fii b3 mercado financeiro',
+    formatoValor: 'bruto',
+  },
+  {
+    chave: 'sp500',
+    nome: 'S&P 500',
+    descricao: 'Índice S&P 500 (bolsa de NY), último do mês — IPEA/IPEADATA',
+    categoria: 'Mercado Financeiro',
+    unidade: 'pontos',
+    modoAcumulado: 'nivel',
+    fonte: 'IPEA — IPEADATA (S&P 500)',
+    fonteUrl: 'https://www.ipeadata.gov.br',
+    ...SEL_PADRAO,
+    termo: 'sp500 s&p standard poor bolsas internacionais nova york',
+    formatoValor: 'bruto',
+  },
+  {
+    chave: 'dowjones',
+    nome: 'Dow Jones',
+    descricao: 'Índice Dow Jones Industrial Average, último do mês — IPEA/IPEADATA',
+    categoria: 'Mercado Financeiro',
+    unidade: 'pontos',
+    modoAcumulado: 'nivel',
+    fonte: 'IPEA — IPEADATA (Dow Jones)',
+    fonteUrl: 'https://www.ipeadata.gov.br',
+    ...SEL_PADRAO,
+    termo: 'dow jones industrial average bolsas internacionais nova york',
+    formatoValor: 'bruto',
+  },
+  {
+    chave: 'nasdaq',
+    nome: 'Nasdaq',
+    descricao: 'Índice Nasdaq Composite, último do mês — IPEA/IPEADATA',
+    categoria: 'Mercado Financeiro',
+    unidade: 'pontos',
+    modoAcumulado: 'nivel',
+    fonte: 'IPEA — IPEADATA (Nasdaq)',
+    fonteUrl: 'https://www.ipeadata.gov.br',
+    ...SEL_PADRAO,
+    termo: 'nasdaq composite bolsas internacionais tecnologia',
+    formatoValor: 'bruto',
   },
   // Séries sem API aberta com histórico: base interna aproximada (aviso transparente).
   {
@@ -388,7 +587,7 @@ export const CATALOGO_SERIES: CatalogoSerie[] = [
     modoAcumulado: 'nivel',
     fonte: 'INEP/MEC',
     fonteUrl: 'https://www.gov.br/inep',
-    selo: 'oficial_institucional',
+    ...SEL_PADRAO,
     termo: 'educacao matriculas censo basico inep',
     formatoValor: 'bruto',
   },
@@ -401,7 +600,7 @@ export const CATALOGO_SERIES: CatalogoSerie[] = [
     modoAcumulado: 'nivel',
     fonte: 'INEP/MEC',
     fonteUrl: 'https://www.gov.br/inep',
-    selo: 'oficial_institucional',
+    ...SEL_PADRAO,
     termo: 'educacao ideb anos iniciais inep escola',
     formatoValor: 'bruto',
   },
@@ -414,7 +613,7 @@ export const CATALOGO_SERIES: CatalogoSerie[] = [
     modoAcumulado: 'nivel',
     fonte: 'INEP/MEC',
     fonteUrl: 'https://www.gov.br/inep',
-    selo: 'oficial_institucional',
+    ...SEL_PADRAO,
     termo: 'educacao ideb anos finais inep escola',
     formatoValor: 'bruto',
   },
@@ -427,7 +626,7 @@ export const CATALOGO_SERIES: CatalogoSerie[] = [
     modoAcumulado: 'nivel',
     fonte: 'DATASUS — Ministério da Saúde',
     fonteUrl: 'https://datasus.saude.gov.br',
-    selo: 'oficial_institucional',
+    ...SEL_PADRAO,
     termo: 'saude nascidos vivos sinasc datatus nascimento',
     formatoValor: 'bruto',
   },
@@ -440,7 +639,7 @@ export const CATALOGO_SERIES: CatalogoSerie[] = [
     modoAcumulado: 'nivel',
     fonte: 'DATASUS — Ministério da Saúde',
     fonteUrl: 'https://datasus.saude.gov.br',
-    selo: 'oficial_institucional',
+    ...SEL_PADRAO,
     termo: 'saude internacoes hospitalares sus aih datatus',
     formatoValor: 'bruto',
   },
@@ -453,7 +652,7 @@ export const CATALOGO_SERIES: CatalogoSerie[] = [
     modoAcumulado: 'nivel',
     fonte: 'DATASUS — Ministério da Saúde',
     fonteUrl: 'https://datasus.saude.gov.br',
-    selo: 'oficial_institucional',
+    ...SEL_PADRAO,
     termo: 'saude mortalidade infantil datatus obito',
     formatoValor: 'bruto',
   },
@@ -466,7 +665,7 @@ export const CATALOGO_SERIES: CatalogoSerie[] = [
     modoAcumulado: 'nivel',
     fonte: 'SNIS — Ministério das Cidades',
     fonteUrl: 'https://www.gov.br/cidades',
-    selo: 'oficial_institucional',
+    ...SEL_PADRAO,
     termo: 'saneamento agua potavel snis abastecimento',
     formatoValor: 'pct',
   },
@@ -479,7 +678,7 @@ export const CATALOGO_SERIES: CatalogoSerie[] = [
     modoAcumulado: 'nivel',
     fonte: 'SNIS — Ministério das Cidades',
     fonteUrl: 'https://www.gov.br/cidades',
-    selo: 'oficial_institucional',
+    ...SEL_PADRAO,
     termo: 'saneamento esgoto coleta snis',
     formatoValor: 'pct',
   },
@@ -492,7 +691,7 @@ export const CATALOGO_SERIES: CatalogoSerie[] = [
     modoAcumulado: 'nivel',
     fonte: 'SNIS — Ministério das Cidades',
     fonteUrl: 'https://www.gov.br/cidades',
-    selo: 'oficial_institucional',
+    ...SEL_PADRAO,
     termo: 'saneamento esgoto tratamento snis',
     formatoValor: 'pct',
   },
@@ -505,7 +704,7 @@ export const CATALOGO_SERIES: CatalogoSerie[] = [
     modoAcumulado: 'nivel',
     fonte: 'SNIS — Ministério das Cidades',
     fonteUrl: 'https://www.gov.br/cidades',
-    selo: 'oficial_institucional',
+    ...SEL_PADRAO,
     termo: 'saneamento perda agua distribuicao snis',
     formatoValor: 'bruto',
   },
@@ -518,7 +717,7 @@ export const CATALOGO_SERIES: CatalogoSerie[] = [
     modoAcumulado: 'nivel',
     fonte: 'IBGE — PNAD Contínua',
     fonteUrl: 'https://www.ibge.gov.br',
-    selo: 'oficial_institucional',
+    ...SEL_PADRAO,
     termo: 'emprego desemprego pnad desocupados',
     formatoValor: 'pct',
   },
@@ -531,7 +730,7 @@ export const CATALOGO_SERIES: CatalogoSerie[] = [
     modoAcumulado: 'nivel',
     fonte: 'CAGED — MTE',
     fonteUrl: 'https://www.gov.br/trabalho-e-emprego',
-    selo: 'oficial_institucional',
+    ...SEL_PADRAO,
     termo: 'emprego admissoes caged carteira',
     formatoValor: 'bruto',
   },
@@ -544,7 +743,7 @@ export const CATALOGO_SERIES: CatalogoSerie[] = [
     modoAcumulado: 'nivel',
     fonte: 'CAGED — MTE',
     fonteUrl: 'https://www.gov.br/trabalho-e-emprego',
-    selo: 'oficial_institucional',
+    ...SEL_PADRAO,
     termo: 'emprego desligamentos demissao caged carteira',
     formatoValor: 'bruto',
   },
@@ -557,7 +756,7 @@ export const CATALOGO_SERIES: CatalogoSerie[] = [
     modoAcumulado: 'nivel',
     fonte: 'CAGED — MTE',
     fonteUrl: 'https://www.gov.br/trabalho-e-emprego',
-    selo: 'oficial_institucional',
+    ...SEL_PADRAO,
     termo: 'emprego saldo caged postos carteira',
     formatoValor: 'bruto',
   },
@@ -570,7 +769,7 @@ export const CATALOGO_SERIES: CatalogoSerie[] = [
     modoAcumulado: 'nivel',
     fonte: 'Tesouro Nacional — SICONFI',
     fonteUrl: 'https://www.tesourotransparente.gov.br',
-    selo: 'oficial_institucional',
+    ...SEL_PADRAO,
     termo: 'fiscal divida publica tesouro siconfi',
     formatoValor: 'pct',
   },
@@ -583,74 +782,9 @@ export const CATALOGO_SERIES: CatalogoSerie[] = [
     modoAcumulado: 'nivel',
     fonte: 'IPEA — IPEADATA',
     fonteUrl: 'https://www.ipeadata.gov.br',
-    selo: 'oficial_institucional',
+    ...SEL_PADRAO,
     termo: 'renda salario minimo ipea ipeadata',
     formatoValor: 'pct',
-  },
-  {
-    chave: 'ibovespa',
-    nome: 'Ibovespa',
-    descricao: 'Ibovespa — pontos da B3, fechamento mensal — BCB SGS 7 (base interna)',
-    categoria: 'Mercado Financeiro',
-    unidade: 'pontos',
-    modoAcumulado: 'nivel',
-    fonte: 'B3 / Banco Central — SGS 7',
-    fonteUrl: 'https://www.b3.com.br',
-    selo: 'oficial_institucional',
-    termo: 'ibovespa b3 bolsa acoes mercado financeiro indice',
-    formatoValor: 'bruto',
-  },
-  {
-    chave: 'ifix',
-    nome: 'IFIX',
-    descricao: 'IFIX — índice de fundos imobiliários da B3, fechamento mensal — IPEA/IPEADATA',
-    categoria: 'Mercado Financeiro',
-    unidade: 'pontos',
-    modoAcumulado: 'nivel',
-    fonte: 'B3 / IPEA — IPEADATA',
-    fonteUrl: 'https://www.ipeadata.gov.br',
-    selo: 'oficial_institucional',
-    termo: 'ifix fundo imobiliario fii b3 mercado financeiro',
-    formatoValor: 'bruto',
-  },
-  {
-    chave: 'sp500',
-    nome: 'S&P 500',
-    descricao: 'Índice S&P 500 (bolsa de NY) — fechamento mensal — IPEA/IPEADATA',
-    categoria: 'Mercado Financeiro',
-    unidade: 'pontos',
-    modoAcumulado: 'nivel',
-    fonte: 'IPEA — IPEADATA (S&P 500)',
-    fonteUrl: 'https://www.ipeadata.gov.br',
-    selo: 'oficial_institucional',
-    termo: 'sp500 s&p standard poor bolsas internacionais nova york',
-    formatoValor: 'bruto',
-  },
-  {
-    chave: 'dowjones',
-    nome: 'Dow Jones',
-    descricao: 'Índice Dow Jones Industrial Average — fechamento mensal — IPEA/IPEADATA',
-    categoria: 'Mercado Financeiro',
-    unidade: 'pontos',
-    modoAcumulado: 'nivel',
-    fonte: 'IPEA — IPEADATA (Dow Jones)',
-    fonteUrl: 'https://www.ipeadata.gov.br',
-    selo: 'oficial_institucional',
-    termo: 'dow jones industrial average bolsas internacionais nova york',
-    formatoValor: 'bruto',
-  },
-  {
-    chave: 'nasdaq',
-    nome: 'Nasdaq',
-    descricao: 'Índice Nasdaq Composite — fechamento mensal — IPEA/IPEADATA',
-    categoria: 'Mercado Financeiro',
-    unidade: 'pontos',
-    modoAcumulado: 'nivel',
-    fonte: 'IPEA — IPEADATA (Nasdaq)',
-    fonteUrl: 'https://www.ipeadata.gov.br',
-    selo: 'oficial_institucional',
-    termo: 'nasdaq composite bolsas internacionais tecnologia',
-    formatoValor: 'bruto',
   },
 ]
 
@@ -662,7 +796,7 @@ export function catalogoDaChave(chave: string): CatalogoSerie | undefined {
 
 /**
  * Base interna aproximada — gerada a partir da variação média dos últimos
- * 12 valores do fallback do portal, para os índices sem API aberta com série
+ * valores do fallback do portal, para os índices sem API aberta com série
  * (INEP, DATASUS, SNIS, Tesouro, CAGED, salário mínimo).
  */
 function serieBaseInterna(item: CatalogoSerie): PontoSerie[] {
@@ -686,6 +820,8 @@ function serieBaseInterna(item: CatalogoSerie): PontoSerie[] {
     saldo_empregos: [110, 95, 140, 165, 165, 165],
     divida: [74.2, 75.1, 75.9, 76.8, 76.8, 76.8],
     salmin: [3.9, 4.1, 4.2, 4.5, 4.5, 4.5],
+    populacao_ocupada: [93.0, 95.5, 97.0, 99.5, 99.8, 99.8],
+    agro_producao: [2.1, -1.4, 4.3, 12.9, 3.2, 3.2],
     ibovespa: [128400, 131200, 134600, 138500, 138500, 138500],
     ifix: [2040, 2055, 2071, 2080, 2080, 2080],
     sp500: [4766, 4796, 5074, 5672, 5672, 5672],
@@ -694,13 +830,6 @@ function serieBaseInterna(item: CatalogoSerie): PontoSerie[] {
   }
   const valores = base[item.chave]
   if (!valores) return []
-  if (
-    ['admissoes_caged', 'desligamentos_caged', 'saldo_empregos', 'salmin', 'divida'].includes(
-      item.chave,
-    )
-  ) {
-    return anos.map((ano, i) => ({ periodo: String(ano), valor: valores[i] }))
-  }
   return anos.map((ano, i) => ({ periodo: String(ano), valor: valores[i] }))
 }
 
@@ -727,9 +856,17 @@ export async function fetchSerieHistorica(chave: ChaveSerieHistorica): Promise<{
       method: 'GET',
       query: { chave },
     })) as unknown as RespostaSerieHistorica
-    if (res && Array.isArray(res.serie) && res.serie.length > 0) {
+    const serie = Array.isArray(res?.serie)
+      ? res.serie
+          .map((p) => ({
+            periodo: String(p?.periodo ?? ''),
+            valor: Number(p?.valor),
+          }))
+          .filter((p) => p.periodo !== '' && Number.isFinite(p.valor))
+      : []
+    if (serie.length > 0) {
       return {
-        serie: res.serie.map((p) => ({ periodo: String(p.periodo), valor: Number(p.valor) })),
+        serie: ordenarPorPeriodo(serie),
         fonteViva: res.fonteViva !== false,
         baseInterna: res.baseInterna === true,
         fonte: String(res.fonte || item.fonte),
@@ -747,4 +884,17 @@ export async function fetchSerieHistorica(chave: ChaveSerieHistorica): Promise<{
     aviso:
       'Fonte oficial indisponível ou sem série aberta — exibindo a base interna aproximada do sistema.',
   }
+}
+
+/** Ordena a série em ordem ascendente de período (YYYY[-MM[-Qn]]). */
+function ordenarPorPeriodo(serie: PontoSerie[]): PontoSerie[] {
+  const peso = (p: string): number => {
+    const m = p.match(/^(\d{4})(?:-(?:(\d{2})|Q(\d)))?$/)
+    if (!m) return 0
+    return (
+      parseInt(m[1], 10) * 10000 +
+      (m[2] ? parseInt(m[2], 10) * 100 : m[3] ? parseInt(m[3], 10) * 300 : 0)
+    )
+  }
+  return [...serie].sort((a, b) => peso(a.periodo) - peso(b.periodo))
 }
