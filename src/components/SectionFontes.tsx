@@ -337,6 +337,61 @@ export function SectionFontes() {
       badgeCor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
     },
     {
+      orgao: 'IBGE — Agronegócio (SIDRA)',
+      fonte: 'ibge.gov.br + apisidra.ibge.gov.br (proxy backend)',
+      conteudo:
+        'Séries oficiais da produção da agropecuária e do PIB do agronegócio (tabelas SIDRA)',
+      url: 'https://www.ibge.gov.br',
+      statusNota:
+        'Fonte oficial institucional ativa via proxy /backend/v1/fontes-estatisticas com cache e base interna de contingência.',
+      badgeStatus: 'Oficial Integrada (Proxy)',
+      badgeCor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+    },
+    {
+      orgao: 'CONAB',
+      fonte: 'portaldeinformacoes.conab.gov.br (proxy backend)',
+      conteudo:
+        'Safras de grãos e estoques — boletins oficiais da Companhia Nacional de Abastecimento',
+      url: 'https://portaldeinformacoes.conab.gov.br',
+      statusNota:
+        'Fonte oficial institucional ativa via proxy /backend/v1/fontes-estatisticas com cache e base interna de contingência.',
+      badgeStatus: 'Oficial Integrada (Proxy)',
+      badgeCor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+    },
+    {
+      orgao: 'Cepea-Esalq/USP',
+      fonte: 'cepea.esalq.usp.br (proxy backend)',
+      conteudo:
+        'Indicadores agropecuários (boi gordo, soja, milho) do Centro de Estudos Avançados em Economia Aplicada',
+      url: 'https://www.cepea.esalq.usp.br',
+      statusNota:
+        'Fonte oficial institucional ativa via proxy /backend/v1/fontes-estatisticas (indicadores também referenciados nas séries do BCB/SGS).',
+      badgeStatus: 'Oficial Integrada (Proxy)',
+      badgeCor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+    },
+    {
+      orgao: 'FipeZap',
+      fonte: 'fipe.org.br + zap.com.br (proxy backend)',
+      conteudo:
+        'Índice de preços de imóveis residenciais anunciados (Fipe/ZAP+) usado em reajustes e análise imobiliária',
+      url: 'https://www.fipe.org.br',
+      statusNota:
+        'Fonte oficial institucional ativa via proxy /backend/v1/fontes-estatisticas (índice também referenciado na série 19967 do BCB/SGS).',
+      badgeStatus: 'Oficial Integrada (Proxy)',
+      badgeCor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+    },
+    {
+      orgao: 'BCB — SFH (TR/TJLP/IGP-M)',
+      fonte: 'bcb.gov.br/estabilidadefinanceira/seriedados (proxy backend)',
+      conteudo:
+        'Índices de correção de financiamentos do SFH (TR, TJLP e IGP-M 12 meses) divulgados pelo Banco Central',
+      url: 'https://www.bcb.gov.br/estabilidadefinanceira/seriedados',
+      statusNota:
+        'Fonte oficial institucional ativa via proxy /backend/v1/fontes-estatisticas com cache e base interna de contingência.',
+      badgeStatus: 'Oficial Integrada (Proxy)',
+      badgeCor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+    },
+    {
       orgao: 'Lefisc (Serviço Privado de Confronto)',
       fonte: 'lefisc.com.br (Radar de Confronto)',
       conteudo:
