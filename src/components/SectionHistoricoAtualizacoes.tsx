@@ -72,6 +72,28 @@ const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
     data: '03/11/2026',
+    hora: '23:15',
+    titulo:
+      'Parametrizador Fase 7 — hierarquia de pastas: Base do cliente com Entradas (Compras) e Saídas (Vendas), arquivamento por CFOP',
+    conteudo:
+      'A pedido do CEO: para cada cliente, uma pasta Base contendo duas pastas, uma de entradas (Compras) e outra de saidas (Vendas). A razao de separar por natureza e que compras e vendas NAO se somam: entrada gera credito, saida gera debito, e somar os dois lados produz um numero que nao e faturamento nem custo. Com a divisao, cada lado tem o seu valor. O documento mora sempre na FOLHA, e a folha e decidida pela DIRECAO dele, que vem do CFOP (1/2/3 entrada, 5/6/7 saida) - nao pela escolha de quem importa. Documento sem CFOP nao tem folha certa: fica na base e a tela aponta, em vez de adivinhar. Implementado: campos tipo (base/entrada/saida) e pai na colecao de pastas, com hierarquia como DADO e nao como estrutura, para um terceiro nivel amanha nao exigir migration nova; rota de arvore com totalizadores consolidados por cliente; rota de estrutura idempotente (rodar duas vezes nao duplica pasta, porque pasta repetida faria a nota cair numa e a tela mostrar zero na outra); rota de arquivamento que poe cada documento na folha pela direcao; e rota de deduplicacao que so RELATA por padrao e apaga apenas com pedido explicito, mantendo a copia mais recente porque e a que passou pelo parser atual, com direcao e itens completos. EXECUTADO EM PRODUCAO: DIO SANTO TRATTORIA LTDA (CNPJ 08.174.238/0001-45) estruturado com Base, Compras e Vendas; a NF-e da SEGALAS arquivada em Vendas (CFOP 6102, saida); e a DUPLICATA APAGADA - mantida a copia de 00:59:54 e removida a mais antiga, com os seus 10 itens. Saldo final da pasta: 1 documento, R$ 1.133,67 em vendas, zero na base.',
+    fontes: [
+      {
+        titulo: 'LC 214/2025 — texto integral (normas.leg.br, Senado Federal)',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
+      },
+      {
+        titulo: 'Portal Nacional dos DF-e / SVRS — tabela de CFOP e layouts',
+        url: 'https://dfe-portal.svrs.rs.gov.br/Dfe/Documentos',
+      },
+    ],
+    caminho:
+      'src/components/ParametrizadorPastas.tsx + pocketbase/hooks/parametrizador_arvore.js + pocketbase/migrations/0113_hierarquia.js',
+    versao: 'v0.0.527',
+    bloco: 'sistema',
+  },
+  {
+    data: '03/11/2026',
     hora: '23:10',
     titulo:
       'Parametrizador Fase 6 — pastas por cliente com trava de CNPJ na gravação: documento de um cliente não entra na pasta de outro',
