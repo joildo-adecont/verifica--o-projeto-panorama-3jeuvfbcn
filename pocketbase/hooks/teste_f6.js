@@ -15,7 +15,16 @@ routerAdd('POST', '/backend/v1/param-teste-f6', (e) => {
   if (!meu || veio !== meu) return e.json(404, { success: false, error: 'não encontrado' })
 
   var painel = $secrets.get('SIMUL_PAINEL_TOKEN') || ''
-  var host = 'https://verificacao-projeto-panorama-18549.shrd02.internal.goskip.dev'
+  /**
+   * O host tem de ser o de PRODUÇÃO, não o preview.
+   *
+   * Descoberta desta validação: as rotas novas são publicadas no backend de
+   * produção, mas o preview (shrd02) pode ficar atrás — foi o que fez o teste
+   * receber 404 em /param-pastas enquanto /param-documentos respondia 401 no
+   * mesmo servidor. Testar no lugar errado teria me feito "consertar" um
+   * código que estava certo.
+   */
+  var host = 'https://verificacao-projeto-panorama-18549.goskip.app'
 
   function postar(rota, corpo) {
     try {
