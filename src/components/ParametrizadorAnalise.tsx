@@ -416,8 +416,8 @@ export function ParametrizadorAnalise() {
                     <BarChart3 className="w-3.5 h-3.5" />
                     Classificação na reforma, item por item
                     <span className="ml-auto text-[9px] font-normal text-slate-500">
-                      {stats.total} regras NCM · {stats.exatos} exatas + {stats.posicoes} por
-                      posição
+                      {stats.total} regras NCM · {stats.exatas} exatas + {stats.posicoes} por
+                      posição · {stats.seletivo} seletivos
                     </span>
                   </p>
                   <div className="overflow-x-auto">

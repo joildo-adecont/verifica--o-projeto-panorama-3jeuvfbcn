@@ -23,6 +23,7 @@ import {
   Home,
   GraduationCap,
   HeartPulse,
+  Droplets,
 } from 'lucide-react'
 import { SeloNivelConfianca } from '@/components/SeloNivelConfianca'
 import {
@@ -44,6 +45,7 @@ const ICONE_POR_FONTE: Record<FonteEstatisticaId, typeof BarChart3> = {
   bcb_sfh: Home,
   inep: GraduationCap,
   datasus: HeartPulse,
+  snis: Droplets,
 }
 
 const ROSTO_POR_FONTE: Record<FonteEstatisticaId, string> = {
@@ -57,6 +59,7 @@ const ROSTO_POR_FONTE: Record<FonteEstatisticaId, string> = {
   bcb_sfh: 'TR · TJLP · IGP-M — correção de financiamentos SFH',
   inep: 'Censo da Educação Básica · matrículas · IDEB (anos iniciais e finais)',
   datasus: 'SINASC — nascidos vivos · internações AIH/SUS · mortalidade infantil',
+  snis: 'SNIS/Diagnóstico — população atendida com água e esgoto · perdas · coleta de resíduos sólidos',
 }
 
 function formatarVariacao(v: number): string {

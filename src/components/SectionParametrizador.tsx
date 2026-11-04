@@ -232,9 +232,9 @@ const ROTULO_RT: Record<string, { txt: string; cls: string }> = {
 
 export function SectionParametrizador() {
   const [token, setToken] = useState('')
-  const [aba, setAba] = useState<'catalogo' | 'importar' | 'documentos' | 'analise' | 'lote'>(
-    'catalogo',
-  )
+  const [aba, setAba] = useState<
+    'catalogo' | 'importar' | 'documentos' | 'analise' | 'lote' | 'teste'
+  >('catalogo')
   const [xml, setXml] = useState('')
   const [nomeArquivo, setNomeArquivo] = useState('documento.xml')
   const [resultado, setResultado] = useState<any>(null)
