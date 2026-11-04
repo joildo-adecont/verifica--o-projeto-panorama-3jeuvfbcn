@@ -94,6 +94,10 @@ export function ParametrizadorLote() {
   const [ibs, setIbs] = useState<any>(null)
   /* Itens de todos os documentos do período — a base do cálculo efetivo por NCM. */
   const [itensTodos, setItensTodos] = useState<any[]>([])
+  /* PASTAS (Fase 6): a importação em lote pode ir direto para a pasta do
+     cliente. A trava de CNPJ é do backend — aqui só escolhemos o destino. */
+  const [pastas, setPastas] = useState<any[]>([])
+  const [pastaAlvo, setPastaAlvo] = useState('')
 
   useEffect(() => {
     try {
@@ -153,6 +157,9 @@ export function ParametrizadorLote() {
     if (token) {
       carregarTotalizadores()
       carregarIbs()
+      chamar('param-pastas')
+        .then((j) => setPastas(j.pastas || []))
+        .catch(() => setPastas([]))
     }
   }, [token])
 
@@ -195,7 +202,7 @@ export function ParametrizadorLote() {
     setOcupado(true)
     setErro(null)
     try {
-      const j = await chamar('param-importar-lote', { arquivos })
+      const j = await chamar('param-importar-lote', { arquivos, pasta: pastaAlvo })
       setResultadoLote(j)
       setArquivos([])
       if (inputRef.current) inputRef.current.value = ''
@@ -290,8 +297,7 @@ export function ParametrizadorLote() {
     const cobertura = {
       itens_total: itensTotal,
       itens_classificados: itensClassificados,
-      percentual_itens:
-        itensTotal > 0 ? Math.round((itensClassificados / itensTotal) * 1000) / 10 : 0,
+      percentual_itens: itensTotal > 0 ? Math.round((itensClassificados / itensTotal) * 1000) / 10 : 0,
       valor_total: Math.round((valorSaidaTotal + valorEntradaTotal) * 100) / 100,
       valor_classificado: Math.round(valorClassificado * 100) / 100,
       percentual_valor:
@@ -339,8 +345,7 @@ export function ParametrizadorLote() {
   }, [ibs, itensTodos])
 
   const maxProj = useMemo(
-    () =>
-      Math.max(1, ...projecao.anos.map((p: any) => Math.max(p.debito, p.credito, p.debitoPleno))),
+    () => Math.max(1, ...projecao.anos.map((p: any) => Math.max(p.debito, p.credito, p.debitoPleno))),
     [projecao],
   )
 
@@ -435,6 +440,34 @@ export function ParametrizadorLote() {
                 </span>
               )}
             </div>
+
+            <label className="mt-2 block max-w-[420px]">
+              <span className="text-[10px] font-bold text-slate-600">
+                Pasta do cliente (opcional)
+                <span className="ml-1 font-normal text-slate-500">
+                  — documento de outro CNPJ não entra nela
+                </span>
+              </span>
+              <select
+                value={pastaAlvo}
+                onChange={(e) => setPastaAlvo(e.target.value)}
+                className="mt-0.5 w-full rounded-lg border-2 border-slate-300 px-2 py-1.5 text-[11px] bg-white focus:outline-none focus:border-panorama-gold"
+              >
+                <option value="">— sem pasta —</option>
+                {pastas.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.nome}
+                    {p.cnpj ? ` (${p.cnpj})` : ''}
+                  </option>
+                ))}
+              </select>
+              {pastaAlvo && (
+                <span className="mt-0.5 block text-[9px] text-amber-800">
+                  A pasta tem CNPJ: notas de outro cliente entram <b>sem pasta</b> e o resultado
+                  abaixo diz o motivo. Nenhuma nota é descartada.
+                </span>
+              )}
+            </div>
           </div>
 
           {resultadoLote && (
@@ -498,6 +531,16 @@ export function ParametrizadorLote() {
                               {r.conflito > 0 && (
                                 <span className="ml-1 text-amber-800 font-bold">
                                   · {r.conflito} item(ns) de direção oposta
+                                </span>
+                              )}
+                              {r.pasta && (
+                                <span className="ml-1 rounded bg-violet-100 px-1 text-[8.5px] font-bold text-violet-800">
+                                  {r.pasta}
+                                </span>
+                              )}
+                              {r.motivo_sem_pasta && (
+                                <span className="ml-1 block text-[8.5px] text-amber-800">
+                                  {r.motivo_sem_pasta}
                                 </span>
                               )}
                             </>
@@ -766,14 +809,11 @@ export function ParametrizadorLote() {
                   </p>
                   <div className="mt-1.5 grid grid-cols-2 sm:grid-cols-4 gap-2">
                     <div>
-                      <p className="text-[9px] font-bold uppercase text-slate-500">
-                        Itens com regra
-                      </p>
+                      <p className="text-[9px] font-bold uppercase text-slate-500">Itens com regra</p>
                       <p className="text-[16px] font-bold tabular-nums text-slate-900">
                         {projecao.cobertura.itens_classificados}
                         <span className="text-[10px] font-normal text-slate-500">
-                          {' '}
-                          / {projecao.cobertura.itens_total}
+                          {' '}/ {projecao.cobertura.itens_total}
                         </span>
                       </p>
                       <p className="text-[9px] text-slate-500">
@@ -781,20 +821,14 @@ export function ParametrizadorLote() {
                       </p>
                     </div>
                     <div>
-                      <p className="text-[9px] font-bold uppercase text-slate-500">
-                        Valor classificado
-                      </p>
+                      <p className="text-[9px] font-bold uppercase text-slate-500">Valor classificado</p>
                       <p className="text-[16px] font-bold tabular-nums text-slate-900">
                         {projecao.cobertura.percentual_valor}%
                       </p>
-                      <p className="text-[9px] text-slate-500">
-                        {brlCurto(projecao.cobertura.valor_classificado)}
-                      </p>
+                      <p className="text-[9px] text-slate-500">{brlCurto(projecao.cobertura.valor_classificado)}</p>
                     </div>
                     <div>
-                      <p className="text-[9px] font-bold uppercase text-slate-500">
-                        Alíquota efetiva
-                      </p>
+                      <p className="text-[9px] font-bold uppercase text-slate-500">Alíquota efetiva</p>
                       <p className="text-[16px] font-bold tabular-nums text-emerald-800">
                         {projecao.cobertura.reducao_efetiva_pct > 0
                           ? `−${projecao.cobertura.reducao_efetiva_pct}%`
@@ -803,21 +837,17 @@ export function ParametrizadorLote() {
                       <p className="text-[9px] text-slate-500">sobre a plena</p>
                     </div>
                     <div>
-                      <p className="text-[9px] font-bold uppercase text-slate-500">
-                        Com Imposto Seletivo
-                      </p>
+                      <p className="text-[9px] font-bold uppercase text-slate-500">Com Imposto Seletivo</p>
                       <p className="text-[16px] font-bold tabular-nums text-amber-700">
                         {projecao.cobertura.itens_com_is}
                       </p>
-                      <p className="text-[9px] text-slate-500">
-                        {brlCurto(projecao.cobertura.valor_com_is)}
-                      </p>
+                      <p className="text-[9px] text-slate-500">{brlCurto(projecao.cobertura.valor_com_is)}</p>
                     </div>
                   </div>
                   <p className="mt-1.5 text-[9px] leading-snug text-slate-500">
                     Item sem regra de alíquota recebe <b>tributação integral</b> — presunção legal
-                    correta, mas <b>não é cálculo</b>. Quanto menor o percentual acima, mais o
-                    número final é estimativa e menos é apuração.
+                    correta, mas <b>não é cálculo</b>. Quanto menor o percentual acima, mais o número
+                    final é estimativa e menos é apuração.
                     {projecao.cobertura.itens_com_is > 0 && (
                       <span className="ml-1 font-bold text-amber-800">
                         Há {projecao.cobertura.itens_com_is} item(ns) com Imposto Seletivo: a carga
@@ -835,8 +865,8 @@ export function ParametrizadorLote() {
                 </p>
                 <p className="mt-0.5 text-[9.5px] text-slate-500 leading-snug">
                   Cada item pela alíquota que a LEI lhe dá — classificado pelo NCM, não pela
-                  alíquota cheia. Barra verde = débito sobre saídas; azul = crédito sobre entradas.
-                  O que se apura é a diferença.
+                  alíquota cheia. Barra verde = débito sobre saídas; azul = crédito sobre
+                  entradas. O que se apura é a diferença.
                 </p>
                 <div className="mt-2 space-y-1.5">
                   {projecao.anos.map((p: any) => (
@@ -959,9 +989,8 @@ export function ParametrizadorLote() {
                   sistema). <b>Ainda não é apuração completa</b>: o motor cobre as 112 regras de
                   alíquota dos Anexos, e item cujo NCM não tem regra fica na tributação integral — o
                   quadro de cobertura acima mostra exatamente quanto. E onde incide{' '}
-                  <b>Imposto Seletivo</b>, a carga real é maior que a projetada, porque o IS incide
-                  por fora do IBS/CBS.
-                </p>
+                  <b>Imposto Seletivo</b>, a carga real é maior que a projetada, porque o IS incide por
+                  fora do IBS/CBS.</p>
               </div>
 
               {ibs.top_ncm?.length > 0 && (

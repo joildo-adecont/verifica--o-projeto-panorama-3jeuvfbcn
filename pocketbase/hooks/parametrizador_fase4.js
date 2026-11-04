@@ -65,6 +65,31 @@ routerAdd('POST', '/backend/v1/param-importar-lote', (e) => {
           .slice(0, 14),
   )
 
+  /**
+   * PASTA DE DESTINO — individualizador por cliente (03/11/2026).
+   *
+   * Se vier `pasta`, o documento só entra se o CNPJ da pasta aparecer em uma das
+   * partes (emitente ou destinatário). Não basta "abrir a pasta antes": a trava
+   * tem de estar na gravação, senão uma nota do cliente A cai na pasta do B e os
+   * relatórios ficam errados sem ninguém perceber.
+   *
+   * Quando não bate, o documento NÃO é descartado: entra sem pasta e o resultado
+   * do lote diz o motivo, com os dois CNPJs. Descartar em silêncio faria o
+   * contador achar que importou e não achar a nota em lugar nenhum.
+   */
+  var pastaId = String(body.pasta || '')
+  var pastaNome = ''
+  var pastaCnpj = ''
+  if (pastaId) {
+    try {
+      var pRec = $app.findRecordById('param_pastas', pastaId)
+      pastaNome = pRec.getString('nome')
+      pastaCnpj = String(pRec.getString('cnpj') || '').replace(/\D/g, '')
+    } catch (_) {
+      return e.json(404, { success: false, error: 'Pasta de destino não encontrada.' })
+    }
+  }
+
   /** Direção pelo primeiro dígito do CFOP — regra legal, não heurística. */
   function direcaoPorCFOP(cfop) {
     var c = String(cfop || '').replace(/\D/g, '')
@@ -109,6 +134,7 @@ routerAdd('POST', '/backend/v1/param-importar-lote', (e) => {
   var invalidos = 0
   var somaEntrada = 0
   var somaSaida = 0
+  var foraDaPasta = 0
 
   for (var a = 0; a < arquivos.length; a++) {
     var arq = arquivos[a] || {}
@@ -219,6 +245,30 @@ routerAdd('POST', '/backend/v1/param-importar-lote', (e) => {
       rec.set('cfop_predominante', cfopPrim)
       rec.set('itens_direcao_divergente', conflito)
       rec.set('importado_em', new Date().toISOString().replace('T', ' ').slice(0, 19))
+
+      /* ── a trava do CNPJ ── */
+      var pastaAplicada = pastaId
+      var motivoSemPasta = ''
+      if (pastaId && pastaCnpj) {
+        var cDoc = String(rec.get('emitente_cnpj') || '').replace(/\D/g, '')
+        var cDest = String(rec.get('destinatario_cnpj') || '').replace(/\D/g, '')
+        var bate = (cDoc && cDoc === pastaCnpj) || (cDest && cDest === pastaCnpj)
+        if (!bate) {
+          pastaAplicada = ''
+          motivoSemPasta =
+            'não entrou na pasta "' +
+            pastaNome +
+            '": nenhuma das partes (' +
+            (cDoc || 'emitente sem CNPJ') +
+            ' / ' +
+            (cDest || 'destinatário sem CNPJ') +
+            ') corresponde ao CNPJ da pasta (' +
+            pastaCnpj +
+            ')'
+        }
+      }
+      rec.set('pasta', pastaAplicada)
+      rec.set('pasta_nome', pastaAplicada ? pastaNome : '')
       $app.save(rec)
 
       for (var k = 0; k < itens.length; k++) {
@@ -233,12 +283,14 @@ routerAdd('POST', '/backend/v1/param-importar-lote', (e) => {
         ri.set('direcao', i2.direcao)
         ri.set('cclasstrib', i2.cclasstrib)
         ri.set('valor_total', i2.valor_total)
+        ri.set('pasta', pastaAplicada)
         $app.save(ri)
       }
 
       entraram++
       if (direcao === 'entrada') somaEntrada += valorTotal
       else if (direcao === 'saida') somaSaida += valorTotal
+      if (pastaId && !pastaAplicada) foraDaPasta++
 
       resultados.push({
         nome: nome,
@@ -250,6 +302,8 @@ routerAdd('POST', '/backend/v1/param-importar-lote', (e) => {
         itens: itens.length,
         valor: valorTotal,
         conflito: conflito,
+        pasta: pastaAplicada ? pastaNome : '',
+        motivo_sem_pasta: motivoSemPasta,
       })
     } catch (err) {
       invalidos++
@@ -266,6 +320,8 @@ routerAdd('POST', '/backend/v1/param-importar-lote', (e) => {
     invalidos: invalidos,
     valor_entrada: Math.round(somaEntrada * 100) / 100,
     valor_saida: Math.round(somaSaida * 100) / 100,
+    pasta: pastaNome,
+    fora_da_pasta: foraDaPasta,
     resultados: resultados,
   })
 })

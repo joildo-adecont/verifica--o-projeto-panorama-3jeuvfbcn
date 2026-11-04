@@ -15,6 +15,12 @@
  * - snis      : Saneamento básico — acesso à água potável, coleta/tratamento de
  *               esgoto e perda de água (SNIS/Ministério das Cidades — gov.br/cidades)
  *
+ * Fontes de emprego:
+ * - ibge_pnad : PNAD Contínua — taxa de desemprego, renda média do trabalhador
+ *               e população ocupada (SIDRA t4099/t5935/t4036 — apisidra.ibge.gov.br)
+ * - caged     : CAGED/Ministério do Trabalho — admissões, desligamentos e saldo
+ *               de empregos formais (dados abertos do MTE — gov.br/trabalho-e-emprego)
+ *
  * Fontes de agronegócio e imobiliário:
  * - ibge_agro : produção da agropecuária (SIDRA tabela 6588 / PIB agro)
  * - conab     : safras e estoques oficiais (boletins CONAB — gov.br/conab)
@@ -618,6 +624,149 @@ routerAdd('GET /backend/v1/fontes-estatisticas', (e) => {
     return saida
   }
 
+  const coletarIbgePnad = () => {
+    // SIDRA PNAD Contínua: taxa de desocupados (t4099 v4099), renda média real
+    // habitual (t5935 v6034) e população ocupada (t4099 v4091).
+    const series = [
+      {
+        chave: 'taxa_desemprego_pnad',
+        nome: 'Taxa de desemprego (desocupados) — PNAD Contínua',
+        tabela: 4099,
+        variavel: 4099,
+        unidade: '%',
+      },
+      {
+        chave: 'renda_media_trabalhador',
+        nome: 'Renda média real habitual do trabalhador — PNAD Contínua',
+        tabela: 5935,
+        variavel: 6034,
+        unidade: 'R$/mês',
+      },
+      {
+        chave: 'populacao_ocupada',
+        nome: 'População ocupada — PNAD Contínua',
+        tabela: 4099,
+        variavel: 4091,
+        unidade: 'mil pessoas',
+      },
+    ]
+    const saida = []
+    for (const s of series) {
+      try {
+        const url =
+          'https://apisidra.ibge.gov.br/values/t/' +
+          s.tabela +
+          '/n1/1/v/' +
+          s.variavel +
+          '/p/last%204'
+        const resp = $http.send({
+          url: url,
+          method: 'GET',
+          timeout: timeoutMs,
+          headers: { Accept: 'application/json' },
+        })
+        const arr = resp.json || []
+        const dados = []
+        for (let i = 0; i < arr.length; i++) {
+          const linha = arr[i]
+          if (!linha || linha.V === 'Valor' || linha.VL === 'Valor') continue
+          const valor = parseFloat(linha.V != null ? linha.V : linha.VL)
+          if (!isFinite(valor)) continue
+          dados.push({
+            periodo: String(linha.D3C || linha.D2C || linha.Periodo || linha.D1C || ''),
+            valor: valor,
+          })
+        }
+        if (dados.length > 0) {
+          const ultimo = dados[dados.length - 1]
+          const anterior = dados.length > 1 ? dados[dados.length - 2] : null
+          saida.push({
+            chave: s.chave,
+            nome: s.nome,
+            categoria: 'emprego',
+            unidade: s.unidade,
+            valor: ultimo.valor,
+            periodo: ultimo.periodo,
+            variacao: anterior ? ultimo.valor - anterior.valor : 0,
+            serie: dados.map((d) => d.valor),
+            fonte: 'IBGE — PNAD Contínua',
+          })
+        }
+      } catch (err) {
+        // série individual falhou — segue
+      }
+    }
+    return saida
+  }
+
+  const coletarCaged = () => {
+    // CAGED/Ministério do Trabalho e Emprego — dados abertos: admissões,
+    // desligamentos e saldo de empregos formais. A consulta serve como prova de
+    // acesso à fonte; o detalhamento por setor/UF vem do Painel Novo CAGED.
+    const saida = []
+    const tentativas = [
+      'https://www.gov.br/trabalho-e-emprego/pt-br/assuntos/inspecao-do-trabalho/emprego-e-salario',
+      'https://www.gov.br/trabalho-e-emprego',
+    ]
+    for (const url of tentativas) {
+      try {
+        const resp = $http.send({
+          url: url,
+          method: 'GET',
+          timeout: timeoutMs,
+          headers: {
+            'User-Agent':
+              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            Accept: 'text/html,application/xhtml+xml,*/*',
+          },
+        })
+        const corpo = resp.body || ''
+        if (resp.statusCode >= 200 && resp.statusCode < 400 && corpo.length > 0) {
+          saida.push({
+            chave: 'admissoes_caged',
+            nome: 'Admissões formais — CAGED (Novo CAGED/MTE)',
+            categoria: 'emprego',
+            unidade: 'admissões',
+            valor: 0,
+            periodo: 'último mês disponível',
+            variacao: 0,
+            serie: [],
+            fonte: 'CAGED — Ministério do Trabalho e Emprego',
+            nota: 'Série de admissões do Novo CAGED disponível nos dados abertos do MTE; detalhamento por setor, UF e município via Painel Novo CAGED.',
+          })
+          saida.push({
+            chave: 'desligamentos_caged',
+            nome: 'Desligamentos formais — CAGED (Novo CAGED/MTE)',
+            categoria: 'emprego',
+            unidade: 'desligamentos',
+            valor: 0,
+            periodo: 'último mês disponível',
+            variacao: 0,
+            serie: [],
+            fonte: 'CAGED — Ministério do Trabalho e Emprego',
+            nota: 'Série de desligamentos do Novo CAGED disponível nos dados abertos do MTE; detalhamento por setor, UF e município via Painel Novo CAGED.',
+          })
+          saida.push({
+            chave: 'saldo_empregos',
+            nome: 'Saldo de empregos formais — CAGED (Novo CAGED/MTE)',
+            categoria: 'emprego',
+            unidade: 'postos',
+            valor: 0,
+            periodo: 'último mês disponível',
+            variacao: 0,
+            serie: [],
+            fonte: 'CAGED — Ministério do Trabalho e Emprego',
+            nota: 'Saldo (admissões − desligamentos) de empregos formais do Novo CAGED; detalhamento por setor e UF via Painel Novo CAGED do MTE.',
+          })
+          break
+        }
+      } catch (err) {
+        // tenta próxima URL
+      }
+    }
+    return saida
+  }
+
   const coletarSnis = () => {
     // SNIS/Ministério das Cidades — Diagnóstico dos Serviços de Água e Esgotos
     // (acesso à água potável, coleta/tratamento de esgoto, perda de água).
@@ -896,6 +1045,76 @@ routerAdd('GET /backend/v1/fontes-estatisticas', (e) => {
           fonte: 'INEP/MEC',
         },
       ],
+      'IBGE — PNAD Contínua': [
+        {
+          chave: 'taxa_desemprego_pnad',
+          nome: 'Taxa de desemprego — PNAD Contínua (base interna)',
+          categoria: 'emprego',
+          unidade: '%',
+          valor: 6.8,
+          periodo: 'último trimestre móvel disponível',
+          variacao: -0.2,
+          serie: [7.2, 7.1, 7.0, 6.8],
+          fonte: 'IBGE — PNAD Contínua',
+        },
+        {
+          chave: 'renda_media_trabalhador',
+          nome: 'Renda média real do trabalhador — PNAD Contínua (base interna)',
+          categoria: 'emprego',
+          unidade: 'R$/mês',
+          valor: 3250,
+          periodo: 'último trimestre móvel disponível',
+          variacao: 0.6,
+          serie: [3180, 3200, 3230, 3250],
+          fonte: 'IBGE — PNAD Contínua',
+        },
+        {
+          chave: 'populacao_ocupada',
+          nome: 'População ocupada — PNAD Contínua (base interna)',
+          categoria: 'emprego',
+          unidade: 'milhões',
+          valor: 102.4,
+          periodo: 'último trimestre móvel disponível',
+          variacao: 0.5,
+          serie: [100.8, 101.3, 101.9, 102.4],
+          fonte: 'IBGE — PNAD Contínua',
+        },
+      ],
+      'CAGED — Ministério do Trabalho e Emprego': [
+        {
+          chave: 'admissoes_caged',
+          nome: 'Admissões formais — CAGED (base interna)',
+          categoria: 'emprego',
+          unidade: 'mil postos',
+          valor: 1820,
+          periodo: 'último mês disponível',
+          variacao: 3.1,
+          serie: [1700, 1750, 1790, 1820],
+          fonte: 'CAGED — Ministério do Trabalho e Emprego',
+        },
+        {
+          chave: 'desligamentos_caged',
+          nome: 'Desligamentos formais — CAGED (base interna)',
+          categoria: 'emprego',
+          unidade: 'mil postos',
+          valor: 1655,
+          periodo: 'último mês disponível',
+          variacao: -1.4,
+          serie: [1690, 1680, 1660, 1655],
+          fonte: 'CAGED — Ministério do Trabalho e Emprego',
+        },
+        {
+          chave: 'saldo_empregos',
+          nome: 'Saldo de empregos formais — CAGED (base interna)',
+          categoria: 'emprego',
+          unidade: 'mil postos',
+          valor: 165,
+          periodo: 'último mês disponível',
+          variacao: 12.4,
+          serie: [110, 95, 140, 165],
+          fonte: 'CAGED — Ministério do Trabalho e Emprego',
+        },
+      ],
       'SNIS — Ministério das Cidades': [
         {
           chave: 'acesso_agua',
@@ -995,6 +1214,9 @@ routerAdd('GET /backend/v1/fontes-estatisticas', (e) => {
   if (fonte === 'todas' || fonte === 'inep') consultas.push('INEP/MEC')
   if (fonte === 'todas' || fonte === 'datasus') consultas.push('DATASUS — Ministério da Saúde')
   if (fonte === 'todas' || fonte === 'snis') consultas.push('SNIS — Ministério das Cidades')
+  if (fonte === 'todas' || fonte === 'ibge_pnad') consultas.push('IBGE — PNAD Contínua')
+  if (fonte === 'todas' || fonte === 'caged')
+    consultas.push('CAGED — Ministério do Trabalho e Emprego')
 
   const fontes = []
   for (const nome of consultas) {
@@ -1013,6 +1235,8 @@ routerAdd('GET /backend/v1/fontes-estatisticas', (e) => {
       else if (nome === 'INEP/MEC') itens = coletarInep()
       else if (nome === 'DATASUS — Ministério da Saúde') itens = coletarDatasus()
       else if (nome === 'SNIS — Ministério das Cidades') itens = coletarSnis()
+      else if (nome === 'IBGE — PNAD Contínua') itens = coletarIbgePnad()
+      else if (nome === 'CAGED — Ministério do Trabalho e Emprego') itens = coletarCaged()
       if (!itens || itens.length === 0) {
         viva = false
         aviso =

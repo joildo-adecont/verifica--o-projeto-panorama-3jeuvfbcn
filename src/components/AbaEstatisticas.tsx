@@ -24,6 +24,8 @@ import {
   GraduationCap,
   HeartPulse,
   Droplets,
+  Briefcase,
+  Users,
 } from 'lucide-react'
 import { SeloNivelConfianca } from '@/components/SeloNivelConfianca'
 import {
@@ -46,6 +48,8 @@ const ICONE_POR_FONTE: Record<FonteEstatisticaId, typeof BarChart3> = {
   inep: GraduationCap,
   datasus: HeartPulse,
   snis: Droplets,
+  ibge_pnad: Briefcase,
+  caged: Users,
 }
 
 const ROSTO_POR_FONTE: Record<FonteEstatisticaId, string> = {
@@ -60,6 +64,9 @@ const ROSTO_POR_FONTE: Record<FonteEstatisticaId, string> = {
   inep: 'Censo da Educação Básica · matrículas · IDEB (anos iniciais e finais)',
   datasus: 'SINASC — nascidos vivos · internações AIH/SUS · mortalidade infantil',
   snis: 'SNIS/Diagnóstico — população atendida com água e esgoto · perdas · coleta de resíduos sólidos',
+  ibge_pnad:
+    'PNAD Contínua — taxa de desemprego (desocupados) · renda média do trabalhador · população ocupada',
+  caged: 'Novo CAGED — admissões · desligamentos · saldo de empregos formais (carteira assinada)',
 }
 
 function formatarVariacao(v: number): string {

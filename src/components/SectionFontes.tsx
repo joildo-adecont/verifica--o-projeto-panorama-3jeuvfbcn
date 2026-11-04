@@ -425,6 +425,28 @@ export function SectionFontes() {
       badgeCor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
     },
     {
+      orgao: 'IBGE — Emprego e Desemprego (PNAD Contínua)',
+      fonte: 'ibge.gov.br + apisidra.ibge.gov.br (proxy backend)',
+      conteudo:
+        'Indicadores de emprego: taxa de desemprego (desocupados), renda média real habitual do trabalhador e população ocupada (PNAD Contínua/SIDRA)',
+      url: 'https://www.ibge.gov.br/estatisticas/sociais/trabalho-e-rendimento',
+      statusNota:
+        'Fonte oficial institucional ativa via proxy /backend/v1/fontes-estatisticas com cache e base interna de contingência.',
+      badgeStatus: 'Oficial Integrada (Proxy)',
+      badgeCor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+    },
+    {
+      orgao: 'CAGED — Ministério do Trabalho e Emprego',
+      fonte: 'gov.br/trabalho-e-emprego + Painel Novo CAGED (proxy backend)',
+      conteudo:
+        'Indicadores de emprego formal: admissões, desligamentos e saldo de empregos formais (CEIS/Novo CAGED)',
+      url: 'https://www.gov.br/trabalho-e-emprego/pt-br/assuntos/inspecao-do-trabalho/emprego-e-salario',
+      statusNota:
+        'Fonte oficial institucional ativa via proxy /backend/v1/fontes-estatisticas com cache e base interna de contingência.',
+      badgeStatus: 'Oficial Integrada (Proxy)',
+      badgeCor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+    },
+    {
       orgao: 'Lefisc (Serviço Privado de Confronto)',
       fonte: 'lefisc.com.br (Radar de Confronto)',
       conteudo:

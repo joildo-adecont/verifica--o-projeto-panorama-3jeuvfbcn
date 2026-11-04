@@ -4,7 +4,8 @@
  * Os dados vêm SEMPRE do backend (rotas /backend/v1/indicadores-economicos e
  * /backend/v1/fontes-estatisticas em pb_hooks/), que consulta as APIs públicas
  * do lado do servidor — Banco Central (SGS/PTAX/Olinda), IBGE SIDRA, Tesouro
- * SICONFI, IPEADATA, CONAB, Cepea-Esalq, FipeZap, INEP, DATASUS e SNIS — com
+ * SICONFI, IPEADATA, CONAB, Cepea-Esalq, FipeZap, INEP, DATASUS, SNIS, IBGE
+ * PNAD Contínua e CAGED (Ministério do Trabalho e Emprego) — com
  * timeout curto. NUNCA
  * chamada direta do navegador (padrão anti-bloqueio do projeto).
  *
@@ -76,6 +77,8 @@ export type FonteEstatisticaId =
   | 'inep'
   | 'datasus'
   | 'snis'
+  | 'ibge_pnad'
+  | 'caged'
 
 export const FONTES_ESTATISTICAS_META: Record<
   FonteEstatisticaId,
@@ -134,6 +137,17 @@ export const FONTES_ESTATISTICAS_META: Record<
   snis: {
     rotulo: 'SNIS — Sistema Nacional de Informações sobre Saneamento (Ministério das Cidades)',
     url: 'https://www.gov.br/cidades',
+    tier: 'oficial_institucional',
+  },
+  ibge_pnad: {
+    rotulo: 'IBGE — PNAD Contínua (Emprego e Desemprego)',
+    url: 'https://www.ibge.gov.br/estatisticas/sociais/trabalho/9171-pesquisa-nacional-por-amostra-de-domicilios-continua-mensal.html',
+    tier: 'oficial_institucional',
+  },
+  caged: {
+    rotulo:
+      'CAGED — Cadastro Geral de Empregados e Desempregados (Ministério do Trabalho e Emprego)',
+    url: 'https://www.gov.br/trabalho-e-emprego/pt-br/assuntos/inspecao-do-trabalho/emprego-e-salario',
     tier: 'oficial_institucional',
   },
 }
@@ -683,6 +697,82 @@ export function respostaFontesEstatisticasFallback(aviso: string): RespostaFonte
           baseInterna: true,
         },
       ],
+      ibge_pnad: [
+        {
+          chave: 'taxa_desemprego_pnad',
+          nome: 'Taxa de desemprego — PNAD Contínua (base interna)',
+          categoria: 'emprego',
+          unidade: '%',
+          valor: 6.8,
+          periodo: 'último trimestre móvel disponível',
+          variacao: -0.2,
+          serie: [7.2, 7.1, 7.0, 6.8],
+          fonte: 'IBGE — PNAD Contínua',
+          baseInterna: true,
+        },
+        {
+          chave: 'renda_media_trabalhador',
+          nome: 'Renda média real do trabalhador — PNAD Contínua (base interna)',
+          categoria: 'emprego',
+          unidade: 'R$/mês',
+          valor: 3250,
+          periodo: 'último trimestre móvel disponível',
+          variacao: 0.6,
+          serie: [3180, 3200, 3230, 3250],
+          fonte: 'IBGE — PNAD Contínua',
+          baseInterna: true,
+        },
+        {
+          chave: 'populacao_ocupada',
+          nome: 'População ocupada — PNAD Contínua (base interna)',
+          categoria: 'emprego',
+          unidade: 'milhões',
+          valor: 102.4,
+          periodo: 'último trimestre móvel disponível',
+          variacao: 0.5,
+          serie: [100.8, 101.3, 101.9, 102.4],
+          fonte: 'IBGE — PNAD Contínua',
+          baseInterna: true,
+        },
+      ],
+      caged: [
+        {
+          chave: 'admissoes_caged',
+          nome: 'Admissões formais — CAGED (base interna)',
+          categoria: 'emprego',
+          unidade: 'mil postos',
+          valor: 1820,
+          periodo: 'último mês disponível',
+          variacao: 3.1,
+          serie: [1700, 1750, 1790, 1820],
+          fonte: 'CAGED — Ministério do Trabalho e Emprego',
+          baseInterna: true,
+        },
+        {
+          chave: 'desligamentos_caged',
+          nome: 'Desligamentos formais — CAGED (base interna)',
+          categoria: 'emprego',
+          unidade: 'mil postos',
+          valor: 1655,
+          periodo: 'último mês disponível',
+          variacao: -1.4,
+          serie: [1690, 1680, 1660, 1655],
+          fonte: 'CAGED — Ministério do Trabalho e Emprego',
+          baseInterna: true,
+        },
+        {
+          chave: 'saldo_empregos',
+          nome: 'Saldo de empregos formais — CAGED (base interna)',
+          categoria: 'emprego',
+          unidade: 'mil postos',
+          valor: 165,
+          periodo: 'último mês disponível',
+          variacao: 12.4,
+          serie: [110, 95, 140, 165],
+          fonte: 'CAGED — Ministério do Trabalho e Emprego',
+          baseInterna: true,
+        },
+      ],
     }
     const nomes: Record<FonteEstatisticaId, string> = {
       ibge: 'IBGE',
@@ -696,6 +786,8 @@ export function respostaFontesEstatisticasFallback(aviso: string): RespostaFonte
       inep: 'INEP/MEC',
       datasus: 'DATASUS — Ministério da Saúde',
       snis: 'SNIS — Ministério das Cidades',
+      ibge_pnad: 'IBGE — PNAD Contínua',
+      caged: 'CAGED — Ministério do Trabalho e Emprego',
     }
     return {
       fonte,
@@ -726,6 +818,8 @@ export function respostaFontesEstatisticasFallback(aviso: string): RespostaFonte
       interna('inep', 'INEP/MEC'),
       interna('datasus', 'DATASUS — Ministério da Saúde'),
       interna('snis', 'SNIS — Ministério das Cidades'),
+      interna('ibge_pnad', 'IBGE — PNAD Contínua'),
+      interna('caged', 'CAGED — Ministério do Trabalho e Emprego'),
     ],
   }
 }
@@ -788,7 +882,11 @@ export async function fetchFontesEstatisticas(
                             ? 'datasus'
                             : chaveFonte === 'SNIS — Ministério das Cidades'
                               ? 'snis'
-                              : 'ibge'
+                              : chaveFonte === 'IBGE — PNAD Contínua'
+                                ? 'ibge_pnad'
+                                : chaveFonte === 'CAGED — Ministério do Trabalho e Emprego'
+                                  ? 'caged'
+                                  : 'ibge'
         return {
           fonte: id,
           fonteNome: chaveFonte,
@@ -1031,6 +1129,35 @@ const SINONIMOS_BUSCA: Record<string, string[]> = {
     'mortalidade infantil',
     'aih',
     'ministério da saúde',
+  ],
+  emprego: [
+    'emprego',
+    'desemprego',
+    'desempregado',
+    'desocupação',
+    'desocupacao',
+    'ocupação',
+    'ocupacao',
+    'trabalho',
+    'trabalhador',
+    'renda média',
+    'renda media',
+    'salário',
+    'salario',
+    'pnad',
+    'caged',
+    'carteira assinada',
+    'admissão',
+    'admissao',
+    'admissões',
+    'admissoes',
+    'demissão',
+    'demissao',
+    'desligamento',
+    'desligamentos',
+    'formalização',
+    'formalizacao',
+    'posto de trabalho',
   ],
 }
 
