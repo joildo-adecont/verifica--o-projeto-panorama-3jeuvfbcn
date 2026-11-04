@@ -1427,6 +1427,11 @@ function itensDaPlataforma(secoes: string[]): LinkNavegacao[] {
  * continuam apontando para UMA seção, não duas.
  * ══════════════════════════════════════════════════════════════════════════ */
 const SECOES_REFORMA = [
+  /* Parametrizador entra na REFORMA porque foi onde o CEO pediu: "No Segmento
+     Reforma Tributária crie um ícone...". Sem esta linha o item existe em
+     TODOS_ITENS mas o menu é montado por itensDaPlataforma(SECOES_*), que só
+     devolve hrefs listados — e a seção ficava invisível, sem erro na tela. */
+  '#parametrizador',
   '#secao-1',
   '#historico-revisoes',
   '#historico-exclusoes',
