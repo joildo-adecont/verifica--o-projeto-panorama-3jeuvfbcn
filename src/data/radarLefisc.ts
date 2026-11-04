@@ -54,10 +54,10 @@ export interface RadarLefisc {
 export const FONTE_MESTRA = 'DOU'
 
 export const RADAR_LEFISC: RadarLefisc = {
-  executadoEm: '2026-11-03T08:01:25-03:00',
+  executadoEm: '2026-11-04T08:02:27-03:00',
   janelaDouDias: 3,
   fontes: {
-    lefisc: { itens: 63, ok: true },
+    lefisc: { itens: 64, ok: true },
     dou: { itens: 1, ok: true },
   },
   resumo: {
@@ -65,7 +65,7 @@ export const RADAR_LEFISC: RadarLefisc = {
     confirmados: 1,
     soOficial: 0,
     soLefisc: 1,
-    foraDoEscopo: 61,
+    foraDoEscopo: 62,
   },
   linhas: [
     {
