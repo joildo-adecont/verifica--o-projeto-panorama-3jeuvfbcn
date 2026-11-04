@@ -112,13 +112,18 @@ export function ParametrizadorConferencia() {
     setCarregando(true)
     setErro(null)
     try {
-      const qs = pastaSel ? `?pasta=${encodeURIComponent(pastaSel)}` : ''
-      const r = await fetch(`${BACKEND}/backend/v1/param-itens-cliente${qs}`, {
-        headers: { 'X-Painel-Token': token },
-      })
+      /* Com cliente escolhido: a rota que filtra no servidor por pasta/CNPJ.
+         Sem cliente: a rota de todos os itens — que é o que "todos os clientes"
+         significa. Antes eu mandava sem parâmetro para a rota que EXIGE pasta,
+         ela respondia 400 e a tela dizia "nenhum item" como se a base estivesse
+         vazia. */
+      const url = pastaSel
+        ? `${BACKEND}/backend/v1/param-itens-cliente?pasta=${encodeURIComponent(pastaSel)}`
+        : `${BACKEND}/backend/v1/param-itens-todos`
+      const r = await fetch(url, { headers: { 'X-Painel-Token': token } })
       const j = await r.json()
       if (!r.ok) throw new Error(j.error || `Falha (${r.status})`)
-      setItens(j.lista || [])
+      setItens(j.lista || j.itens || [])
     } catch (e: any) {
       setErro(e.message)
     } finally {

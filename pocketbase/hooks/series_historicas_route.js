@@ -32,7 +32,10 @@
  * salário mínimo) respondem fonteViva=false — o frontend cai na base interna
  * com o aviso transparente "Base interna — dado aproximado".
  */
-routerAdd('GET /backend/v1/series-historicas', (e) => {
+// IMPORTANTE: forma de DOIS argumentos (método, caminho) — a forma de um
+// argumento ('GET /caminho') NÃO registra a rota nesta JSVM: a chamada ao
+// vivo devolvia 404 "File not found" (diagnóstico 04/11/2026, requests).
+routerAdd('GET', '/backend/v1/series-historicas', (e) => {
   const q = e.requestInfo().query || {}
   const chave = String(q['chave'] || '')
   const timeoutMs = 9000
@@ -56,10 +59,12 @@ routerAdd('GET /backend/v1/series-historicas', (e) => {
     igpdi: { tipo: 'bcb', codigo: 190, fonte: 'BCB SGS 190 / FGV' },
     inpc: { tipo: 'bcb', codigo: 188, fonte: 'BCB SGS 188 / IBGE' },
     ipc: { tipo: 'bcb', codigo: 192, fonte: 'BCB SGS 192 / Fipe' },
-    // — Taxas —
-    selic: { tipo: 'bcb', codigo: 432, fonte: 'BCB SGS 432' },
-    cdi: { tipo: 'bcb', codigo: 4391, fonte: 'BCB SGS 4391 / B3' },
-    tr: { tipo: 'bcb', codigo: 226, fonte: 'BCB SGS 226' },
+    // — Taxas (Selic/CDI/TR são DIÁRIAS → colapsadas ao último do mês; sem
+    //    isso a granularidade mensal do frontend receberia ~3.000 pontos por
+    //    dia útil e o gráfico da aba Histórico travava/não abria) —
+    selic: { tipo: 'bcb', codigo: 432, fonte: 'BCB SGS 432', agreg: 'mensal_ultimo' },
+    cdi: { tipo: 'bcb', codigo: 4391, fonte: 'BCB SGS 4391 / B3', agreg: 'mensal_ultimo' },
+    tr: { tipo: 'bcb', codigo: 226, fonte: 'BCB SGS 226', agreg: 'mensal_ultimo' },
     poupanca: { tipo: 'bcb', codigo: 195, fonte: 'BCB SGS 195' },
     tjlp: { tipo: 'bcb', codigo: 254, fonte: 'BCB SGS 254' },
     juros_medio: { tipo: 'bcb', codigo: 20714, fonte: 'BCB SGS 20714' },
