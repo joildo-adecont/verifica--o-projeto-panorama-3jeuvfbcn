@@ -79,6 +79,7 @@ export type FonteEstatisticaId =
   | 'snis'
   | 'ibge_pnad'
   | 'caged'
+  | 'b3_mercado'
 
 export const FONTES_ESTATISTICAS_META: Record<
   FonteEstatisticaId,
