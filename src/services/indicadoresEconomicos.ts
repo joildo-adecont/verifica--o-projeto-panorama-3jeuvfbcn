@@ -54,9 +54,68 @@ export interface ItemIndicadorBusca {
   fonteUrl: string
   categoria: CategoriaIndicador | 'moeda'
   ancora: string
+  /** Fonte estatística de origem (ibge | tesouro | ipea) — presente só nos itens das novas fontes. */
+  fonteEstatistica?: FonteEstatisticaId
+  /** false quando veio da base interna (fonte oficial indisponível no momento). */
+  fonteViva?: boolean
 }
 
 const URL_ROTA = `${import.meta.env.VITE_POCKETBASE_URL}/backend/v1/indicadores-economicos`
+const URL_ROTA_ESTATISTICAS = `${import.meta.env.VITE_POCKETBASE_URL}/backend/v1/fontes-estatisticas`
+
+export type FonteEstatisticaId = 'ibge' | 'tesouro' | 'ipea'
+
+export const FONTES_ESTATISTICAS_META: Record<
+  FonteEstatisticaId,
+  { rotulo: string; url: string; tier: 'oficial_institucional' }
+> = {
+  ibge: {
+    rotulo: 'IBGE — Instituto Brasileiro de Geografia e Estatística (SIDRA)',
+    url: 'https://www.ibge.gov.br',
+    tier: 'oficial_institucional',
+  },
+  tesouro: {
+    rotulo: 'Tesouro Nacional — Tesouro Transparente (SICONFI)',
+    url: 'https://www.tesourotransparente.gov.br',
+    tier: 'oficial_institucional',
+  },
+  ipea: {
+    rotulo: 'IPEA — Instituto de Pesquisa Econômica Aplicada (IPEADATA)',
+    url: 'https://www.ipeadata.gov.br',
+    tier: 'oficial_institucional',
+  },
+}
+
+export interface IndicadorEstatistico {
+  chave: string
+  nome: string
+  categoria: string
+  unidade: string
+  valor: number
+  periodo: string
+  variacao: number
+  serie: number[]
+  fonte: string
+  /** true quando o dado veio da base interna (fonte oficial indisponível). */
+  baseInterna?: boolean
+  nota?: string
+}
+
+export interface FonteEstatistica {
+  fonte: FonteEstatisticaId
+  fonteNome: string
+  fonteViva: boolean
+  aviso: string
+  selo: 'oficial_institucional'
+  atualizadoEm: string
+  indicadores: IndicadorEstatistico[]
+}
+
+export interface RespostaFontesEstatisticas {
+  ok: boolean
+  geradoEm: string
+  fontes: FonteEstatistica[]
+}
 
 /** Base interna aproximada — usada só quando BCB e cache falham (aviso transparente). */
 export const FALLBACK_INDICADORES: IndicadorEconomico[] = [
@@ -242,6 +301,187 @@ function normalizarMoeda(bruto: Record<string, unknown>): MoedaCotacao {
   }
 }
 
+/**
+ * Fallback interno das fontes estatísticas — usado só quando o backend responde
+ * mal ou sem nenhuma série (aviso transparente, nunca erro cru).
+ */
+export function respostaFontesEstatisticasFallback(aviso: string): RespostaFontesEstatisticas {
+  const agora = new Date().toISOString()
+  const interna = (fonte: FonteEstatisticaId, fonteNome: string): FonteEstatistica => {
+    const base: Record<FonteEstatisticaId, IndicadorEstatistico[]> = {
+      ibge: [
+        {
+          chave: 'ipca',
+          nome: 'IPCA — variação % mensal (base interna)',
+          categoria: 'inflacao',
+          unidade: '%',
+          valor: 0.42,
+          periodo: 'último mês disponível',
+          variacao: 0.05,
+          serie: [0.38, 0.4, 0.45, 0.42],
+          fonte: 'IBGE',
+          baseInterna: true,
+        },
+        {
+          chave: 'pib',
+          nome: 'PIB — variação % trimestral (base interna)',
+          categoria: 'atividade',
+          unidade: '%',
+          valor: 0.9,
+          periodo: 'último trimestre disponível',
+          variacao: 0.1,
+          serie: [0.7, 0.8, 0.8, 0.9],
+          fonte: 'IBGE',
+          baseInterna: true,
+        },
+        {
+          chave: 'desemprego',
+          nome: 'Taxa de desemprego — PNAD Contínua (base interna)',
+          categoria: 'trabalho',
+          unidade: '%',
+          valor: 7.5,
+          periodo: 'último trimestre móvel disponível',
+          variacao: -0.2,
+          serie: [7.9, 7.8, 7.7, 7.5],
+          fonte: 'IBGE',
+          baseInterna: true,
+        },
+      ],
+      tesouro: [
+        {
+          chave: 'divida',
+          nome: 'Dívida pública federal — % do PIB (base interna)',
+          categoria: 'fiscal',
+          unidade: '%',
+          valor: 76.8,
+          periodo: 'último exercício disponível',
+          variacao: 0.9,
+          serie: [74.2, 75.1, 75.9, 76.8],
+          fonte: 'Tesouro Nacional',
+          baseInterna: true,
+        },
+      ],
+      ipea: [
+        {
+          chave: 'igpm',
+          nome: 'IGP-M — variação % em 12 meses (base interna)',
+          categoria: 'inflacao',
+          unidade: '%',
+          valor: 4.8,
+          periodo: 'últimos 12 meses disponíveis',
+          variacao: -0.4,
+          serie: [5.6, 5.4, 5.1, 4.8],
+          fonte: 'IPEA',
+          baseInterna: true,
+        },
+        {
+          chave: 'salmin',
+          nome: 'Salário mínimo — variação % em 12 meses (base interna)',
+          categoria: 'renda',
+          unidade: '%',
+          valor: 4.5,
+          periodo: 'últimos 12 meses disponíveis',
+          variacao: 0.3,
+          serie: [3.9, 4.1, 4.2, 4.5],
+          fonte: 'IPEA',
+          baseInterna: true,
+        },
+      ],
+    }
+    const nomes: Record<FonteEstatisticaId, string> = {
+      ibge: 'IBGE',
+      tesouro: 'Tesouro Nacional',
+      ipea: 'IPEA',
+    }
+    return {
+      fonte,
+      fonteNome: nomes[fonte],
+      fonteViva: false,
+      aviso:
+        'A fonte ' +
+        nomes[fonte] +
+        ' está indisponível neste momento. Os valores vêm da base interna aproximada do sistema — confira a fonte oficial antes de usar em publicações.' +
+        (aviso ? ' (' + aviso + ')' : ''),
+      selo: 'oficial_institucional',
+      atualizadoEm: agora,
+      indicadores: base[fonte].map((i) => ({ ...i, serie: [...i.serie] })),
+    }
+  }
+  return {
+    ok: true,
+    geradoEm: agora,
+    fontes: [
+      interna('ibge', 'IBGE'),
+      interna('tesouro', 'Tesouro Nacional'),
+      interna('ipea', 'IPEA'),
+    ],
+  }
+}
+
+function normalizarIndicadorEstatistico(bruto: Record<string, unknown>): IndicadorEstatistico {
+  const serie = Array.isArray(bruto.serie) ? (bruto.serie as number[]) : []
+  return {
+    chave: String(bruto.chave || ''),
+    nome: String(bruto.nome || ''),
+    categoria: String(bruto.categoria || ''),
+    unidade: String(bruto.unidade || ''),
+    valor: Number(bruto.valor || 0),
+    periodo: String(bruto.periodo || ''),
+    variacao: Number(bruto.variacao || 0),
+    serie,
+    fonte: String(bruto.fonte || ''),
+    baseInterna: Boolean(bruto.baseInterna),
+    nota: bruto.nota ? String(bruto.nota) : undefined,
+  }
+}
+
+/**
+ * Busca as fontes estatísticas no backend (proxy IBGE SIDRA / Tesouro SICONFI /
+ * IPEADATA). Nunca lança: qualquer falha devolve fallback interno com aviso.
+ */
+export async function fetchFontesEstatisticas(
+  fonte: FonteEstatisticaId | 'todas' = 'todas',
+): Promise<RespostaFontesEstatisticas> {
+  try {
+    const res = await fetch(`${URL_ROTA_ESTATISTICAS}?fonte=${encodeURIComponent(fonte)}`, {
+      headers: pb.authStore.token ? { Authorization: pb.authStore.token } : {},
+    })
+    if (!res.ok) throw new Error(`Backend respondeu ${res.status}`)
+    const bruto = (await res.json()) as Record<string, unknown>
+    const fontesBrutas = Array.isArray(bruto.fontes)
+      ? (bruto.fontes as Record<string, unknown>[])
+      : []
+    const fontes: FonteEstatistica[] = fontesBrutas
+      .filter((f) => f && typeof f.fonte === 'string')
+      .map((f) => {
+        const chaveFonte = String(f.fonte)
+        const id: FonteEstatisticaId =
+          chaveFonte === 'Tesouro Nacional' ? 'tesouro' : chaveFonte === 'IPEA' ? 'ipea' : 'ibge'
+        return {
+          fonte: id,
+          fonteNome: chaveFonte,
+          fonteViva: Boolean(f.fonteViva),
+          aviso: String(f.aviso || ''),
+          selo: 'oficial_institucional',
+          atualizadoEm: String(f.atualizadoEm || bruto.geradoEm || new Date().toISOString()),
+          indicadores: Array.isArray(f.indicadores)
+            ? (f.indicadores as Record<string, unknown>[]).map(normalizarIndicadorEstatistico)
+            : [],
+        }
+      })
+    if (fontes.length === 0) throw new Error('Resposta sem fontes')
+    return {
+      ok: bruto.ok !== false,
+      geradoEm: String(bruto.geradoEm || new Date().toISOString()),
+      fontes,
+    }
+  } catch {
+    return respostaFontesEstatisticasFallback(
+      'Falha de comunicação com o proxy do sistema — exibindo a base interna aproximada.',
+    )
+  }
+}
+
 /** Busca os indicadores no backend (proxy BCB). Nunca lança: sempre devolve resposta. */
 export async function fetchIndicadoresEconomicos(
   forcarAtualizacao = false,
@@ -320,12 +560,65 @@ const SINONIMOS_BUSCA: Record<string, string[]> = {
   dolar: ['dolar', 'dólar', 'usd', 'cambio', 'câmbio', 'moeda', 'moedas'],
   juros: ['selic', 'cdi', 'juros', 'taxa', 'taxas'],
   correcao: ['igpm', 'igp-m', 'inpc', 'ipc', 'tr', 'poupanca', 'poupança', 'correção', 'correcao'],
+  estatisticas: [
+    'pib',
+    'produto interno',
+    'desemprego',
+    'pnad',
+    'emprego',
+    'salário mínimo',
+    'salario minimo',
+    'salário',
+    'dívida pública',
+    'divida publica',
+    'dívida',
+    'siconfi',
+    'rreo',
+    'ipeadata',
+    'sidra',
+    'estatísticas',
+    'estatisticas',
+  ],
 }
 
-/** Busca simples por palavra-chave sobre os indicadores e moedas. */
+/** Itens pesquisáveis das fontes estatísticas (IBGE, Tesouro Nacional e IPEA). */
+export function itensFontesEstatisticasParaBusca(
+  res: RespostaFontesEstatisticas,
+): ItemIndicadorBusca[] {
+  const itens: ItemIndicadorBusca[] = []
+  for (const f of res.fontes) {
+    const meta = FONTES_ESTATISTICAS_META[f.fonte]
+    for (const ind of f.indicadores) {
+      itens.push({
+        titulo: ind.nome,
+        descricao:
+          (ind.nota ? ind.nota + ' ' : '') +
+          'Série oficial da fonte ' +
+          f.fonteNome +
+          (ind.baseInterna
+            ? ' — base interna aproximada (fonte oficial indisponível no momento)'
+            : ''),
+        valor:
+          ind.valor.toLocaleString('pt-BR', { maximumFractionDigits: 4 }) +
+          (ind.unidade === '%' ? ' %' : ' ' + ind.unidade),
+        data: ind.periodo,
+        fonte: f.fonteNome + ' — Oficial institucional',
+        fonteUrl: meta.url,
+        categoria: 'inflacao',
+        ancora: 'indicadores-economicos',
+        fonteEstatistica: f.fonte,
+        fonteViva: f.fonteViva,
+      })
+    }
+  }
+  return itens
+}
+
+/** Busca simples por palavra-chave sobre os indicadores, moedas e fontes estatísticas. */
 export function buscarIndicadoresPorPalavraChave(
   termo: string,
   res: RespostaIndicadores,
+  resEstatisticas?: RespostaFontesEstatisticas,
 ): ItemIndicadorBusca[] {
   const t = termo.trim().toLowerCase()
   if (!t) return []
@@ -334,8 +627,15 @@ export function buscarIndicadoresPorPalavraChave(
   for (const lista of Object.values(SINONIMOS_BUSCA)) {
     if (lista.some((s) => t.includes(s))) lista.forEach((s) => alvos.add(s))
   }
-  return itensIndicadoresParaBusca(res).filter((item) => {
-    const haystack = `${item.titulo} ${item.descricao} ${item.categoria}`.toLowerCase()
+  const base = itensIndicadoresParaBusca(res)
+  if (resEstatisticas) {
+    for (const item of itensFontesEstatisticasParaBusca(resEstatisticas)) {
+      base.push(item)
+    }
+  }
+  return base.filter((item) => {
+    const haystack =
+      `${item.titulo} ${item.descricao} ${item.categoria} ${item.fonte}`.toLowerCase()
     return [...alvos].some((palavra) => haystack.includes(palavra))
   })
 }

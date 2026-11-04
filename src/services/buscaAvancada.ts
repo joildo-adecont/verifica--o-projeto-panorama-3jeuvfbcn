@@ -14,11 +14,13 @@ import { ANEXOS_REFORMA_CATALOGO, type AnexoReformaItem } from '@/data/anexosRef
 import type { ClassificationItem, TaxNormItem } from '@/types/panorama'
 import {
   fetchIndicadoresEconomicos,
+  fetchFontesEstatisticas,
   buscarIndicadoresPorPalavraChave,
   itensIndicadoresParaBusca,
   respostaFallback,
   type ItemIndicadorBusca,
   type RespostaIndicadores,
+  type RespostaFontesEstatisticas,
 } from '@/services/indicadoresEconomicos'
 
 export type { AssuntoEspecialItem, CategoriaAssuntoEspecial }
