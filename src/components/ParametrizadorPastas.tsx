@@ -1,40 +1,49 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   AlertTriangle,
-  ArrowRightLeft,
+  ArrowDownToLine,
+  ArrowUpFromLine,
   CheckCircle2,
-  Folder,
+  ChevronDown,
+  ChevronRight,
+  FolderTree,
   FolderPlus,
-  Loader2,
+  Layers,
   Pencil,
   RefreshCw,
   Search,
   Trash2,
+  Wand2,
   X,
   XCircle,
 } from 'lucide-react'
 
 /**
- * PASTAS POR CLIENTE — individualizador de documentação
- * ======================================================
- * Pedido do CEO (03/11/2026): "criar um individualizador de documentação em
- * pastas separadas por cliente por parametrização para não misturar documentos."
+ * PASTAS POR CLIENTE — hierarquia Base → Entradas (Compras) / Saídas (Vendas)
+ * ===========================================================================
+ * Pedido do CEO (03/11/2026): "Para cada cliente devemos criar uma pasta Base,
+ * contendo duas pastas uma de entradas (Compras) e outra de Saídas (Vendas)."
  *
- * ── O QUE ESTA TELA FAZ QUE UMA PASTA DE VERDADE PRECISA FAZER ──
- * 1. Criar a pasta com nome e CNPJ.
- * 2. IMPEDIR a mistura: a nota de um CNPJ não entra em pasta de outro. A trava
- *    está na gravação (backend), não aqui — esta tela só mostra o recado.
- * 3. Consertar o que já está fora de pasta: move em lote.
- * 4. Apagar a pasta SEM apagar nota: os documentos voltam a "sem pasta".
+ * ── POR QUE A SEPARAÇÃO POR NATUREZA É O QUE DÁ SENTIDO AO NÚMERO ──
+ * Já havia a divisão por cliente. O que faltava era a divisão por natureza da
+ * operação DENTRO do cliente — e é ela que separa dois universos que NÃO se
+ * somam:
  *
- * ── POR QUE O CNPJ DA PASTA É O CAMPO MAIS IMPORTANTE ──
- * Sem ele, a pasta é só um rótulo — e a nota do cliente A vai para a pasta do B
- * sem ninguém perceber. Com ele, a importação recusa e diz por quê.
+ *   Entradas (Compras) → geram CRÉDITO → o que o cliente comprou
+ *   Saídas   (Vendas)  → geram DÉBITO  → o que o cliente vendeu
  *
- * ── O QUE A TELA DIZ QUANDO NÃO SABE ──
- * Documento sem pasta aparece com o valor dele. Não somo esses valores nos
- * relatórios por cliente: dinheiro que não se sabe de quem é não pertence a
- * nenhum cliente, e ratear seria inventar.
+ * Somar compras com vendas não dá faturamento nem custo: dá um número que não
+ * significa nada. Separados, cada lado tem o seu valor e a apuração passa a ser
+ * possível.
+ *
+ * ── QUEM DECIDE ONDE O DOCUMENTO FICA ──
+ * A DIREÇÃO dele, que vem do CFOP (gravada desde a Fase 4). Não é o operador que
+ * escolhe: é o documento que diz a que pasta pertence. Documento sem CFOP não
+ * tem folha certa — fica na base e a tela aponta, em vez de adivinhar.
+ *
+ * ── O QUE A TELA NUNCA FAZ ──
+ * Não apaga nota. Apagar o cliente devolve os documentos à condição "sem
+ * cliente"; a estrutura é para organizar, não para destruir dado.
  */
 
 const BACKEND =
@@ -57,30 +66,29 @@ const brlCurto = (v: number) => {
   return brl(v)
 }
 
-interface Pasta {
-  id: string
-  nome: string
-  cnpj: string
-  cliente_id: string
-  cor: string
-  observacao: string
-  ativo: boolean
+interface Totais {
   documentos: number
   entrada: number
   saida: number
 }
 
-interface DocSemPasta {
+interface Pasta {
   id: string
-  chave: string
-  modelo: string
-  numero: string
-  emitente: string
+  nome: string
   cnpj: string
-  valor_total: number
-  direcao: string
-  nome_arquivo: string
-  importado_em: string
+  cor: string
+  observacao: string
+  tipo: string
+  pai: string
+  ativo: boolean
+  totais: Totais
+}
+
+interface NoCliente {
+  base: Pasta
+  filhas: Pasta[]
+  consolidado: Totais
+  estruturada: boolean
 }
 
 const CORES: { v: string; nome: string; cls: string }[] = [
@@ -96,32 +104,20 @@ const CORES: { v: string; nome: string; cls: string }[] = [
 
 export function ParametrizadorPastas() {
   const [token, setToken] = useState('')
-  const [pastas, setPastas] = useState<Pasta[]>([])
+  const [clientes, setClientes] = useState<NoCliente[]>([])
   const [semPasta, setSemPasta] = useState(0)
-  const [totalDocs, setTotalDocs] = useState(0)
   const [carregando, setCarregando] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
   const [aviso, setAviso] = useState<string | null>(null)
+  const [busca, setBusca] = useState('')
+  const [abertos, setAbertos] = useState<Set<string>>(new Set())
 
-  // criar / editar
   const [criando, setCriando] = useState(false)
   const [nome, setNome] = useState('')
   const [cnpj, setCnpj] = useState('')
   const [cor, setCor] = useState('slate')
   const [obs, setObs] = useState('')
   const [editando, setEditando] = useState<string | null>(null)
-
-  // busca
-  const [busca, setBusca] = useState('')
-
-  // mover documentos
-  const [painelMover, setPainelMover] = useState(false)
-  const [docsSoltos, setDocsSoltos] = useState<DocSemPasta[]>([])
-  const [selDocs, setSelDocs] = useState<Set<string>>(new Set())
-  const [pastaDestino, setPastaDestino] = useState('')
-  const [resultadoMover, setResultadoMover] = useState<any>(null)
-
-  // apagar
   const [confirmando, setConfirmando] = useState<string | null>(null)
 
   useEffect(() => {
@@ -151,10 +147,9 @@ export function ParametrizadorPastas() {
     setCarregando(true)
     setErro(null)
     try {
-      const j = await chamar('param-pastas')
-      setPastas(j.pastas || [])
+      const j = await chamar('param-pastas-arvore')
+      setClientes(j.arvore || [])
       setSemPasta(j.documentos_sem_pasta || 0)
-      setTotalDocs(j.total_documentos || 0)
     } catch (e: any) {
       setErro(e.message)
     } finally {
@@ -166,9 +161,9 @@ export function ParametrizadorPastas() {
     if (token) carregar()
   }, [token])
 
-  const salvar = async () => {
+  const criarCliente = async () => {
     if (!nome.trim()) {
-      setErro('Dê um nome à pasta.')
+      setErro('Dê um nome ao cliente.')
       return
     }
     setErro(null)
@@ -178,12 +173,12 @@ export function ParametrizadorPastas() {
           metodo: 'PATCH',
           corpo: { id: editando, nome: nome.trim(), cnpj, cor, observacao: obs },
         })
-        setAviso('Pasta atualizada.')
+        setAviso('Cliente atualizado.')
       } else {
-        await chamar('param-pastas', {
-          corpo: { nome: nome.trim(), cnpj, cor, observacao: obs },
+        await chamar('param-pastas-estruturar', {
+          corpo: { criar: { nome: nome.trim(), cnpj, cor, observacao: obs } },
         })
-        setAviso('Pasta criada.')
+        setAviso('Cliente criado com Base, Compras e Vendas.')
       }
       setNome('')
       setCnpj('')
@@ -191,6 +186,50 @@ export function ParametrizadorPastas() {
       setCor('slate')
       setCriando(false)
       setEditando(null)
+      carregar()
+    } catch (e: any) {
+      setErro(e.message)
+    }
+  }
+
+  const estruturar = async (baseId: string, nomeCliente: string) => {
+    setErro(null)
+    try {
+      await chamar('param-pastas-estruturar', { corpo: { pasta: baseId } })
+      setAviso(`${nomeCliente}: Compras e Vendas criadas.`)
+      carregar()
+    } catch (e: any) {
+      setErro(e.message)
+    }
+  }
+
+  const arquivar = async (baseId?: string) => {
+    setErro(null)
+    setCarregando(true)
+    try {
+      const j = await chamar('param-arquivar', {
+        corpo: baseId ? { pasta_base: baseId } : { todas: true },
+      })
+      setAviso(
+        `${j.movidos} documento(s) arquivado(s) na pasta certa.` +
+          (j.sem_direcao > 0
+            ? ` ${j.sem_direcao} sem direção ficaram na base (CFOP ausente).`
+            : ''),
+      )
+      carregar()
+    } catch (e: any) {
+      setErro(e.message)
+    } finally {
+      setCarregando(false)
+    }
+  }
+
+  const apagar = async (id: string) => {
+    setErro(null)
+    try {
+      const j = await chamar(`param-pastas?id=${id}`, { metodo: 'DELETE' })
+      setAviso(j.aviso || 'Pasta apagada.')
+      setConfirmando(null)
       carregar()
     } catch (e: any) {
       setErro(e.message)
@@ -206,77 +245,32 @@ export function ParametrizadorPastas() {
     setCriando(true)
   }
 
-  const apagar = async (id: string) => {
-    setErro(null)
-    try {
-      const j = await chamar(`param-pastas?id=${id}`, { metodo: 'DELETE' })
-      setAviso(j.aviso || 'Pasta apagada.')
-      setConfirmando(null)
-      carregar()
-    } catch (e: any) {
-      setErro(e.message)
-    }
-  }
-
-  /** Carrega os documentos sem pasta — a fila do conserto. */
-  const abrirMover = async () => {
-    setPainelMover(true)
-    setResultadoMover(null)
-    setSelDocs(new Set())
-    setErro(null)
-    try {
-      const r = await fetch(`${BACKEND}/backend/v1/param-documentos`, {
-        headers: { 'X-Painel-Token': token },
-      })
-      const j = await r.json()
-      if (!r.ok) throw new Error(j.error || `Falha (${r.status})`)
-      const soltos = (j.documentos || []).filter((d: any) => !d.pasta_nome)
-      setDocsSoltos(soltos)
-    } catch (e: any) {
-      setErro(e.message)
-    }
-  }
-
-  const mover = async () => {
-    if (!selDocs.size || !pastaDestino) return
-    setErro(null)
-    try {
-      const j = await chamar('param-mover-lote', {
-        corpo: { documento_ids: Array.from(selDocs), pasta: pastaDestino },
-      })
-      setResultadoMover(j)
-      setSelDocs(new Set())
-      carregar()
-    } catch (e: any) {
-      setErro(e.message)
-    }
-  }
-
-  const alternar = (id: string) => {
-    const s = new Set(selDocs)
+  const alternarAberto = (id: string) => {
+    const s = new Set(abertos)
     if (s.has(id)) s.delete(id)
     else s.add(id)
-    setSelDocs(s)
+    setAbertos(s)
   }
 
-  const filtradas = useMemo(() => {
+  const filtrados = useMemo(() => {
     const t = busca
       .toLowerCase()
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '')
       .trim()
-    if (!t) return pastas
-    return pastas.filter(
-      (p) =>
-        p.nome
+    if (!t) return clientes
+    return clientes.filter(
+      (c) =>
+        c.base.nome
           .toLowerCase()
           .normalize('NFD')
           .replace(/[\u0300-\u036f]/g, '')
-          .includes(t) || (p.cnpj || '').includes(t.replace(/\D/g, '')),
+          .includes(t) || (c.base.cnpj || '').includes(t.replace(/\D/g, '')),
     )
-  }, [pastas, busca])
+  }, [clientes, busca])
 
   const corDe = (c: string) => CORES.find((x) => x.v === c)?.cls || 'bg-slate-500'
+  const semEstrutura = clientes.filter((c) => !c.estruturada).length
 
   return (
     <div className="space-y-3">
@@ -301,7 +295,7 @@ export function ParametrizadorPastas() {
         </p>
       )}
 
-      {/* ── barra de ações ── */}
+      {/* barra de ações */}
       <div className="rounded-xl border-2 border-slate-200 bg-white p-3">
         <div className="flex flex-wrap items-center gap-2">
           <button
@@ -317,16 +311,16 @@ export function ParametrizadorPastas() {
             className="inline-flex items-center gap-1.5 rounded-lg bg-panorama-navy px-3 py-1.5 text-[11px] font-bold text-panorama-gold-light hover:bg-slate-900 cursor-pointer"
           >
             <FolderPlus className="w-3.5 h-3.5" />
-            Nova pasta
+            Novo cliente
           </button>
           <button
             type="button"
-            onClick={abrirMover}
-            disabled={!token}
+            onClick={() => arquivar()}
+            disabled={!token || carregando}
             className="inline-flex items-center gap-1.5 rounded-lg border-2 border-panorama-navy px-2.5 py-1.5 text-[11px] font-bold text-panorama-navy hover:bg-slate-50 disabled:opacity-40 cursor-pointer"
           >
-            <ArrowRightLeft className="w-3.5 h-3.5" />
-            Organizar documentos {semPasta > 0 && `(${semPasta} sem pasta)`}
+            <Wand2 className="w-3.5 h-3.5" />
+            Arquivar por direção
           </button>
           <button
             type="button"
@@ -342,28 +336,40 @@ export function ParametrizadorPastas() {
             <input
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
-              placeholder="Buscar pasta ou CNPJ"
+              placeholder="Buscar cliente ou CNPJ"
               className="w-[180px] text-[11px] bg-transparent focus:outline-none"
             />
           </label>
         </div>
 
-        {semPasta > 0 && (
+        <p className="mt-1.5 text-[9.5px] leading-snug text-slate-500">
+          Cada cliente tem <b>Base</b> + <b>Compras</b> (entradas) + <b>Vendas</b> (saídas). O
+          documento vai para a pasta filha pela <b>direção do CFOP</b> — não pela escolha de quem
+          importa. <b>Arquivar por direção</b> põe na folha certa o que estiver na base.
+        </p>
+
+        {semEstrutura > 0 && (
           <p className="mt-2 flex items-start gap-1.5 rounded-lg border border-amber-300 bg-amber-50 p-2 text-[10px] leading-snug text-amber-900">
             <AlertTriangle className="mt-0.5 w-3 h-3 shrink-0" />
             <span>
-              <b>{semPasta}</b> de {totalDocs} documento(s) estão <b>sem pasta</b> — não aparecem em
-              nenhum relatório por cliente. Use <b>Organizar documentos</b> para encaixá-los.
+              <b>{semEstrutura}</b> cliente(s) ainda sem as pastas de Compras e Vendas. Use o botão
+              de estrutura ao lado do nome.
             </span>
+          </p>
+        )}
+        {semPasta > 0 && (
+          <p className="mt-1.5 flex items-start gap-1.5 rounded-lg border border-slate-300 bg-slate-50 p-2 text-[10px] text-slate-700">
+            <Layers className="mt-0.5 w-3 h-3 shrink-0" />
+            <span>{semPasta} documento(s) sem cliente — não entram em nenhum totalizador.</span>
           </p>
         )}
       </div>
 
-      {/* ── formulário criar/editar ── */}
+      {/* formulário */}
       {criando && (
         <div className="rounded-xl border-2 border-panorama-gold/60 bg-amber-50/40 p-3">
           <p className="text-[11px] font-bold text-slate-900">
-            {editando ? 'Editar pasta' : 'Nova pasta de cliente'}
+            {editando ? 'Editar cliente' : 'Novo cliente — cria Base, Compras e Vendas'}
           </p>
           <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
             <label>
@@ -377,9 +383,9 @@ export function ParametrizadorPastas() {
             </label>
             <label>
               <span className="text-[10px] font-bold text-slate-600">
-                CNPJ do cliente
+                CNPJ
                 <span className="ml-1 font-normal text-slate-500">
-                  — é o que impede nota de outro cliente entrar aqui
+                  — impede nota de outro cliente entrar
                 </span>
               </span>
               <input
@@ -394,7 +400,7 @@ export function ParametrizadorPastas() {
               <input
                 value={obs}
                 onChange={(e) => setObs(e.target.value)}
-                placeholder="Opcional — ex.: filial, grupo, contato"
+                placeholder="Opcional — ex.: cidade, atividade, responsável"
                 className="mt-0.5 w-full rounded-lg border-2 border-slate-300 px-2 py-1.5 text-[11px] bg-white focus:outline-none focus:border-panorama-gold"
               />
             </label>
@@ -418,10 +424,10 @@ export function ParametrizadorPastas() {
           <div className="mt-2 flex gap-2">
             <button
               type="button"
-              onClick={salvar}
+              onClick={criarCliente}
               className="rounded-lg bg-panorama-navy px-3 py-1.5 text-[11px] font-bold text-panorama-gold-light hover:bg-slate-900 cursor-pointer"
             >
-              {editando ? 'Salvar alterações' : 'Criar pasta'}
+              {editando ? 'Salvar alterações' : 'Criar cliente'}
             </button>
             <button
               type="button"
@@ -437,197 +443,184 @@ export function ParametrizadorPastas() {
         </div>
       )}
 
-      {/* ── painel de organização ── */}
-      {painelMover && (
-        <div className="rounded-xl border-2 border-panorama-navy/40 bg-white p-3">
-          <div className="flex items-center gap-2">
-            <p className="text-[11px] font-bold text-slate-900">
-              Documentos sem pasta ({docsSoltos.length})
-            </p>
-            <button
-              onClick={() => setPainelMover(false)}
-              className="ml-auto cursor-pointer text-slate-400 hover:text-slate-700"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-
-          {docsSoltos.length === 0 ? (
-            <p className="mt-2 rounded-lg bg-emerald-50 border border-emerald-300 p-2 text-[10.5px] text-emerald-900 flex items-center gap-1.5">
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              Todos os documentos já estão em uma pasta.
-            </p>
-          ) : (
-            <>
-              <div className="mt-2 max-h-[260px] overflow-y-auto rounded-lg border border-slate-200 divide-y divide-slate-100">
-                {docsSoltos.map((d) => (
-                  <label
-                    key={d.id}
-                    className="flex items-start gap-2 px-2 py-1.5 hover:bg-slate-50 cursor-pointer"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selDocs.has(d.id)}
-                      onChange={() => alternar(d.id)}
-                      className="mt-0.5 cursor-pointer"
-                    />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-[10.5px] font-bold text-slate-900 truncate">
-                        {d.emitente}{' '}
-                        <span className="font-normal text-slate-500">
-                          · mod. {d.modelo} nº {d.numero}
-                        </span>
-                      </p>
-                      <p className="text-[9px] text-slate-500 font-mono">
-                        {d.cnpj || 'sem CNPJ'} · {brl(d.valor_total)} · {d.direcao || 'sem direção'}
-                      </p>
-                    </div>
-                  </label>
-                ))}
-              </div>
-
-              <div className="mt-2 flex flex-wrap items-end gap-2">
-                <label className="flex-1 min-w-[200px]">
-                  <span className="text-[10px] font-bold text-slate-600">
-                    Mover {selDocs.size} selecionado(s) para
-                  </span>
-                  <select
-                    value={pastaDestino}
-                    onChange={(e) => setPastaDestino(e.target.value)}
-                    className="mt-0.5 w-full rounded-lg border-2 border-slate-300 px-2 py-1.5 text-[11px] bg-white focus:outline-none focus:border-panorama-gold"
-                  >
-                    <option value="">— escolha a pasta —</option>
-                    {pastas.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.nome}
-                        {p.cnpj ? ` (${p.cnpj})` : ''}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <button
-                  type="button"
-                  onClick={mover}
-                  disabled={!selDocs.size || !pastaDestino}
-                  className="rounded-lg bg-panorama-navy px-3 py-2 text-[11px] font-bold text-panorama-gold-light hover:bg-slate-900 disabled:opacity-40 cursor-pointer"
-                >
-                  Mover
-                </button>
-              </div>
-
-              {resultadoMover && (
-                <div className="mt-2 rounded-lg border border-slate-300 bg-slate-50 p-2 text-[10px]">
-                  <p className="font-bold text-slate-900">
-                    {resultadoMover.movidos} movido(s) para {resultadoMover.pasta}
-                    {resultadoMover.recusados > 0 && (
-                      <span className="ml-1 text-rose-700">
-                        · {resultadoMover.recusados} recusado(s)
-                      </span>
-                    )}
-                  </p>
-                  {(resultadoMover.detalhe_recusados || []).map((r: any, i: number) => (
-                    <p key={i} className="mt-0.5 text-rose-800">
-                      <b>{r.nome || r.id}</b>: {r.motivo}
-                    </p>
-                  ))}
-                </div>
-              )}
-            </>
-          )}
-        </div>
-      )}
-
-      {/* ── lista de pastas ── */}
-      {filtradas.length === 0 && !carregando ? (
+      {/* árvore */}
+      {filtrados.length === 0 && !carregando ? (
         <p className="rounded-xl border-2 border-slate-200 bg-slate-50 p-6 text-center text-[11px] text-slate-600">
-          {pastas.length === 0
-            ? 'Nenhuma pasta criada ainda. Crie a primeira para separar os documentos por cliente.'
-            : 'Nenhuma pasta encontrada para esta busca.'}
+          {clientes.length === 0
+            ? 'Nenhum cliente cadastrado. Crie o primeiro — ele já nasce com Base, Compras e Vendas.'
+            : 'Nenhum cliente encontrado para esta busca.'}
         </p>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-          {filtradas.map((p) => (
-            <div
-              key={p.id}
-              className="rounded-xl border-2 border-slate-200 bg-white p-3 hover:border-panorama-gold/60 transition-colors"
-            >
-              <div className="flex items-start gap-2">
-                <span
-                  className={`mt-0.5 flex items-center justify-center w-7 h-7 rounded-lg ${corDe(p.cor)} text-white shrink-0`}
-                >
-                  <Folder className="w-4 h-4" />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="text-[11.5px] font-bold text-slate-900 leading-tight truncate">
-                    {p.nome}
-                  </p>
-                  <p className="text-[9px] text-slate-500 font-mono">{p.cnpj || 'sem CNPJ'}</p>
-                </div>
-                <div className="flex gap-1 shrink-0">
+        <div className="space-y-2">
+          {filtrados.map((c) => {
+            const aberto = abertos.has(c.base.id)
+            return (
+              <div
+                key={c.base.id}
+                className="rounded-xl border-2 border-slate-200 bg-white overflow-hidden"
+              >
+                <div className="flex items-center gap-2 p-2.5">
                   <button
-                    onClick={() => abrirEdicao(p)}
-                    title="Editar"
-                    className="text-slate-400 hover:text-slate-800 cursor-pointer"
+                    onClick={() => alternarAberto(c.base.id)}
+                    className="shrink-0 cursor-pointer text-slate-500 hover:text-slate-900"
+                    title={aberto ? 'Recolher' : 'Expandir'}
                   >
-                    <Pencil className="w-3 h-3" />
+                    {aberto ? (
+                      <ChevronDown className="w-4 h-4" />
+                    ) : (
+                      <ChevronRight className="w-4 h-4" />
+                    )}
                   </button>
-                  <button
-                    onClick={() => setConfirmando(p.id)}
-                    title="Apagar pasta (não apaga documentos)"
-                    className="text-slate-400 hover:text-rose-700 cursor-pointer"
+                  <span
+                    className={`flex items-center justify-center w-7 h-7 rounded-lg ${corDe(c.base.cor)} text-white shrink-0`}
                   >
-                    <Trash2 className="w-3 h-3" />
-                  </button>
-                </div>
-              </div>
+                    <FolderTree className="w-4 h-4" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[11.5px] font-bold text-slate-900 leading-tight truncate">
+                      {c.base.nome}
+                    </p>
+                    <p className="text-[9px] text-slate-500 font-mono">
+                      {c.base.cnpj || 'sem CNPJ'}
+                      {!c.estruturada && (
+                        <span className="ml-1 rounded bg-amber-100 px-1 font-sans font-bold text-amber-900">
+                          sem Compras/Vendas
+                        </span>
+                      )}
+                    </p>
+                  </div>
 
-              {p.observacao && (
-                <p className="mt-1 text-[9px] text-slate-500 leading-snug line-clamp-2">
-                  {p.observacao}
-                </p>
-              )}
+                  <div className="hidden sm:flex items-center gap-2 text-[9.5px] shrink-0">
+                    <span className="rounded bg-slate-100 px-1.5 py-0.5 font-bold text-slate-700">
+                      {c.consolidado.documentos} doc
+                    </span>
+                    <span className="text-blue-700 tabular-nums" title="Entradas (Compras)">
+                      C {brlCurto(c.consolidado.entrada)}
+                    </span>
+                    <span className="text-emerald-700 tabular-nums" title="Saídas (Vendas)">
+                      V {brlCurto(c.consolidado.saida)}
+                    </span>
+                  </div>
 
-              <div className="mt-1.5 flex items-center gap-2 text-[9.5px]">
-                <span className="rounded bg-slate-100 px-1.5 py-0.5 font-bold text-slate-700">
-                  {p.documentos} doc
-                </span>
-                <span className="text-blue-700 tabular-nums">E {brlCurto(p.entrada)}</span>
-                <span className="text-emerald-700 tabular-nums">S {brlCurto(p.saida)}</span>
-              </div>
-
-              {confirmando === p.id && (
-                <div className="mt-2 rounded-lg border border-rose-300 bg-rose-50 p-2">
-                  <p className="text-[9.5px] leading-snug text-rose-900">
-                    Apagar a pasta <b>{p.nome}</b>? Os <b>{p.documentos} documento(s)</b> continuam
-                    no sistema, apenas sem pasta. Nenhuma nota é apagada.
-                  </p>
-                  <div className="mt-1 flex gap-1.5">
+                  <div className="flex gap-1 shrink-0">
+                    {!c.estruturada && (
+                      <button
+                        onClick={() => estruturar(c.base.id, c.base.nome)}
+                        title="Criar Compras e Vendas"
+                        className="text-amber-700 hover:text-amber-900 cursor-pointer"
+                      >
+                        <Wand2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                     <button
-                      onClick={() => apagar(p.id)}
-                      className="rounded bg-rose-700 px-2 py-1 text-[9.5px] font-bold text-white cursor-pointer"
+                      onClick={() => arquivar(c.base.id)}
+                      title="Arquivar documentos deste cliente pela direção"
+                      className="text-slate-400 hover:text-slate-900 cursor-pointer"
                     >
-                      Apagar pasta
+                      <ArrowDownToLine className="w-3.5 h-3.5" />
                     </button>
                     <button
-                      onClick={() => setConfirmando(null)}
-                      className="rounded border border-slate-300 px-2 py-1 text-[9.5px] font-bold text-slate-700 cursor-pointer"
+                      onClick={() => abrirEdicao(c.base)}
+                      title="Editar"
+                      className="text-slate-400 hover:text-slate-800 cursor-pointer"
                     >
-                      Cancelar
+                      <Pencil className="w-3 h-3" />
+                    </button>
+                    <button
+                      onClick={() => setConfirmando(c.base.id)}
+                      title="Apagar cliente (não apaga documentos)"
+                      className="text-slate-400 hover:text-rose-700 cursor-pointer"
+                    >
+                      <Trash2 className="w-3 h-3" />
                     </button>
                   </div>
                 </div>
-              )}
-            </div>
-          ))}
+
+                {aberto && (
+                  <div className="border-t border-slate-200 bg-slate-50/60 p-2 space-y-1">
+                    {c.filhas.length === 0 ? (
+                      <p className="px-2 py-1.5 text-[10px] text-amber-800">
+                        Sem pastas de movimento. Clique no botão de estrutura para criar{' '}
+                        <b>Compras</b> e <b>Vendas</b>.
+                      </p>
+                    ) : (
+                      c.filhas.map((f) => (
+                        <div
+                          key={f.id}
+                          className="flex items-center gap-2 rounded-lg bg-white border border-slate-200 px-2 py-1.5"
+                        >
+                          <span
+                            className={`flex items-center justify-center w-5 h-5 rounded ${
+                              f.tipo === 'entrada'
+                                ? 'bg-blue-100 text-blue-700'
+                                : 'bg-emerald-100 text-emerald-700'
+                            } shrink-0`}
+                          >
+                            {f.tipo === 'entrada' ? (
+                              <ArrowDownToLine className="w-3 h-3" />
+                            ) : (
+                              <ArrowUpFromLine className="w-3 h-3" />
+                            )}
+                          </span>
+                          <p className="text-[10.5px] font-bold text-slate-800 flex-1 min-w-0 truncate">
+                            {f.tipo === 'entrada' ? 'Compras' : 'Vendas'}
+                          </p>
+                          <span className="text-[9px] rounded bg-slate-100 px-1.5 py-0.5 font-bold text-slate-600 shrink-0">
+                            {f.totais.documentos} doc
+                          </span>
+                          <span
+                            className={`text-[9.5px] tabular-nums shrink-0 ${
+                              f.tipo === 'entrada' ? 'text-blue-700' : 'text-emerald-700'
+                            }`}
+                          >
+                            {brlCurto(f.tipo === 'entrada' ? f.totais.entrada : f.totais.saida)}
+                          </span>
+                        </div>
+                      ))
+                    )}
+
+                    {c.base.totais.documentos > 0 && (
+                      <p className="px-2 pt-1 text-[9px] text-amber-800">
+                        <b>{c.base.totais.documentos}</b> documento(s) ainda na base — use{' '}
+                        <b>Arquivar por direção</b> para levá-los às pastas certas.
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {confirmando === c.base.id && (
+                  <div className="border-t border-rose-200 bg-rose-50 p-2">
+                    <p className="text-[9.5px] leading-snug text-rose-900">
+                      Apagar <b>{c.base.nome}</b> e suas pastas de Compras/Vendas? Os{' '}
+                      <b>{c.consolidado.documentos} documento(s)</b> continuam no sistema, apenas
+                      sem cliente. Nenhuma nota é apagada.
+                    </p>
+                    <div className="mt-1 flex gap-1.5">
+                      <button
+                        onClick={() => apagar(c.base.id)}
+                        className="rounded bg-rose-700 px-2 py-1 text-[9.5px] font-bold text-white cursor-pointer"
+                      >
+                        Apagar cliente
+                      </button>
+                      <button
+                        onClick={() => setConfirmando(null)}
+                        className="rounded border border-slate-300 px-2 py-1 text-[9.5px] font-bold text-slate-700 cursor-pointer"
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )
+          })}
         </div>
       )}
 
       <p className="rounded-lg bg-slate-50 px-2 py-1.5 text-[9px] leading-snug text-slate-500">
-        <b>Como funciona a trava:</b> a pasta tem um CNPJ. Ao importar um lote para ela, cada
-        documento só entra se esse CNPJ aparecer como emitente ou destinatário. Se não aparecer, a
-        nota <b>não é descartada</b> — entra sem pasta e o resultado do lote diz o motivo, com os
-        dois números. Documento sem pasta não soma em nenhum cliente: valor que não se sabe de quem
-        é não pertence a ninguém.
+        <b>Como a nota escolhe a pasta:</b> pelo CFOP. CFOP começando em 1, 2 ou 3 é entrada → vai
+        para <b>Compras</b>. Começando em 5, 6 ou 7 é saída → vai para <b>Vendas</b>. Sem CFOP não
+        há folha certa: o documento fica na base e aparece no aviso, em vez de ser adivinhado.
       </p>
     </div>
   )
