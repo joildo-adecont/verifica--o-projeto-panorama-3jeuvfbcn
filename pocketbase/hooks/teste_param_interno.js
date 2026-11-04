@@ -71,16 +71,30 @@ routerAdd('POST', '/backend/v1/param-teste-interno', (e) => {
     out.relatorio = {
       status: rel.status,
       chars: rel.json && rel.json.texto ? rel.json.texto.length : 0,
-      tem_cabecalho: rel.json && rel.json.texto ? rel.json.texto.indexOf('RELATÓRIO DE DOCUMENTO FISCAL') >= 0 : false,
-      tem_itens: rel.json && rel.json.texto ? rel.json.texto.indexOf('QUEBRA INDIVIDUALIZADA') >= 0 : false,
+      tem_cabecalho:
+        rel.json && rel.json.texto
+          ? rel.json.texto.indexOf('RELATÓRIO DE DOCUMENTO FISCAL') >= 0
+          : false,
+      tem_itens:
+        rel.json && rel.json.texto ? rel.json.texto.indexOf('QUEBRA INDIVIDUALIZADA') >= 0 : false,
     }
 
     // itens gravados
     try {
-      var its = $app.findRecordsByFilter('param_itens', 'documento = "' + docId + '"', 'numero_item', 100, 0)
+      var its = $app.findRecordsByFilter(
+        'param_itens',
+        'documento = "' + docId + '"',
+        'numero_item',
+        100,
+        0,
+      )
       var lista = []
       for (var i = 0; i < its.length; i++) {
-        lista.push({ n: its[i].get('numero_item'), ncm: its[i].getString('ncm'), valor: its[i].get('valor_total') })
+        lista.push({
+          n: its[i].get('numero_item'),
+          ncm: its[i].getString('ncm'),
+          valor: its[i].get('valor_total'),
+        })
       }
       out.itens_gravados = lista
     } catch (_) {
@@ -90,7 +104,13 @@ routerAdd('POST', '/backend/v1/param-teste-interno', (e) => {
     // limpa o documento de teste para não poluir o painel
     if (body.limpar !== false) {
       try {
-        var its2 = $app.findRecordsByFilter('param_itens', 'documento = "' + docId + '"', '', 100, 0)
+        var its2 = $app.findRecordsByFilter(
+          'param_itens',
+          'documento = "' + docId + '"',
+          '',
+          100,
+          0,
+        )
         for (var j = 0; j < its2.length; j++) $app.delete(its2[j])
         $app.delete($app.findRecordById('param_documentos', docId))
         out.limpou = true
