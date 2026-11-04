@@ -189,6 +189,9 @@ export function ParametrizadorAnalisador() {
   const [filtroTendencia, setFiltroTendencia] = useState('')
   const [ordem, setOrdem] = useState<'valor' | 'variacao' | 'ncm'>('valor')
 
+  const [ufSugerida, setUfSugerida] = useState('')
+  const [resumoCliente, setResumoCliente] = useState<any>(null)
+
   const [aberto, setAberto] = useState<Record<string, boolean>>({
     produto: true,
     grupo: true,
@@ -245,29 +248,36 @@ export function ParametrizadorAnalisador() {
     if (token) carregar()
   }, [token])
 
-  /** Os itens do cliente escolhido — base de todo o analisador. */
+  /**
+   * OS ITENS DO CLIENTE ESCOLHIDO — a base de todo o analisador.
+   *
+   * ── O DEFEITO QUE ISSO CORRIGE ──
+   * A primeira versão pedia `/param-itens-todos` (que devolve os itens de TODOS
+   * os clientes) e tentava filtrar no navegador com um `return true` que não
+   * filtrava nada. O analisador mostraria a carteira inteira do escritório como
+   * se fosse a de um cliente — e um erro desses não dá mensagem: dá número
+   * errado com cara de análise.
+   *
+   * Agora o filtro é no servidor, pelo campo `pasta` do item (que existe desde a
+   * Fase 6) e, como reforço, pelo CNPJ do cliente nas partes do documento.
+   */
   const carregarItens = useCallback(async () => {
     if (!token || !pastaSel) return
     setCarregando(true)
     setErro(null)
     try {
-      const j = await chamar(`param-itens-todos`)
-      const todos = j.itens || []
-      /* filtra pelos documentos das pastas deste cliente (base + filhas) */
-      const arv = await chamar('param-pastas-arvore')
-      const no = (arv.arvore || []).find((n: any) => n.base.id === pastaSel)
-      const ids = new Set<string>()
-      if (no) {
-        ids.add(no.base.id)
-        for (const f of no.filhas || []) ids.add(f.id)
-      }
-      const meus = todos.filter((it: any) => {
-        /* o item traz o documento; a marcação de pasta está no doc — usamos a
-           direção e o emitente como filtro indireto quando não há id direto */
-        return true
+      const j = await chamar(`param-itens-cliente?pasta=${encodeURIComponent(pastaSel)}`)
+      setItens(j.lista || [])
+      /* A UF vem do emitente das notas — é sugestão, e a tela deixa claro que
+         quem manda é o estabelecimento do cliente. Não sobrescrevo a escolha
+         manual do usuário: só sugiro quando ele ainda não mexeu. */
+      if (j.uf_sugerida) setUfSugerida(j.uf_sugerida)
+      setResumoCliente({
+        documentos: j.documentos || 0,
+        itens: j.itens || 0,
+        nome: j.cliente ? j.cliente.nome : '',
+        filhas: j.filhas || [],
       })
-      setItens(meus.length ? meus : todos)
-      if (no?.base?.uf) setUf(no.base.uf)
     } catch (e: any) {
       setErro(e.message)
     } finally {
