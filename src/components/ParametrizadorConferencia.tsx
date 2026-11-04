@@ -451,7 +451,9 @@ export function ParametrizadorConferencia() {
 
       {itens.length === 0 && !carregando && (
         <p className="rounded-xl border-2 border-slate-200 bg-slate-50 p-6 text-center text-[11px] text-slate-600">
-          Nenhum item encontrado. Importe documentos ou escolha outro cliente.
+          {!token
+            ? 'Informe o token do painel na aba «Importar e quebrar» para carregar a lista.'
+            : 'Nenhum item encontrado para este filtro. Importe documentos ou escolha outro cliente.'}
         </p>
       )}
 
