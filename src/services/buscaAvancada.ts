@@ -16,6 +16,7 @@ import {
   fetchIndicadoresEconomicos,
   fetchFontesEstatisticas,
   buscarIndicadoresPorPalavraChave,
+  itensFontesEstatisticasParaBusca,
   itensIndicadoresParaBusca,
   respostaFallback,
   type ItemIndicadorBusca,
@@ -967,26 +968,40 @@ export async function buscarAvancado(
   })()
 
   // 4b. Indicadores Econômicos e Financeiros (BCB via proxy do backend; nunca falha — tem fallback interno)
+  // 4c. Fontes estatísticas oficiais (IBGE / Tesouro Nacional / IPEA via proxy do backend)
   const indicadoresDesativado = gruposAtivos && !gruposAtivos.has('indicadores')
   const indicadoresPromise: Promise<RespostaIndicadores> = indicadoresDesativado
     ? Promise.resolve(respostaFallback(''))
     : fetchIndicadoresEconomicos()
+  const estatisticasPromise: Promise<RespostaFontesEstatisticas> = indicadoresDesativado
+    ? Promise.resolve({ ok: true, geradoEm: '', fontes: [] })
+    : fetchFontesEstatisticas('todas')
 
   // Aguarda buscas assíncronas paralelas
-  const [classifResult, normasResult, radarAtosResult, taxTopicsResult, respostaIndicadores] =
-    await Promise.all([
-      classifPromise,
-      normasPromise,
-      radarAtosPromise,
-      taxTopicsPromise,
-      indicadoresPromise,
-    ])
+  const [
+    classifResult,
+    normasResult,
+    radarAtosResult,
+    taxTopicsResult,
+    respostaIndicadores,
+    respostaEstatisticas,
+  ] = await Promise.all([
+    classifPromise,
+    normasPromise,
+    radarAtosPromise,
+    taxTopicsPromise,
+    indicadoresPromise,
+    estatisticasPromise,
+  ])
 
   const indicadoresFiltrados: ItemIndicadorBusca[] = indicadoresDesativado
     ? []
     : (termoNorm
-        ? buscarIndicadoresPorPalavraChave(rawTerm, respostaIndicadores)
-        : itensIndicadoresParaBusca(respostaIndicadores)
+        ? buscarIndicadoresPorPalavraChave(rawTerm, respostaIndicadores, respostaEstatisticas)
+        : [
+            ...itensIndicadoresParaBusca(respostaIndicadores),
+            ...itensFontesEstatisticasParaBusca(respostaEstatisticas),
+          ]
       ).filter((item) => {
         if (!fontesAtivas) return true
         const fNorm = normalizar(item.fonte)

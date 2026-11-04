@@ -17,6 +17,7 @@ import {
   RefreshCw,
   AlertTriangle,
   Landmark,
+  BarChart3,
   ArrowUpRight,
   ArrowDownRight,
   Minus,
@@ -26,6 +27,7 @@ import {
 import { AdecontLogo } from '@/components/AdecontLogo'
 import { SeloNivelConfianca } from '@/components/SeloNivelConfianca'
 import type { ConfidenceTier } from '@/types/panorama'
+import { AbaEstatisticas } from '@/components/AbaEstatisticas'
 import {
   fetchIndicadoresEconomicos,
   paridadeEntre,
@@ -35,7 +37,7 @@ import {
   type RespostaIndicadores,
 } from '@/services/indicadoresEconomicos'
 
-type AbaId = 'inflacao' | 'taxas' | 'cambio'
+type AbaId = 'inflacao' | 'taxas' | 'estatisticas' | 'cambio'
 
 const ABAS: { id: AbaId; label: string; Icon: typeof TrendingUp; descricao: string }[] = [
   {
@@ -49,6 +51,13 @@ const ABAS: { id: AbaId; label: string; Icon: typeof TrendingUp; descricao: stri
     label: 'Taxas',
     Icon: Percent,
     descricao: 'Selic, CDI, TR e rendimento da poupança',
+  },
+  {
+    id: 'estatisticas',
+    label: 'Estatísticas',
+    Icon: BarChart3,
+    descricao:
+      'Séries oficiais do IBGE (IPCA, PIB, desemprego), Tesouro Nacional (SICONFI) e IPEA (IGP-M, INPC, salário mínimo)',
   },
   {
     id: 'cambio',
@@ -482,6 +491,8 @@ export function SectionIndicadoresEconomicos() {
         </div>
       ) : aba === 'cambio' && resposta ? (
         <AbaCambio resposta={resposta} />
+      ) : aba === 'estatisticas' ? (
+        <AbaEstatisticas />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {(aba === 'inflacao' ? inflacao : taxas).map((item) => (
@@ -494,7 +505,8 @@ export function SectionIndicadoresEconomicos() {
         resposta &&
         inflacao.length === 0 &&
         taxas.length === 0 &&
-        aba !== 'cambio' && (
+        aba !== 'cambio' &&
+        aba !== 'estatisticas' && (
           <div className="p-8 rounded-2xl border-2 border-dashed border-slate-300 bg-white text-center text-sm text-slate-500">
             Nenhum indicador disponível no momento. Use o botão “Atualizar” para tentar novamente.
           </div>
@@ -509,7 +521,8 @@ export function SectionIndicadoresEconomicos() {
           </span>
         </div>
         <span className="text-[11px] text-slate-400">
-          Fonte oficial: Banco Central do Brasil — SGS/PTAX · consulta via proxy do backend
+          Fonte oficial: Banco Central — SGS/PTAX · IBGE — SIDRA · Tesouro Nacional — SICONFI · IPEA
+          — IPEADATA · consulta via proxy do backend
         </span>
       </div>
     </div>
