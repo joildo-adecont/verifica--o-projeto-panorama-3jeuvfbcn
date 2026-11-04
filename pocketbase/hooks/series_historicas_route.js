@@ -18,6 +18,11 @@
  * Séries sem API aberta com série (inep, datasus, snis, tesouro, caged,
  * salário mínimo) respondem fonteViva=false — o frontend cai na base interna
  * com o aviso transparente "Base interna — dado aproximado".
+ *
+ * Séries de mercado (sp500, dowjones, nasdaq, ifix) usam a API OData do
+ * IPEADATA com lista de códigos candidatos: o primeiro código que responder
+ * com pontos vale a série; se nenhum responder, fonteViva=false (fallback
+ * base interna com aviso, nunca erro cru).
  */
 routerAdd('GET /backend/v1/series-historicas', (e) => {
   const q = e.requestInfo().query || {}
@@ -57,6 +62,30 @@ routerAdd('GET /backend/v1/series-historicas', (e) => {
     renda_media: { tipo: 'sidra', tabela: 5935, variavel: 6034, fonte: 'IBGE SIDRA t5935' },
     populacao_ocupada: { tipo: 'sidra', tabela: 4099, variavel: 4091, fonte: 'IBGE SIDRA t4099' },
     agro_producao: { tipo: 'sidra', tabela: 6588, variavel: 109, fonte: 'IBGE SIDRA t6588' },
+    sp500: {
+      tipo: 'ipea',
+      codigos: ['JPA366_SP500366', 'SGS366_SP500366', 'GM366_SP500366', 'JPA366_SP500'],
+      fonte: 'IPEA — IPEADATA (S&P 500)',
+      agreg: 'mensal_ultimo',
+    },
+    dowjones: {
+      tipo: 'ipea',
+      codigos: ['SGS366_DJIA366', 'JPA366_DJIA366', 'GM366_DJIA366'],
+      fonte: 'IPEA — IPEADATA (Dow Jones)',
+      agreg: 'mensal_ultimo',
+    },
+    nasdaq: {
+      tipo: 'ipea',
+      codigos: ['SGS366_NASDAQ366', 'JPA366_NASDAQ366', 'GM366_NASDAQ366'],
+      fonte: 'IPEA — IPEADATA (Nasdaq)',
+      agreg: 'mensal_ultimo',
+    },
+    ifix: {
+      tipo: 'ipea',
+      codigos: ['GM366_IFIX366', 'SGS366_IFIX366', 'JPA366_IFIX366', 'GM12_IFIX'],
+      fonte: 'IPEA — IPEADATA (IFIX)',
+      agreg: 'mensal_ultimo',
+    },
   }
 
   const periodoSidra = (codigo) => {
@@ -87,46 +116,70 @@ routerAdd('GET /backend/v1/series-historicas', (e) => {
 
   let pontos = []
   try {
-    let url
+    let urls = []
     if (item.tipo === 'bcb') {
-      url =
+      urls = [
         'https://api.bcb.gov.br/dados/serie/bcdata.sgs.' +
-        item.codigo +
-        '/dados?formato=json&dataInicial=01/01/2014'
-    } else {
-      url =
+          item.codigo +
+          '/dados?formato=json&dataInicial=01/01/2014',
+      ]
+    } else if (item.tipo === 'sidra') {
+      urls = [
         'https://apisidra.ibge.gov.br/values/t/' +
-        item.tabela +
-        '/n1/1/v/' +
-        item.variavel +
-        '/p/last%20160'
-    }
-    const resp = $http.send({ url: url, method: 'GET', timeout: timeoutMs, headers: CAB })
-    const arr = resp.json || []
-    for (let i = 0; i < arr.length; i++) {
-      const linha = arr[i]
-      if (!linha) continue
-      let periodo = ''
-      let valor = NaN
-      if (item.tipo === 'bcb') {
-        const data = String(linha.data || '')
-        const m = data.match(/^(\d{2})\/(\d{2})\/(\d{4})$/)
-        if (!m) continue
-        periodo = m[3] + '-' + m[2]
-        valor = parseFloat(String(linha.valor || '').replace(',', '.'))
-      } else {
-        if (linha.V === 'Valor' || linha.VL === 'Valor') continue
-        valor = parseFloat(linha.V != null ? linha.V : linha.VL)
-        periodo = periodoSidra(linha.D3C || linha.D2C || linha.Periodo || linha.D1C)
+          item.tabela +
+          '/n1/1/v/' +
+          item.variavel +
+          '/p/last%20160',
+      ]
+    } else {
+      // IPEADATA — tenta os códigos candidatos em ordem, para no primeiro que responder
+      for (let c = 0; c < item.codigos.length; c++) {
+        urls.push(
+          "http://www.ipeadata.gov.br/api/odata4/ValoresSerie(SERCODIGO='" +
+            item.codigos[c] +
+            "')?$top=4000&$orderby=VALDATA%20desc",
+        )
       }
-      if (!isFinite(valor) || !periodo) continue
-      pontos.push({ periodo: periodo, valor: valor })
+    }
+
+    for (let u = 0; u < urls.length && pontos.length === 0; u++) {
+      const resp = $http.send({ url: urls[u], method: 'GET', timeout: timeoutMs, headers: CAB })
+      const body = resp.json
+      const arr = item.tipo === 'ipea' ? (body && body.value ? body.value : []) : body || []
+      const coletados = []
+      for (let i = 0; i < arr.length; i++) {
+        const linha = arr[i]
+        if (!linha) continue
+        let periodo = ''
+        let valor = NaN
+        if (item.tipo === 'bcb') {
+          const data = String(linha.data || '')
+          const m = data.match(/^(\d{2})\/(\d{2})\/(\d{4})$/)
+          if (!m) continue
+          periodo = m[3] + '-' + m[2]
+          valor = parseFloat(String(linha.valor || '').replace(',', '.'))
+        } else if (item.tipo === 'ipea') {
+          const data = String(linha.VALDATA || '')
+          if (data.length < 7) continue
+          periodo = data.slice(0, 7)
+          valor = parseFloat(linha.VALVALOR)
+        } else {
+          if (linha.V === 'Valor' || linha.VL === 'Valor') continue
+          valor = parseFloat(linha.V != null ? linha.V : linha.VL)
+          periodo = periodoSidra(linha.D3C || linha.D2C || linha.Periodo || linha.D1C)
+        }
+        if (!isFinite(valor) || !periodo) continue
+        coletados.push({ periodo: periodo, valor: valor })
+      }
+      // IPEADATA ordena desc — reverte para o último valor do mês ser o mais recente
+      if (item.tipo === 'ipea') coletados.reverse()
+      pontos = coletados
     }
   } catch (err) {
     pontos = []
   }
 
-  // Séries diárias (câmbio, Cepea) colapsadas para o último valor do mês.
+  // Séries diárias (câmbio, Cepea, bolsa) colapsadas para o último valor do mês.
   if (item.agreg === 'mensal_ultimo' && pontos.length > 0) {
     const porMes = {}
     const ordem = []
