@@ -8,6 +8,11 @@
  * com tempo limite curto e fallback pela base interna com aviso transparente.
  * Nunca erro cru, nunca crash: qualquer falha vira resposta 200 com fonteViva=false.
  *
+ * Fontes de educação e saúde:
+ * - inep      : Censo da Educação Básica e IDEB (gov.br/inep — dados abertos do INEP)
+ * - datasus   : SINASC nascidos vivos · internações AIH/SUS · mortalidade infantil
+ *               (TABNET/DATASUS — datasus.saude.gov.br)
+ *
  * Fontes de agronegócio e imobiliário:
  * - ibge_agro : produção da agropecuária (SIDRA tabela 6588 / PIB agro)
  * - conab     : safras e estoques oficiais (boletins CONAB — gov.br/conab)
@@ -488,6 +493,129 @@ routerAdd('GET /backend/v1/fontes-estatisticas', (e) => {
     return saida
   }
 
+  const coletarInep = () => {
+    // INEP/MEC — Censo da Educação Básica e IDEB (dados abertos do INEP).
+    // Consulta pelo backend serve como prova de acesso à fonte; o detalhamento
+    // das séries (matrículas por etapa, IDEB por rede) vem do portal/QEdu.
+    const saida = []
+    const tentativas = [
+      'https://www.gov.br/inep/pt-br/areas-de-atuacao/pesquisas-estatisticas-e-indicadores/censo-da-educacao-basica',
+      'https://www.gov.br/inep',
+    ]
+    for (const url of tentativas) {
+      try {
+        const resp = $http.send({
+          url: url,
+          method: 'GET',
+          timeout: timeoutMs,
+          headers: {
+            'User-Agent':
+              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            Accept: 'text/html,application/xhtml+xml,*/*',
+          },
+        })
+        const corpo = resp.body || ''
+        if (resp.statusCode >= 200 && resp.statusCode < 400 && corpo.length > 0) {
+          saida.push({
+            chave: 'censo_educacao_basica',
+            nome: 'Censo da Educação Básica — matrículas (INEP/MEC)',
+            categoria: 'educacao',
+            unidade: 'matrículas',
+            valor: 0,
+            periodo: 'última edição publicada',
+            variacao: 0,
+            serie: [],
+            fonte: 'INEP/MEC',
+            nota: 'Censo da Educação Básica disponível no portal oficial do INEP; detalhamento de matrículas por etapa e UF via dados abertos do INEP e QEdu.',
+          })
+          saida.push({
+            chave: 'ideb',
+            nome: 'IDEB — Índice de Desenvolvimento da Educação Básica (INEP/MEC)',
+            categoria: 'educacao',
+            unidade: 'pontos IDEB',
+            valor: 0,
+            periodo: 'última edição publicada',
+            variacao: 0,
+            serie: [],
+            fonte: 'INEP/MEC',
+            nota: 'IDEB (anos iniciais e finais do ensino fundamental) disponível no portal oficial do INEP; séries históricas via QEdu e microdados do INEP.',
+          })
+          break
+        }
+      } catch (err) {
+        // tenta próxima URL
+      }
+    }
+    return saida
+  }
+
+  const coletarDatasus = () => {
+    // DATASUS/Ministério da Saúde — TABNET: SINASC (nascidos vivos), SIH (AIH,
+    // internações hospitalares SUS) e SIM/SINASC (mortalidade infantil).
+    const saida = []
+    const tentativas = [
+      'https://tabnet.datasus.gov.br/cgi/tabcgi.exe?sinasc/cnv/nvuf.def',
+      'https://datasus.saude.gov.br',
+    ]
+    for (const url of tentativas) {
+      try {
+        const resp = $http.send({
+          url: url,
+          method: 'GET',
+          timeout: timeoutMs,
+          headers: {
+            'User-Agent':
+              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            Accept: 'text/html,application/xhtml+xml,*/*',
+          },
+        })
+        const corpo = resp.body || ''
+        if (resp.statusCode >= 200 && resp.statusCode < 400 && corpo.length > 0) {
+          saida.push({
+            chave: 'sinasc_nascidos_vivos',
+            nome: 'Nascidos vivos registrados — SINASC (DATASUS)',
+            categoria: 'saude',
+            unidade: 'nascidos vivos',
+            valor: 0,
+            periodo: 'último ano disponível',
+            variacao: 0,
+            serie: [],
+            fonte: 'DATASUS — Ministério da Saúde',
+            nota: 'Tabulador TABNET/SINASC acessível; detalhamento de nascidos vivos por UF e período via TABNET/DATASUS.',
+          })
+          saida.push({
+            chave: 'internacoes_aih',
+            nome: 'Internações hospitalares SUS — AIH (SIH/DATASUS)',
+            categoria: 'saude',
+            unidade: 'internações',
+            valor: 0,
+            periodo: 'último mês disponível',
+            variacao: 0,
+            serie: [],
+            fonte: 'DATASUS — Ministério da Saúde',
+            nota: 'Autorizações de Internação Hospitalar (AIH) disponíveis no TABNET/SIH do DATASUS; detalhamento por UF, região e morbidade.',
+          })
+          saida.push({
+            chave: 'mortalidade_infantil',
+            nome: 'Mortalidade infantil — por 1.000 nascidos vivos (SIM/SINASC, DATASUS)',
+            categoria: 'saude',
+            unidade: 'por 1.000 nascidos vivos',
+            valor: 0,
+            periodo: 'último ano disponível',
+            variacao: 0,
+            serie: [],
+            fonte: 'DATASUS — Ministério da Saúde',
+            nota: 'Coeficiente de mortalidade infantil apurado no TABNET (SIM/SINASC) do DATASUS; detalhamento por UF e faixa etária.',
+          })
+          break
+        }
+      } catch (err) {
+        // tenta próxima URL
+      }
+    }
+    return saida
+  }
+
   const baseInterna = (fonteNome, indicadores, avisoExtra) => {
     // Fallback: base interna aproximada, com aviso transparente — nunca erro cru.
     const internas = {
@@ -650,6 +778,76 @@ routerAdd('GET /backend/v1/fontes-estatisticas', (e) => {
           fonte: 'Banco Central — SFH',
         },
       ],
+      'INEP/MEC': [
+        {
+          chave: 'matriculas_basica',
+          nome: 'Matrículas na educação básica — Censo Escolar (base interna)',
+          categoria: 'educacao',
+          unidade: 'milhões',
+          valor: 47.3,
+          periodo: 'último Censo da Educação Básica disponível',
+          variacao: 0.4,
+          serie: [46.8, 47.0, 47.0, 47.3],
+          fonte: 'INEP/MEC',
+        },
+        {
+          chave: 'ideb_anos_iniciais',
+          nome: 'IDEB — anos iniciais do ensino fundamental (base interna)',
+          categoria: 'educacao',
+          unidade: 'pontos IDEB',
+          valor: 6.0,
+          periodo: 'última edição do IDEB disponível',
+          variacao: 0.1,
+          serie: [5.7, 5.8, 5.9, 6.0],
+          fonte: 'INEP/MEC',
+        },
+        {
+          chave: 'ideb_anos_finais',
+          nome: 'IDEB — anos finais do ensino fundamental (base interna)',
+          categoria: 'educacao',
+          unidade: 'pontos IDEB',
+          valor: 5.2,
+          periodo: 'última edição do IDEB disponível',
+          variacao: 0.1,
+          serie: [4.9, 5.0, 5.1, 5.2],
+          fonte: 'INEP/MEC',
+        },
+      ],
+      'DATASUS — Ministério da Saúde': [
+        {
+          chave: 'nascidos_vivos',
+          nome: 'Nascidos vivos registrados — SINASC, saúde (base interna)',
+          categoria: 'saude',
+          unidade: 'milhões/ano',
+          valor: 2.52,
+          periodo: 'último ano disponível',
+          variacao: -0.02,
+          serie: [2.55, 2.54, 2.53, 2.52],
+          fonte: 'DATASUS — Ministério da Saúde',
+        },
+        {
+          chave: 'internacoes_aih',
+          nome: 'Internações hospitalares SUS — AIH/SIH (base interna)',
+          categoria: 'saude',
+          unidade: 'milhões/ano',
+          valor: 11.2,
+          periodo: 'último ano disponível',
+          variacao: 0.1,
+          serie: [11.0, 11.1, 11.1, 11.2],
+          fonte: 'DATASUS — Ministério da Saúde',
+        },
+        {
+          chave: 'mortalidade_infantil',
+          nome: 'Mortalidade infantil — por 1.000 nascidos vivos, saúde (base interna)',
+          categoria: 'saude',
+          unidade: 'por 1.000 nascidos vivos',
+          valor: 12.5,
+          periodo: 'último ano disponível',
+          variacao: -0.3,
+          serie: [13.4, 13.1, 12.8, 12.5],
+          fonte: 'DATASUS — Ministério da Saúde',
+        },
+      ],
     }
     const lista = internas[fonteNome] || []
     for (let i = 0; i < lista.length; i++) lista[i].baseInterna = true
@@ -665,6 +863,8 @@ routerAdd('GET /backend/v1/fontes-estatisticas', (e) => {
   if (fonte === 'todas' || fonte === 'cepea') consultas.push('Cepea-Esalq/USP')
   if (fonte === 'todas' || fonte === 'fipezap') consultas.push('FipeZap')
   if (fonte === 'todas' || fonte === 'bcb_sfh') consultas.push('Banco Central — SFH')
+  if (fonte === 'todas' || fonte === 'inep') consultas.push('INEP/MEC')
+  if (fonte === 'todas' || fonte === 'datasus') consultas.push('DATASUS — Ministério da Saúde')
 
   const fontes = []
   for (const nome of consultas) {
@@ -680,6 +880,8 @@ routerAdd('GET /backend/v1/fontes-estatisticas', (e) => {
       else if (nome === 'Cepea-Esalq/USP') itens = coletarCepea()
       else if (nome === 'FipeZap') itens = coletarFipezap()
       else if (nome === 'Banco Central — SFH') itens = coletarBcbSfh()
+      else if (nome === 'INEP/MEC') itens = coletarInep()
+      else if (nome === 'DATASUS — Ministério da Saúde') itens = coletarDatasus()
       if (!itens || itens.length === 0) {
         viva = false
         aviso =

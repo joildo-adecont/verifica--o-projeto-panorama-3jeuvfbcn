@@ -21,6 +21,8 @@ import {
   Wheat,
   Building2,
   Home,
+  GraduationCap,
+  HeartPulse,
 } from 'lucide-react'
 import { SeloNivelConfianca } from '@/components/SeloNivelConfianca'
 import {
@@ -40,6 +42,8 @@ const ICONE_POR_FONTE: Record<FonteEstatisticaId, typeof BarChart3> = {
   cepea: Wheat,
   fipezap: Building2,
   bcb_sfh: Home,
+  inep: GraduationCap,
+  datasus: HeartPulse,
 }
 
 const ROSTO_POR_FONTE: Record<FonteEstatisticaId, string> = {
@@ -51,6 +55,8 @@ const ROSTO_POR_FONTE: Record<FonteEstatisticaId, string> = {
   cepea: 'Boi gordo · soja · milho (indicadores Esalq)',
   fipezap: 'Índice de preços de imóveis residenciais anunciados',
   bcb_sfh: 'TR · TJLP · IGP-M — correção de financiamentos SFH',
+  inep: 'Censo da Educação Básica · matrículas · IDEB (anos iniciais e finais)',
+  datasus: 'SINASC — nascidos vivos · internações AIH/SUS · mortalidade infantil',
 }
 
 function formatarVariacao(v: number): string {

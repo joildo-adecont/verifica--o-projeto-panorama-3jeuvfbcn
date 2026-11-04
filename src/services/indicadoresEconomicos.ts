@@ -72,6 +72,8 @@ export type FonteEstatisticaId =
   | 'cepea'
   | 'fipezap'
   | 'bcb_sfh'
+  | 'inep'
+  | 'datasus'
 
 export const FONTES_ESTATISTICAS_META: Record<
   FonteEstatisticaId,
@@ -115,6 +117,16 @@ export const FONTES_ESTATISTICAS_META: Record<
   bcb_sfh: {
     rotulo: 'Banco Central — Sistema Financeiro de Habitação (SFH)',
     url: 'https://www.bcb.gov.br',
+    tier: 'oficial_institucional',
+  },
+  inep: {
+    rotulo: 'INEP/MEC — Censo da Educação Básica e IDEB',
+    url: 'https://www.gov.br/inep',
+    tier: 'oficial_institucional',
+  },
+  datasus: {
+    rotulo: 'DATASUS — Ministério da Saúde (SINASC · AIH/SUS · TABNET)',
+    url: 'https://datasus.saude.gov.br',
     tier: 'oficial_institucional',
   },
 }
@@ -538,6 +550,82 @@ export function respostaFontesEstatisticasFallback(aviso: string): RespostaFonte
           baseInterna: true,
         },
       ],
+      inep: [
+        {
+          chave: 'matriculas_basica',
+          nome: 'Matrículas na educação básica — Censo Escolar (base interna)',
+          categoria: 'educacao',
+          unidade: 'milhões',
+          valor: 47.3,
+          periodo: 'último Censo da Educação Básica disponível',
+          variacao: 0.4,
+          serie: [46.8, 47.0, 47.0, 47.3],
+          fonte: 'INEP/MEC',
+          baseInterna: true,
+        },
+        {
+          chave: 'ideb_anos_iniciais',
+          nome: 'IDEB — anos iniciais do ensino fundamental (base interna)',
+          categoria: 'educacao',
+          unidade: 'pontos IDEB',
+          valor: 6.0,
+          periodo: 'última edição do IDEB disponível',
+          variacao: 0.1,
+          serie: [5.7, 5.8, 5.9, 6.0],
+          fonte: 'INEP/MEC',
+          baseInterna: true,
+        },
+        {
+          chave: 'ideb_anos_finais',
+          nome: 'IDEB — anos finais do ensino fundamental (base interna)',
+          categoria: 'educacao',
+          unidade: 'pontos IDEB',
+          valor: 5.2,
+          periodo: 'última edição do IDEB disponível',
+          variacao: 0.1,
+          serie: [4.9, 5.0, 5.1, 5.2],
+          fonte: 'INEP/MEC',
+          baseInterna: true,
+        },
+      ],
+      datasus: [
+        {
+          chave: 'nascidos_vivos',
+          nome: 'Nascidos vivos registrados — SINASC, saúde (base interna)',
+          categoria: 'saude',
+          unidade: 'milhões/ano',
+          valor: 2.52,
+          periodo: 'último ano disponível',
+          variacao: -0.02,
+          serie: [2.55, 2.54, 2.53, 2.52],
+          fonte: 'DATASUS — Ministério da Saúde',
+          baseInterna: true,
+        },
+        {
+          chave: 'internacoes_aih',
+          nome: 'Internações hospitalares SUS — AIH/SIH (base interna)',
+          categoria: 'saude',
+          unidade: 'milhões/ano',
+          valor: 11.2,
+          periodo: 'último ano disponível',
+          variacao: 0.1,
+          serie: [11.0, 11.1, 11.1, 11.2],
+          fonte: 'DATASUS — Ministério da Saúde',
+          baseInterna: true,
+        },
+        {
+          chave: 'mortalidade_infantil',
+          nome: 'Mortalidade infantil — por 1.000 nascidos vivos, saúde (base interna)',
+          categoria: 'saude',
+          unidade: 'por 1.000 nascidos vivos',
+          valor: 12.5,
+          periodo: 'último ano disponível',
+          variacao: -0.3,
+          serie: [13.4, 13.1, 12.8, 12.5],
+          fonte: 'DATASUS — Ministério da Saúde',
+          baseInterna: true,
+        },
+      ],
     }
     const nomes: Record<FonteEstatisticaId, string> = {
       ibge: 'IBGE',
@@ -548,6 +636,8 @@ export function respostaFontesEstatisticasFallback(aviso: string): RespostaFonte
       cepea: 'Cepea-Esalq/USP',
       fipezap: 'FipeZap',
       bcb_sfh: 'Banco Central — SFH',
+      inep: 'INEP/MEC',
+      datasus: 'DATASUS — Ministério da Saúde',
     }
     return {
       fonte,
@@ -575,6 +665,8 @@ export function respostaFontesEstatisticasFallback(aviso: string): RespostaFonte
       interna('cepea', 'Cepea-Esalq/USP'),
       interna('fipezap', 'FipeZap'),
       interna('bcb_sfh', 'Banco Central — SFH'),
+      interna('inep', 'INEP/MEC'),
+      interna('datasus', 'DATASUS — Ministério da Saúde'),
     ],
   }
 }
@@ -617,7 +709,25 @@ export async function fetchFontesEstatisticas(
       .map((f) => {
         const chaveFonte = String(f.fonte)
         const id: FonteEstatisticaId =
-          chaveFonte === 'Tesouro Nacional' ? 'tesouro' : chaveFonte === 'IPEA' ? 'ipea' : 'ibge'
+          chaveFonte === 'Tesouro Nacional'
+            ? 'tesouro'
+            : chaveFonte === 'IPEA'
+              ? 'ipea'
+              : chaveFonte === 'IBGE — Agronegócio'
+                ? 'ibge_agro'
+                : chaveFonte === 'CONAB'
+                  ? 'conab'
+                  : chaveFonte === 'Cepea-Esalq/USP'
+                    ? 'cepea'
+                    : chaveFonte === 'FipeZap'
+                      ? 'fipezap'
+                      : chaveFonte === 'Banco Central — SFH'
+                        ? 'bcb_sfh'
+                        : chaveFonte === 'INEP/MEC'
+                          ? 'inep'
+                          : chaveFonte === 'DATASUS — Ministério da Saúde'
+                            ? 'datasus'
+                            : 'ibge'
         return {
           fonte: id,
           fonteNome: chaveFonte,
@@ -799,6 +909,46 @@ const SINONIMOS_BUSCA: Record<string, string[]> = {
     'caixa econômica',
     'tjlp',
     'tr',
+  ],
+  educacao: [
+    'educacao',
+    'educação',
+    'escola',
+    'escolas',
+    'matricula',
+    'matrícula',
+    'matrículas',
+    'ideb',
+    'inep',
+    'mec',
+    'aluno',
+    'alunos',
+    'ensino',
+    'ensino fundamental',
+    'ensino medio',
+    'ensino médio',
+    'censo escolar',
+    'professor',
+    'professores',
+  ],
+  saude: [
+    'saude',
+    'saúde',
+    'sus',
+    'datasus',
+    'tabnet',
+    'sinasc',
+    'internacao',
+    'internação',
+    'internações',
+    'hospital',
+    'hospitalar',
+    'nascimento',
+    'nascidos vivos',
+    'mortalidade',
+    'mortalidade infantil',
+    'aih',
+    'ministério da saúde',
   ],
 }
 
