@@ -392,6 +392,39 @@ export function SectionFontes() {
       badgeCor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
     },
     {
+      orgao: 'INEP/MEC (Educação)',
+      fonte: 'gov.br/inep (proxy backend)',
+      conteudo:
+        'Indicadores de educação: matrículas da educação básica (Censo da Educação Básica) e IDEB dos anos iniciais e finais do ensino fundamental',
+      url: 'https://www.gov.br/inep',
+      statusNota:
+        'Fonte oficial institucional ativa via proxy /backend/v1/fontes-estatisticas com cache e base interna de contingência.',
+      badgeStatus: 'Oficial Integrada (Proxy)',
+      badgeCor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+    },
+    {
+      orgao: 'DATASUS (Saúde)',
+      fonte: 'datasus.saude.gov.br (proxy backend)',
+      conteudo:
+        'Indicadores de saúde: nascidos vivos (SINASC), internações hospitalares do SUS (AIH/SIH) e mortalidade infantil — TABNET/DATASUS',
+      url: 'https://datasus.saude.gov.br',
+      statusNota:
+        'Fonte oficial institucional ativa via proxy /backend/v1/fontes-estatisticas com cache e base interna de contingência.',
+      badgeStatus: 'Oficial Integrada (Proxy)',
+      badgeCor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+    },
+    {
+      orgao: 'SNIS — Saneamento Básico (Ministério das Cidades)',
+      fonte: 'gov.br/cidades + Painel SNIS (proxy backend)',
+      conteudo:
+        'Indicadores de saneamento: acesso à água potável, coleta e tratamento de esgoto e perda de água na distribuição (Diagnóstico dos Serviços de Água e Esgotos)',
+      url: 'https://www.gov.br/cidades',
+      statusNota:
+        'Fonte oficial institucional ativa via proxy /backend/v1/fontes-estatisticas com cache e base interna de contingência.',
+      badgeStatus: 'Oficial Integrada (Proxy)',
+      badgeCor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+    },
+    {
       orgao: 'Lefisc (Serviço Privado de Confronto)',
       fonte: 'lefisc.com.br (Radar de Confronto)',
       conteudo:
