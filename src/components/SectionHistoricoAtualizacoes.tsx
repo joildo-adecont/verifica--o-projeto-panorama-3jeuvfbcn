@@ -69,6 +69,64 @@ function ehRecente(dataBR: string): boolean {
 }
 
 const REGISTROS: Registro[] = [
+  {
+    data: '04/11/2026',
+    hora: '11:00',
+    titulo:
+      'Ato Técnico Conjunto RFB/SUFIS/CGIBS nº 10/2026: IT 2025.002 e tabela cClassTrib na versão 1.71',
+    conteudo:
+      'Revisão semanal das fontes oficiais (quarta, 11:00) com UMA mudança normativa publicada no DOU de 29/10/2026 (DO1_EXTRA_C): o Ato Técnico Conjunto RFB/SUFIS/CGIBS/Diretoria-Executiva nº 10, de 28 de outubro de 2026, aprovou a documentação técnica da CBS e do IBS. O que muda para quem emite documento fiscal: (1) Informe Técnico 2025.002 e a Tabela de Classificação Tributária do IBS e da CBS (cClassTrib) passam à versão 1.71 — a v1.71 alterou os textos dos cClassTrib 410003 e 410026 (doações e amostras grátis) e ativou o indicador indDIR no 410003 e no 410999; (2) NF-e modelo 55 e NFC-e modelo 65: NT 2025.002 v1.53 (era 1.52), NT 2026.006 v1.01, NT 2026.007 v1.11, NT 2026.008 v1.01 e a NOVA NT 2026.005 v1.00 (Simples Nacional); (3) CT-e modelo 57, CT-e OS 67, NFCom 62, BP-e 63, NF3e 66, NFAg 75 e NFGas 76: NT 2026.004 v1.01 e NT 2026.005 v1.00; (4) NF-e ABI modelo 77: NT 2026.001 v1.00, Informe Técnico 2026.003 v1.00 e Tabela de Códigos v1.01. O ato entra em vigor na data da publicação e a documentação fica em dfe-portal.svrs.rs.gov.br, cte.fazenda.gov.br e nfe.fazenda.gov.br. Não houve alteração nas leis complementares: a LC 214/2025 segue com 544 artigos e 18 anexos no Senado e as 18 resoluções do CGIBS permanecem as mesmas (última: Res. 18/2026).',
+    fontes: [
+      {
+        titulo:
+          'DOU — Ato Técnico Conjunto RFB/SUFIS/CGIBS nº 10, de 28/10/2026 (DO1_EXTRA_C, 29/10/2026)',
+        url: 'https://www.in.gov.br/web/dou/-/ato-tecnico-conjunto-rfb/sufis/cgibs/diretoria-executiva-n-10-de-28-de-outubro-de-2026-741177669',
+      },
+      {
+        titulo: 'Portal Nacional dos DF-e / SVRS — documentação técnica',
+        url: 'https://dfe-portal.svrs.rs.gov.br',
+      },
+      {
+        titulo: 'Portal Nacional da NF-e — Informes Técnicos',
+        url: 'https://www.nfe.fazenda.gov.br/portal/informe.aspx',
+      },
+      {
+        titulo: 'LC 214/2025 — texto integral (normas.leg.br, Senado Federal)',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
+      },
+    ],
+    caminho: 'src/components/SectionFontesPrimarias.tsx',
+    versao: 'v0.0.535',
+    bloco: 'legislacao',
+  },
+  {
+    data: '04/11/2026',
+    hora: '11:00',
+    titulo:
+      'Revisão semanal: 9/9 fontes ok — Calculadora RTC no banco V0066 e agregador com 118 bases',
+    conteudo:
+      'Fechamento semanal das fontes oficiais concluído com as 9 fontes vigiadas respondendo OK. Além do Ato Técnico Conjunto nº 10 (registro próprio), a conferência item a item do agregador Buscador NCM apurou duas mudanças de base: (1) a Calculadora de Tributos (RTC) da Receita Federal/Serpro passou ao banco V0066, com dado oficial de 28/10/2026 — na V0066 ela traz a alíquota de referência para 2026 e, de 2027 em diante, só calcula com as alíquotas informadas; (2) o agregador passou a declarar 118 tabelas oficiais, publicadas por 86 fontes de 22 órgãos (antes: 115 bases). Tabelas-chave re-conferidas em 04/11/2026: cClassTrib v1.71 (dado oficial de 30/10/2026), cCredPres com dado oficial de 01/10/2026, Anexo VIII da NFS-e v1.02.00 (26/10/2026) e Tabelas SPED. Seções 11 e 12 re-datadas para 04/11/2026 nos dois projetos (56819 e 62493). Nenhuma citação do Panorama aponta para o Planalto nesta rodada: as referências de lei seguem em normas.leg.br e as de ato publicado, no DOU/Imprensa Nacional.',
+    fontes: [
+      {
+        titulo:
+          'Buscador NCM — Fontes oficiais e datas de atualização (agregador, fonte secundária)',
+        url: 'https://buscadorncm.com.br/fontes',
+      },
+      {
+        titulo:
+          'Receita Federal / Serpro — Calculadora de Tributos (RTC), pacote offline (banco V0066)',
+        url: 'https://consumo.tributos.gov.br/servico/calcular-tributos-consumo/calculadora-offline-download',
+      },
+      {
+        titulo: 'Portal Nacional dos DF-e / SVRS — Tabela de Classificação Tributária (cClassTrib)',
+        url: 'https://dfe-portal.svrs.rs.gov.br/Cff/ClassificacaoTributaria',
+      },
+    ],
+    caminho:
+      'src/components/SectionFontesAgregador.tsx + src/components/SectionFontesPrimarias.tsx + public/panorama-reforma/partes/parte-conteudo-5.html + public/panorama-reforma/partes/parte-conteudo-6.html',
+    versao: 'v0.0.535',
+    bloco: 'sistema',
+  },
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
     data: '04/11/2026',

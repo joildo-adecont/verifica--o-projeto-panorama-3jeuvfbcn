@@ -414,7 +414,7 @@ export function SectionFontesAgregador() {
               </div>
             </div>
             <p className="text-[10px] text-slate-500 pt-1">
-              Último sincronismo oficial do banco de dados: 28/10/2026 (Fontes: RFB, CGIBS, CONFAZ e
+              Último sincronismo oficial do banco de dados: 04/11/2026 (Fontes: RFB, CGIBS, CONFAZ e
               IBGE)
             </p>
             <div className="pt-2 border-t border-blue-100 flex items-center justify-between">
@@ -1069,8 +1069,9 @@ export function SectionFontesAgregador() {
                 <SeloNivelConfianca fonte="RFB / CGIBS" compacto />
               </div>
               <p className="text-slate-600">
-                <strong>cClassTrib, CST e cCredPres:</strong> IT 2025.002 v1.70, Atos Técnicos
-                Conjuntos RFB/CGIBS e Portal da Conformidade Fácil (SVRS).
+                <strong>cClassTrib, CST e cCredPres:</strong> IT 2025.002 v1.71 (Ato Técnico
+                Conjunto nº 10, 28/10/2026), Atos Técnicos Conjuntos RFB/CGIBS e Portal da
+                Conformidade Fácil (SVRS).
               </p>
             </div>
 
@@ -1112,7 +1113,7 @@ export function SectionFontesAgregador() {
               </a>
             </span>
             <span className="font-mono text-[11px]">
-              Política ADECONT: Verificação Semanal • Atualizado em 28/10/2026
+              Política ADECONT: Verificação Semanal • Atualizado em 04/11/2026
             </span>
           </div>
         </div>

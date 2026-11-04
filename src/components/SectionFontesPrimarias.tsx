@@ -22,7 +22,7 @@ export function SectionFontesPrimarias() {
         [
           'Calculadora de Tributos (RTC) — motor oficial de cálculo do IBS/CBS',
           'Receita Federal / Serpro',
-          '30 de setembro de 2026',
+          '28 de outubro de 2026',
           'https://consumo.tributos.gov.br/servico/calcular-tributos-consumo/calculadora-offline-download',
         ],
         [
@@ -106,7 +106,7 @@ export function SectionFontesPrimarias() {
         [
           'Tabela de Classificação Tributária do IBS e da CBS (cClassTrib + CST IBS/CBS)',
           'Receita Federal / ENCAT / SVRS',
-          '1 de outubro de 2026',
+          '30 de outubro de 2026',
           'https://dfe-portal.svrs.rs.gov.br/Cff/ClassificacaoTributaria',
         ],
         [
@@ -739,12 +739,12 @@ export function SectionFontesPrimarias() {
             Seção 12
           </p>
           <h2 className="text-xl md:text-2xl font-bold text-slate-900 mt-1">
-            Índice das fontes oficiais primárias — 115 bases indexadas
+            Índice das fontes oficiais primárias — 118 bases indexadas
           </h2>
           <p className="text-sm text-slate-500 mt-1">
-            Levantamento em 28/10/2026, re-conferido em 12/10/2026, em 19/10/2026, em 21/10/2026 e
-            em 26/10/2026 pela rotina semanal, a partir da página "Fontes oficiais e datas de
-            atualização" do Buscador NCM (
+            Levantamento em 04/11/2026, re-conferido em 12/10/2026, em 19/10/2026, em 21/10/2026, em
+            26/10/2026 e em 28/10/2026 pela rotina semanal, a partir da página "Fontes oficiais e
+            datas de atualização" do Buscador NCM (
             <a
               href="https://buscadorncm.com.br/fontes"
               target="_blank"
@@ -835,7 +835,7 @@ export function SectionFontesPrimarias() {
             <p>
               <strong>Como ler as datas:</strong> "Dado oficial de…" = última publicação do próprio
               órgão (versão em vigor); "Conferido em…" = última re-conferência do agregador na
-              fonte. As 115 bases cobrem os grupos acima; a lista completa, com ato normativo de
+              fonte. As 118 bases cobrem os grupos acima; a lista completa, com ato normativo de
               cada base, está na página de fontes do agregador.
             </p>
           </div>
