@@ -72,6 +72,50 @@ const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
     data: '03/11/2026',
+    hora: '23:10',
+    titulo:
+      'Parametrizador Fase 6 — pastas por cliente com trava de CNPJ na gravação: documento de um cliente não entra na pasta de outro',
+    conteudo:
+      'A pedido do CEO: individualizador de documentacao em pastas separadas por cliente, por parametrizacao, para nao misturar documentos. A decisao central: separar na TELA seria inutil, porque se a nota do cliente A pode ser gravada na pasta do cliente B, os relatorios continuam errados e ninguem percebe. Por isso a trava esta na GRAVACAO: cada pasta carrega o CNPJ do cliente, e todo documento importado para ela so entra se esse CNPJ aparecer como emitente ou destinatario. Quando nao aparece, o documento NAO e descartado: entra sem pasta e o resultado do lote diz o motivo, com os dois numeros, porque descartar em silencio faria o contador achar que importou e depois nao achar a nota em lugar nenhum. Implementado: (1) colecao param_pastas com nome, CNPJ, vinculo opcional ao cadastro de clientes, cor e observacao, mais os campos pasta e pasta_nome nos documentos e pasta nos itens, para os relatorios por NCM nao precisarem juntar tabelas; (2) CRUD de pastas com bloqueio de nome duplicado considerando acento e caixa; (3) seletor de pasta direto no importador em lote; (4) painel Organizar documentos para encaixar o que entrou antes das pastas existirem, com recusa justificada ao tentar mover nota de outro CNPJ; (5) apagar a pasta NAO apaga documento, as notas voltam a sem pasta, porque destruir nota fiscal por motivo de organizacao seria destruir dado do cliente; (6) resumo por pasta com totalizadores mensais. VALIDACAO EM PRODUCAO: pasta do Cliente A (CNPJ 11111111000111) e pasta do Cliente B (CNPJ 22222222000122) criadas; nome duplicado com caixa diferente bloqueado; nota do Cliente A importada na pasta do A ENTROU; a mesma nota tentada na pasta do B foi RECUSADA com o motivo indicando que nenhuma das partes correspondia ao CNPJ da pasta; conferencia no banco confirmou que o documento recusado ficou sem pasta. Tudo limpo ao final. DEFEITO DE DIAGNOSTICO CORRIGIDO NO CAMINHO: o primeiro teste recebeu 404 em /param-pastas enquanto /param-documentos respondia 401 no MESMO servidor, porque o preview estava atras da producao publica; testar no lugar errado quase me fez consertar um codigo que estava certo.',
+    fontes: [
+      {
+        titulo: 'LC 214/2025 — texto integral (normas.leg.br, Senado Federal)',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
+      },
+      {
+        titulo: 'Portal Nacional dos DF-e / SVRS — layouts dos documentos fiscais',
+        url: 'https://dfe-portal.svrs.rs.gov.br/Dfe/Documentos',
+      },
+    ],
+    caminho:
+      'src/components/ParametrizadorPastas.tsx + src/components/ParametrizadorLote.tsx + src/components/SectionParametrizador.tsx + pocketbase/hooks/parametrizador_pastas.js + pocketbase/hooks/parametrizador_fase4.js + pocketbase/migrations/0112_pastas.js',
+    versao: 'v0.0.515',
+    bloco: 'sistema',
+  },
+  {
+    data: '03/11/2026',
+    hora: '22:45',
+    titulo:
+      'Parametrizador Fase 5 — aliquota efetiva por NCM no analisador do IBS, motor com eixos separados e teste por documento individual',
+    conteudo:
+      'A pedido do CEO: trocar a aliquota plena pela efetiva por NCM e testar pelo documento importado individual. O TESTE COM A NOTA REAL REVELOU DOIS DEFEITOS GRAVES NO MOTOR, que so o dado real mostrava: (1) o NCM 39269090 (artigo plastico para farmacia) casava com Depreciacao do Anexo I do RIBS, que trata de vida util de ativo imobilizado e nao de aliquota de venda; (2) cerveja (2203) e cigarro (2402) caiam como regime, escondendo que tem Imposto Seletivo incidindo POR FORA do IBS/CBS. Corrigidos separando TRES EIXOS que nao se misturam: aliquota (zero, reducao 60/30/90%, 112 regras), regime (suspensao, credito presumido, depreciacao, diferimento, 716 regras, informa e nao calcula) e Imposto Seletivo (13 regras, aumenta a carga e e sinalizado em vez de somado silenciosamente). Antes dessa correcao, 81% das 1.053 linhas das Tabelas eram tratadas como se fossem aliquota, e o analisador erraria na maior parte dos itens. (2) ANALISADOR DO IBS: passou a projetar sobre a base JA reduzida pelo tratamento de cada NCM, item a item, em vez de aplicar a aliquota cheia sobre o total; mostra lado a lado pleno e efetivo, e publica o percentual da base que foi realmente classificado, porque item sem regra fica em tributacao integral (presuncao legal correta, mas nao e calculo). (3) NOVA ABA Teste por documento: escolhe um documento, classifica item a item, e mostra NCM, tratamento, origem, nivel do casamento (exato ou posicao de 4 digitos, marcado para conferencia), valor, plena e efetiva, com o total conferido contra o documento. RESULTADO NO TESTE REAL, NF-e da SEGALAS ALIMENTOS LTDA FILIAL 2 (SC, 10 itens, R$ 1.133,67, CFOP 6102): plena R$ 332,98 contra efetiva R$ 243,09, ou 27,0% a menos; 3 dos 10 itens classificados. Mussarela (0406.10.10) e manteiga (0405.10.00) saem com aliquota ZERO por estarem na cesta basica do Anexo I, enquanto o queijo coalho (0406.10.90) paga integral, porque a lei distingue os dois codigos por subposicao, e o motor reproduziu a distincao corretamente. Extrato de tomate (2002.90.00) sai com reducao de 60%. Os 6 itens restantes ficaram em tributacao integral por nao terem regra de aliquota nos Anexos.',
+    fontes: [
+      {
+        titulo: 'LC 214/2025 — Anexo I (cesta básica) e demais anexos (normas.leg.br)',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
+      },
+      {
+        titulo: 'Resolução CGIBS 6/2026 — Regulamento do IBS (Anexos I a V)',
+        url: 'https://www.cgibs.gov.br/resolucoes',
+      },
+    ],
+    caminho:
+      'src/data/motorClassificacao.ts + src/components/ParametrizadorLote.tsx + src/components/ParametrizadorTesteIndividual.tsx + pocketbase/hooks/parametrizador_fase5.js',
+    versao: 'v0.0.507',
+    bloco: 'sistema',
+  },
+  {
+    data: '03/11/2026',
     hora: '22:20',
     titulo:
       'Parametrizador Fase 4 — importador em lotes de NF de entrada e saída, totalizadores por período e analisador do IBS em cada ano da transição',
