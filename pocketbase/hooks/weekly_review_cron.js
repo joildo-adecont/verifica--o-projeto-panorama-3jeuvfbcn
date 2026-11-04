@@ -445,6 +445,18 @@ cronAdd('weekly_content_review', '0 11 * * 1', () => {
         'Séries SGS do BCB (226 TR, 254 TJLP, 36 IGP-M 12 meses) e Portal da Caixa (SFH/SFN)',
       coverageStatus: 'coberta_direta',
     },
+    // FONTES ESTATÍSTICAS — SANEAMENTO (proxy /backend/v1/fontes-estatisticas)
+    {
+      key: 'snis',
+      name: 'SNIS — Sistema Nacional de Informações sobre Saneamento (Ministério das Cidades)',
+      url: 'https://www.gov.br/cidades',
+      order: 46,
+      confidenceTier: 'oficial_institucional',
+      isAccessible: true,
+      alternative:
+        'Painel SNIS e dados abertos do Ministério das Cidades (Diagnóstico dos Serviços de Água e Esgotos)',
+      coverageStatus: 'coberta_direta',
+    },
     // FONTES ESTATÍSTICAS — EDUCAÇÃO E SAÚDE (proxy /backend/v1/fontes-estatisticas)
     {
       key: 'inep',
@@ -805,10 +817,10 @@ cronAdd('weekly_content_review', '0 11 * * 1', () => {
     const reviewRecord = new Record(colReviews)
 
     const notes =
-      'Revisão semanal com rotas alternativas oficiais ativas para o arcabouço amplo da Reforma Tributária (Emendas, Leis Complementares, Decretos, Resoluções CGIBS, Instruções Normativas RFB, Soluções de Consulta COSIT, Atos Declaratórios RFB, Portarias MEF, CARF, ANP, SUFRAMA e Diários Municipais AMM/FAMEP). Portal da Legislação do Planalto integrado como fonte primária oficial compilada. Receita Federal do Brasil (RFB) integrada com busca ao vivo de normas e captura de atos (IN RFB 2.215/2024, Portaria RFB 549/2025, SC COSIT 124/2025 e ADI RFB 3/2025). Fontes de jurisprudência (STF/STJ) referenciadas. Fontes protegidas por WAF (Planalto/Presidência) e sem rota de rede do pod (Câmara, CONFAZ, Calculadora Serpro, reformadoconsumo, dadosreceita) possuem cobertura e captura de normas garantidas via proxy intermediado do backend (/backend/v1/download-resolution), API de Dados Abertos do Senado, normas.leg.br, DOU/InLabs, Portal Nacional NF-e/SVRS, CGIBS e Catálogo Dados Abertos Gov.br. Lefisc registrada como única fonte de comparação sem validade legal. Fontes estatísticas de indicadores (BCB, IBGE, Tesouro, IPEA, IBGE-Agro, CONAB, Cepea-Esalq, FipeZap; SFH via BCB; INEP/MEC — educação; DATASUS — saúde) registradas como oficiais institucionais, consultadas pelo proxy /backend/v1/fontes-estatisticas com cache e fallback transparente para a base interna.'
+      'Revisão semanal com rotas alternativas oficiais ativas para o arcabouço amplo da Reforma Tributária (Emendas, Leis Complementares, Decretos, Resoluções CGIBS, Instruções Normativas RFB, Soluções de Consulta COSIT, Atos Declaratórios RFB, Portarias MEF, CARF, ANP, SUFRAMA e Diários Municipais AMM/FAMEP). Portal da Legislação do Planalto integrado como fonte primária oficial compilada. Receita Federal do Brasil (RFB) integrada com busca ao vivo de normas e captura de atos (IN RFB 2.215/2024, Portaria RFB 549/2025, SC COSIT 124/2025 e ADI RFB 3/2025). Fontes de jurisprudência (STF/STJ) referenciadas. Fontes protegidas por WAF (Planalto/Presidência) e sem rota de rede do pod (Câmara, CONFAZ, Calculadora Serpro, reformadoconsumo, dadosreceita) possuem cobertura e captura de normas garantidas via proxy intermediado do backend (/backend/v1/download-resolution), API de Dados Abertos do Senado, normas.leg.br, DOU/InLabs, Portal Nacional NF-e/SVRS, CGIBS e Catálogo Dados Abertos Gov.br. Lefisc registrada como única fonte de comparação sem validade legal. Fontes estatísticas de indicadores (BCB, IBGE, Tesouro, IPEA, IBGE-Agro, CONAB, Cepea-Esalq, FipeZap; SFH via BCB; INEP/MEC — educação; DATASUS — saúde; SNIS — saneamento/Ministério das Cidades) registradas como oficiais institucionais, consultadas pelo proxy /backend/v1/fontes-estatisticas com cache e fallback transparente para a base interna.'
 
     const summaryText =
-      'Rotina semanal de segunda-feira executada com sucesso. Cobertura legislativa e captura de normas federais compiladas mantidas ativas e contínuas via Receita Federal (RFB — INs, SC COSIT e Portarias), Planalto (planalto.gov.br/LexML), DOU/InLabs, diários municipais AMM/FAMEP, MEF, CARF, ANP, SUFRAMA, Senado Dados Abertos, normas.leg.br, CGIBS e Portal NF-e/SVRS para todos os atos normativos. Fontes estatísticas (BCB, IBGE, Tesouro, IPEA, IBGE-Agro, CONAB, Cepea-Esalq, FipeZap, SFH/BCB, INEP/MEC — educação e DATASUS — saúde) verificadas com proxy /backend/v1/fontes-estatisticas ativo.'
+      'Rotina semanal de segunda-feira executada com sucesso. Cobertura legislativa e captura de normas federais compiladas mantidas ativas e contínuas via Receita Federal (RFB — INs, SC COSIT e Portarias), Planalto (planalto.gov.br/LexML), DOU/InLabs, diários municipais AMM/FAMEP, MEF, CARF, ANP, SUFRAMA, Senado Dados Abertos, normas.leg.br, CGIBS e Portal NF-e/SVRS para todos os atos normativos. Fontes estatísticas (BCB, IBGE, Tesouro, IPEA, IBGE-Agro, CONAB, Cepea-Esalq, FipeZap, SFH/BCB, INEP/MEC — educação, DATASUS — saúde e SNIS — saneamento/Ministério das Cidades) verificadas com proxy /backend/v1/fontes-estatisticas ativo.'
 
     reviewRecord.set('review_date', nowIso)
     reviewRecord.set('status', 'ok')

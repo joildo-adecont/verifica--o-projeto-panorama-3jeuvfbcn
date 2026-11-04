@@ -14,6 +14,7 @@ import {
   XCircle,
 } from 'lucide-react'
 import { CBS_POR_ANO, IBS_REF, REF_TOTAL, ibsDoAno, pct, totalDoAno } from '@/data/aliquotas'
+import { classificarNCM } from '@/data/motorClassificacao'
 
 /**
  * IMPORTADOR EM LOTES + TOTALIZADORES + ANALISADOR DO IBS
@@ -91,6 +92,8 @@ export function ParametrizadorLote() {
 
   // IBS
   const [ibs, setIbs] = useState<any>(null)
+  /* Itens de todos os documentos do período — a base do cálculo efetivo por NCM. */
+  const [itensTodos, setItensTodos] = useState<any[]>([])
 
   useEffect(() => {
     try {
@@ -135,6 +138,12 @@ export function ParametrizadorLote() {
       if (ate) qs.set('ate', ate)
       const j = await chamar(`param-analise-ibs?${qs.toString()}`)
       setIbs(j)
+      try {
+        const ji = await chamar(`param-itens-todos?${qs.toString()}`)
+        setItensTodos(ji.itens || [])
+      } catch {
+        setItensTodos([])
+      }
     } catch (e: any) {
       setErro(e.message)
     }
@@ -211,19 +220,100 @@ export function ParametrizadorLote() {
    * ainda não traz cClassTrib na maioria dos documentos. É dimensionamento —
    * "quanto pesa o IBS neste volume" — e o rodapé diz isso com todas as letras.
    */
+  /**
+   * PROJEÇÃO POR ALÍQUOTA EFETIVA, ITEM A ITEM.
+   *
+   * ── O QUE MUDOU (03/11/2026, a pedido do CEO) ──
+   * Antes: valor × alíquota cheia do ano. Todo produto pagava 100% da
+   * referência. Isso superestima quem tem redução (extrato de tomate paga 40%)
+   * e subestima quem tem Imposto Seletivo (cerveja paga IBS/CBS cheio MAIS IS).
+   *
+   * Agora: cada item é classificado pelo seu NCM no motor, e o fator da lei é
+   * aplicado ao valor daquele item. O resultado é a alíquota efetiva real da
+   * carteira, não a nominal.
+   *
+   * ── A PARTE HONESTA ──
+   * Item sem regra de alíquota recebe fator 1 (tributação integral) — presunção
+   * legal correta, mas NÃO é "calculado". A tela mostra o percentual da base
+   * que foi efetivamente classificado e o valor que ficou na presunção. Sem
+   * isso, um número bonito esconderia que quase nada foi classificado.
+   */
   const projecao = useMemo(() => {
-    if (!ibs?.base) return []
+    if (!ibs?.base) return { anos: [], cobertura: null }
     const saidaAnual = Number(ibs.base.anual_saida) || 0
     const entradaAnual = Number(ibs.base.anual_entrada) || 0
-    if (saidaAnual <= 0 && entradaAnual <= 0) return []
+    if (saidaAnual <= 0 && entradaAnual <= 0) return { anos: [], cobertura: null }
 
-    return ANOS.map((ano) => {
+    /* Base efetiva: soma de valor × fator, por direção. */
+    let baseSaidaEfetiva = 0
+    let baseEntradaEfetiva = 0
+    let valorSaidaTotal = 0
+    let valorEntradaTotal = 0
+    let itensClassificados = 0
+    let itensTotal = 0
+    let valorClassificado = 0
+    let valorComIS = 0
+    let itensComIS = 0
+
+    for (const it of itensTodos) {
+      const cls = classificarNCM(it.ncm)
+      const v = Number(it.valor) || 0
+      const dir = it.direcao
+      itensTotal++
+      if (cls.encontrado) {
+        itensClassificados++
+        valorClassificado += v
+      }
+      if (cls.seletivos.length > 0) {
+        itensComIS++
+        valorComIS += v
+      }
+      /* O fator do eixo ALÍQUOTA é o que muda a conta. Regime não entra. */
+      const vEfetivo = v * cls.fator
+      if (dir === 'entrada') {
+        baseEntradaEfetiva += vEfetivo
+        valorEntradaTotal += v
+      } else if (dir === 'saida') {
+        baseSaidaEfetiva += vEfetivo
+        valorSaidaTotal += v
+      }
+    }
+
+    /* Anualiza pela razão entre o anual projetado e o total do período — o
+       mesmo multiplicador para base e valor, para a proporção não distorcer. */
+    const fatorAnualSaida = valorSaidaTotal > 0 ? saidaAnual / valorSaidaTotal : 0
+    const fatorAnualEntrada = valorEntradaTotal > 0 ? entradaAnual / valorEntradaTotal : 0
+
+    const anualSaidaEfetiva = baseSaidaEfetiva * fatorAnualSaida
+    const anualEntradaEfetiva = baseEntradaEfetiva * fatorAnualEntrada
+
+    const cobertura = {
+      itens_total: itensTotal,
+      itens_classificados: itensClassificados,
+      percentual_itens:
+        itensTotal > 0 ? Math.round((itensClassificados / itensTotal) * 1000) / 10 : 0,
+      valor_total: Math.round((valorSaidaTotal + valorEntradaTotal) * 100) / 100,
+      valor_classificado: Math.round(valorClassificado * 100) / 100,
+      percentual_valor:
+        valorSaidaTotal + valorEntradaTotal > 0
+          ? Math.round((valorClassificado / (valorSaidaTotal + valorEntradaTotal)) * 1000) / 10
+          : 0,
+      itens_com_is: itensComIS,
+      valor_com_is: Math.round(valorComIS * 100) / 100,
+      /* Quanto a alíquota efetiva representa da plena — a "economia" (ou o
+         acréscimo) que o tratamento por NCM provoca na carteira. */
+      reducao_efetiva_pct:
+        saidaAnual > 0 ? Math.round((1 - anualSaidaEfetiva / saidaAnual) * 1000) / 10 : 0,
+    }
+
+    const anos = ANOS.map((ano) => {
       const total = totalDoAno(ano)
       const cbs = CBS_POR_ANO[ano] ?? 0
       const ibsAno = ibsDoAno(ano)
-      // alíquota efetiva média do ano (IBS + CBS), sobre a base cheia
-      const debito = (saidaAnual * total) / 100
-      const credito = (entradaAnual * total) / 100
+      /* Sobre a base JÁ reduzida pelo tratamento de cada NCM. */
+      const debito = (anualSaidaEfetiva * total) / 100
+      const credito = (anualEntradaEfetiva * total) / 100
+      const debitoPleno = (saidaAnual * total) / 100
       return {
         ano,
         cbs,
@@ -232,6 +322,8 @@ export function ParametrizadorLote() {
         debito,
         credito,
         saldo: debito - credito,
+        debitoPleno,
+        economia: debitoPleno - debito,
         fase:
           ano <= 2026
             ? 'teste'
@@ -242,10 +334,13 @@ export function ParametrizadorLote() {
                 : 'transição do IBS',
       }
     })
-  }, [ibs])
+
+    return { anos, cobertura }
+  }, [ibs, itensTodos])
 
   const maxProj = useMemo(
-    () => Math.max(1, ...projecao.map((p) => Math.max(p.debito, p.credito))),
+    () =>
+      Math.max(1, ...projecao.anos.map((p: any) => Math.max(p.debito, p.credito, p.debitoPleno))),
     [projecao],
   )
 
@@ -663,17 +758,88 @@ export function ParametrizadorLote() {
                 ))}
               </div>
 
+              {/* ── COBERTURA DA CLASSIFICAÇÃO: o número que impede o número bonito ── */}
+              {projecao.cobertura && (
+                <div className="rounded-xl border-2 border-slate-200 bg-white p-3">
+                  <p className="text-[11px] font-bold text-slate-900">
+                    Quanto da base foi realmente classificado
+                  </p>
+                  <div className="mt-1.5 grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <div>
+                      <p className="text-[9px] font-bold uppercase text-slate-500">
+                        Itens com regra
+                      </p>
+                      <p className="text-[16px] font-bold tabular-nums text-slate-900">
+                        {projecao.cobertura.itens_classificados}
+                        <span className="text-[10px] font-normal text-slate-500">
+                          {' '}
+                          / {projecao.cobertura.itens_total}
+                        </span>
+                      </p>
+                      <p className="text-[9px] text-slate-500">
+                        {projecao.cobertura.percentual_itens}% dos itens
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[9px] font-bold uppercase text-slate-500">
+                        Valor classificado
+                      </p>
+                      <p className="text-[16px] font-bold tabular-nums text-slate-900">
+                        {projecao.cobertura.percentual_valor}%
+                      </p>
+                      <p className="text-[9px] text-slate-500">
+                        {brlCurto(projecao.cobertura.valor_classificado)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[9px] font-bold uppercase text-slate-500">
+                        Alíquota efetiva
+                      </p>
+                      <p className="text-[16px] font-bold tabular-nums text-emerald-800">
+                        {projecao.cobertura.reducao_efetiva_pct > 0
+                          ? `−${projecao.cobertura.reducao_efetiva_pct}%`
+                          : '0%'}
+                      </p>
+                      <p className="text-[9px] text-slate-500">sobre a plena</p>
+                    </div>
+                    <div>
+                      <p className="text-[9px] font-bold uppercase text-slate-500">
+                        Com Imposto Seletivo
+                      </p>
+                      <p className="text-[16px] font-bold tabular-nums text-amber-700">
+                        {projecao.cobertura.itens_com_is}
+                      </p>
+                      <p className="text-[9px] text-slate-500">
+                        {brlCurto(projecao.cobertura.valor_com_is)}
+                      </p>
+                    </div>
+                  </div>
+                  <p className="mt-1.5 text-[9px] leading-snug text-slate-500">
+                    Item sem regra de alíquota recebe <b>tributação integral</b> — presunção legal
+                    correta, mas <b>não é cálculo</b>. Quanto menor o percentual acima, mais o
+                    número final é estimativa e menos é apuração.
+                    {projecao.cobertura.itens_com_is > 0 && (
+                      <span className="ml-1 font-bold text-amber-800">
+                        Há {projecao.cobertura.itens_com_is} item(ns) com Imposto Seletivo: a carga
+                        total é MAIOR que a projetada aqui, porque o IS incide por fora.
+                      </span>
+                    )}
+                  </p>
+                </div>
+              )}
+
               {/* gráfico por ano */}
               <div className="rounded-xl border-2 border-slate-200 bg-white p-3">
                 <p className="text-[11px] font-bold text-slate-900">
                   IBS + CBS por ano da transição
                 </p>
                 <p className="mt-0.5 text-[9.5px] text-slate-500 leading-snug">
-                  Sobre a média mensal anualizada do que foi importado. Barra azul = débito sobre
-                  saídas; verde = crédito sobre entradas. O que se apura é a diferença.
+                  Cada item pela alíquota que a LEI lhe dá — classificado pelo NCM, não pela
+                  alíquota cheia. Barra verde = débito sobre saídas; azul = crédito sobre entradas.
+                  O que se apura é a diferença.
                 </p>
                 <div className="mt-2 space-y-1.5">
-                  {projecao.map((p) => (
+                  {projecao.anos.map((p: any) => (
                     <div key={p.ano}>
                       <div className="flex items-center justify-between text-[9px]">
                         <span className="font-bold text-slate-800">
@@ -742,7 +908,7 @@ export function ParametrizadorLote() {
                     </tr>
                   </thead>
                   <tbody>
-                    {projecao.map((p, i) => (
+                    {projecao.anos.map((p: any, i: number) => (
                       <tr
                         key={p.ano}
                         className={
@@ -787,13 +953,14 @@ export function ParametrizadorLote() {
                   O que este número é — e o que ele não é
                 </p>
                 <p className="mt-0.5">
-                  É <b>dimensionamento</b>: quanto de IBS e CBS passa por este volume de operações
-                  em cada ano da transição, com as alíquotas oficiais de{' '}
-                  <code className="rounded bg-amber-100 px-0.5">aliquotas.ts</code> (IBS{' '}
-                  {IBS_REF.toFixed(2).replace('.', ',')}% · CBS 11,3%). <b>Não é apuração</b>:
-                  aplica a alíquota plena e ignora o tratamento por NCM — alíquota zero, redução de
-                  60% ou 30%, imposto seletivo. Por isso o valor aqui é o <b>teto</b>: o efetivo
-                  tende a ser menor, e quanto menor depende de classificar os itens.
+                  Cada item é classificado pelo seu <b>NCM</b> e paga a alíquota que a lei lhe dá:
+                  alíquota zero, redução de 60% ou 30%, ou a cheia. As alíquotas de cada ano vêm de{' '}
+                  <code className="rounded bg-amber-100 px-0.5">aliquotas.ts</code> (fonte única do
+                  sistema). <b>Ainda não é apuração completa</b>: o motor cobre as 112 regras de
+                  alíquota dos Anexos, e item cujo NCM não tem regra fica na tributação integral — o
+                  quadro de cobertura acima mostra exatamente quanto. E onde incide{' '}
+                  <b>Imposto Seletivo</b>, a carga real é maior que a projetada, porque o IS incide
+                  por fora do IBS/CBS.
                 </p>
               </div>
 

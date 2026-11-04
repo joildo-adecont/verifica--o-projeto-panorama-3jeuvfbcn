@@ -4,7 +4,8 @@
  * Os dados vêm SEMPRE do backend (rotas /backend/v1/indicadores-economicos e
  * /backend/v1/fontes-estatisticas em pb_hooks/), que consulta as APIs públicas
  * do lado do servidor — Banco Central (SGS/PTAX/Olinda), IBGE SIDRA, Tesouro
- * SICONFI, IPEADATA, CONAB, Cepea-Esalq e FipeZap — com timeout curto. NUNCA
+ * SICONFI, IPEADATA, CONAB, Cepea-Esalq, FipeZap, INEP, DATASUS e SNIS — com
+ * timeout curto. NUNCA
  * chamada direta do navegador (padrão anti-bloqueio do projeto).
  *
  * Se a fonte viva falhar, o hook devolve a base interna aproximada com
@@ -74,6 +75,7 @@ export type FonteEstatisticaId =
   | 'bcb_sfh'
   | 'inep'
   | 'datasus'
+  | 'snis'
 
 export const FONTES_ESTATISTICAS_META: Record<
   FonteEstatisticaId,
@@ -127,6 +129,11 @@ export const FONTES_ESTATISTICAS_META: Record<
   datasus: {
     rotulo: 'DATASUS — Ministério da Saúde (SINASC · AIH/SUS · TABNET)',
     url: 'https://datasus.saude.gov.br',
+    tier: 'oficial_institucional',
+  },
+  snis: {
+    rotulo: 'SNIS — Sistema Nacional de Informações sobre Saneamento (Ministério das Cidades)',
+    url: 'https://www.gov.br/cidades',
     tier: 'oficial_institucional',
   },
 }
@@ -626,6 +633,56 @@ export function respostaFontesEstatisticasFallback(aviso: string): RespostaFonte
           baseInterna: true,
         },
       ],
+      snis: [
+        {
+          chave: 'acesso_agua',
+          nome: 'Acesso à água potável — % da população (base interna)',
+          categoria: 'saneamento',
+          unidade: '% da população',
+          valor: 84.2,
+          periodo: 'último Diagnóstico SNIS disponível',
+          variacao: 0.8,
+          serie: [82.1, 82.9, 83.4, 84.2],
+          fonte: 'SNIS — Ministério das Cidades',
+          baseInterna: true,
+        },
+        {
+          chave: 'coleta_esgoto',
+          nome: 'Acesso à coleta de esgoto — % da população (base interna)',
+          categoria: 'saneamento',
+          unidade: '% da população',
+          valor: 63.4,
+          periodo: 'último Diagnóstico SNIS disponível',
+          variacao: 1.1,
+          serie: [60.2, 61.3, 62.3, 63.4],
+          fonte: 'SNIS — Ministério das Cidades',
+          baseInterna: true,
+        },
+        {
+          chave: 'tratamento_esgoto',
+          nome: 'Esgoto tratado — % do esgoto coletado (base interna)',
+          categoria: 'saneamento',
+          unidade: '% do coletado',
+          valor: 52.6,
+          periodo: 'último Diagnóstico SNIS disponível',
+          variacao: 1.4,
+          serie: [49.0, 50.3, 51.2, 52.6],
+          fonte: 'SNIS — Ministério das Cidades',
+          baseInterna: true,
+        },
+        {
+          chave: 'perda_agua',
+          nome: 'Perda de água na distribuição — % do volume (base interna)',
+          categoria: 'saneamento',
+          unidade: '% do volume',
+          valor: 39.8,
+          periodo: 'último Diagnóstico SNIS disponível',
+          variacao: -0.6,
+          serie: [41.2, 40.7, 40.4, 39.8],
+          fonte: 'SNIS — Ministério das Cidades',
+          baseInterna: true,
+        },
+      ],
     }
     const nomes: Record<FonteEstatisticaId, string> = {
       ibge: 'IBGE',
@@ -638,6 +695,7 @@ export function respostaFontesEstatisticasFallback(aviso: string): RespostaFonte
       bcb_sfh: 'Banco Central — SFH',
       inep: 'INEP/MEC',
       datasus: 'DATASUS — Ministério da Saúde',
+      snis: 'SNIS — Ministério das Cidades',
     }
     return {
       fonte,
@@ -667,6 +725,7 @@ export function respostaFontesEstatisticasFallback(aviso: string): RespostaFonte
       interna('bcb_sfh', 'Banco Central — SFH'),
       interna('inep', 'INEP/MEC'),
       interna('datasus', 'DATASUS — Ministério da Saúde'),
+      interna('snis', 'SNIS — Ministério das Cidades'),
     ],
   }
 }
@@ -727,7 +786,9 @@ export async function fetchFontesEstatisticas(
                           ? 'inep'
                           : chaveFonte === 'DATASUS — Ministério da Saúde'
                             ? 'datasus'
-                            : 'ibge'
+                            : chaveFonte === 'SNIS — Ministério das Cidades'
+                              ? 'snis'
+                              : 'ibge'
         return {
           fonte: id,
           fonteNome: chaveFonte,
@@ -930,6 +991,27 @@ const SINONIMOS_BUSCA: Record<string, string[]> = {
     'censo escolar',
     'professor',
     'professores',
+  ],
+  saneamento: [
+    'saneamento',
+    'agua',
+    'água',
+    'agua potavel',
+    'água potável',
+    'esgoto',
+    'esgotos',
+    'coleta de esgoto',
+    'tratamento de esgoto',
+    'snis',
+    'abastecimento',
+    'abastecimento de agua',
+    'abastecimento de água',
+    'perda de agua',
+    'perda de água',
+    'saneamento basico',
+    'saneamento básico',
+    'ministério das cidades',
+    'ministerio das cidades',
   ],
   saude: [
     'saude',

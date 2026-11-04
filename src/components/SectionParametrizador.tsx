@@ -18,6 +18,7 @@ import {
 } from 'lucide-react'
 import { ParametrizadorAnalise } from '@/components/ParametrizadorAnalise'
 import { ParametrizadorLote } from '@/components/ParametrizadorLote'
+import { ParametrizadorTesteIndividual } from '@/components/ParametrizadorTesteIndividual'
 
 /**
  * PARAMETRIZADOR DE DOCUMENTOS FISCAIS DA REFORMA — Seção 31
@@ -364,6 +365,9 @@ export function SectionParametrizador() {
               /* FASE 4 (03/11/2026): importador em lotes, totalizadores por
                  período e analisador do IBS por ano. */
               { id: 'lote' as const, nome: 'Lotes e totalizadores', Icon: FileStack },
+              /* FASE 5 (03/11/2026): classificação efetiva por NCM, testada
+                 documento a documento — onde um erro não se dilui no lote. */
+              { id: 'teste' as const, nome: 'Teste por documento', Icon: FileSearch },
             ].map((t) => (
               <button
                 key={t.id}
@@ -847,6 +851,9 @@ export function SectionParametrizador() {
 
           {/* ══════════ FASE 4: LOTES, TOTALIZADORES E IBS POR ANO ══════════ */}
           {aba === 'lote' && <ParametrizadorLote />}
+
+          {/* ══════════ FASE 5: TESTE POR DOCUMENTO INDIVIDUAL ══════════ */}
+          {aba === 'teste' && <ParametrizadorTesteIndividual />}
 
           {/* rodapé */}
           <div className="flex items-center gap-1.5 flex-wrap rounded-lg bg-slate-50 px-2 py-1.5 text-[9px] text-slate-500">
