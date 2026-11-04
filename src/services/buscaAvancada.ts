@@ -12,6 +12,14 @@ import {
 } from '@/data/assuntosEspeciais'
 import { ANEXOS_REFORMA_CATALOGO, type AnexoReformaItem } from '@/data/anexosReforma'
 import type { ClassificationItem, TaxNormItem } from '@/types/panorama'
+import {
+  fetchIndicadoresEconomicos,
+  buscarIndicadoresPorPalavraChave,
+  itensIndicadoresParaBusca,
+  respostaFallback,
+  type ItemIndicadorBusca,
+  type RespostaIndicadores,
+} from '@/services/indicadoresEconomicos'
 
 export type { AssuntoEspecialItem, CategoriaAssuntoEspecial }
 export type { AnexoReformaItem }
@@ -88,6 +96,7 @@ export type GrupoResultadoId =
   | 'anexos'
   | 'aliquotas'
   | 'analises'
+  | 'indicadores'
 
 export type EsferaFederativaId = 'federal' | 'estadual' | 'municipal'
 
@@ -160,6 +169,8 @@ export interface ResultadoBuscaAvancada {
   conexoesLegais: ConexaoLegalItem[]
   // (e) Dados, projeções e análises de especialistas
   analisesEspecialistas: AnaliseEspecialistaItem[]
+  // (f) Indicadores Econômicos e Financeiros — BCB (oficial institucional), via proxy do backend
+  indicadoresEconomicos: ItemIndicadorBusca[]
   // Dados para gráficos correlatos
   dadosGraficos: {
     composicaoAtos: Array<{ name: string; count: number; fill: string }>
@@ -953,13 +964,32 @@ export async function buscarAvancado(
     }
   })()
 
+  // 4b. Indicadores Econômicos e Financeiros (BCB via proxy do backend; nunca falha — tem fallback interno)
+  const indicadoresDesativado = gruposAtivos && !gruposAtivos.has('indicadores')
+  const indicadoresPromise: Promise<RespostaIndicadores> = indicadoresDesativado
+    ? Promise.resolve(respostaFallback(''))
+    : fetchIndicadoresEconomicos()
+
   // Aguarda buscas assíncronas paralelas
-  const [classifResult, normasResult, radarAtosResult, taxTopicsResult] = await Promise.all([
-    classifPromise,
-    normasPromise,
-    radarAtosPromise,
-    taxTopicsPromise,
-  ])
+  const [classifResult, normasResult, radarAtosResult, taxTopicsResult, respostaIndicadores] =
+    await Promise.all([
+      classifPromise,
+      normasPromise,
+      radarAtosPromise,
+      taxTopicsPromise,
+      indicadoresPromise,
+    ])
+
+  const indicadoresFiltrados: ItemIndicadorBusca[] = indicadoresDesativado
+    ? []
+    : (termoNorm
+        ? buscarIndicadoresPorPalavraChave(rawTerm, respostaIndicadores)
+        : itensIndicadoresParaBusca(respostaIndicadores)
+      ).filter((item) => {
+        if (!fontesAtivas) return true
+        const fNorm = normalizar(item.fonte)
+        return fontesAtivas.some((fa) => fNorm.includes(fa) || fa.includes(fNorm))
+      })
 
   // 5. Filtrar e correlacionar tratamentos e alíquotas
   const tratamentosCorrelatos =
@@ -1173,7 +1203,8 @@ export async function buscarAvancado(
     classifResult.totalItems +
     tratamentosCorrelatos.length +
     conexoesFiltradas.length +
-    analisesFiltradas.length
+    analisesFiltradas.length +
+    indicadoresFiltrados.length
 
   return {
     termo: rawTerm,
@@ -1210,6 +1241,7 @@ export async function buscarAvancado(
     aliquotasTratamentos: tratamentosCorrelatos,
     conexoesLegais: conexoesFiltradas,
     analisesEspecialistas: analisesFiltradas,
+    indicadoresEconomicos: indicadoresFiltrados,
     dadosGraficos: {
       composicaoAtos,
       linhaDoTempoAliquota,
