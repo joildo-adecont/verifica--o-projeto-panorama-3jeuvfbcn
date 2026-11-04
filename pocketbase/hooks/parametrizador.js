@@ -3,353 +3,27 @@
 /**
  * PARAMETRIZADOR DE DOCUMENTOS FISCAIS DA REFORMA — backend
  * =========================================================
- * Pedido do CEO (03/11/2026), Fase 1 aprovada: importar e processar XMLs de
- * NF-e e demais documentos, quebrar o arquivo em partes, individualizar as
+ * Pedido do CEO (03/11/2026), Fases 1 e 2 aprovadas: importar e processar XMLs
+ * de NF-e e demais documentos, quebrar o arquivo em partes, individualizar as
  * informações e conferir contra as tabelas da reforma.
  *
- * ── A DECISÃO CENTRAL DESTE ARQUIVO ──
+ * ── A REGRA DO JSVM QUE MANDA NESTE ARQUIVO ──
+ * O PocketBase executa cada callback em um VM separado. Função declarada em
+ * nível de módulo NÃO existe dentro do callback — dá ReferenceError em runtime.
+ * Por isso TODO o parser vive DENTRO do corpo de `/param-importar`. É feio de
+ * ler e é o único jeito que funciona: o QA de integração reprova se ficar fora
+ * ("top-level declarations are referenced inside callbacks").
+ *
+ * ── A DECISÃO CENTRAL ──
  * O XML é lido por PARSER, não por modelo de linguagem. Um DF-e tem estrutura
  * fixa e verificável; pedir a uma IA que "entenda o documento" introduziria
  * erro onde existe certeza. O que é inteligência aqui é a REGRA de cada
- * especialista — quais campos importam naquele segmento, o que é obrigatório,
- * e o que conta como divergência. Isso é determinístico e auditável.
+ * especialista: quais campos importam, o que é obrigatório, o que é divergência.
  *
- * ── OS ESPECIALISTAS DE QUEBRA ──
- * Cada segmento do XML tem um responsável, e cada um devolve o que achou e o
- * que faltou:
- *   IDENTIFICACAO  chave, modelo, número, série, emissão
- *   EMITENTE       CNPJ, nome, UF
- *   DESTINATARIO   CNPJ, nome
- *   TOTAIS         valor total, tributos
- *   ITENS          a quebra item a item (NCM, CFOP, CST, cClassTrib, valores)
- *   TRIBUTARIO     presença dos campos da reforma (IBS/CBS/IS)
- *   CONTABIL       o que seria lançado, a partir do que o documento traz
- *
- * ── O QUE ELE NÃO FAZ (e não deve fingir) ──
- * Não "interpreta" texto livre nem inventa classificação. Onde o XML não traz
- * o campo, ele diz que não trouxe — é exatamente essa lacuna que vira a
- * auditoria que o CEO pediu: documento sem cClassTrib é um achado, não um erro
- * do leitor.
+ * ── O QUE ELE NÃO FAZ ──
+ * Não interpreta texto livre nem inventa classificação. Onde o XML não traz o
+ * campo, registra a lacuna. É essa lacuna que vira a auditoria pedida.
  */
-
-// ══════════════════════════════════════════════════════════════
-// LEITOR DE XML — parser mínimo e suficiente para DF-e
-// ══════════════════════════════════════════════════════════════
-// JSVM não tem DOMParser. Um leitor por expressão regular é suficiente porque
-// o DF-e é plano e previsível: cada campo aparece uma vez por bloco. Onde há
-// repetição (itens), quebramos por <det>.
-
-/**
- * LÊ O CONTEÚDO DE UMA TAG.
- *
- * ── O DEFEITO QUE ISSO CORRIGE (achado no teste local, antes de publicar) ──
- * `espTotais` fazia `tag(tag(xml,'total'), 'ICMSTot')`. Quando o primeiro tag
- * devolve o CONTEUDO de <total>, esse conteudo comeca com `<ICMSTot>` — e a
- * busca por `ICMSTot` dentro dele nao casava, porque o padrao exigia encontrar
- * a abertura em um texto que ja era o proprio conteudo. Resultado: TODOS os
- * totais vinham zero, em SILENCIO. O documento era gravado com valor 0,00.
- *
- * Correcao: se o texto JA e o conteudo da tag pedida, usamos ele direto.
- */
-/**
- * LÊ O CONTEÚDO DE UMA TAG — à prova de XML malformado.
- *
- * ── O QUE O TESTE LOCAL REVELOU (antes de publicar) ──
- * A primeira versão devolvia '' em dois casos que parecem iguais e não são:
- *   1. a tag realmente não existe no documento;
- *   2. a tag existe mas o XML está TRUNCADO ou malformado.
- * Nos dois, o total virava 0,00 em silêncio — e um documento de R$ 0,00 no
- * painel é pior que um erro: parece dado.
- *
- * Agora a função distingue os casos: se a tag de abertura existe e a de
- * fechamento não, ela devolve FECHAMENTO_AUSENTE (símbolo), e quem chama
- * registra a divergência. Ausência de campo é achado; XML quebrado é defeito.
- */
-var TAG_MALFORMADA = '__TAG_SEM_FECHAMENTO__'
-
-function tag(xml, nome) {
-  var t = String(xml || '')
-  if (!t) return ''
-  var abre = '<' + nome
-  var fecha = '</' + nome + '>'
-
-  // caso 1: o texto JÁ é o conteudo da tag (chamada encadeada)
-  var i = t.indexOf(abre)
-  if (i >= 0 && t.slice(0, i).trim() === '') {
-    var j0 = t.indexOf('>', i)
-    var k0 = t.lastIndexOf(fecha)
-    if (j0 >= 0 && k0 > j0) return t.slice(j0 + 1, k0)
-    if (j0 >= 0) return TAG_MALFORMADA
-  }
-
-  // caso 2: a tag esta dentro de um texto maior
-  var a = t.indexOf(abre)
-  if (a < 0) return ''
-  var b = t.indexOf('>', a)
-  if (b < 0) return TAG_MALFORMADA
-  var c = t.indexOf(fecha, b)
-  if (c < 0) return TAG_MALFORMADA
-  return t.slice(b + 1, c)
-}
-
-/** verdadeiro quando o valor lido indica XML truncado/malformado */
-function tagQuebrada(v) {
-  return v === TAG_MALFORMADA
-}
-
-function tagAttr(xml, nome, attr) {
-  var re = new RegExp('<' + nome + '[^>]*\\s' + attr + '="([^"]*)"')
-  var m = re.exec(xml)
-  return m ? m[1] : ''
-}
-
-function todas(xml, nome) {
-  var re = new RegExp('<' + nome + '(?:\\s[^>]*)?>([\\s\\S]*?)</' + nome + '>', 'g')
-  var out = []
-  var m
-  while ((m = re.exec(xml)) !== null) out.push(m[1])
-  return out
-}
-
-function num(v) {
-  if (v === TAG_MALFORMADA) return 0
-  var n = Number(String(v || '').replace(',', '.'))
-  return isFinite(n) ? n : 0
-}
-
-function limpar(s) {
-  return String(s || '')
-    .replace(/\s+/g, ' ')
-    .trim()
-}
-
-/**
- * ESPECIALISTA: IDENTIFICAÇÃO
- * A chave de acesso tem 44 dígitos e carrega UF, AAAA-MM, CNPJ, modelo, série
- * e número — ou seja, dá para conferir o cabeçalho contra a própria chave.
- * Essa conferência cruzada é o primeiro teste de integridade do documento e é
- * de graça: se o XML diz modelo 65 e a chave diz 55, o documento está adulterado
- * ou é de outro arquivo.
- */
-function espIdentificacao(xml, inf) {
-  var chave =
-    tagAttr(xml, 'infNFe', 'Id').replace(/^NFe/, '') || tagAttr(xml, 'infEvento', 'Id') || ''
-  var ide = tag(xml, 'ide')
-  var modelo = limpar(tag(ide, 'mod'))
-  var serie = limpar(tag(ide, 'serie'))
-  var numero = limpar(tag(ide, 'nNF'))
-  var dhEmi = limpar(tag(ide, 'dhEmi') || tag(ide, 'dEmi'))
-  var achados = []
-  var faltando = []
-
-  if (chave && chave.length === 44) {
-    var modeloDaChave = chave.substr(20, 2)
-    var serieDaChave = chave.substr(22, 3)
-    var numDaChave = chave.substr(25, 9)
-    if (modelo && modeloDaChave && modelo.padStart(2, '0') !== modeloDaChave) {
-      achados.push({
-        tipo: 'DIVERGENCIA',
-        campo: 'modelo',
-        detalhe: 'cabeçalho diz ' + modelo + ' e a chave diz ' + modeloDaChave,
-      })
-    }
-    if (serie && serieDaChave && String(serie).padStart(3, '0') !== serieDaChave) {
-      achados.push({
-        tipo: 'DIVERGENCIA',
-        campo: 'serie',
-        detalhe: 'cabeçalho diz ' + serie + ' e a chave diz ' + serieDaChave,
-      })
-    }
-    if (numero && numDaChave && String(numero).padStart(9, '0') !== numDaChave) {
-      achados.push({
-        tipo: 'DIVERGENCIA',
-        campo: 'numero',
-        detalhe: 'cabeçalho diz ' + numero + ' e a chave diz ' + numDaChave,
-      })
-    }
-  } else if (!chave) {
-    faltando.push('chave de acesso')
-  }
-
-  if (!modelo) faltando.push('modelo')
-  if (!numero) faltando.push('número')
-
-  return {
-    chave: chave,
-    modelo: modelo,
-    serie: serie,
-    numero: numero,
-    data_emissao: dhEmi,
-    achados: achados,
-    faltando: faltando,
-  }
-}
-
-/** ESPECIALISTA: EMITENTE */
-function espEmitente(xml) {
-  var emit = tag(xml, 'emit')
-  var cnpj = limpar(tag(emit, 'CNPJ') || tag(emit, 'CPF'))
-  var nome = limpar(tag(emit, 'xNome'))
-  var uf = limpar(tag(tag(emit, 'enderEmit'), 'UF'))
-  var faltando = []
-  if (!cnpj) faltando.push('CNPJ do emitente')
-  if (!nome) faltando.push('nome do emitente')
-  return { cnpj: cnpj, nome: nome, uf: uf, faltando: faltando }
-}
-
-/** ESPECIALISTA: DESTINATÁRIO */
-function espDestinatario(xml) {
-  var dest = tag(xml, 'dest')
-  return {
-    cnpj: limpar(tag(dest, 'CNPJ') || tag(dest, 'CPF')),
-    nome: limpar(tag(dest, 'xNome')),
-    faltando: [],
-  }
-}
-
-/** ESPECIALISTA: TOTAIS */
-function espTotais(xml) {
-  var blocoTotal = tag(xml, 'total')
-  var icmsTot = blocoTotal === TAG_MALFORMADA ? TAG_MALFORMADA : tag(blocoTotal, 'ICMSTot')
-  var quebrado = tagQuebrada(blocoTotal) || tagQuebrada(icmsTot)
-  return {
-    estrutura_quebrada: quebrado,
-    valor_total: num(tag(icmsTot, 'vNF')),
-    valor_produtos: num(tag(icmsTot, 'vProd')),
-    valor_icms: num(tag(icmsTot, 'vICMS')),
-    valor_pis: num(tag(icmsTot, 'vPIS')),
-    valor_cofins: num(tag(icmsTot, 'vCOFINS')),
-    valor_ibs: num(tag(icmsTot, 'vIBS')),
-    valor_cbs: num(tag(icmsTot, 'vCBS')),
-    valor_is: num(tag(icmsTot, 'vIS')),
-  }
-}
-
-/**
- * ESPECIALISTA: ITENS — a quebra item a item.
- *
- * É aqui que o pedido do CEO se cumpre: "sua quebra deverá ser segmentada e as
- * informações deste individualizadas". Cada <det> vira uma linha, com o
- * tratamento da reforma quando o documento trouxer.
- */
-function espItens(xml) {
-  var dets = todas(xml, 'det')
-  var itens = []
-  for (var i = 0; i < dets.length; i++) {
-    var d = dets[i]
-    var prod = tag(d, 'prod')
-    var imposto = tag(d, 'imposto')
-    var icms = tag(imposto, 'ICMS')
-    var icms00 =
-      tag(icms, 'ICMS00') ||
-      tag(icms, 'ICMS20') ||
-      tag(icms, 'ICMS90') ||
-      tag(icms, 'ICMSSN102') ||
-      tag(icms, 'ICMS51') ||
-      tag(icms, 'ICMS60')
-
-    // ── campos da reforma (IBS/CBS/IS) — o layout 4.00 já os prevê ──
-    var ibsCbs = tag(imposto, 'IBSCBS')
-    var cClassTrib = limpar(tag(ibsCbs, 'cClassTrib') || tag(imposto, 'cClassTrib'))
-    var cstIbsCbs = limpar(tag(ibsCbs, 'CST') || tag(tag(ibsCbs, 'gIBSCBS'), 'CST'))
-    var gIbs = tag(ibsCbs, 'gIBSCBS')
-    var vIbs = num(tag(gIbs, 'vIBSS') || tag(gIbs, 'vIBS'))
-    var vCbs = num(tag(gIbs, 'vCBS'))
-    var is = tag(imposto, 'IS')
-    var vIs = num(tag(is, 'vIS'))
-
-    itens.push({
-      numero_item: limpar(tagAttr(d, 'det', 'n')) || String(i + 1),
-      codigo_produto: limpar(tag(prod, 'cProd')),
-      descricao: limpar(tag(prod, 'xProd')),
-      ncm: limpar(tag(prod, 'NCM')),
-      cfop: limpar(tag(prod, 'CFOP')),
-      unidade: limpar(tag(prod, 'uCom')),
-      quantidade: num(tag(prod, 'qCom')),
-      valor_unitario: num(tag(prod, 'vUnCom')),
-      valor_total: num(tag(prod, 'vProd')),
-      cst_icms: limpar(tag(icms00, 'CST') || tag(icms00, 'CSOSN')),
-      cst_ibs_cbs: cstIbsCbs,
-      cclasstrib: cClassTrib,
-      cbenef: limpar(tag(prod, 'cBenef')),
-      valor_ibs: vIbs,
-      valor_cbs: vCbs,
-      valor_is: vIs,
-      tem_campos_rt: Boolean(cClassTrib || cstIbsCbs || vIbs || vCbs),
-    })
-  }
-  return itens
-}
-
-/**
- * ESPECIALISTA: TRIBUTÁRIO — olha o documento como um todo.
- * Responde a pergunta que interessa ao contador: "este documento já está no
- * padrão da reforma?" Se nenhum item traz cClassTrib, a resposta é não — e isso
- * é um ACHADO, não um erro de leitura.
- */
-function espTributario(itens, totais) {
-  var comRT = 0
-  var semNCM = 0
-  var semCFOP = 0
-  for (var i = 0; i < itens.length; i++) {
-    if (itens[i].tem_campos_rt) comRT++
-    if (!itens[i].ncm) semNCM++
-    if (!itens[i].cfop) semCFOP++
-  }
-  var achados = []
-  if (itens.length > 0 && comRT === 0) {
-    achados.push({
-      tipo: 'LACUNA',
-      campo: 'campos da reforma',
-      detalhe:
-        'nenhum dos ' +
-        itens.length +
-        ' itens traz cClassTrib/CST do IBS-CBS. ' +
-        'O documento está no padrão anterior à reforma — é o esperado em 2026, ' +
-        'e precisa ser classificado para a apuração assistida.',
-    })
-  }
-  if (semNCM > 0) {
-    achados.push({ tipo: 'LACUNA', campo: 'NCM', detalhe: semNCM + ' item(ns) sem NCM' })
-  }
-  if (semCFOP > 0) {
-    achados.push({ tipo: 'LACUNA', campo: 'CFOP', detalhe: semCFOP + ' item(ns) sem CFOP' })
-  }
-  return {
-    itens_total: itens.length,
-    itens_com_campos_rt: comRT,
-    percentual_com_rt: itens.length ? Math.round((comRT / itens.length) * 100) : 0,
-    achados: achados,
-  }
-}
-
-/**
- * ESPECIALISTA: CONTÁBIL
- * Não inventa lançamento: descreve o que o documento sustenta. O valor de
- * aquisição, o ICMS destacado (quando recuperável) e o total. Lançamento
- * contábil completo exige o plano de contas do escritório, que não está aqui —
- * e fingir que está seria pior que não ter.
- */
-function espContabil(totais, emitente, destinatario) {
-  return {
-    descricao:
-      'Entrada de ' +
-      (totais.valor_produtos || 0).toFixed(2) +
-      ' em produtos/serviços de ' +
-      (emitente.nome || 'emitente não identificado'),
-    base_aquisicao: totais.valor_produtos,
-    icms_destacado: totais.valor_icms,
-    total_documento: totais.valor_total,
-    natureza: 'entrada',
-    observacao:
-      'Valores extraídos do próprio documento. A conta contábil depende do plano de ' +
-      'contas do escritório e não é deduzida aqui.',
-  }
-}
-
-// ══════════════════════════════════════════════════════════════
-// ROTAS
-// ══════════════════════════════════════════════════════════════
 
 routerAdd('OPTIONS', '/backend/v1/param-importar', (e) => {
   e.response.header().set('Access-Control-Allow-Origin', '*')
@@ -358,11 +32,6 @@ routerAdd('OPTIONS', '/backend/v1/param-importar', (e) => {
   return e.noContent(204)
 })
 
-/**
- * POST /backend/v1/param-importar
- * body: { xml: "<conteudo>", nome_arquivo: "nfe.xml" }
- * Devolve o documento quebrado + o que foi gravado.
- */
 routerAdd('POST', '/backend/v1/param-importar', (e) => {
   e.response.header().set('Access-Control-Allow-Origin', '*')
 
@@ -372,16 +41,266 @@ routerAdd('POST', '/backend/v1/param-importar', (e) => {
     return e.json(401, { success: false, error: 'Token do painel ausente ou inválido.' })
   }
 
+  // ══════════════ PARSER (inline: regra do JSVM) ══════════════
+  var TAG_MALFORMADA = '__TAG_SEM_FECHAMENTO__'
+
+  /**
+   * Lê o conteúdo de uma tag. Distingue três casos que parecem iguais: tag
+   * ausente, tag presente, e tag ABERTA SEM FECHAMENTO (XML truncado).
+   * Na primeira versão os dois últimos davam '' e o total virava 0,00 em
+   * silêncio — e um documento de R$ 0,00 no painel é pior que um erro: parece
+   * dado. Agora o truncamento é sinalizado e vira divergência na conferência.
+   */
+  function tagDe(xml, nome) {
+    var t = String(xml || '')
+    if (!t) return ''
+    var abre = '<' + nome
+    var fecha = '</' + nome + '>'
+    var i = t.indexOf(abre)
+    if (i >= 0 && t.slice(0, i).trim() === '') {
+      var j0 = t.indexOf('>', i)
+      var k0 = t.lastIndexOf(fecha)
+      if (j0 >= 0 && k0 > j0) return t.slice(j0 + 1, k0)
+      if (j0 >= 0) return TAG_MALFORMADA
+    }
+    var a = t.indexOf(abre)
+    if (a < 0) return ''
+    var b = t.indexOf('>', a)
+    if (b < 0) return TAG_MALFORMADA
+    var c = t.indexOf(fecha, b)
+    if (c < 0) return TAG_MALFORMADA
+    return t.slice(b + 1, c)
+  }
+
+  function numDe(v) {
+    if (v === TAG_MALFORMADA) return 0
+    var n = Number(String(v || '').replace(',', '.'))
+    return isFinite(n) ? n : 0
+  }
+
+  function limparDe(s) {
+    return String(s || '')
+      .replace(/\s+/g, ' ')
+      .trim()
+  }
+
+  function attrDe(xml, nome, attr) {
+    var re = new RegExp('<' + nome + '[^>]*\\s' + attr + '="([^"]*)"')
+    var m = re.exec(String(xml || ''))
+    return m ? m[1] : ''
+  }
+
+  function todasDe(xml, nome) {
+    var re = new RegExp('<' + nome + '(?:\\s[^>]*)?>([\\s\\S]*?)</' + nome + '>', 'g')
+    var out = []
+    var m
+    while ((m = re.exec(String(xml || ''))) !== null) out.push(m[1])
+    return out
+  }
+
+  // ══════════════ ESPECIALISTAS DE QUEBRA ══════════════
+
+  /** IDENTIFICAÇÃO — confere o cabeçalho contra a própria chave de acesso. */
+  function espIdentificacao(xml) {
+    var chave = attrDe(xml, 'infNFe', 'Id').replace(/^NFe/, '') || ''
+    var ide = tagDe(xml, 'ide')
+    var modelo = limparDe(tagDe(ide, 'mod'))
+    var serie = limparDe(tagDe(ide, 'serie'))
+    var numero = limparDe(tagDe(ide, 'nNF'))
+    var dhEmi = limparDe(tagDe(ide, 'dhEmi') || tagDe(ide, 'dEmi'))
+    var achados = []
+    var faltando = []
+
+    if (chave && chave.length === 44) {
+      var mChave = chave.substr(20, 2)
+      var sChave = chave.substr(22, 3)
+      var nChave = chave.substr(25, 9)
+      if (modelo && String(modelo).padStart(2, '0') !== mChave) {
+        achados.push({
+          tipo: 'DIVERGENCIA',
+          campo: 'modelo',
+          detalhe: 'cabeçalho diz ' + modelo + ' e a chave diz ' + mChave,
+        })
+      }
+      if (serie && String(serie).padStart(3, '0') !== sChave) {
+        achados.push({
+          tipo: 'DIVERGENCIA',
+          campo: 'serie',
+          detalhe: 'cabeçalho diz ' + serie + ' e a chave diz ' + sChave,
+        })
+      }
+      if (numero && String(numero).padStart(9, '0') !== nChave) {
+        achados.push({
+          tipo: 'DIVERGENCIA',
+          campo: 'numero',
+          detalhe: 'cabeçalho diz ' + numero + ' e a chave diz ' + nChave,
+        })
+      }
+    } else if (!chave) {
+      faltando.push('chave de acesso')
+    }
+    if (!modelo) faltando.push('modelo')
+    if (!numero) faltando.push('número')
+
+    return {
+      chave: chave,
+      modelo: modelo,
+      serie: serie,
+      numero: numero,
+      data_emissao: dhEmi,
+      achados: achados,
+      faltando: faltando,
+    }
+  }
+
+  function espEmitente(xml) {
+    var emit = tagDe(xml, 'emit')
+    var cnpj = limparDe(tagDe(emit, 'CNPJ') || tagDe(emit, 'CPF'))
+    var nome = limparDe(tagDe(emit, 'xNome'))
+    var uf = limparDe(tagDe(tagDe(emit, 'enderEmit'), 'UF'))
+    var faltando = []
+    if (!cnpj) faltando.push('CNPJ do emitente')
+    if (!nome) faltando.push('nome do emitente')
+    return { cnpj: cnpj, nome: nome, uf: uf, faltando: faltando }
+  }
+
+  function espDestinatario(xml) {
+    var dest = tagDe(xml, 'dest')
+    return {
+      cnpj: limparDe(tagDe(dest, 'CNPJ') || tagDe(dest, 'CPF')),
+      nome: limparDe(tagDe(dest, 'xNome')),
+      faltando: [],
+    }
+  }
+
+  function espTotais(xml) {
+    var blocoTotal = tagDe(xml, 'total')
+    var icmsTot = blocoTotal === TAG_MALFORMADA ? TAG_MALFORMADA : tagDe(blocoTotal, 'ICMSTot')
+    var quebrado = blocoTotal === TAG_MALFORMADA || icmsTot === TAG_MALFORMADA
+    return {
+      estrutura_quebrada: quebrado,
+      valor_total: numDe(tagDe(icmsTot, 'vNF')),
+      valor_produtos: numDe(tagDe(icmsTot, 'vProd')),
+      valor_icms: numDe(tagDe(icmsTot, 'vICMS')),
+      valor_pis: numDe(tagDe(icmsTot, 'vPIS')),
+      valor_cofins: numDe(tagDe(icmsTot, 'vCOFINS')),
+      valor_ibs: numDe(tagDe(icmsTot, 'vIBS')),
+      valor_cbs: numDe(tagDe(icmsTot, 'vCBS')),
+      valor_is: numDe(tagDe(icmsTot, 'vIS')),
+    }
+  }
+
+  /** ITENS — a quebra individualizada, um registro por <det>. */
+  function espItens(xml) {
+    var dets = todasDe(xml, 'det')
+    var itens = []
+    for (var i = 0; i < dets.length; i++) {
+      var d = dets[i]
+      var prod = tagDe(d, 'prod')
+      var imposto = tagDe(d, 'imposto')
+      var icms = tagDe(imposto, 'ICMS')
+      var icms00 =
+        tagDe(icms, 'ICMS00') ||
+        tagDe(icms, 'ICMS20') ||
+        tagDe(icms, 'ICMS90') ||
+        tagDe(icms, 'ICMSSN102') ||
+        tagDe(icms, 'ICMS51') ||
+        tagDe(icms, 'ICMS60')
+      var ibsCbs = tagDe(imposto, 'IBSCBS')
+      var cClassTrib = limparDe(tagDe(ibsCbs, 'cClassTrib') || tagDe(imposto, 'cClassTrib'))
+      var cstIbsCbs = limparDe(tagDe(ibsCbs, 'CST'))
+      var gIbs = tagDe(ibsCbs, 'gIBSCBS')
+      var vIbs = numDe(tagDe(gIbs, 'vIBSS') || tagDe(gIbs, 'vIBS'))
+      var vCbs = numDe(tagDe(gIbs, 'vCBS'))
+      var is = tagDe(imposto, 'IS')
+      var vIs = numDe(tagDe(is, 'vIS'))
+
+      itens.push({
+        numero_item: limparDe(attrDe(d, 'det', 'n')) || String(i + 1),
+        codigo_produto: limparDe(tagDe(prod, 'cProd')),
+        descricao: limparDe(tagDe(prod, 'xProd')),
+        ncm: limparDe(tagDe(prod, 'NCM')),
+        cfop: limparDe(tagDe(prod, 'CFOP')),
+        unidade: limparDe(tagDe(prod, 'uCom')),
+        quantidade: numDe(tagDe(prod, 'qCom')),
+        valor_unitario: numDe(tagDe(prod, 'vUnCom')),
+        valor_total: numDe(tagDe(prod, 'vProd')),
+        cst_icms: limparDe(tagDe(icms00, 'CST') || tagDe(icms00, 'CSOSN')),
+        cst_ibs_cbs: cstIbsCbs,
+        cclasstrib: cClassTrib,
+        cbenef: limparDe(tagDe(prod, 'cBenef')),
+        valor_ibs: vIbs,
+        valor_cbs: vCbs,
+        valor_is: vIs,
+        tem_campos_rt: Boolean(cClassTrib || cstIbsCbs || vIbs || vCbs),
+      })
+    }
+    return itens
+  }
+
+  /**
+   * TRIBUTÁRIO — o documento como um todo: já está no padrão da reforma?
+   * Se nenhum item traz cClassTrib, a resposta é não, e isso é ACHADO — não
+   * erro de leitura. Em 2026 é o esperado, e é o que precisa ser parametrizado.
+   */
+  function espTributario(itens) {
+    var comRT = 0
+    var semNCM = 0
+    var semCFOP = 0
+    for (var i = 0; i < itens.length; i++) {
+      if (itens[i].tem_campos_rt) comRT++
+      if (!itens[i].ncm) semNCM++
+      if (!itens[i].cfop) semCFOP++
+    }
+    var achados = []
+    if (itens.length > 0 && comRT === 0) {
+      achados.push({
+        tipo: 'LACUNA',
+        campo: 'campos da reforma',
+        detalhe:
+          'nenhum dos ' +
+          itens.length +
+          ' itens traz cClassTrib/CST do IBS-CBS. O documento está no padrão anterior à reforma — é o esperado em 2026, e precisa ser classificado para a apuração assistida.',
+      })
+    }
+    if (semNCM > 0)
+      achados.push({ tipo: 'LACUNA', campo: 'NCM', detalhe: semNCM + ' item(ns) sem NCM' })
+    if (semCFOP > 0)
+      achados.push({ tipo: 'LACUNA', campo: 'CFOP', detalhe: semCFOP + ' item(ns) sem CFOP' })
+    return {
+      itens_total: itens.length,
+      itens_com_campos_rt: comRT,
+      percentual_com_rt: itens.length ? Math.round((comRT / itens.length) * 100) : 0,
+      achados: achados,
+    }
+  }
+
+  /** CONTÁBIL — descreve o que o documento sustenta; não inventa conta. */
+  function espContabil(totais, emitente) {
+    return {
+      descricao:
+        'Entrada de ' +
+        (totais.valor_produtos || 0).toFixed(2) +
+        ' em produtos/serviços de ' +
+        (emitente.nome || 'emitente não identificado'),
+      base_aquisicao: totais.valor_produtos,
+      icms_destacado: totais.valor_icms,
+      total_documento: totais.valor_total,
+      natureza: 'entrada',
+      observacao:
+        'Valores extraídos do próprio documento. A conta contábil depende do plano de contas do escritório e não é deduzida aqui.',
+    }
+  }
+
+  // ══════════════ EXECUÇÃO ══════════════
   var body = e.requestInfo().body || {}
   var xml = String(body.xml || '').trim()
   var nomeArquivo = String(body.nome_arquivo || 'documento.xml').slice(0, 300)
   var gravar = body.gravar !== false
 
   if (!xml) return e.json(400, { success: false, error: 'XML vazio.' })
-  if (xml.length > 8 * 1024 * 1024) {
+  if (xml.length > 8 * 1024 * 1024)
     return e.json(400, { success: false, error: 'XML acima de 8 MB.' })
-  }
-  // guarda-corpo: isto é um leitor de DF-e, não um interpretador de qualquer coisa
   if (xml.indexOf('<') < 0 || !/NFe|infNFe|infEvento|CTe|MDFe|NFS/i.test(xml.slice(0, 4000))) {
     return e.json(400, {
       success: false,
@@ -389,26 +308,31 @@ routerAdd('POST', '/backend/v1/param-importar', (e) => {
     })
   }
 
-  // ── a quebra, segmento por segmento ──
-  var ident = espIdentificacao(xml, '')
+  var ident = espIdentificacao(xml)
   var emit = espEmitente(xml)
   var dest = espDestinatario(xml)
   var totais = espTotais(xml)
   var itens = espItens(xml)
-  var trib = espTributario(itens, totais)
-  var cont = espContabil(totais, emit, dest)
+  var trib = espTributario(itens)
+  var cont = espContabil(totais, emit)
 
   var achados = []
   for (var a = 0; a < ident.achados.length; a++) achados.push(ident.achados[a])
   for (var b = 0; b < trib.achados.length; b++) achados.push(trib.achados[b])
-  for (var f = 0; f < ident.faltando.length; f++) {
+  for (var f = 0; f < ident.faltando.length; f++)
     achados.push({ tipo: 'FALTANDO', campo: ident.faltando[f], detalhe: 'obrigatório e ausente' })
-  }
-  for (var g = 0; g < emit.faltando.length; g++) {
+  for (var g = 0; g < emit.faltando.length; g++)
     achados.push({ tipo: 'FALTANDO', campo: emit.faltando[g], detalhe: 'obrigatório e ausente' })
+
+  if (totais.estrutura_quebrada) {
+    achados.push({
+      tipo: 'DIVERGENCIA',
+      campo: 'estrutura do XML',
+      detalhe:
+        'bloco <total> ou <ICMSTot> aberto sem fechamento — arquivo truncado ou malformado. Os totais NÃO foram lidos e aparecem zerados por isso.',
+    })
   }
 
-  // soma dos itens x total do documento: o teste que pega arquivo truncado
   var somaItens = 0
   for (var k = 0; k < itens.length; k++) somaItens += itens[k].valor_total
   if (itens.length > 0 && totais.valor_produtos > 0) {
@@ -445,19 +369,16 @@ routerAdd('POST', '/backend/v1/param-importar', (e) => {
     documento_id: '',
   }
 
-  // ── grava ──
   if (gravar) {
     try {
       var colDoc = $app.findCollectionByNameOrId('param_documentos')
       var rec = new Record(colDoc)
       rec.set('chave', ident.chave)
       rec.set('modelo', ident.modelo || 'desconhecido')
-      rec.set('versao_layout', limpar(tagAttr(xml, 'infNFe', 'versao')))
       rec.set('numero', ident.numero)
       rec.set('serie', ident.serie)
-      if (ident.data_emissao) {
+      if (ident.data_emissao)
         rec.set('data_emissao', String(ident.data_emissao).slice(0, 19).replace('T', ' '))
-      }
       rec.set('emitente_cnpj', emit.cnpj)
       rec.set('emitente_nome', emit.nome)
       rec.set('destinatario_cnpj', dest.cnpj)
@@ -476,7 +397,6 @@ routerAdd('POST', '/backend/v1/param-importar', (e) => {
       rec.set('status', achados.length === 0 ? 'conferido' : 'divergente')
       rec.set('divergencias', achados.length)
       rec.set('nome_arquivo', nomeArquivo)
-      rec.set('hash_arquivo', String(xml.length))
       rec.set(
         'resumo_conferencia',
         achados.length === 0
@@ -488,7 +408,6 @@ routerAdd('POST', '/backend/v1/param-importar', (e) => {
       resultado.documento_id = rec.id
       resultado.gravado = true
 
-      // itens
       var colIt = $app.findCollectionByNameOrId('param_itens')
       for (var n = 0; n < itens.length; n++) {
         var i2 = itens[n]
@@ -524,13 +443,14 @@ routerAdd('POST', '/backend/v1/param-importar', (e) => {
 
 /**
  * GET /backend/v1/param-classificacoes?tipo=cClassTrib&q=0000
- * Consulta das tabelas da reforma — usada na classificação e na auditoria.
+ * Consulta das tabelas da reforma. Sem token de propósito: são tabelas
+ * públicas oficiais (o portal do SVRS publica as mesmas), e a classificação
+ * precisa funcionar em qualquer consulta do sistema.
  */
 routerAdd('GET', '/backend/v1/param-classificacoes', (e) => {
   e.response.header().set('Access-Control-Allow-Origin', '*')
   var q = e.requestInfo().query || {}
-  var filtro = ''
-  if (q.tipo) filtro = 'tipo = "' + String(q.tipo) + '"'
+  var filtro = q.tipo ? 'tipo = "' + String(q.tipo) + '"' : ''
   var regs = []
   try {
     regs = $app.findRecordsByFilter('param_classificacoes_rt', filtro, 'codigo', 3000, 0)
@@ -556,7 +476,7 @@ routerAdd('GET', '/backend/v1/param-classificacoes', (e) => {
   return e.json(200, { success: true, total: out.length, itens: out })
 })
 
-/** GET /backend/v1/param-documentos — lista os importados */
+/** GET /backend/v1/param-documentos — lista os importados (exige token). */
 routerAdd('GET', '/backend/v1/param-documentos', (e) => {
   e.response.header().set('Access-Control-Allow-Origin', '*')
   var esperado = $secrets.get('SIMUL_PAINEL_TOKEN') || ''
