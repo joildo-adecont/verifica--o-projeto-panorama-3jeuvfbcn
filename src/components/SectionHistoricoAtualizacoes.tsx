@@ -71,6 +71,37 @@ function ehRecente(dataBR: string): boolean {
 const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
+    data: '03/11/2026',
+    hora: '21:45',
+    titulo:
+      'Parametrizador de Documentos Fiscais da Reforma — Fase 3: auditoria por item, comparativo entre competências, concentração por NCM e relatório imprimível',
+    conteudo:
+      'A pedido do CEO (Fases 1 e 2 aprovadas em 03/11/2026): ambiente de análise, comparativos e auditorias do Parametrizador (Seção 31, tecla shift+p). Entregues quatro frentes. (1) MOTOR DE CLASSIFICAÇÃO: 841 regras NCM para tratamento na reforma, geradas das Tabelas Gerais dos Anexos (fonte única de itens) — 251 por código exato e 590 por posição de 4 dígitos. O casamento é por prefixo, do mais específico ao mais genérico, e o resultado SEMPRE informa o nível usado: "achei a regra do seu NCM" e "achei a regra da posição" são respostas diferentes, e a segunda exige conferência do contador. (2) AUDITORIA: achados classificados por gravidade (ALTA impede classificação, MÉDIA atrapalha escrituração, INFO é o esperado em 2026), com o percentual do valor sem NCM — 3 itens sem NCM em 300 é irrelevante, 3 itens que somam 80% do valor é o documento inteiro sem classificação. (3) COMPARATIVO: variação por competência (valor, documentos, divergências, principal emitente) com leitura em texto. (4) CONCENTRAÇÃO: ranking por NCM com percentual acumulado — se os primeiros NCMs somam 80%, classificar esses poucos resolve quase todo o valor e um erro neles contamina quase todo o cálculo. (5) RELATÓRIO: texto pronto com identificação, partes, valores e a quebra item a item, imprimível em A4 e baixável em .txt. DEFEITOS CORRIGIDOS NO CAMINHO: o gerador do motor criou regras de até 193 dígitos aceitando qualquer "codigo" das tabelas como NCM (agora só 2 a 8 dígitos); e a rota temporária de validação usou $http.send para 127.0.0.1:8090, que devolveu status 0 porque a porta interna do hook não é a exposta pelo proxy — trocada por chamada direta às funções. VALIDAÇÃO EM PRODUÇÃO: XML com 3 itens gravou, releu os 3 itens, somou R$ 6.500,00 conferindo com o total do documento e apontou corretamente o item 3 sem NCM; a rota temporária foi removida (404) e o segredo de teste, apagado.',
+    fontes: [
+      {
+        titulo:
+          'Portal Nacional dos DF-e / SVRS — Tabela de Classificação Tributária da RT (atualizada em 30/10/2026)',
+        url: 'https://dfe-portal.svrs.rs.gov.br/CFF/ClassificacaoTributaria',
+      },
+      {
+        titulo: 'Portal Nacional dos DF-e / SVRS — Tabela de Crédito Presumido',
+        url: 'https://dfe-portal.svrs.rs.gov.br/CFF/TabelaCreditoPresumido',
+      },
+      {
+        titulo: 'LC 214/2025 — texto integral (normas.leg.br, Senado Federal)',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
+      },
+      {
+        titulo: 'Resolução CGIBS 6/2026 — Regulamento do IBS (Anexos I a V)',
+        url: 'https://www.cgibs.gov.br/resolucoes',
+      },
+    ],
+    caminho:
+      'src/components/SectionParametrizador.tsx + src/components/ParametrizadorAnalise.tsx + src/data/motorClassificacao.ts + pocketbase/hooks/parametrizador.js + pocketbase/hooks/parametrizador_fase3.js + pocketbase/migrations/0108_parametrizador.js',
+    versao: 'v0.0.486',
+    bloco: 'sistema',
+  },
+  {
     data: '01/11/2026',
     hora: '14:20',
     titulo:
