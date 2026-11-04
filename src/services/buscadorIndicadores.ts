@@ -102,11 +102,19 @@ export const SUGESTOES_BUSCA_INDICADORES = [
 ]
 
 /** Catálogo agrupado por categoria para a listagem padrão da aba Histórico. */
-export function catalogoAgrupado(): Map<string, CatalogoSerie[]> {
-  const mapa = new Map<string, CatalogoSerie[]>()
+export function catalogoAgrupado(): Map<string, ResultadoBuscaIndicador[]> {
+  const mapa = new Map<string, ResultadoBuscaIndicador[]>()
   for (const item of CATALOGO_SERIES) {
     if (!mapa.has(item.categoria)) mapa.set(item.categoria, [])
-    mapa.get(item.categoria)!.push(item)
+    mapa.get(item.categoria)!.push({
+      chave: item.chave,
+      nome: item.nome,
+      descricao: item.descricao,
+      categoria: item.categoria,
+      unidade: item.unidade,
+      fonte: item.fonte,
+      baseInterna: /base interna/i.test(item.descricao),
+    })
   }
-  return mapa
-}
+=======
+=======

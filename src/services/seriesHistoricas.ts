@@ -630,9 +630,7 @@ function serieBaseInterna(item: CatalogoSerie): PontoSerie[] {
 }
 
 /** Busca a série histórica de um indicador via proxy do backend. */
-export async function fetchSerieHistorica(
-  chave: ChaveSerieHistorica,
-): Promise<{
+export async function fetchSerieHistorica(chave: ChaveSerieHistorica): Promise<{
   serie: PontoSerie[]
   fonteViva: boolean
   baseInterna: boolean
