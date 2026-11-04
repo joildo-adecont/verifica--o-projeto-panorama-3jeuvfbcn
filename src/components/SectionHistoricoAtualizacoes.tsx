@@ -130,6 +130,32 @@ const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
     data: '04/11/2026',
+    hora: '20:15',
+    titulo:
+      'Lista de Conferência de NCM — e o defeito grave que ela revelou: 284 regras de aliquota estavam sendo descartadas',
+    conteudo:
+      'A pedido do CEO: levantar quais NCMs aparecem sem regra em toda a base importada e montar lista de conferencia, para transformar o 7 de 10 em trabalho dirigido. Entregue como 9a aba da Secao 31, com agrupamento por NCM (conferir UMA vez resolve as 40 notas em que o codigo aparece) e a separacao que da valor a lista: CASO A, o capitulo do NCM TEM regras nos Anexos mas o codigo nao casou (quase sempre NCM generico ou descricao frouxa, e onde a conferencia rende), e CASO B, o capitulo inteiro nao tem regra (o produto paga a integral porque a lei nao previu reducao, conferir so confirma). Sem essa divisao o contador abriria 100 itens para descobrir que 70 nunca teriam beneficio. O DEFEITO QUE A LISTA REVELOU, e que era mais importante que a propria lista: ao investigar por que 6 de 7 itens do DIO SANTO apareciam sem regra mesmo com o capitulo tendo 10 regras, descobri que 17% das celulas codigo das Tabelas trazem VARIOS NCMs separados por virgula (0403.20.00, 0403.90.00, 2202.99.00). O gerador juntava os digitos de todos, o total passava de 8 e o guarda-corpo de tamanho DESCARTAVA A LINHA INTEIRA em silencio. Resultado: o motor tinha 841 regras quando deveria ter 1.125 — 284 regras de aliquota, um terco do total, estavam ausentes. Corrigido para expandir cada codigo da celula; o motor passou de 205 para 295 regras de aliquota e de 31 para 43 capitulos cobertos. Efeito medido nos 10 itens reais do DIO SANTO: de 3 para 6 itens classificados, e os que ficaram fora agora tem explicacao verificada (capitulo 21, preparacoes alimenticias diversas, realmente nao consta dos Anexos). A lista mostra resumo (NCMs sem regra, valor envolvido, quanto esta em cada caso), filtros por caso/prioridade/busca, descricoes reais das notas, fornecedores e competencias, com impressao de folha de trabalho e exportacao CSV. DEFEITOS DE UI CORRIGIDOS NO CAMINHO: a aba chegou a ser publicada sem o botao (o patch removeu a linha do botao e deixou so o comentario, e o QA nao pega isso porque o componente existia e o tipo tambem); e sem cliente selecionado a rota exigia pasta e respondia 400, fazendo a tela dizer nenhum item como se a base estivesse vazia. FERRAMENTA DE DIAGNOSTICO APRENDIDA: o chromium headless deste ambiente nao executa o app e devolve so o shell HTML, o que me fez concluir por duas vezes que a secao estava quebrada quando estava funcionando — a verificacao valida e no Chrome (agent-browser engine=chrome), checando o innerHTML do #root.',
+    fontes: [
+      {
+        titulo: 'LC 214/2025 — Anexos I a XVIII (normas.leg.br)',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
+      },
+      {
+        titulo: 'Resolução CGIBS 6/2026 — Regulamento do IBS (Anexos I a V)',
+        url: 'https://www.cgibs.gov.br/resolucoes',
+      },
+      {
+        titulo: 'Resolução CGIBS nº 14/2026 — alíquota de referência',
+        url: 'https://www.cgibs.gov.br/resolucoes',
+      },
+    ],
+    caminho:
+      'src/data/listaConferencia.ts + src/components/ParametrizadorConferencia.tsx + src/data/motorClassificacao.ts + scripts/auditoria/gerar_motor_classificacao.py',
+    versao: 'v0.0.559',
+    bloco: 'sistema',
+  },
+  {
+    data: '04/11/2026',
     hora: '20:00',
     titulo:
       'Analisador Tributário — comparação fina entre a tributação de hoje e a da reforma, por produto, grupo, ramo e atividade, com simulação até 2033 e busca avançada',
