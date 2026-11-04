@@ -297,7 +297,8 @@ export function ParametrizadorLote() {
     const cobertura = {
       itens_total: itensTotal,
       itens_classificados: itensClassificados,
-      percentual_itens: itensTotal > 0 ? Math.round((itensClassificados / itensTotal) * 1000) / 10 : 0,
+      percentual_itens:
+        itensTotal > 0 ? Math.round((itensClassificados / itensTotal) * 1000) / 10 : 0,
       valor_total: Math.round((valorSaidaTotal + valorEntradaTotal) * 100) / 100,
       valor_classificado: Math.round(valorClassificado * 100) / 100,
       percentual_valor:
@@ -345,7 +346,8 @@ export function ParametrizadorLote() {
   }, [ibs, itensTodos])
 
   const maxProj = useMemo(
-    () => Math.max(1, ...projecao.anos.map((p: any) => Math.max(p.debito, p.credito, p.debitoPleno))),
+    () =>
+      Math.max(1, ...projecao.anos.map((p: any) => Math.max(p.debito, p.credito, p.debitoPleno))),
     [projecao],
   )
 
@@ -467,7 +469,7 @@ export function ParametrizadorLote() {
                   abaixo diz o motivo. Nenhuma nota é descartada.
                 </span>
               )}
-            </div>
+            </label>
           </div>
 
           {resultadoLote && (
@@ -809,11 +811,14 @@ export function ParametrizadorLote() {
                   </p>
                   <div className="mt-1.5 grid grid-cols-2 sm:grid-cols-4 gap-2">
                     <div>
-                      <p className="text-[9px] font-bold uppercase text-slate-500">Itens com regra</p>
+                      <p className="text-[9px] font-bold uppercase text-slate-500">
+                        Itens com regra
+                      </p>
                       <p className="text-[16px] font-bold tabular-nums text-slate-900">
                         {projecao.cobertura.itens_classificados}
                         <span className="text-[10px] font-normal text-slate-500">
-                          {' '}/ {projecao.cobertura.itens_total}
+                          {' '}
+                          / {projecao.cobertura.itens_total}
                         </span>
                       </p>
                       <p className="text-[9px] text-slate-500">
@@ -821,14 +826,20 @@ export function ParametrizadorLote() {
                       </p>
                     </div>
                     <div>
-                      <p className="text-[9px] font-bold uppercase text-slate-500">Valor classificado</p>
+                      <p className="text-[9px] font-bold uppercase text-slate-500">
+                        Valor classificado
+                      </p>
                       <p className="text-[16px] font-bold tabular-nums text-slate-900">
                         {projecao.cobertura.percentual_valor}%
                       </p>
-                      <p className="text-[9px] text-slate-500">{brlCurto(projecao.cobertura.valor_classificado)}</p>
+                      <p className="text-[9px] text-slate-500">
+                        {brlCurto(projecao.cobertura.valor_classificado)}
+                      </p>
                     </div>
                     <div>
-                      <p className="text-[9px] font-bold uppercase text-slate-500">Alíquota efetiva</p>
+                      <p className="text-[9px] font-bold uppercase text-slate-500">
+                        Alíquota efetiva
+                      </p>
                       <p className="text-[16px] font-bold tabular-nums text-emerald-800">
                         {projecao.cobertura.reducao_efetiva_pct > 0
                           ? `−${projecao.cobertura.reducao_efetiva_pct}%`
@@ -837,17 +848,21 @@ export function ParametrizadorLote() {
                       <p className="text-[9px] text-slate-500">sobre a plena</p>
                     </div>
                     <div>
-                      <p className="text-[9px] font-bold uppercase text-slate-500">Com Imposto Seletivo</p>
+                      <p className="text-[9px] font-bold uppercase text-slate-500">
+                        Com Imposto Seletivo
+                      </p>
                       <p className="text-[16px] font-bold tabular-nums text-amber-700">
                         {projecao.cobertura.itens_com_is}
                       </p>
-                      <p className="text-[9px] text-slate-500">{brlCurto(projecao.cobertura.valor_com_is)}</p>
+                      <p className="text-[9px] text-slate-500">
+                        {brlCurto(projecao.cobertura.valor_com_is)}
+                      </p>
                     </div>
                   </div>
                   <p className="mt-1.5 text-[9px] leading-snug text-slate-500">
                     Item sem regra de alíquota recebe <b>tributação integral</b> — presunção legal
-                    correta, mas <b>não é cálculo</b>. Quanto menor o percentual acima, mais o número
-                    final é estimativa e menos é apuração.
+                    correta, mas <b>não é cálculo</b>. Quanto menor o percentual acima, mais o
+                    número final é estimativa e menos é apuração.
                     {projecao.cobertura.itens_com_is > 0 && (
                       <span className="ml-1 font-bold text-amber-800">
                         Há {projecao.cobertura.itens_com_is} item(ns) com Imposto Seletivo: a carga
@@ -865,8 +880,8 @@ export function ParametrizadorLote() {
                 </p>
                 <p className="mt-0.5 text-[9.5px] text-slate-500 leading-snug">
                   Cada item pela alíquota que a LEI lhe dá — classificado pelo NCM, não pela
-                  alíquota cheia. Barra verde = débito sobre saídas; azul = crédito sobre
-                  entradas. O que se apura é a diferença.
+                  alíquota cheia. Barra verde = débito sobre saídas; azul = crédito sobre entradas.
+                  O que se apura é a diferença.
                 </p>
                 <div className="mt-2 space-y-1.5">
                   {projecao.anos.map((p: any) => (
@@ -989,8 +1004,9 @@ export function ParametrizadorLote() {
                   sistema). <b>Ainda não é apuração completa</b>: o motor cobre as 112 regras de
                   alíquota dos Anexos, e item cujo NCM não tem regra fica na tributação integral — o
                   quadro de cobertura acima mostra exatamente quanto. E onde incide{' '}
-                  <b>Imposto Seletivo</b>, a carga real é maior que a projetada, porque o IS incide por
-                  fora do IBS/CBS.</p>
+                  <b>Imposto Seletivo</b>, a carga real é maior que a projetada, porque o IS incide
+                  por fora do IBS/CBS.
+                </p>
               </div>
 
               {ibs.top_ncm?.length > 0 && (
