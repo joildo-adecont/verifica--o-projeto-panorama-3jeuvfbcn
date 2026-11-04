@@ -71,6 +71,28 @@ function ehRecente(dataBR: string): boolean {
 const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
+    data: '04/11/2026',
+    hora: '02:20',
+    titulo:
+      'Corrigido erro grave de direção: o CFOP é a ótica do EMITENTE — compra do cliente ia para Vendas',
+    conteudo:
+      'O CEO apontou o erro: se o DIO SANTO e o destinatario da nota, ela deveria estar em Compras, e o CFOP pode ter vindo do lado do emitente. Estava certo. O CFOP e SEMPRE a otica de quem EMITE o documento: o 6.102 significa venda de mercadoria adquirida de terceiros, interestadual, ou seja SAIDA para a SEGALAS, que emitiu. Para o DIO SANTO, que e o DESTINATARIO, a mesma operacao e ENTRADA: ele comprou. A regra que eu havia escrito olhava so o primeiro digito do CFOP e chamava aquilo de a direcao do documento. Era a direcao do EMITENTE, nao do cliente cuja pasta estamos organizando, e por isso uma compra do restaurante foi arquivada em Vendas. CORRECAO: a direcao agora vem primeiro da POSICAO DO CLIENTE na nota - se o cliente e o emitente, e saida; se e o destinatario, e entrada; se e as duas partes (transferencia entre filiais), decide o CFOP. O CFOP passou a ser o FALLBACK, para quando a pasta nao tem CNPJ, e nesse caso a resposta e a otica do emitente, nao uma certeza. Corrigido tambem na direcao dos ITENS, nao so do cabecalho. VALIDACAO: 5 de 5 casos aprovados - compra com CFOP 6102 e 2102 = entrada, venda com 5102 = saida, transferencia entre filiais pelo CFOP, e pasta sem CNPJ caindo no CFOP. Teste de importacao real: XML novo da SEGALAS destinado ao DIO SANTO, com CFOP 6102, foi classificado como entrada e arquivado em DIO SANTO TRATTORIA LTDA - Compras. A nota que estava errada foi movida de Vendas para Compras e o documento de teste foi apagado. Estado final da pasta: 1 documento, R$ 1.133,67 em COMPRAS, zero em vendas e zero na base.',
+    fontes: [
+      {
+        titulo: 'LC 214/2025 — texto integral (normas.leg.br, Senado Federal)',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
+      },
+      {
+        titulo: 'Portal Nacional dos DF-e / SVRS — tabela de CFOP (Ajuste SINIEF 07/2005)',
+        url: 'https://dfe-portal.svrs.rs.gov.br/Dfe/Documentos',
+      },
+    ],
+    caminho:
+      'pocketbase/hooks/parametrizador_rotas.js (funcao direcaoDoCliente) + src/components/ParametrizadorPastas.tsx',
+    versao: 'v0.0.533',
+    bloco: 'sistema',
+  },
+  {
     data: '03/11/2026',
     hora: '23:15',
     titulo:
