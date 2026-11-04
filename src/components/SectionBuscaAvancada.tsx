@@ -31,7 +31,9 @@ import {
   Check,
   Landmark,
   Gavel,
+  Coins,
 } from 'lucide-react'
+import type { ItemIndicadorBusca } from '@/services/indicadoresEconomicos'
 import { AdecontLogo } from '@/components/AdecontLogo'
 import { SeloNivelConfianca } from '@/components/SeloNivelConfianca'
 import {
@@ -336,6 +338,7 @@ export function SectionBuscaAvancada({ segmentoInicial }: SectionBuscaAvancadaPr
     | 'conexoes'
     | 'jurisprudencias'
     | 'analises'
+    | 'indicadores'
   >('tudo')
 
   const [resultado, setResultado] = useState<ResultadoBuscaAvancada | null>(null)
@@ -681,6 +684,18 @@ export function SectionBuscaAvancada({ segmentoInicial }: SectionBuscaAvancadaPr
     })
   }, [resultado, palavrasChave])
 
+  /* Indicadores Econômicos e Financeiros (BCB — oficial institucional).
+     A fonte já chega do proxy do backend com fallback interno; aqui só filtramos
+     pela palavra-chave livre e rendemos os destaques. */
+  const indicadoresEconomicosFiltrados = useMemo<ItemIndicadorBusca[]>(() => {
+    if (!resultado) return []
+    if (palavrasChave.length === 0) return resultado.indicadoresEconomicos
+    return resultado.indicadoresEconomicos.filter((ind) => {
+      const textoAlvo = [ind.titulo, ind.descricao, ind.valor, ind.data, ind.fonte, ind.categoria]
+      return correspondePalavrasChave(textoAlvo, palavrasChave)
+    })
+  }, [resultado, palavrasChave])
+
   const totalFiltradoPalavraChave =
     anexosReformaFiltrados.length +
     assuntosEspeciaisFiltrados.length +
@@ -689,7 +704,8 @@ export function SectionBuscaAvancada({ segmentoInicial }: SectionBuscaAvancadaPr
     radarAtosFiltrados.length +
     aliquotasFiltradas.length +
     conexoesFiltradas.length +
-    analisesFiltradas.length
+    analisesFiltradas.length +
+    indicadoresEconomicosFiltrados.length
 
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -1568,6 +1584,21 @@ export function SectionBuscaAvancada({ segmentoInicial }: SectionBuscaAvancadaPr
             Análises & Projeções
             <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-800">
               {analisesFiltradas.length}
+            </span>
+          </button>
+
+          <button
+            onClick={() => setAbaAtiva('indicadores')}
+            className={`px-4 py-2.5 rounded-t-lg transition-colors border-b-2 whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
+              abaAtiva === 'indicadores'
+                ? 'border-amber-600 text-amber-900 bg-amber-50/60 shadow-xs font-bold'
+                : 'border-transparent text-slate-500 hover:text-amber-800 hover:bg-amber-50/30'
+            }`}
+          >
+            <Coins className="w-4 h-4 text-amber-600" />
+            Indicadores Econômicos
+            <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
+              {indicadoresEconomicosFiltrados.length}
             </span>
           </button>
 
@@ -2505,6 +2536,81 @@ export function SectionBuscaAvancada({ segmentoInicial }: SectionBuscaAvancadaPr
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* BLOCO 5B: Indicadores Econômicos e Financeiros — Banco Central do Brasil
+          Selo fixo em tier="oficial_institucional": a fonte é institucional (BCB),
+          nunca "diário oficial" e nunca o selo genérico "confiável". */}
+      {(abaAtiva === 'tudo' || abaAtiva === 'indicadores') && (
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+            <div className="flex items-center gap-2">
+              <Coins className="w-4 h-4 text-amber-600" />
+              <h3 className="text-base font-bold text-slate-900">
+                Indicadores Econômicos e Financeiros
+              </h3>
+              <span className="hidden sm:inline text-[11px] text-slate-500">
+                inflação, correção, juros e câmbio — Banco Central do Brasil
+              </span>
+            </div>
+            <SeloNivelConfianca tier="oficial_institucional" compacto />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {indicadoresEconomicosFiltrados.map((ind) => (
+              <div
+                key={`${ind.categoria}-${ind.titulo}`}
+                className="border border-slate-200 rounded-xl p-4 bg-gradient-to-br from-amber-50/40 to-white hover:border-amber-300 transition-all space-y-2 flex flex-col justify-between"
+              >
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-200">
+                      {destacarTrechos(ind.categoria, palavrasChave)}
+                    </span>
+                    <span className="text-[11px] font-mono text-slate-400">
+                      {destacarTrechos(ind.data, palavrasChave)}
+                    </span>
+                  </div>
+                  <h4 className="font-bold text-slate-900 text-sm leading-snug">
+                    {destacarTrechos(ind.titulo, palavrasChave)}
+                  </h4>
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    {destacarTrechos(ind.descricao, palavrasChave)}
+                  </p>
+                  <p className="font-mono font-bold text-panorama-navy text-base">
+                    {destacarTrechos(ind.valor, palavrasChave)}
+                  </p>
+                </div>
+                <div className="pt-2 border-t border-slate-100 space-y-1.5">
+                  <div className="flex items-center gap-1.5 flex-wrap text-[11px] text-slate-500">
+                    <span>
+                      Fonte: <strong>{destacarTrechos(ind.fonte, palavrasChave)}</strong>
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <SeloNivelConfianca tier="oficial_institucional" compacto />
+                    {ind.ancora && (
+                      <a
+                        href={`#${ind.ancora}`}
+                        className="inline-flex items-center gap-1 text-[11px] font-bold text-panorama-navy hover:underline"
+                      >
+                        Abrir o portal de Indicadores Econômicos →
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {indicadoresEconomicosFiltrados.length === 0 && (
+            <p className="rounded-lg bg-slate-50 p-3 text-[11.5px] leading-relaxed text-slate-600">
+              Nenhum indicador para o termo digitado. Tente &ldquo;IPCA&rdquo;, &ldquo;Selic&rdquo;,
+              &ldquo;dólar&rdquo; ou &ldquo;poupança&rdquo; — ou abra o portal completo na seção
+              Indicadores Econômicos e Financeiros.
+            </p>
+          )}
         </div>
       )}
 

@@ -65,6 +65,7 @@ import {
   FileSearch,
   BrainCircuit,
   Ban,
+  Coins,
 } from 'lucide-react'
 
 export interface LinkNavegacao {
@@ -952,6 +953,36 @@ const SISTEMA: LinkNavegacao[] = [
       'tributos',
     ],
   },
+  /* 9B — portal do Banco Central: inflação, correção, juros e câmbio.
+     Fonte oficial institucional (BCB) com selo próprio, nunca o genérico. */
+  {
+    href: '#indicadores-economicos',
+    label: 'Indicadores Econômicos e Financeiros',
+    curto: 'Indic. Econômicos',
+    tecla: 'shift+i',
+    numero: '9B',
+    dominio: 'sistema',
+    setor: 'gestao',
+    Icon: Coins,
+    cor: 'text-amber-700',
+    bg: 'bg-amber-50',
+    borda: 'border-amber-300',
+    descricao: 'IPCA, IGPM, Selic, CDI, TR, câmbio e moedas — Banco Central',
+    tags: [
+      'ipca',
+      'igpm',
+      'inpc',
+      'selic',
+      'cdi',
+      'tr',
+      'dolar',
+      'cambio',
+      'moeda',
+      'inflacao',
+      'juros',
+      'poupanca',
+    ],
+  },
   {
     href: '#historico-atualizacoes',
     label: 'Histórico de Atualizações',
@@ -1133,6 +1164,7 @@ const SECOES_CONTABIL = [
 const SECOES_ADMINISTRATIVA = [
   '#mapa',
   '#indicadores',
+  '#indicadores-economicos',
   '#cadastro-envios',
   '#central-entrega',
   '#assistentes-seguranca',

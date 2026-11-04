@@ -24,6 +24,7 @@ import {
   History,
   Ban,
   ShieldUser,
+  Coins,
 } from 'lucide-react'
 import { AdecontLogo } from '@/components/AdecontLogo'
 import { SeloNivelConfianca } from '@/components/SeloNivelConfianca'
@@ -241,13 +242,13 @@ export function PlataformaHome() {
           { label: 'Seção 9A', valor: 'Clientes & CRM' },
           { label: 'Nível de Acesso', valor: 'Usuários & Níveis' },
           { label: 'Instalador CEO', valor: '#1 CEO ativo' },
-          { label: 'Central de Entrega', valor: 'PDF & Relatórios' },
+          { label: 'Indicadores BCB', valor: 'IPCA · Selic · Câmbio' },
         ],
         atalhos: [
           { label: 'Cadastro de Clientes & Envios (9A)', href: '#cadastro-envios' },
           { label: 'Nível de Acesso (Cadastro de Usuários)', href: '#nivel-acesso' },
           { label: 'Instalador e Versão (#1 CEO)', href: '#instalador-versao' },
-          { label: 'Central de Entrega de Relatórios', href: '#central-entrega' },
+          { label: 'Indicadores Econômicos e Financeiros (BCB)', href: '#indicadores-economicos' },
         ],
       },
     ]
@@ -487,6 +488,15 @@ export function PlataformaHome() {
           >
             <Building2 className="w-4 h-4 text-sky-700 group-hover:scale-110 transition-transform" />
             <span>Seção 9A · Cadastro de Clientes & Envios</span>
+          </button>
+
+          {/* Indicadores Econômicos e Financeiros — Banco Central (9B) */}
+          <button
+            onClick={() => navegarPara('#indicadores-economicos')}
+            className="group px-3.5 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-950 border border-amber-300 text-xs font-bold flex items-center gap-2 transition-all hover:shadow-sm hover:-translate-y-0.5 cursor-pointer"
+          >
+            <Coins className="w-4 h-4 text-amber-700 group-hover:scale-110 transition-transform" />
+            <span>Indicadores Econômicos</span>
           </button>
 
           {/* Tabela Geral dos Anexos */}

@@ -263,7 +263,10 @@ export async function fetchIndicadoresEconomicos(
         ? (bruto.moedas as Record<string, unknown>[]).map(normalizarMoeda)
         : [],
       moedasDisponiveis: Array.isArray(bruto.moedas_disponiveis)
-        ? (bruto.moedas_disponiveis as Record<string, string>[])
+        ? (bruto.moedas_disponiveis as Record<string, unknown>[]).map((m) => ({
+            codigo: String(m.codigo || ''),
+            nome: String(m.nome || ''),
+          }))
         : MOEDAS_DISPONIVEIS_FALLBACK,
     }
   } catch {
