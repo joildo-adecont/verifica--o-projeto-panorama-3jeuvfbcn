@@ -436,6 +436,17 @@ export function SectionFontes() {
       badgeCor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
     },
     {
+      orgao: 'B3/IPEA — Mercado Financeiro (Ibovespa e IFIX)',
+      fonte: 'b3.com.br + ipeadata.gov.br (proxy backend)',
+      conteudo:
+        'Índices de mercado financeiro: Ibovespa (pontos, fechamento mensal da carteira teórica da B3) e IFIX (índice de fundos imobiliários da B3)',
+      url: 'https://www.b3.com.br',
+      statusNota:
+        'Fonte oficial institucional ativa via proxy /backend/v1/fontes-estatisticas com cache e base interna de contingência.',
+      badgeStatus: 'Oficial Integrada (Proxy)',
+      badgeCor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+    },
+    {
       orgao: 'CAGED — Ministério do Trabalho e Emprego',
       fonte: 'gov.br/trabalho-e-emprego + Painel Novo CAGED (proxy backend)',
       conteudo:

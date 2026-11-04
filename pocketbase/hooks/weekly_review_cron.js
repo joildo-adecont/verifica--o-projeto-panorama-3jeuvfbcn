@@ -501,6 +501,18 @@ cronAdd('weekly_content_review', '0 11 * * 1', () => {
       alternative: 'Painel Novo CAGED do Ministério do Trabalho e Emprego e dados abertos do MTE',
       coverageStatus: 'coberta_direta',
     },
+    // FONTES ESTATÍSTICAS — MERCADO FINANCEIRO (proxy /backend/v1/fontes-estatisticas)
+    {
+      key: 'b3_mercado',
+      name: 'B3/IPEA — Mercado Financeiro (Ibovespa e IFIX — índices da B3)',
+      url: 'https://www.b3.com.br',
+      order: 49,
+      confidenceTier: 'oficial_institucional',
+      isAccessible: true,
+      alternative:
+        'BCB SGS 7 (Ibovespa em pontos) e IPEADATA GM12_ERNBG11BRA_IXOB (IFIX — fundos imobiliários da B3)',
+      coverageStatus: 'coberta_direta',
+    },
   ]
 
   const checkedSources = []
@@ -839,10 +851,10 @@ cronAdd('weekly_content_review', '0 11 * * 1', () => {
     const reviewRecord = new Record(colReviews)
 
     const notes =
-      'Revisão semanal com rotas alternativas oficiais ativas para o arcabouço amplo da Reforma Tributária (Emendas, Leis Complementares, Decretos, Resoluções CGIBS, Instruções Normativas RFB, Soluções de Consulta COSIT, Atos Declaratórios RFB, Portarias MEF, CARF, ANP, SUFRAMA e Diários Municipais AMM/FAMEP). Portal da Legislação do Planalto integrado como fonte primária oficial compilada. Receita Federal do Brasil (RFB) integrada com busca ao vivo de normas e captura de atos (IN RFB 2.215/2024, Portaria RFB 549/2025, SC COSIT 124/2025 e ADI RFB 3/2025). Fontes de jurisprudência (STF/STJ) referenciadas. Fontes protegidas por WAF (Planalto/Presidência) e sem rota de rede do pod (Câmara, CONFAZ, Calculadora Serpro, reformadoconsumo, dadosreceita) possuem cobertura e captura de normas garantidas via proxy intermediado do backend (/backend/v1/download-resolution), API de Dados Abertos do Senado, normas.leg.br, DOU/InLabs, Portal Nacional NF-e/SVRS, CGIBS e Catálogo Dados Abertos Gov.br. Lefisc registrada como única fonte de comparação sem validade legal. Fontes estatísticas de indicadores (BCB, IBGE, Tesouro, IPEA, IBGE-Agro, CONAB, Cepea-Esalq, FipeZap; SFH via BCB; INEP/MEC — educação; DATASUS — saúde; SNIS — saneamento/Ministério das Cidades; IBGE PNAD Contínua e CAGED — emprego e desemprego/Ministério do Trabalho e Emprego) registradas como oficiais institucionais, consultadas pelo proxy /backend/v1/fontes-estatisticas com cache e fallback transparente para a base interna.'
+      'Revisão semanal com rotas alternativas oficiais ativas para o arcabouço amplo da Reforma Tributária (Emendas, Leis Complementares, Decretos, Resoluções CGIBS, Instruções Normativas RFB, Soluções de Consulta COSIT, Atos Declaratórios RFB, Portarias MEF, CARF, ANP, SUFRAMA e Diários Municipais AMM/FAMEP). Portal da Legislação do Planalto integrado como fonte primária oficial compilada. Receita Federal do Brasil (RFB) integrada com busca ao vivo de normas e captura de atos (IN RFB 2.215/2024, Portaria RFB 549/2025, SC COSIT 124/2025 e ADI RFB 3/2025). Fontes de jurisprudência (STF/STJ) referenciadas. Fontes protegidas por WAF (Planalto/Presidência) e sem rota de rede do pod (Câmara, CONFAZ, Calculadora Serpro, reformadoconsumo, dadosreceita) possuem cobertura e captura de normas garantidas via proxy intermediado do backend (/backend/v1/download-resolution), API de Dados Abertos do Senado, normas.leg.br, DOU/InLabs, Portal Nacional NF-e/SVRS, CGIBS e Catálogo Dados Abertos Gov.br. Lefisc registrada como única fonte de comparação sem validade legal. Fontes estatísticas de indicadores (BCB, IBGE, Tesouro, IPEA, IBGE-Agro, CONAB, Cepea-Esalq, FipeZap; SFH via BCB; INEP/MEC — educação; DATASUS — saúde; SNIS — saneamento/Ministério das Cidades; IBGE PNAD Contínua e CAGED — emprego e desemprego/Ministério do Trabalho e Emprego; B3/IPEA — mercado financeiro (Ibovespa e IFIX)) registradas como oficiais institucionais, consultadas pelo proxy /backend/v1/fontes-estatisticas com cache e fallback transparente para a base interna.'
 
     const summaryText =
-      'Rotina semanal de segunda-feira executada com sucesso. Cobertura legislativa e captura de normas federais compiladas mantidas ativas e contínuas via Receita Federal (RFB — INs, SC COSIT e Portarias), Planalto (planalto.gov.br/LexML), DOU/InLabs, diários municipais AMM/FAMEP, MEF, CARF, ANP, SUFRAMA, Senado Dados Abertos, normas.leg.br, CGIBS e Portal NF-e/SVRS para todos os atos normativos. Fontes estatísticas (BCB, IBGE, Tesouro, IPEA, IBGE-Agro, CONAB, Cepea-Esalq, FipeZap, SFH/BCB, INEP/MEC — educação, DATASUS — saúde, SNIS — saneamento/Ministério das Cidades, IBGE PNAD Contínua e CAGED — emprego e desemprego/Ministério do Trabalho e Emprego) verificadas com proxy /backend/v1/fontes-estatisticas ativo.'
+      'Rotina semanal de segunda-feira executada com sucesso. Cobertura legislativa e captura de normas federais compiladas mantidas ativas e contínuas via Receita Federal (RFB — INs, SC COSIT e Portarias), Planalto (planalto.gov.br/LexML), DOU/InLabs, diários municipais AMM/FAMEP, MEF, CARF, ANP, SUFRAMA, Senado Dados Abertos, normas.leg.br, CGIBS e Portal NF-e/SVRS para todos os atos normativos. Fontes estatísticas (BCB, IBGE, Tesouro, IPEA, IBGE-Agro, CONAB, Cepea-Esalq, FipeZap, SFH/BCB, INEP/MEC — educação, DATASUS — saúde, SNIS — saneamento/Ministério das Cidades, IBGE PNAD Contínua e CAGED — emprego e desemprego/Ministério do Trabalho e Emprego, B3/IPEA — mercado financeiro: Ibovespa e IFIX) verificadas com proxy /backend/v1/fontes-estatisticas ativo.'
 
     reviewRecord.set('review_date', nowIso)
     reviewRecord.set('status', 'ok')

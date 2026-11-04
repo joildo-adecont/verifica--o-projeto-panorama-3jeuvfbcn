@@ -848,6 +848,99 @@ routerAdd('GET /backend/v1/fontes-estatisticas', (e) => {
     return saida
   }
 
+  const coletarB3Mercado = () => {
+    // B3 — índices de mercado financeiro: Ibovespa (BCB SGS 7, pontos, fechamento
+    // do último dia útil de cada mês via ultimos/40 dias úteis) e IFIX (índice de
+    // fundos imobiliários da B3 — série IPEADATA GM12_ERNBG11BRA_IXOB / B3).
+    const saida = []
+
+    // Ibovespa — BCB SGS 7 (pontos de fechamento diário)
+    try {
+      const url = 'https://api.bcb.gov.br/dados/serie/bcdata.sgs.7/dados/ultimos/40?formato=json'
+      const resp = $http.send({
+        url: url,
+        method: 'GET',
+        timeout: timeoutMs,
+        headers: {
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          Accept: 'application/json,text/plain,*/*',
+        },
+      })
+      const pontos = resp.json || []
+      const dados = []
+      for (let i = 0; i < pontos.length; i++) {
+        const v = parseFloat(String(pontos[i].valor || '').replace(',', '.'))
+        if (!isFinite(v)) continue
+        dados.push({ periodo: String(pontos[i].data || ''), valor: v })
+      }
+      if (dados.length > 0) {
+        const ultimo = dados[dados.length - 1]
+        const primeiro = dados[0]
+        saida.push({
+          chave: 'ibovespa',
+          nome: 'Ibovespa — pontos (fechamento B3)',
+          categoria: 'mercado',
+          unidade: 'pontos',
+          valor: ultimo.valor,
+          periodo: ultimo.periodo,
+          variacao: primeiro.valor > 0 ? (ultimo.valor / primeiro.valor - 1) * 100 : 0,
+          serie: dados.map((d) => d.valor),
+          fonte: 'B3 / Banco Central do Brasil (SGS 7)',
+          nota: 'Ibovespa em pontos — fechamento diário da carteira teórica da B3, série SGS 7 do Banco Central.',
+        })
+      }
+    } catch (err) {
+      // fonte falhou — fallback abaixo
+    }
+
+    // IFIX — índice de fundos imobiliários da B3 (via IPEADATA)
+    try {
+      const url =
+        'https://api.ipeadata.gov.br/api/ValoresSerie(SERIECODIGO=%27GM12_ERNBG11BRA_IXOB%27)'
+      const resp = $http.send({
+        url: url,
+        method: 'GET',
+        timeout: timeoutMs,
+        headers: {
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          Accept: 'application/json,text/plain,*/*',
+        },
+      })
+      const pontos = resp.json || []
+      const dados = []
+      for (let i = Math.max(0, pontos.length - 40); i < pontos.length; i++) {
+        const p = pontos[i]
+        if (!p) continue
+        const v = parseFloat(String(p.VALVALOR != null ? p.VALVALOR : '').replace(',', '.'))
+        if (!isFinite(v)) continue
+        const d = String(p.VALDATA || '')
+        dados.push({ periodo: d.slice(0, 10), valor: v })
+      }
+      if (dados.length > 0) {
+        const ultimo = dados[dados.length - 1]
+        const primeiro = dados[0]
+        saida.push({
+          chave: 'ifix',
+          nome: 'IFIX — pontos (fundos imobiliários B3)',
+          categoria: 'mercado',
+          unidade: 'pontos',
+          valor: ultimo.valor,
+          periodo: ultimo.periodo,
+          variacao: primeiro.valor > 0 ? (ultimo.valor / primeiro.valor - 1) * 100 : 0,
+          serie: dados.map((d) => d.valor),
+          fonte: 'B3 / IPEADATA',
+          nota: 'IFIX — índice de fundos imobiliários da B3, série IPEADATA (B3/IPEA).',
+        })
+      }
+    } catch (err) {
+      // fonte falhou — fallback abaixo
+    }
+
+    return saida
+  }
+
   const baseInterna = (fonteNome, indicadores, avisoExtra) => {
     // Fallback: base interna aproximada, com aviso transparente — nunca erro cru.
     const internas = {
@@ -1161,6 +1254,30 @@ routerAdd('GET /backend/v1/fontes-estatisticas', (e) => {
           fonte: 'SNIS — Ministério das Cidades',
         },
       ],
+      'B3 — Mercado Financeiro': [
+        {
+          chave: 'ibovespa',
+          nome: 'Ibovespa — pontos (base interna)',
+          categoria: 'mercado',
+          unidade: 'pontos',
+          valor: 138500,
+          periodo: 'último fechamento disponível',
+          variacao: 3.1,
+          serie: [128400, 131200, 134600, 138500],
+          fonte: 'B3 — Mercado Financeiro',
+        },
+        {
+          chave: 'ifix',
+          nome: 'IFIX — pontos, fundos imobiliários (base interna)',
+          categoria: 'mercado',
+          unidade: 'pontos',
+          valor: 2080,
+          periodo: 'último fechamento disponível',
+          variacao: 0.4,
+          serie: [2040, 2055, 2071, 2080],
+          fonte: 'B3 — Mercado Financeiro',
+        },
+      ],
       'DATASUS — Ministério da Saúde': [
         {
           chave: 'nascidos_vivos',
@@ -1217,6 +1334,7 @@ routerAdd('GET /backend/v1/fontes-estatisticas', (e) => {
   if (fonte === 'todas' || fonte === 'ibge_pnad') consultas.push('IBGE — PNAD Contínua')
   if (fonte === 'todas' || fonte === 'caged')
     consultas.push('CAGED — Ministério do Trabalho e Emprego')
+  if (fonte === 'todas' || fonte === 'b3_mercado') consultas.push('B3 — Mercado Financeiro')
 
   const fontes = []
   for (const nome of consultas) {
@@ -1237,6 +1355,7 @@ routerAdd('GET /backend/v1/fontes-estatisticas', (e) => {
       else if (nome === 'SNIS — Ministério das Cidades') itens = coletarSnis()
       else if (nome === 'IBGE — PNAD Contínua') itens = coletarIbgePnad()
       else if (nome === 'CAGED — Ministério do Trabalho e Emprego') itens = coletarCaged()
+      else if (nome === 'B3 — Mercado Financeiro') itens = coletarB3Mercado()
       if (!itens || itens.length === 0) {
         viva = false
         aviso =
