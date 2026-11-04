@@ -156,7 +156,7 @@ export function PlataformaHome() {
         destaques: [
           { label: 'Normas Centrais', valor: `${metricas.totalNormas} atos` },
           { label: 'Docs Oficiais', valor: `${metricas.totalDocsOficiais} baixáveis` },
-          { label: 'Bases Primárias', valor: '115 bases' },
+          { label: 'Bases Primárias', valor: '118 bases' },
           { label: 'Evolução Legal', valor: `${metricas.totalCronologia} marcos` },
         ],
         atalhos: [

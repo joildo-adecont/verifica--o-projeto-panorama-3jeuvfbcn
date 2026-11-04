@@ -897,7 +897,7 @@ const FONTES: LinkNavegacao[] = [
   },
   {
     href: '#fontes-primarias',
-    label: 'Fontes primárias (115 bases)',
+    label: 'Fontes primárias (118 bases)',
     curto: 'Fontes primárias',
     tecla: 'w',
     numero: '12',
@@ -907,8 +907,8 @@ const FONTES: LinkNavegacao[] = [
     cor: 'text-fuchsia-600',
     bg: 'bg-fuchsia-50',
     borda: 'border-fuchsia-200',
-    descricao: 'As 115 bases oficiais, com órgão e ato de origem',
-    tags: ['fonte', 'base', 'oficial', 'orgao', '115', 'indice', 'receita federal', 'cgibs'],
+    descricao: 'As 118 bases oficiais, com órgão e ato de origem',
+    tags: ['fonte', 'base', 'oficial', 'orgao', '118', 'indice', 'receita federal', 'cgibs'],
   },
   {
     href: '#monitor-legislativo',

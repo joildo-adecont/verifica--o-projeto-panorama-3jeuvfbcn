@@ -122,7 +122,7 @@ const DENTRO_DO_PANORAMA = [
   {
     nome: 'Fontes primárias',
     secao: 'fontes-primarias',
-    o_que: 'As 115 bases oficiais, com órgão e ato',
+    o_que: 'As 118 bases oficiais, com órgão e ato',
   },
   { nome: 'Monitor Legislativo', secao: 'monitor-legislativo', o_que: 'O que mudou e quando' },
 ] as const
