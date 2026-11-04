@@ -73,8 +73,8 @@ export function TabelaVariacoesMensais({
         Variações percentuais — {item.nome}
       </h4>
       <p className="text-[10.5px] text-slate-400 mb-3">
-        Variação % em relação ao {ROTULO_GRAN[granularidade] ?? 'período anterior'} · verde =
-        queda, vermelho = alta · "—" quando não há base de comparação.
+        Variação % em relação ao {ROTULO_GRAN[granularidade] ?? 'período anterior'} · verde = queda,
+        vermelho = alta · "—" quando não há base de comparação.
       </p>
       <div className="max-h-72 overflow-y-auto rounded-xl border border-slate-100">
         <table className="w-full text-xs border-collapse">
