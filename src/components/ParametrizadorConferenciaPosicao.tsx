@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   AlertTriangle,
-  Bot,
   CheckCircle2,
   ClipboardCheck,
   Download,
@@ -14,11 +13,7 @@ import {
   X,
   XCircle,
 } from 'lucide-react'
-import {
-  conferirPorPosicao,
-  textoConferenciaPosicao,
-  type ItemConferencia,
-} from '@/data/conferenciaPosicao'
+import { conferirPorPosicao, textoConferenciaPosicao } from '@/data/conferenciaPosicao'
 
 /**
  * CONFERÊNCIA POR POSIÇÃO — o NCM é a raiz de tudo
