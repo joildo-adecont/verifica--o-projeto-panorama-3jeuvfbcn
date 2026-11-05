@@ -130,6 +130,25 @@ const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
     data: '06/11/2026',
+    hora: '00:40',
+    titulo:
+      'Levantamento de carteira por regime: 497 clientes cruzados com os critérios da LC 214, com força de evidência (confirmado / indício / pendente)',
+    conteudo:
+      'A pedido do CEO: identificar quais clientes se enquadram em cada regime especifico e sinalizar no cadastro — levantamento de carteira, nao tabela. Entregue como 13a aba. RESULTADO REAL sobre os 497 clientes da carga do Sistema ADECONT Financeiro: 2 CONFIRMADOS (1 sociedade cooperativa, codigo 125, e 1 representacao diplomatica estrangeira, codigo 659) — esses o cadastro prova pela natureza juridica e podem ir para o cadastro; 78 INDICIOS de produtor rural PF (a natureza juridica prova a condicao, mas falta a receita anual para confirmar se esta abaixo do limite de R$ 3,6 mi do art. 164); 1 indicio de combustivel (POSTO DO TECO PINHAL, so pelo nome, sem CNAE); e 43 PENDENTES marcados como holding/participacao (JJJB, LAGF, BERNARDI, AGROTALUC e outras) — aqui o levantamento faz o servico INVERSO e mais util: avisa que nome com investimento/participacao NAO indica instituicao financeira, porque holding patrimonial segue o regime regular. A DECISAO QUE GOVERNA A TELA: so afirma o que o cadastro prova. A base nao tem CNAE (a exportacao do sistema contabil nao trouxe o campo), entao combustivel e financeiro ficam PENDENTES e a tela diz POR QUE — em vez de classificar por nome. Indicio nunca vira cadastro: marcar cliente no regime errado e pior que nao marcar, porque ele passa a calcular com a regra de outro regime. DEFEITO DE ARQUITETURA ENCONTRADO E CONTORNADO: a colecao clients vive no projeto 56819 e este app roda no 62493 — backends separados. Testado com evidencia: /api/collections/clients devolve 404 daqui e $app.findCollectionByNameOrId responde no rows in result set (54 colecoes no 62493, clients ausente, simul_clientes presente). A carteira passou a ser DADO ESTATICO gerado do CSV da carga, que e a mesma fonte que alimentou o cadastro contabil — consultar o backend faria a tela dizer nenhum cliente se enquadra, que seria mentira. TRES DEFEITOS MEUS CORRIGIDOS: (1) crases dentro de comentario /** */ no arquivo de dados, que fechavam template literal e derrubavam a secao inteira; (2) o icone Users usado no JSX do SectionParametrizador SEM estar no import do lucide-react — mesmo defeito do ClipboardCheck na entrega anterior, e nem QA 5/5, nem lint, nem build pegam, porque componente indefinido so quebra em runtime; (3) o parser de CSV que eu usei no teste lia a coluna 20 (accountant_name) em vez da 19 (legal_nature), e com isso os 78 produtores rurais nao apareciam — o defeito estava no meu teste, nao no dado. VALIDADO em producao: secao com 246 KB, aba abre, 497 clientes, cooperativa e diplomatico identificados, 249 KB de conteudo na aba.',
+    fontes: [
+      {
+        titulo:
+          'LC 214/2025 — arts. 164 (produtor rural), 251 (diplomático), 271 (cooperativa), 439-461 (ZFM/ALC), 174-181 (combustíveis), 182-214 (financeiros)',
+        url: 'https://legis.senado.leg.br/norma/40180341/publicacao/40181429',
+      },
+    ],
+    caminho:
+      'src/data/levantamentoCarteira.ts + src/data/carteiraRegimes.ts + src/components/ParametrizadorLevantamento.tsx + src/components/SectionParametrizador.tsx',
+    versao: 'v0.0.614',
+    bloco: 'sistema',
+  },
+  {
+    data: '06/11/2026',
     hora: '00:20',
     titulo:
       'Enquadramento ampliado para 11 regimes: Simples Híbrido, isentas, imunes, produtor rural PF/PJ/integrado e cooperativa — mais 10 regimes específicos da LC 214',
