@@ -120,7 +120,7 @@ globalThis.PANORAMA_seriesHistoricasNucleo = (function () {
       agreg: 'mensal_ultimo',
       candidatos: [
         { tipo: 'bcb', codigo: 7 },
-        { tipo: 'ipea', codigos: ['GM366_IBVSP366', 'SGS366_IBVSP366'] },
+        { tipo: 'ipea', codigos: ['GM366_IBVSP366'] },
       ],
     },
     // FipeZap: série correta é a SGS 19967 (mensal), porém a fonte trava.
@@ -137,7 +137,7 @@ globalThis.PANORAMA_seriesHistoricasNucleo = (function () {
       candidatos: [
         {
           tipo: 'ipea',
-          codigos: ['JPA366_SP500366', 'SGS366_SP500366', 'GM366_SP500366', 'JPA366_SP500'],
+          codigos: ['GM366_SP500366'],
         },
       ],
     },
@@ -147,7 +147,7 @@ globalThis.PANORAMA_seriesHistoricasNucleo = (function () {
       candidatos: [
         {
           tipo: 'ipea',
-          codigos: ['SGS366_DJIA366', 'JPA366_DJIA366', 'GM366_DJIA366', 'JPA366_DJIA'],
+          codigos: ['GM366_DJIA366'],
         },
       ],
     },
@@ -157,16 +157,14 @@ globalThis.PANORAMA_seriesHistoricasNucleo = (function () {
       candidatos: [
         {
           tipo: 'ipea',
-          codigos: ['SGS366_NASDAQ366', 'JPA366_NASDAQ366', 'GM366_NASDAQ366', 'JPA366_NASDAQ'],
+          codigos: ['GM366_NASDAQ366'],
         },
       ],
     },
     ifix: {
       fonte: 'IPEA — IPEADATA (IFIX)',
       agreg: 'mensal_ultimo',
-      candidatos: [
-        { tipo: 'ipea', codigos: ['GM366_IFIX366', 'SGS366_IFIX366', 'GM12_ERNBG11BRA_IXOB'] },
-      ],
+      candidatos: [{ tipo: 'ipea', codigos: ['GM366_IFIX366'] }],
     },
     // — Agronegócio (diária → último do mês) —
     boi_gordo: {
@@ -528,8 +526,30 @@ globalThis.PANORAMA_seriesHistoricasNucleo = (function () {
   return { resolver: resolver, atualizar: atualizar }
 })()
 
+// REGRA ANTI-ERRO (contrato da aba Histórico): a rota JAMAIS responde com erro
+// HTTP — toda exceção é absorvida e o frontend recebe 200 com a base interna
+// (ou cache) e aviso transparente. Diagnóstico 0.0.559: exceção dentro do
+// callback (ex.: cadeia de mercado) virava 400 "Something went wrong" no
+// navegador e o frontend nem chegava a receber o fallback.
 routerAdd('GET', '/backend/v1/series-historicas', (e) => {
-  const q = e.requestInfo().query || {}
-  const resposta = globalThis.PANORAMA_seriesHistoricasNucleo.resolver(q['chave'] || '')
+  let resposta = null
+  try {
+    const q = e.requestInfo().query || {}
+    resposta = globalThis.PANORAMA_seriesHistoricasNucleo.resolver(q['chave'] || '')
+  } catch (err) {
+    console.log('series-historicas: falha no resolver: ' + String(err))
+    resposta = null
+  }
+  if (!resposta || !Array.isArray(resposta.serie)) {
+    resposta = {
+      ok: true,
+      chave: String((e.requestInfo().query || {})['chave'] || ''),
+      fonteViva: false,
+      baseInterna: true,
+      fonte: 'Base interna do sistema',
+      serie: [],
+      aviso: 'Base interna — dado aproximado (fonte indisponível)',
+    }
+  }
   return e.json(200, resposta)
 })
