@@ -54,27 +54,20 @@ export interface RadarLefisc {
 export const FONTE_MESTRA = 'DOU'
 
 export const RADAR_LEFISC: RadarLefisc = {
-  executadoEm: '2026-11-04T08:02:27-03:00',
+  executadoEm: '2026-11-05T08:01:38-03:00',
   janelaDouDias: 3,
   fontes: {
-    lefisc: { itens: 64, ok: true },
-    dou: { itens: 1, ok: true },
+    lefisc: { itens: 58, ok: true },
+    dou: { itens: 2, ok: true },
   },
   resumo: {
     divergentes: 0,
     confirmados: 1,
     soOficial: 0,
-    soLefisc: 1,
-    foraDoEscopo: 62,
+    soLefisc: 0,
+    foraDoEscopo: 57,
   },
   linhas: [
-    {
-      veredito: 'SO_LEFISC',
-      titulo: 'DOU 05.10.2026 - Portaria Conjunta MF/CGIBS nº 14',
-      link: '',
-      lefisc:
-        'Aprova a metodologia de cálculo da carga tributária para a fixação das alíquotas do Imposto sobre Bens e Serviços - IBS e da Contribuição sobre Bens e Serviços - CBS incidentes sob',
-    },
     {
       veredito: 'CONFIRMADO',
       titulo: 'ATO TÉCNICO CONJUNTO RFB/SUFIS/CGIBS/DIRETORIA-EXECUTIVA Nº 10, DE 28 DE OUTUBRO D',
