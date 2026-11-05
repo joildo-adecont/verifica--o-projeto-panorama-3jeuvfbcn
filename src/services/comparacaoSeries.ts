@@ -129,6 +129,16 @@ export const SELECAO_TRIO_IFIX_IBOVESPA_SELIC: ChaveSerieHistorica[] = ['ifix', 
  */
 export const SELECAO_TRIO_IFIX_IBOVESPA_DOLAR: ChaveSerieHistorica[] = ['ifix', 'ibovespa', 'usd']
 
+/**
+ * Preset do trio IBGE: População × PMS × Construção Civil — fontes oficiais IBGE SIDRA
+ * (População via IBGE SIDRA t6579, PMS/serviços via IBGE SIDRA t5906, Construção Civil via IBGE SIDRA t8886).
+ */
+export const SELECAO_TRIO_IBGE: ChaveSerieHistorica[] = [
+  'ibge_populacao',
+  'ibge_pms',
+  'ibge_construcao',
+]
+
 /** Anos disponíveis na janela de séries (2014 — ano corrente). */
 export function anosDisponiveisComparacao(): number[] {
   const fim = new Date().getFullYear()

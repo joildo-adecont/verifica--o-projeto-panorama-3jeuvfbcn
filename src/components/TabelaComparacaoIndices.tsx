@@ -14,6 +14,7 @@ import {
   CHAVES_COMPARACAO,
   MINIMO_COMPARACAO,
   SELECAO_INICIAL_COMPARACAO,
+  SELECAO_TRIO_IBGE,
   SELECAO_TRIO_IFIX_IBOVESPA_DOLAR,
   SELECAO_TRIO_IFIX_IBOVESPA_SELIC,
   anosDisponiveisComparacao,
@@ -84,8 +85,8 @@ export function TabelaComparacaoIndices() {
   }
 
   /**
-   * Atalho: seleciona EXATAMENTE o trio informado (IFIX × Ibovespa × Selic ou
-   * IFIX × Ibovespa × Dólar) e plota na hora.
+   * Atalho: seleciona EXATAMENTE o trio informado (IFIX × Ibovespa × Selic,
+   * IFIX × Ibovespa × Dólar ou População × PMS × Construção Civil) e plota na hora.
    */
   const selecionarTrio = (trio: ChaveSerieHistorica[]) => {
     setSelecionadas([...trio])
@@ -185,7 +186,7 @@ export function TabelaComparacaoIndices() {
           })}
         </div>
 
-        {/* Atalho do trio pedido — IFIX × Ibovespa × Selic (fontes vivas) */}
+        {/* Atalho do trio pedido — IFIX × Ibovespa × Selic, IFIX × Ibovespa × Dólar e IBGE (fontes oficiais) */}
         <div className="flex flex-wrap items-center gap-2 pt-2">
           <button
             type="button"
@@ -203,10 +204,19 @@ export function TabelaComparacaoIndices() {
             <TrendingUp className="w-3.5 h-3.5" />
             IFIX × Ibovespa × Dólar
           </button>
+          <button
+            type="button"
+            onClick={() => selecionarTrio(SELECAO_TRIO_IBGE)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-black bg-amber-100 text-amber-900 border border-amber-300 hover:bg-amber-200 transition-colors cursor-pointer"
+          >
+            <TrendingUp className="w-3.5 h-3.5" />
+            População × PMS × Construção Civil
+          </button>
           <span className="text-[10.5px] text-slate-400">
             Atalho: seleciona exatamente os 3 índices do atalho escolhido (IFIX — B3; Ibovespa — B3,
-            BCB e IPEA; Selic — BCB SGS 432; Dólar — BCB SGS 10813) e plota a comparação com as
-            fontes vivas.
+            BCB e IPEA; Selic — BCB SGS 432; Dólar — BCB SGS 10813; População — IBGE SIDRA t6579;
+            PMS — IBGE SIDRA t5906; Construção Civil — IBGE SIDRA t8886) e plota a comparação com as
+            fontes reais.
           </span>
         </div>
 
