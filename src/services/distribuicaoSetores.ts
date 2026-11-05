@@ -14,6 +14,12 @@ import { CATALOGO_SERIES, type ChaveSerieHistorica } from './seriesHistoricas'
 export interface ItemSetorIndicador {
   chave: ChaveSerieHistorica
   nome: string
+  descricao: string
+  categoria: string
+  unidade: string
+  fonte: string
+  modoAcumulado: 'variacao_mensal' | 'nivel'
+  formatoValor?: 'pct' | 'real' | 'bruto'
 }
 
 export interface SetorDistribuicao {
@@ -84,7 +90,16 @@ export function distribuicaoPorSetor(): SetorDistribuicao[] {
     const setor = SETOR_POR_CATEGORIA[item.categoria]
     if (!setor) continue
     if (!grupos.has(setor)) grupos.set(setor, [])
-    grupos.get(setor)!.push({ chave: item.chave, nome: item.nome })
+    grupos.get(setor)!.push({
+      chave: item.chave,
+      nome: item.nome,
+      descricao: item.descricao,
+      categoria: item.categoria,
+      unidade: item.unidade,
+      fonte: item.fonte,
+      modoAcumulado: item.modoAcumulado,
+      formatoValor: item.formatoValor,
+    })
   }
 
   const total = [...grupos.values()].reduce((s, lista) => s + lista.length, 0)
@@ -107,4 +122,16 @@ export function distribuicaoPorSetor(): SetorDistribuicao[] {
 /** Quantidade total de indicadores do catálogo considerados na distribuição. */
 export function totalIndicadoresDistribuicao(fatias: SetorDistribuicao[]): number {
   return fatias.reduce((s, f) => s + f.quantidade, 0)
+}
+
+/** Setor temático de uma chave específica do catálogo. */
+export function setorDaChave(chave: ChaveSerieHistorica): string | undefined {
+  const item = CATALOGO_SERIES.find((c) => c.chave === chave)
+  if (!item) return undefined
+  return SETOR_POR_CATEGORIA[item.categoria]
+}
+
+/** Cor oficial associada a um setor temático. */
+export function corDoSetor(setor: string): string {
+  return COR_POR_SETOR[setor] ?? '#0f294a'
 }

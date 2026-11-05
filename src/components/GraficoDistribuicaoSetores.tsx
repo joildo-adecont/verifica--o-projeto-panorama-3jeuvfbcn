@@ -20,21 +20,80 @@ import { SeloNivelConfianca } from '@/components/SeloNivelConfianca'
 import { distribuicaoPorSetor, type SetorDistribuicao } from '@/services/distribuicaoSetores'
 import type { ChaveSerieHistorica } from '@/services/seriesHistoricas'
 
-interface PropsGraficoSetores {
-  /** Chamado ao clicar numa fatia: abre o histórico do indicador representativo. */
+import { ListaIndicesSetor } from '@/components/ListaIndicesSetor'
+import { PainelComparacaoSetores } from '@/components/PainelComparacaoSetores'
+import { ChevronDown, ChevronUp } from 'lucide-react'
+
+export interface PropsGraficoSetores {
+  /** Chamado para abrir o histórico individual completo de um indicador */
   onAbrirIndicador: (chave: ChaveSerieHistorica) => void
+  /** Chaves pré-selecionadas opcionalmente vindas do pai */
+  chavesComparacaoIniciais?: ChaveSerieHistorica[]
+  /** Callback opcional quando a seleção para comparação muda */
+  onMudancaSelecao?: (chaves: ChaveSerieHistorica[]) => void
 }
 
 function pct(v: number): string {
   return v.toLocaleString('pt-BR', { maximumFractionDigits: 1 })
 }
 
-export function GraficoDistribuicaoSetores({ onAbrirIndicador }: PropsGraficoSetores) {
+export function GraficoDistribuicaoSetores({
+  onAbrirIndicador,
+  chavesComparacaoIniciais,
+  onMudancaSelecao,
+}: PropsGraficoSetores) {
   const fatias = useMemo(() => distribuicaoPorSetor(), [])
   const [destacada, setDestacada] = useState<number | null>(null)
+  // Setor expandido para exibir todos os números e índices individualmente
+  const [setorExpandido, setSetorExpandido] = useState<number | null>(null)
+
+  // Índices marcados para comparação parametrizada (pode cruzar múltiplos setores)
+  const [indicesSelecionados, setIndicesSelecionados] = useState<ChaveSerieHistorica[]>(
+    () => chavesComparacaoIniciais ?? [],
+  )
 
   const ativa = destacada !== null ? fatias[destacada] : undefined
+  const expandida = setorExpandido !== null ? fatias[setorExpandido] : undefined
   const total = useMemo(() => fatias.reduce((s, f) => s + f.quantidade, 0), [fatias])
+
+  const toggleIndice = (chave: ChaveSerieHistorica) => {
+    setIndicesSelecionados((prev) => {
+      const proximo = prev.includes(chave) ? prev.filter((c) => c !== chave) : [...prev, chave]
+      onMudancaSelecao?.(proximo)
+      return proximo
+    })
+  }
+
+  const selecionarTodosDoSetor = (indiceSetor: number) => {
+    const fatia = fatias[indiceSetor]
+    if (!fatia) return
+    setIndicesSelecionados((prev) => {
+      const novos = fatia.indicadores.map((i) => i.chave)
+      const uniao = Array.from(new Set([...prev, ...novos]))
+      onMudancaSelecao?.(uniao)
+      return uniao
+    })
+  }
+
+  const desmarcarTodosDoSetor = (indiceSetor: number) => {
+    const fatia = fatias[indiceSetor]
+    if (!fatia) return
+    setIndicesSelecionados((prev) => {
+      const chavesDoSetor = new Set(fatia.indicadores.map((i) => i.chave))
+      const filtrado = prev.filter((c) => !chavesDoSetor.has(c))
+      onMudancaSelecao?.(filtrado)
+      return filtrado
+    })
+  }
+
+  const limparTodasSelecoes = () => {
+    setIndicesSelecionados([])
+    onMudancaSelecao?.([])
+  }
+
+  const aoClicarSetor = (index: number) => {
+    setSetorExpandido((prev) => (prev === index ? null : index))
+  }
 
   if (fatias.length === 0) {
     return (
@@ -51,12 +110,12 @@ export function GraficoDistribuicaoSetores({ onAbrirIndicador }: PropsGraficoSet
         <div className="min-w-0">
           <h3 className="text-sm font-black text-slate-900 flex items-center gap-2">
             <IconePizza className="w-4 h-4 text-panorama-gold-dark" />
-            Distribuição por Setor
+            Distribuição por Setor — Índices Individuais e Comparação
           </h3>
           <p className="text-[11px] text-slate-500 mt-0.5">
-            {total} indicadores do catálogo agrupados em {fatias.length} setores temáticos — passe o
-            mouse (ou toque) numa fatia para ver os índices do setor; clique para abrir o histórico
-            do setor.
+            {total} indicadores do catálogo agrupados em {fatias.length} setores temáticos — clique
+            numa fatia ou na legenda para listar <strong>todos os números e índices</strong> daquele
+            setor, marque-os para comparar entre si ou combine com índices de outros setores.
           </p>
         </div>
         <AdecontLogo variant="color" className="h-8 w-auto shrink-0 self-start sm:self-center" />
@@ -79,8 +138,7 @@ export function GraficoDistribuicaoSetores({ onAbrirIndicador }: PropsGraficoSet
                 stroke="none"
                 isAnimationActive={false}
                 onClick={(_: unknown, i: number) => {
-                  const f = fatias[i]
-                  if (f) onAbrirIndicador(f.representante)
+                  aoClicarSetor(i)
                 }}
                 onMouseEnter={(_: unknown, i: number) => setDestacada(i)}
                 onMouseLeave={() => setDestacada(null)}
@@ -89,7 +147,11 @@ export function GraficoDistribuicaoSetores({ onAbrirIndicador }: PropsGraficoSet
                   <Cell
                     key={f.setor}
                     fill={f.cor}
-                    opacity={destacada === null || destacada === i ? 1 : 0.35}
+                    opacity={
+                      setorExpandido === i ? 1 : destacada === null || destacada === i ? 1 : 0.35
+                    }
+                    stroke={setorExpandido === i ? '#0f294a' : 'none'}
+                    strokeWidth={setorExpandido === i ? 3 : 0}
                     className="cursor-pointer transition-opacity"
                   />
                 ))}
@@ -133,25 +195,36 @@ export function GraficoDistribuicaoSetores({ onAbrirIndicador }: PropsGraficoSet
                 type="button"
                 onMouseEnter={() => setDestacada(i)}
                 onMouseLeave={() => setDestacada(null)}
-                onClick={() => onAbrirIndicador(f.representante)}
-                title={`Abrir histórico de ${f.setor}`}
-                className={`w-full text-left flex items-center gap-2 px-2.5 py-1.5 rounded-xl border transition-all cursor-pointer ${
-                  destacada === i
-                    ? 'border-panorama-gold bg-amber-50 shadow-xs'
-                    : 'border-slate-200 bg-slate-50/60 hover:border-panorama-gold'
+                onClick={() => aoClicarSetor(i)}
+                title={`Clique para listar todos os índices de ${f.setor}`}
+                className={`w-full text-left flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-xl border transition-all cursor-pointer ${
+                  setorExpandido === i
+                    ? 'border-panorama-gold bg-amber-50 shadow-xs ring-1 ring-panorama-gold/40'
+                    : destacada === i
+                      ? 'border-panorama-gold/80 bg-slate-100/80 shadow-xs'
+                      : 'border-slate-200 bg-slate-50/60 hover:border-panorama-gold'
                 }`}
               >
-                <span
-                  className="w-3 h-3 rounded-full shrink-0 border border-white/70 shadow-xs"
-                  style={{ backgroundColor: f.cor }}
-                />
-                <span className="min-w-0">
-                  <span className="block text-[11.5px] font-bold text-slate-800 truncate">
-                    {f.setor}
+                <div className="flex items-center gap-2 min-w-0">
+                  <span
+                    className="w-3 h-3 rounded-full shrink-0 border border-white/70 shadow-xs"
+                    style={{ backgroundColor: f.cor }}
+                  />
+                  <span className="min-w-0">
+                    <span className="block text-[11.5px] font-bold text-slate-800 truncate">
+                      {f.setor}
+                    </span>
+                    <span className="block text-[10px] text-slate-500 tabular-nums">
+                      {f.quantidade} índice(s) · {pct(f.percentual)}%
+                    </span>
                   </span>
-                  <span className="block text-[10px] text-slate-500 tabular-nums">
-                    {f.quantidade} índice(s) · {pct(f.percentual)}%
-                  </span>
+                </div>
+                <span className="text-[10px] font-bold text-slate-400 shrink-0">
+                  {setorExpandido === i ? (
+                    <ChevronUp className="w-3.5 h-3.5 text-panorama-gold-dark" />
+                  ) : (
+                    <ChevronDown className="w-3.5 h-3.5" />
+                  )}
                 </span>
               </button>
             </li>
@@ -159,19 +232,68 @@ export function GraficoDistribuicaoSetores({ onAbrirIndicador }: PropsGraficoSet
         </ul>
       </div>
 
+      {/* Setor expandido: apresenta TODOS os números e índices dentro do setor individualmente */}
+      {expandida && setorExpandido !== null && (
+        <ListaIndicesSetor
+          setorNome={expandida.setor}
+          setorCor={expandida.cor}
+          indicadores={expandida.indicadores}
+          selecionados={indicesSelecionados}
+          onToggleIndice={toggleIndice}
+          onAbrirIndicador={onAbrirIndicador}
+          onSelecionarTodosSetor={() => selecionarTodosDoSetor(setorExpandido)}
+          onDesmarcarTodosSetor={() => desmarcarTodosDoSetor(setorExpandido)}
+        />
+      )}
+
+      {/* Painel de Comparação Parametrizada (visível quando >= 2 índices estão marcados) */}
+      {indicesSelecionados.length >= 2 ? (
+        <PainelComparacaoSetores
+          chaves={indicesSelecionados}
+          onRemoverChave={toggleIndice}
+          onLimparSelecao={limparTodasSelecoes}
+          onAbrirHistoricoIndividual={onAbrirIndicador}
+        />
+      ) : indicesSelecionados.length === 1 ? (
+        <div className="p-3 rounded-xl border border-dashed border-amber-300 bg-amber-50/70 text-xs text-amber-900 flex items-center justify-between gap-2">
+          <span>
+            <strong>1 índice marcado ({indicesSelecionados[0]}):</strong> selecione mais um ou mais
+            índices deste ou de outros setores da pizza para abrir a comparação com gráfico e
+            tabela.
+          </span>
+          <button
+            type="button"
+            onClick={limparTodasSelecoes}
+            className="text-[11px] font-bold text-amber-800 underline hover:text-amber-950 cursor-pointer"
+          >
+            Limpar
+          </button>
+        </div>
+      ) : null}
+
       {/* Rodapé: setor em destaque + selo oficial */}
       <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-2">
         <p className="text-[10.5px] text-slate-500">
-          {ativa ? (
+          {expandida ? (
+            <>
+              Setor expandido:{' '}
+              <span className="font-bold" style={{ color: expandida.cor }}>
+                {expandida.setor}
+              </span>{' '}
+              — {expandida.quantidade} índices catalogados. {indicesSelecionados.length}{' '}
+              selecionado(s) para comparação.
+            </>
+          ) : ativa ? (
             <>
               Em destaque:{' '}
               <span className="font-bold" style={{ color: ativa.cor }}>
                 {ativa.setor}
               </span>{' '}
-              — {ativa.quantidade} índice(s), {pct(ativa.percentual)}% do catálogo.
+              — {ativa.quantidade} índice(s), {pct(ativa.percentual)}% do catálogo. Clique para
+              expandir.
             </>
           ) : (
-            'Distribuição calculada do catálogo local do sistema — não depende de rede.'
+            'Distribuição calculada do catálogo local do sistema — clique numa fatia para ver todos os índices do setor.'
           )}
         </p>
         <SeloNivelConfianca tier="oficial_institucional" compacto />

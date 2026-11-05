@@ -81,6 +81,27 @@ export const CHAVES_COMPARACAO: ChaveSerieHistorica[] = [
   'renda_media',
   'producao_industrial',
   'venda_varejo',
+  'populacao_ocupada',
+  'taxa_desemprego_pnad',
+  'admissoes_caged',
+  'desligamentos_caged',
+  'saldo_empregos',
+  // Estatísticas e Social
+  'divida',
+  'salmin',
+  'ibge_populacao',
+  'ibge_pms',
+  'ibge_construcao',
+  'matriculas_basica',
+  'ideb_anos_iniciais',
+  'ideb_anos_finais',
+  'nascidos_vivos',
+  'internacoes_aih',
+  'mortalidade_infantil',
+  'acesso_agua',
+  'coleta_esgoto',
+  'tratamento_esgoto',
+  'perda_agua',
 ]
 
 /** Seleção padrão — 6 índices. */
@@ -289,4 +310,28 @@ export async function compararIndices(
 /** Quantidade de séries do catálogo com fonte oficial ativa (rótulo de rodapé). */
 export function totalSeriesCatalogo(): number {
   return CATALOGO_SERIES.length
+}
+
+/** Formata valor numérico com casas decimais e unidade pt-BR. */
+export function formatarValorIndice(v: number | undefined, unidade?: string): string {
+  if (v === undefined || isNaN(v)) return '—'
+  const casas = Math.abs(v) < 10 ? 2 : Math.abs(v) < 1000 ? 2 : 1
+  const num = v.toLocaleString('pt-BR', {
+    minimumFractionDigits: casas,
+    maximumFractionDigits: casas,
+  })
+  if (!unidade) return num
+  if (unidade === '%') return `${num}%`
+  if (unidade === 'R$') return `R$ ${num}`
+  return `${num} ${unidade}`
+}
+
+/** Formata percentual com sinal explícito (+/-). */
+export function formatarPercentual(v: number | undefined): string {
+  if (v === undefined || isNaN(v)) return '—'
+  const sinal = v > 0 ? '+' : ''
+  return `${sinal}${v.toLocaleString('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}%`
 }
