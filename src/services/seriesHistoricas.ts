@@ -73,6 +73,9 @@ export type ChaveSerieHistorica =
   | 'sp500'
   | 'dowjones'
   | 'nasdaq'
+  | 'ibge_populacao'
+  | 'ibge_pms'
+  | 'ibge_construcao'
 
 export type GranularidadeHistorica = 'mensal' | 'trimestral' | 'anual'
 
@@ -786,6 +789,46 @@ export const CATALOGO_SERIES: CatalogoSerie[] = [
     termo: 'renda salario minimo ipea ipeadata',
     formatoValor: 'pct',
   },
+  // — Estatísticas do País (IBGE SIDRA) —
+  {
+    chave: 'ibge_populacao',
+    nome: 'População residente',
+    descricao: 'População residente no Brasil — estimativas anuais — IBGE SIDRA 6579',
+    categoria: 'Estatísticas',
+    unidade: 'habitantes',
+    modoAcumulado: 'nivel',
+    fonte: 'IBGE — SIDRA',
+    fonteUrl: 'https://www.ibge.gov.br',
+    ...SEL_PADRAO,
+    termo: 'estatisticas populacao residente censo habitantes demografia ibge sidra',
+    formatoValor: 'bruto',
+  },
+  {
+    chave: 'ibge_pms',
+    nome: 'Volume de Serviços (PMS)',
+    descricao: 'Índice de volume de serviços — Pesquisa Mensal de Serviços — IBGE SIDRA 6455',
+    categoria: 'Estatísticas',
+    unidade: 'índice',
+    modoAcumulado: 'nivel',
+    fonte: 'IBGE — SIDRA (PMS)',
+    fonteUrl: 'https://www.ibge.gov.br',
+    ...SEL_PADRAO,
+    termo: 'estatisticas servicos volume pms pesquisa mensal servicos ibge sidra',
+    formatoValor: 'bruto',
+  },
+  {
+    chave: 'ibge_construcao',
+    nome: 'Produção da Construção Civil',
+    descricao: 'Índice de produção e insumos típicos da construção civil — IBGE SIDRA 5906',
+    categoria: 'Estatísticas',
+    unidade: 'índice',
+    modoAcumulado: 'nivel',
+    fonte: 'IBGE — SIDRA',
+    fonteUrl: 'https://www.ibge.gov.br',
+    ...SEL_PADRAO,
+    termo: 'estatisticas construcao civil producao insumos fisicos industria ibge sidra',
+    formatoValor: 'bruto',
+  },
 ]
 
 const CATALOGO_MAP = new Map(CATALOGO_SERIES.map((c) => [c.chave, c]))
@@ -827,6 +870,9 @@ function serieBaseInterna(item: CatalogoSerie): PontoSerie[] {
     sp500: [4766, 4796, 5074, 5672, 5672, 5672],
     dowjones: [36187, 37690, 39807, 42630, 42630, 42630],
     nasdaq: [10464, 11394, 16794, 18249, 18249, 18249],
+    ibge_populacao: [210147125, 211755692, 212583750, 213317639, 213317639, 213317639],
+    ibge_pms: [105.2, 107.4, 108.9, 110.8, 110.8, 110.8],
+    ibge_construcao: [118.4, 120.2, 121.8, 123.4, 123.4, 123.4],
   }
   const valores = base[item.chave]
   if (!valores) return []

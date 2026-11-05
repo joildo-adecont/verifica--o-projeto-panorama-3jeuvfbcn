@@ -81,6 +81,9 @@ routerAdd('GET', '/backend/v1/series-historicas', (e) => {
     sp500: [4766, 4796, 5074, 5672, 5672, 5672],
     dowjones: [36187, 37690, 39807, 42630, 42630, 42630],
     nasdaq: [10464, 11394, 16794, 18249, 18249, 18249],
+    ibge_populacao: [210147125, 211755692, 212583750, 213317639, 213317639, 213317639],
+    ibge_pms: [105.2, 107.4, 108.9, 110.8, 110.8, 110.8],
+    ibge_construcao: [118.4, 120.2, 121.8, 123.4, 123.4, 123.4],
   }
 
   // Inflação/taxas/câmbio — âncora anual ⇒ pontos MENSAIS aproximados
@@ -355,6 +358,19 @@ routerAdd('GET', '/backend/v1/series-historicas', (e) => {
         fonte: 'IBGE PMS t8883',
         candidatos: [{ tipo: 'sidra', tabela: 8883, variavel: 7169 }],
       },
+      // — IBGE Fontes Estatísticas — População, Serviços (PMS) e Construção Civil —
+      ibge_populacao: {
+        fonte: 'IBGE SIDRA t6579 (População residente)',
+        candidatos: [{ tipo: 'sidra', tabela: 6579, variavel: 9324 }],
+      },
+      ibge_pms: {
+        fonte: 'IBGE SIDRA t6455 (PMS - Volume de Serviços)',
+        candidatos: [{ tipo: 'sidra', tabela: 6455, variavel: 8677 }],
+      },
+      ibge_construcao: {
+        fonte: 'IBGE SIDRA t5906 (Produção da Construção Civil)',
+        candidatos: [{ tipo: 'sidra', tabela: 5906, variavel: 7167, classif: 'c11046/56726' }],
+      },
     }
 
     function parseValor(s) {
@@ -413,12 +429,14 @@ routerAdd('GET', '/backend/v1/series-historicas', (e) => {
         )
       }
       if (cand.tipo === 'sidra') {
+        const classif = cand.classif ? '/' + cand.classif : ''
         return (
           'https://apisidra.ibge.gov.br/values/t/' +
           cand.tabela +
           '/n1/1/v/' +
           cand.variavel +
-          '/p/last%20160'
+          '/p/last%20160' +
+          classif
         )
       }
       if (cand.tipo === 'stooq') {

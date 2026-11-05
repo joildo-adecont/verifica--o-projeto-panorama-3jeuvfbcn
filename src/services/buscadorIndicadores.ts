@@ -70,6 +70,10 @@ const SINONIMOS: Record<string, string> = {
   dowjones: 'dow jones industrial average bolsa internacional nova york indices americanos',
   nasdaq: 'nasdaq composite bolsa internacional tecnologia indices americanos',
   cambio: 'cambio dolar euro moeda estrangeira ptax divisa',
+  ibge_populacao: 'populacao residentes habitantes demografia censo ibge sidra pessoas brasil',
+  ibge_pms: 'servicos volume pms pesquisa mensal servicos terceirizado comercio ibge sidra',
+  ibge_construcao:
+    'construcao civil producao insumos fisicos obras edificacoes industria ibge sidra',
 }
 
 /** Lista os indicadores que correspondem à consulta (todos os termos, "E"). */
@@ -111,6 +115,9 @@ export const SUGESTOES_BUSCA_INDICADORES = [
   'Dow Jones',
   'Nasdaq',
   'câmbio',
+  'população',
+  'serviços',
+  'construção civil',
 ]
 
 /** Catálogo agrupado por categoria para a listagem padrão da aba Histórico. */

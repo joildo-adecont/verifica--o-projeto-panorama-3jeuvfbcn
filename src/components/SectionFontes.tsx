@@ -458,6 +458,39 @@ export function SectionFontes() {
       badgeCor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
     },
     {
+      orgao: 'IBGE — População Residente (SIDRA)',
+      fonte: 'apisidra.ibge.gov.br/values/t/6579 (proxy backend)',
+      conteudo:
+        'Estimativas anuais de população residente no Brasil (Censo Demográfico e Projeções da População / Tabela 6579)',
+      url: 'https://www.ibge.gov.br/estatisticas/sociais/populacao',
+      statusNota:
+        'Fonte oficial institucional ativa via proxy /backend/v1/fontes-estatisticas com cache e base interna de contingência.',
+      badgeStatus: 'Oficial Integrada (Proxy)',
+      badgeCor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+    },
+    {
+      orgao: 'IBGE — Pesquisa Mensal de Serviços (PMS / SIDRA)',
+      fonte: 'apisidra.ibge.gov.br/values/t/6455 (proxy backend)',
+      conteudo:
+        'Índice de volume de serviços do setor terciário no Brasil (Pesquisa Mensal de Serviços / Tabela 6455)',
+      url: 'https://www.ibge.gov.br/estatisticas/economicas/servicos',
+      statusNota:
+        'Fonte oficial institucional ativa via proxy /backend/v1/fontes-estatisticas com cache e base interna de contingência.',
+      badgeStatus: 'Oficial Integrada (Proxy)',
+      badgeCor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+    },
+    {
+      orgao: 'IBGE — Produção da Construção Civil (SIDRA)',
+      fonte: 'apisidra.ibge.gov.br/values/t/5906 (proxy backend)',
+      conteudo:
+        'Índice de volume físico e insumos típicos da construção civil (Pesquisa Industrial Mensal / Tabela 5906)',
+      url: 'https://www.ibge.gov.br/estatisticas/economicas/industria',
+      statusNota:
+        'Fonte oficial institucional ativa via proxy /backend/v1/fontes-estatisticas com cache e base interna de contingência.',
+      badgeStatus: 'Oficial Integrada (Proxy)',
+      badgeCor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+    },
+    {
       orgao: 'Lefisc (Serviço Privado de Confronto)',
       fonte: 'lefisc.com.br (Radar de Confronto)',
       conteudo:

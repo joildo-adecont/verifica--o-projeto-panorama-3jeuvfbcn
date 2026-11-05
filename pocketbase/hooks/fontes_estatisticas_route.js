@@ -122,6 +122,136 @@ routerAdd('GET', '/backend/v1/fontes-estatisticas', (e) => {
     return saida
   }
 
+  const coletarIbgePopulacao = () => {
+    try {
+      const url = 'https://apisidra.ibge.gov.br/values/t/6579/n1/1/v/9324/p/last%205'
+      const resp = $http.send({
+        url: url,
+        method: 'GET',
+        timeout: timeoutMs,
+        headers: { Accept: 'application/json' },
+      })
+      const arr = resp.json || []
+      const dados = []
+      for (let i = 0; i < arr.length; i++) {
+        const linha = arr[i]
+        if (!linha || linha.V === 'Valor' || linha.VL === 'Valor') continue
+        const valor = parseFloat(linha.V != null ? linha.V : linha.VL)
+        if (!isFinite(valor)) continue
+        dados.push({
+          periodo: String(linha.D3C || linha.D2C || linha.Periodo || linha['D1C'] || ''),
+          valor: valor,
+        })
+      }
+      if (dados.length > 0) {
+        const ultimo = dados[dados.length - 1]
+        const anterior = dados.length > 1 ? dados[dados.length - 2] : null
+        const variacao =
+          anterior && anterior.valor ? ((ultimo.valor - anterior.valor) / anterior.valor) * 100 : 0
+        return [
+          {
+            chave: 'ibge_populacao',
+            nome: 'População residente — Brasil (Estimativas anuais)',
+            categoria: 'estatisticas',
+            unidade: 'habitantes',
+            valor: ultimo.valor,
+            periodo: ultimo.periodo,
+            variacao: parseFloat(variacao.toFixed(2)),
+            serie: dados.map((d) => d.valor),
+            fonte: 'IBGE — SIDRA Tabela 6579',
+          },
+        ]
+      }
+    } catch (_) {}
+    return []
+  }
+
+  const coletarIbgePms = () => {
+    try {
+      const url = 'https://apisidra.ibge.gov.br/values/t/6455/n1/1/v/8677/p/last%2012'
+      const resp = $http.send({
+        url: url,
+        method: 'GET',
+        timeout: timeoutMs,
+        headers: { Accept: 'application/json' },
+      })
+      const arr = resp.json || []
+      const dados = []
+      for (let i = 0; i < arr.length; i++) {
+        const linha = arr[i]
+        if (!linha || linha.V === 'Valor' || linha.VL === 'Valor') continue
+        const valor = parseFloat(linha.V != null ? linha.V : linha.VL)
+        if (!isFinite(valor)) continue
+        dados.push({
+          periodo: String(linha.D3C || linha.D2C || linha.Periodo || linha['D1C'] || ''),
+          valor: valor,
+        })
+      }
+      if (dados.length > 0) {
+        const ultimo = dados[dados.length - 1]
+        const anterior = dados.length > 1 ? dados[dados.length - 2] : null
+        const variacao = anterior ? ultimo.valor - anterior.valor : 0
+        return [
+          {
+            chave: 'ibge_pms',
+            nome: 'Volume de Serviços — índice PMS (base 2022=100)',
+            categoria: 'estatisticas',
+            unidade: 'índice',
+            valor: ultimo.valor,
+            periodo: ultimo.periodo,
+            variacao: parseFloat(variacao.toFixed(2)),
+            serie: dados.map((d) => d.valor),
+            fonte: 'IBGE — SIDRA Tabela 6455',
+          },
+        ]
+      }
+    } catch (_) {}
+    return []
+  }
+
+  const coletarIbgeConstrucao = () => {
+    try {
+      const url = 'https://apisidra.ibge.gov.br/values/t/5906/n1/1/v/7167/p/last%2012/c11046/56726'
+      const resp = $http.send({
+        url: url,
+        method: 'GET',
+        timeout: timeoutMs,
+        headers: { Accept: 'application/json' },
+      })
+      const arr = resp.json || []
+      const dados = []
+      for (let i = 0; i < arr.length; i++) {
+        const linha = arr[i]
+        if (!linha || linha.V === 'Valor' || linha.VL === 'Valor') continue
+        const valor = parseFloat(linha.V != null ? linha.V : linha.VL)
+        if (!isFinite(valor)) continue
+        dados.push({
+          periodo: String(linha.D3C || linha.D2C || linha.Periodo || linha['D1C'] || ''),
+          valor: valor,
+        })
+      }
+      if (dados.length > 0) {
+        const ultimo = dados[dados.length - 1]
+        const anterior = dados.length > 1 ? dados[dados.length - 2] : null
+        const variacao = anterior ? ultimo.valor - anterior.valor : 0
+        return [
+          {
+            chave: 'ibge_construcao',
+            nome: 'Produção da Construção Civil — índice de volume (insumos típicos)',
+            categoria: 'estatisticas',
+            unidade: 'índice',
+            valor: ultimo.valor,
+            periodo: ultimo.periodo,
+            variacao: parseFloat(variacao.toFixed(2)),
+            serie: dados.map((d) => d.valor),
+            fonte: 'IBGE — SIDRA Tabela 5906',
+          },
+        ]
+      }
+    } catch (_) {}
+    return []
+  }
+
   const coletarTesouro = () => {
     // Tesouro Nacional — dados abertos (SICONFI / dívida). Falha => lista vazia.
     const saida = []
@@ -1421,6 +1551,45 @@ routerAdd('GET', '/backend/v1/fontes-estatisticas', (e) => {
           fonte: 'DATASUS — Ministério da Saúde',
         },
       ],
+      'IBGE — População Residente': [
+        {
+          chave: 'ibge_populacao',
+          nome: 'População residente — Brasil (base interna)',
+          categoria: 'estatisticas',
+          unidade: 'habitantes',
+          valor: 212583750,
+          periodo: '2024',
+          variacao: 0.44,
+          serie: [211755692, 212583750],
+          fonte: 'IBGE — SIDRA Tabela 6579',
+        },
+      ],
+      'IBGE — Volume de Serviços (PMS)': [
+        {
+          chave: 'ibge_pms',
+          nome: 'Volume de Serviços — índice PMS (base interna)',
+          categoria: 'estatisticas',
+          unidade: 'índice',
+          valor: 110.8,
+          periodo: 'último mês disponível',
+          variacao: 0.8,
+          serie: [108.5, 109.1, 109.8, 110.8],
+          fonte: 'IBGE — SIDRA Tabela 6455',
+        },
+      ],
+      'IBGE — Produção da Construção Civil': [
+        {
+          chave: 'ibge_construcao',
+          nome: 'Produção da Construção Civil — índice (base interna)',
+          categoria: 'estatisticas',
+          unidade: 'índice',
+          valor: 123.4,
+          periodo: 'último mês disponível',
+          variacao: 1.2,
+          serie: [120.1, 121.3, 122.0, 123.4],
+          fonte: 'IBGE — SIDRA Tabela 5906',
+        },
+      ],
     }
     const lista = internas[fonteNome] || []
     for (let i = 0; i < lista.length; i++) lista[i].baseInterna = true
@@ -1444,6 +1613,10 @@ routerAdd('GET', '/backend/v1/fontes-estatisticas', (e) => {
     consultas.push('CAGED — Ministério do Trabalho e Emprego')
   if (fonte === 'todas' || fonte === 'b3_mercado') consultas.push('B3 — Mercado Financeiro')
   if (fonte === 'todas' || fonte === 'bcb_bacen') consultas.push('Banco Central do Brasil (BACEN)')
+  if (fonte === 'todas' || fonte === 'ibge_populacao') consultas.push('IBGE — População Residente')
+  if (fonte === 'todas' || fonte === 'ibge_pms') consultas.push('IBGE — Volume de Serviços (PMS)')
+  if (fonte === 'todas' || fonte === 'ibge_construcao')
+    consultas.push('IBGE — Produção da Construção Civil')
 
   const fontes = []
   for (const nome of consultas) {
@@ -1466,6 +1639,9 @@ routerAdd('GET', '/backend/v1/fontes-estatisticas', (e) => {
       else if (nome === 'CAGED — Ministério do Trabalho e Emprego') itens = coletarCaged()
       else if (nome === 'B3 — Mercado Financeiro') itens = coletarB3Mercado()
       else if (nome === 'Banco Central do Brasil (BACEN)') itens = coletarBcbBacen()
+      else if (nome === 'IBGE — População Residente') itens = coletarIbgePopulacao()
+      else if (nome === 'IBGE — Volume de Serviços (PMS)') itens = coletarIbgePms()
+      else if (nome === 'IBGE — Produção da Construção Civil') itens = coletarIbgeConstrucao()
       if (!itens || itens.length === 0) {
         viva = false
         aviso =
