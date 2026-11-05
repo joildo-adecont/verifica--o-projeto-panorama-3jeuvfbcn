@@ -84,7 +84,11 @@ export function ParametrizadorEnquadramento() {
       .trim()
     if (!t) return ATIVIDADES
     return ATIVIDADES.filter((a) =>
-      `${a.nome} ${a.cnaeGrupos.join(' ')}`.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').includes(t),
+      `${a.nome} ${a.cnaeGrupos.join(' ')}`
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .includes(t),
     )
   }, [busca])
 
@@ -169,46 +173,44 @@ body{font-family:ui-monospace,"Courier New",monospace;font-size:10px;line-height
           </span>
         </div>
 
-        {true ? (
-          <div className="mt-2">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              <div className="rounded-lg border border-slate-200 bg-slate-50 p-2">
-                <p className="text-[8.5px] font-bold uppercase text-slate-500">Base do sistema</p>
-                <p className="text-[15px] font-bold tabular-nums text-slate-900">
-                  {Number(conferencia.base_total).toLocaleString('pt-BR')}
-                </p>
-              </div>
-              <div className="rounded-lg border border-slate-200 bg-slate-50 p-2">
-                <p className="text-[8.5px] font-bold uppercase text-slate-500">Fonte oficial</p>
-                <p className="text-[15px] font-bold tabular-nums text-slate-900">
-                  {Number(conferencia.oficial_total).toLocaleString('pt-BR')}
-                </p>
-              </div>
-              <div className="rounded-lg border border-emerald-300 bg-emerald-50 p-2">
-                <p className="text-[8.5px] font-bold uppercase text-emerald-800">Conferem</p>
-                <p className="text-[15px] font-bold tabular-nums text-emerald-900">
-                  {Number(conferencia.conferem).toLocaleString('pt-BR')}
-                </p>
-              </div>
-              <div
-                className={`rounded-lg border p-2 ${
-                  conferencia.faltando_8_digitos > 0
-                    ? 'border-amber-300 bg-amber-50'
-                    : 'border-slate-200 bg-slate-50'
-                }`}
-              >
-                <p className="text-[8.5px] font-bold uppercase text-slate-500">Divergências</p>
-                <p className="text-[15px] font-bold tabular-nums text-slate-900">
-                  {conferencia.faltando_8_digitos}
-                </p>
-              </div>
+        <div className="mt-2">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-2">
+              <p className="text-[8.5px] font-bold uppercase text-slate-500">Base do sistema</p>
+              <p className="text-[15px] font-bold tabular-nums text-slate-900">
+                {Number(conferencia.base_total).toLocaleString('pt-BR')}
+              </p>
             </div>
-            <p className="mt-1.5 text-[9px] leading-snug text-slate-600">
-              <b>Itens de 8 dígitos ausentes:</b> {conferencia.faltando_8_digitos}
-              <span className="ml-2 text-slate-500">{conferencia.nota}</span>
-            </p>
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-2">
+              <p className="text-[8.5px] font-bold uppercase text-slate-500">Fonte oficial</p>
+              <p className="text-[15px] font-bold tabular-nums text-slate-900">
+                {Number(conferencia.oficial_total).toLocaleString('pt-BR')}
+              </p>
+            </div>
+            <div className="rounded-lg border border-emerald-300 bg-emerald-50 p-2">
+              <p className="text-[8.5px] font-bold uppercase text-emerald-800">Conferem</p>
+              <p className="text-[15px] font-bold tabular-nums text-emerald-900">
+                {Number(conferencia.conferem).toLocaleString('pt-BR')}
+              </p>
+            </div>
+            <div
+              className={`rounded-lg border p-2 ${
+                conferencia.faltando_8_digitos > 0
+                  ? 'border-amber-300 bg-amber-50'
+                  : 'border-slate-200 bg-slate-50'
+              }`}
+            >
+              <p className="text-[8.5px] font-bold uppercase text-slate-500">Divergências</p>
+              <p className="text-[15px] font-bold tabular-nums text-slate-900">
+                {conferencia.faltando_8_digitos}
+              </p>
+            </div>
           </div>
-        </>
+          <p className="mt-1.5 text-[9px] leading-snug text-slate-600">
+            <b>Itens de 8 dígitos ausentes:</b> {conferencia.faltando_8_digitos}
+            <span className="ml-2 text-slate-500">{conferencia.nota}</span>
+          </p>
+        </div>
       </div>
 
       {/* ── seleção do cruzamento ── */}
@@ -282,7 +284,10 @@ body{font-family:ui-monospace,"Courier New",monospace;font-size:10px;line-height
             </p>
             <ul className="mt-1.5 space-y-1">
               {cruz.fatores.map((f, i) => (
-                <li key={i} className="flex items-start gap-1.5 text-[10px] leading-snug text-slate-700">
+                <li
+                  key={i}
+                  className="flex items-start gap-1.5 text-[10px] leading-snug text-slate-700"
+                >
                   <ArrowRight className="mt-0.5 w-3 h-3 shrink-0 text-slate-400" />
                   {f}
                 </li>
@@ -301,7 +306,9 @@ body{font-family:ui-monospace,"Courier New",monospace;font-size:10px;line-height
             </p>
             <p className="mt-0.5 text-[10px] text-slate-600">{regime.resumo}</p>
 
-            <p className="mt-2 text-[9px] font-bold uppercase text-slate-500">Limites e condições</p>
+            <p className="mt-2 text-[9px] font-bold uppercase text-slate-500">
+              Limites e condições
+            </p>
             <ul className="mt-0.5 space-y-0.5">
               {regime.condicoes.map((c, i) => (
                 <li key={i} className="text-[9.5px] leading-snug text-slate-700">
@@ -337,7 +344,9 @@ body{font-family:ui-monospace,"Courier New",monospace;font-size:10px;line-height
               {atividade.cnaeSecoes.join(', ')}
             </p>
 
-            <p className="mt-2 text-[9px] font-bold uppercase text-slate-500">Anexos típicos da LC 214</p>
+            <p className="mt-2 text-[9px] font-bold uppercase text-slate-500">
+              Anexos típicos da LC 214
+            </p>
             <div className="mt-0.5 flex flex-wrap gap-1">
               {atividade.anexosTipicos.map((a, i) => (
                 <span
