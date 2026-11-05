@@ -506,8 +506,9 @@ body{font-family:ui-monospace,"Courier New",monospace;font-size:9.5px;line-heigh
           </>
         ) : (
           <p className="text-[10px] text-slate-600">
-            O monitor ainda não rodou ou o resultado não está disponível. Ele roda diariamente junto
-            com o radar de fontes, e grava o resultado em arquivo no servidor.
+            {!token
+              ? 'Informe o token do painel na aba «Importar e quebrar» para carregar o estado do monitor. Sem ele a consulta é recusada — e dizer "não rodou" seria mentira: o monitor pode ter rodado normalmente.'
+              : 'O monitor ainda não gravou resultado para este backend. Ele roda diariamente às 05:30 e grava o retrato no banco (coleção ncm_agente_estado), não em arquivo.'}
           </p>
         )}
         <p className="mt-2 text-[9px] leading-snug text-slate-500">
