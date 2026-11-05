@@ -14,6 +14,7 @@ import {
   CHAVES_COMPARACAO,
   MINIMO_COMPARACAO,
   SELECAO_INICIAL_COMPARACAO,
+  SELECAO_TRIO_IFIX_IBOVESPA_DOLAR,
   SELECAO_TRIO_IFIX_IBOVESPA_SELIC,
   anosDisponiveisComparacao,
   compararIndices,
@@ -82,20 +83,18 @@ export function TabelaComparacaoIndices() {
     )
   }
 
-  /** Atalho: seleciona EXATAMENTE o trio IFIX × Ibovespa × Selic e plota. */
-  const selecionarTrio = () => {
-    setSelecionadas([...SELECAO_TRIO_IFIX_IBOVESPA_SELIC])
+  /**
+   * Atalho: seleciona EXATAMENTE o trio informado (IFIX × Ibovespa × Selic ou
+   * IFIX × Ibovespa × Dólar) e plota na hora.
+   */
+  const selecionarTrio = (trio: ChaveSerieHistorica[]) => {
+    setSelecionadas([...trio])
     setAberto(true)
     // carregar usa o estado "selecionadas", que ainda não refletiu o trio —
     // passamos a lista explícita para não comparar a seleção antiga.
     void (async () => {
       setCarregando(true)
-      const res = await compararIndices(
-        SELECAO_TRIO_IFIX_IBOVESPA_SELIC,
-        granularidade,
-        anoInicio,
-        anoFim,
-      )
+      const res = await compararIndices(trio, granularidade, anoInicio, anoFim)
       setLinhas(res)
       setAlgumFallback(res.some((l) => l.baseInterna))
       setCarregando(false)
@@ -190,15 +189,24 @@ export function TabelaComparacaoIndices() {
         <div className="flex flex-wrap items-center gap-2 pt-2">
           <button
             type="button"
-            onClick={selecionarTrio}
+            onClick={() => selecionarTrio(SELECAO_TRIO_IFIX_IBOVESPA_SELIC)}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-black bg-amber-100 text-amber-900 border border-amber-300 hover:bg-amber-200 transition-colors cursor-pointer"
           >
             <TrendingUp className="w-3.5 h-3.5" />
             IFIX × Ibovespa × Selic
           </button>
+          <button
+            type="button"
+            onClick={() => selecionarTrio(SELECAO_TRIO_IFIX_IBOVESPA_DOLAR)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-black bg-amber-100 text-amber-900 border border-amber-300 hover:bg-amber-200 transition-colors cursor-pointer"
+          >
+            <TrendingUp className="w-3.5 h-3.5" />
+            IFIX × Ibovespa × Dólar
+          </button>
           <span className="text-[10.5px] text-slate-400">
-            Atalho: seleciona exatamente os 3 índices (IFIX — B3, Ibovespa — IPEA, Selic — BCB SGS
-            432) e plota a comparação com as fontes vivas.
+            Atalho: seleciona exatamente os 3 índices do atalho escolhido (IFIX — B3; Ibovespa — B3,
+            BCB e IPEA; Selic — BCB SGS 432; Dólar — BCB SGS 10813) e plota a comparação com as
+            fontes vivas.
           </span>
         </div>
 

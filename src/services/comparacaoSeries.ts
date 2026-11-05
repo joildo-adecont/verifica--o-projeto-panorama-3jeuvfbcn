@@ -102,6 +102,12 @@ export const MINIMO_COMPARACAO = 2
  */
 export const SELECAO_TRIO_IFIX_IBOVESPA_SELIC: ChaveSerieHistorica[] = ['ifix', 'ibovespa', 'selic']
 
+/**
+ * Preset do trio IFIX × Ibovespa × Dólar — fontes vivas confirmadas
+ * (IFIX via B3, Ibovespa via IPEA GM366_IBVSP366, Dólar via BCB SGS 10813/PTAX).
+ */
+export const SELECAO_TRIO_IFIX_IBOVESPA_DOLAR: ChaveSerieHistorica[] = ['ifix', 'ibovespa', 'usd']
+
 /** Anos disponíveis na janela de séries (2014 — ano corrente). */
 export function anosDisponiveisComparacao(): number[] {
   const fim = new Date().getFullYear()
