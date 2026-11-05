@@ -55,6 +55,17 @@
  * 3. ORÇAMENTO TOTAL de 15s por chave global (soma de TODOS os candidatos) —
  *    mesmo com todas as fontes mortas a resposta sai em ~15s com pontos.
  *    Ibovespa mantém o padrão provado ao vivo (IPEA janelado, TTL 26h).
+ *
+ * CORREÇÃO v0.0.586 (IFIX com fonte viva): o candidato IFIX.SA do Yahoo
+ * Finance chart API RESPONDE ao vivo (metadados + close mensal de 3558,43),
+ * mas só entrega 1 ponto (o mês corrente) em interval=1mo&range=15y, com
+ * period1/period2 e range=max — série histórica indisponível na fonte.
+ * Fonte viva = B3 indexStatisticsProxy IndexCall/GetPortfolioDay (sem chave,
+ * sem autenticação, JSON puro): payload base64 {"index":"IFIX","year":"AAAA",
+ * "language":"pt-br"} devolve a MATRIZ DIÁRIA do ano (results[].rateValue1..12,
+ * valores com ponto de milhar e vírgula decimal). Coletados os anos desde
+ * 2014, o último pregão de cada mês vira a série mensal (mensal_ultimo).
+ * Falha de todos → base interna com aviso, nunca série vazia.
  */
 routerAdd('GET', '/backend/v1/series-historicas', (e) => {
   // ------------------------------------------------------------------
@@ -288,17 +299,24 @@ routerAdd('GET', '/backend/v1/series-historicas', (e) => {
           { tipo: 'ipea', codigos: ['GM366_NASDAQ366'] },
         ],
       },
-      // IFIX: nenhum código vivo comprovado no IPEADATA nem no BCB SGS —
-      // degradação transparente para a base interna (nunca serie vazia).
-      // Timeout curto: o candidato IPEA não existe no catálogo (vazio) e não
-      // justifica esperar o padrão lento do Ibovespa.
+      // IFIX: sem código vivo no IPEADATA (comprovado) nem no BCB SGS. Fonte
+      // viva = B3 indexStatisticsProxy (GetPortfolioDay por ano, sem chave) —
+      // provada ao vivo em 05/11. O Yahoo IFIX.SA RESPONDE mas só devolve
+      // 1 ponto (o mês corrente) em qualquer intervalo/range/period — um
+      // candidato de 1 ponto marcaria a chave como fonteViva com série
+      // degenerada, pior que a base interna de 6 pontos: NÃO entra. O IPEA
+      // fica por último, caso a série venha a existir. Falha de todos →
+      // base interna com aviso, nunca série vazia.
       ifix: {
         fonte: 'B3 — IFIX',
         agreg: 'mensal_ultimo',
         ttlMs: TTL_MERCADO_MS,
         timeoutS: TIMEOUT_GLOBAL_S,
         orcamentoMs: ORCAMENTO_GLOBAL_MS,
-        candidatos: [{ tipo: 'ipea', codigos: ['GM366_IFIX366'] }],
+        candidatos: [
+          { tipo: 'b3indice', indice: 'IFIX' },
+          { tipo: 'ipea', codigos: ['GM366_IFIX366'] },
+        ],
       },
       // — Agronegócio (diária → último do mês) —
       boi_gordo: {
@@ -341,6 +359,27 @@ routerAdd('GET', '/backend/v1/series-historicas', (e) => {
 
     function parseValor(s) {
       return parseFloat(String(s == null ? '' : s).replace(',', '.'))
+    }
+
+    // Números da B3 vêm em pt-BR como TEXTO: "1.282" (milhar com ponto) e
+    // "3.500,44" (decimal com vírgula). O parseValor comum engole o ponto de
+    // milhar (devolvia 1,282 em vez de 1.282 pontos) — parser próprio. A
+    // matriz também pode chegar como número FRACIONÁRIO (1.282 = 1.282
+    // pontos em milhares): valor < 100 é fração de mil pontos → ×1000 (o
+    // IFIX nunca negociou abaixo de 1.000 pontos desde 2014).
+    function parseValorB3(bruto) {
+      let v =
+        typeof bruto === 'number'
+          ? isFinite(bruto)
+            ? bruto
+            : NaN
+          : (() => {
+              const s = String(bruto == null ? '' : bruto).trim()
+              if (s === '') return NaN
+              return parseFloat(s.replace(/\./g, '').replace(',', '.'))
+            })()
+      if (isFinite(v) && v > 0 && v < 100) v = v * 1000
+      return v
     }
 
     function periodoSidra(codigo) {
@@ -489,6 +528,33 @@ routerAdd('GET', '/backend/v1/series-historicas', (e) => {
       return []
     }
 
+    // Base64 de payload ASCII (payload do índice da B3) — a JSVM (goja) NÃO
+    // expõe btoa: codificador próprio, sem dependência externa.
+    function b64encode(texto) {
+      const B64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+      const bytes = []
+      const s = String(texto || '')
+      for (let i = 0; i < s.length; i++) {
+        const c = s.charCodeAt(i)
+        if (c < 128) bytes.push(c)
+        else {
+          // UTF-8 mínimo (o payload só tem ASCII, mas por segurança)
+          bytes.push(0xc0 | (c >> 6), 0x80 | (c & 63))
+        }
+      }
+      let saida = ''
+      for (let i = 0; i < bytes.length; i += 3) {
+        const b1 = bytes[i]
+        const b2 = i + 1 < bytes.length ? bytes[i + 1] : -1
+        const b3 = i + 2 < bytes.length ? bytes[i + 2] : -1
+        saida += B64[b1 >> 2]
+        saida += B64[((b1 & 3) << 4) | (b2 >= 0 ? b2 >> 4 : 0)]
+        saida += b2 >= 0 ? B64[((b2 & 15) << 2) | (b3 >= 0 ? b3 >> 6 : 0)] : '='
+        saida += b3 >= 0 ? B64[b3 & 63] : '='
+      }
+      return saida
+    }
+
     // Um candidato = UMA fonte, com o PRÓPRIO timeout (a fonte lenta nunca
     // segura mais do que o seu limite).
     function parseCsvLinhas(texto) {
@@ -570,6 +636,72 @@ routerAdd('GET', '/backend/v1/series-historicas', (e) => {
       // Yahoo Finance (índices globais): JSON mensal direto — sem chave.
       if (cand.tipo === 'yahoo') {
         return coletarYahoo(cand.simbolo, timeoutSegundos)
+      }
+      // B3 (IFIX/índices da B3): indexStatisticsProxy GetPortfolioDay, um
+      // pedido por ano desde 2014 — JSON com a matriz diária do índice
+      // (results[].rateValue1..12, ponto de milhar + vírgula decimal). O
+      // ÚLTIMO pregão não nulo de cada mês vira o ponto mensal.
+      // Base64: a JSVM (goja) NÃO tem btoa — codificador próprio, ASCII.
+      if (cand.tipo === 'b3indice') {
+        const anoAtualB3 = new Date().getFullYear()
+        const todosB3 = []
+        for (let anoB3 = ANO_INICIO_FIXO; anoB3 <= anoAtualB3; anoB3++) {
+          const restanteB3 =
+            (orcamentoMs || ORCAMENTO_TOTAL_MS) - (new Date().getTime() - inicioBudget)
+          if (restanteB3 < 400) break
+          const payloadB3 = b64encode(
+            '{"index":"' + cand.indice + '","year":"' + anoB3 + '","language":"pt-br"}',
+          )
+          let respB3 = null
+          try {
+            respB3 = $http.send({
+              url:
+                'https://sistemaswebb3-listados.b3.com.br/indexStatisticsProxy/IndexCall/GetPortfolioDay/' +
+                payloadB3,
+              method: 'GET',
+              timeout: Math.max(1, Math.min(timeoutSegundos, Math.floor(restanteB3 / 1000))),
+              headers: CAB,
+            })
+          } catch (_) {
+            respB3 = null
+          }
+          if (!respB3 || respB3.statusCode < 200 || respB3.statusCode >= 400) continue
+          const corpoB3 = respB3.json
+          const linhasB3 = corpoB3 && corpoB3.results ? corpoB3.results : []
+          for (let li = 0; li < linhasB3.length; li++) {
+            const linhaB3 = linhasB3[li]
+            if (!linhaB3 || typeof linhaB3.day !== 'number') continue
+            for (let mesB3 = 1; mesB3 <= 12; mesB3++) {
+              const bruto = linhaB3['rateValue' + mesB3]
+              if (bruto == null || bruto === '') continue
+              const valorB3 = parseValorB3(bruto)
+              if (!isFinite(valorB3) || valorB3 <= 0) continue
+              todosB3.push({
+                periodo:
+                  anoB3 +
+                  '-' +
+                  String(mesB3).padStart(2, '0') +
+                  '-' +
+                  String(linhaB3.day).padStart(2, '0'),
+                valor: valorB3,
+              })
+            }
+          }
+        }
+        // Ordena por período e fica só com o ÚLTIMO pregão de cada mês.
+        todosB3.sort(function (a, b) {
+          return a.periodo < b.periodo ? -1 : a.periodo > b.periodo ? 1 : 0
+        })
+        const mensalB3 = []
+        for (let pi = 0; pi < todosB3.length; pi++) {
+          const mes = todosB3[pi].periodo.slice(0, 7)
+          if (mensalB3.length > 0 && mensalB3[mensalB3.length - 1].periodo === mes) {
+            mensalB3[mensalB3.length - 1].valor = todosB3[pi].valor
+          } else {
+            mensalB3.push({ periodo: mes, valor: todosB3[pi].valor })
+          }
+        }
+        return mensalB3
       }
       // Stooq (índices globais): CSV mensal direto — sem chave, sem janela.
       if (cand.tipo === 'stooq') {
@@ -738,8 +870,19 @@ routerAdd('GET', '/backend/v1/series-historicas', (e) => {
           }
         }
         if (!obj || !Array.isArray(obj.serie) || obj.serie.length === 0) return null
+        // IFIX gravado antes da correção de escala (1.282 gravado como 1,282):
+        // valor < 100 é fração de mil pontos → ×1000 na leitura.
+        let pontos = obj.serie
+        if (c === 'ifix') {
+          pontos = pontos.map(function (p) {
+            if (p && isFinite(p.valor) && p.valor > 0 && p.valor < 100) {
+              return { periodo: p.periodo, valor: p.valor * 1000 }
+            }
+            return p
+          })
+        }
         const ts = Date.parse(String(obj.fetched_at_iso || '').replace(' ', 'T')) || 0
-        return { ts: ts, pontos: obj.serie }
+        return { ts: ts, pontos: pontos }
       } catch (_) {
         return null
       }

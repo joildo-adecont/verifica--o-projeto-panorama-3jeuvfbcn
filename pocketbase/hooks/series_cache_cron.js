@@ -29,6 +29,13 @@
  * %5EGSPC/%5EDJI/%5EIXIC, interval=1mo&range=15y) com timeout CURTO de 5s,
  * tentando o Stooq logo atrás. Timeouts do cron reduzidos — o job nunca
  * fica pendurado numa fonte morta.
+ *
+ * v0.0.586: IFIX passa a ter FONTE VIVA — B3 indexStatisticsProxy
+ * IndexCall/GetPortfolioDay (payload base64 {"index":"IFIX","year":"AAAA",
+ * "language":"pt-br"}, sem chave): matriz DIÁRIA do ano por pedido, último
+ * pregão de cada mês = ponto mensal. Yahoo IFIX.SA só devolve o mês corrente
+ * (fica atrás); o código IPEA GM366_IFIX366 (nunca comprovado) fica por
+ * último, caso a série venha a existir. Sem pontos → base interna na rota.
  */
 cronAdd('refresh_series_cache', '20 3 * * *', () => {
   const CAB = {
@@ -212,6 +219,107 @@ cronAdd('refresh_series_cache', '20 3 * * *', () => {
     return coletados
   }
 
+  // Base64 de payload ASCII — a JSVM (goja) NÃO expõe btoa.
+  function b64encode(texto) {
+    const B64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+    const bytes = []
+    const s = String(texto || '')
+    for (let i = 0; i < s.length; i++) {
+      const c = s.charCodeAt(i)
+      if (c < 128) bytes.push(c)
+      else bytes.push(0xc0 | (c >> 6), 0x80 | (c & 63))
+    }
+    let saida = ''
+    for (let i = 0; i < bytes.length; i += 3) {
+      const b1 = bytes[i]
+      const b2 = i + 1 < bytes.length ? bytes[i + 1] : -1
+      const b3 = i + 2 < bytes.length ? bytes[i + 2] : -1
+      saida += B64[b1 >> 2]
+      saida += B64[((b1 & 3) << 4) | (b2 >= 0 ? b2 >> 4 : 0)]
+      saida += b2 >= 0 ? B64[((b2 & 15) << 2) | (b3 >= 0 ? b3 >> 6 : 0)] : '='
+      saida += b3 >= 0 ? B64[b3 & 63] : '='
+    }
+    return saida
+  }
+
+  // Números da B3 vêm em pt-BR como TEXTO ("1.282" milhar / "3.500,44"
+  // decimal com vírgula) ou como número FRACIONÁRIO em milhares (1.282 =
+  // 1.282 pontos): valor < 100 é fração de mil pontos → ×1000.
+  function parseValorB3(bruto) {
+    let v =
+      typeof bruto === 'number'
+        ? isFinite(bruto)
+          ? bruto
+          : NaN
+        : (() => {
+            const s = String(bruto == null ? '' : bruto).trim()
+            if (s === '') return NaN
+            return parseFloat(s.replace(/\./g, '').replace(',', '.'))
+          })()
+    if (isFinite(v) && v > 0 && v < 100) v = v * 1000
+    return v
+  }
+
+  // B3 (IFIX): matriz diária do ano via indexStatisticsProxy GetPortfolioDay
+  // (payload base64, sem chave) — últimos pregões de cada mês = série mensal.
+  function coletarB3Indice(indice) {
+    const anoAtual = new Date().getFullYear()
+    const inicioBudget = new Date().getTime()
+    const todos = []
+    for (let ano = ANO_INICIO; ano <= anoAtual; ano++) {
+      const restante = ORCAMENTO_CHAVE_MS - (new Date().getTime() - inicioBudget)
+      if (restante < 400) break
+      const payload = b64encode(
+        '{"index":"' + indice + '","year":"' + ano + '","language":"pt-br"}',
+      )
+      let resp = null
+      try {
+        resp = $http.send({
+          url:
+            'https://sistemaswebb3-listados.b3.com.br/indexStatisticsProxy/IndexCall/GetPortfolioDay/' +
+            payload,
+          method: 'GET',
+          timeout: Math.max(1, Math.min(TIMEOUT_GLOBAL_S, Math.floor(restante / 1000))),
+          headers: CAB,
+        })
+      } catch (_) {
+        resp = null
+      }
+      if (!resp || resp.statusCode < 200 || resp.statusCode >= 400) continue
+      const corpo = resp.json
+      const linhas = corpo && corpo.results ? corpo.results : []
+      for (let li = 0; li < linhas.length; li++) {
+        const linha = linhas[li]
+        if (!linha || typeof linha.day !== 'number') continue
+        for (let mes = 1; mes <= 12; mes++) {
+          const bruto = linha['rateValue' + mes]
+          if (bruto == null || bruto === '') continue
+          const valor = parseValorB3(bruto)
+          if (!isFinite(valor) || valor <= 0) continue
+          todos.push({
+            periodo:
+              ano + '-' + String(mes).padStart(2, '0') + '-' + String(linha.day).padStart(2, '0'),
+            valor: valor,
+          })
+        }
+      }
+    }
+    // Ordena e fica só com o ÚLTIMO pregão de cada mês.
+    todos.sort(function (a, b) {
+      return a.periodo < b.periodo ? -1 : a.periodo > b.periodo ? 1 : 0
+    })
+    const mensal = []
+    for (let pi = 0; pi < todos.length; pi++) {
+      const mes = todos[pi].periodo.slice(0, 7)
+      if (mensal.length > 0 && mensal[mensal.length - 1].periodo === mes) {
+        mensal[mensal.length - 1].valor = todos[pi].valor
+      } else {
+        mensal.push({ periodo: mes, valor: todos[pi].valor })
+      }
+    }
+    return mensal
+  }
+
   // Stooq (índices globais): CSV mensal direto — sem chave, sem janela.
   function coletarStooq(simbolo) {
     const anoAtual = new Date().getFullYear()
@@ -256,7 +364,7 @@ cronAdd('refresh_series_cache', '20 3 * * *', () => {
     // dowjones/nasdaq: Yahoo como fonte primária, Stooq atrás (rota idem).
     { chave: 'fipezap', ttlMs: TTL_LONGO_MS, fonte: 'bcb', codigo: 19967 },
     { chave: 'ibovespa', ttlMs: TTL_LONGO_MS, fonte: 'ipea', codigo: 'GM366_IBVSP366' },
-    { chave: 'ifix', ttlMs: TTL_LONGO_MS, fonte: 'ipea', codigo: 'GM366_IFIX366' },
+    { chave: 'ifix', ttlMs: TTL_LONGO_MS, fonte: 'b3indice', indice: 'IFIX' },
     { chave: 'sp500', ttlMs: TTL_LONGO_MS, fonte: 'global', simbolo: '%5EGSPC' },
     { chave: 'dowjones', ttlMs: TTL_LONGO_MS, fonte: 'global', simbolo: '%5EDJI' },
     { chave: 'nasdaq', ttlMs: TTL_LONGO_MS, fonte: 'global', simbolo: '%5EIXIC' },
@@ -325,6 +433,14 @@ cronAdd('refresh_series_cache', '20 3 * * *', () => {
         // → degradação para a base interna na rota (nunca série vazia).
         pontos = coletarYahoo(item.simbolo)
         if (pontos.length === 0) pontos = coletarStooq(item.simbolo)
+      } else if (item.fonte === 'b3indice') {
+        // B3 primeiro (matriz diária por ano) e IPEA por último (código nunca
+        // comprovado) — mesma ordem da rota. O Yahoo IFIX.SA NÃO entra: só
+        // devolve o mês corrente (1 ponto) e marcaria a chave como fonteViva
+        // com série degenerada. Sem pontos → base interna na rota.
+        pontos = coletarB3Indice(item.indice)
+        if (pontos.length === 0)
+          pontos = coletarIpeaJanelas('GM366_IFIX366', TIMEOUT_MERCADO_S, ORCAMENTO_CHAVE_MS)
       } else {
         pontos = coletarIpeaJanelas(item.codigo, TIMEOUT_MERCADO_S, ORCAMENTO_CHAVE_MS)
       }
