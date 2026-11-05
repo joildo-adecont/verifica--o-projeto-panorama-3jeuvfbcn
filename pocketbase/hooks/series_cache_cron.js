@@ -152,6 +152,46 @@ cronAdd('refresh_series_cache', '20 3 * * *', () => {
     return todos
   }
 
+  // CSV do Stooq (i=m): header Date,Open,High,Low,Close[,Volume] — fecha = col 5.
+  function parseCsvLinhas(texto) {
+    const linhas = String(texto || '').split(/\r?\n/)
+    const coletados = []
+    for (let i = 0; i < linhas.length; i++) {
+      const cols = linhas[i].split(',')
+      if (cols.length < 5) continue
+      const per = String(cols[0] || '').trim()
+      if (per === 'Date' || per === '' || per.indexOf('-') === -1) continue
+      const valor = parseValor(cols[4])
+      if (!isFinite(valor) || valor <= 0) continue
+      coletados.push({ periodo: per.slice(0, 7), valor: valor })
+    }
+    return coletados
+  }
+
+  // Stooq (índices globais): CSV mensal direto — sem chave, sem janela.
+  function coletarStooq(simbolo) {
+    const anoAtual = new Date().getFullYear()
+    const url =
+      'https://stooq.com/q/d/l/?s=' +
+      simbolo +
+      '&i=m&d1=' +
+      ANO_INICIO +
+      '0101&d2=' +
+      (anoAtual + 1) +
+      '0101'
+    let resp = null
+    try {
+      resp = $http.send({ url: url, method: 'GET', timeout: TIMEOUT_MERCADO_S, headers: CAB })
+    } catch (_) {
+      resp = null
+    }
+    if (!resp || resp.statusCode < 200 || resp.statusCode >= 400) return []
+    const texto =
+      typeof resp.body === 'string' ? resp.body : typeof resp.json === 'string' ? resp.json : ''
+    if (texto.indexOf('Exceeded the daily hits limit') !== -1) return []
+    return parseCsvLinhas(texto)
+  }
+
   function agregarMensalUltimo(pontos) {
     const porMes = {}
     const ordem = []
@@ -234,6 +274,8 @@ cronAdd('refresh_series_cache', '20 3 * * *', () => {
       let pontos = []
       if (item.fonte === 'bcb') {
         pontos = coletarBcbMensalUltimo(item.codigo)
+      } else if (item.fonte === 'stooq') {
+        pontos = coletarStooq(item.simbolo)
       } else {
         pontos = coletarIpeaJanelas(item.codigo, TIMEOUT_MERCADO_S, ORCAMENTO_CHAVE_MS)
       }

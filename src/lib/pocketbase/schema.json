@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-05T02:10:31.617Z",
+  "generatedAt": "2026-11-05T02:15:32.216Z",
   "collections": [
     {
       "name": "users",
@@ -3855,33 +3855,6 @@
       "indexes": [
         "CREATE UNIQUE INDEX idx_market_alerts_indice_data ON market_alerts (indice, alert_date)"
       ]
-    },
-    {
-      "name": "probe_diag",
-      "type": "base",
-      "apiRules": {
-        "list": null,
-        "view": null,
-        "create": null,
-        "update": null,
-        "delete": null
-      },
-      "fields": [
-        {
-          "name": "linha",
-          "type": "text",
-          "required": true,
-          "system": false
-        },
-        {
-          "name": "created",
-          "type": "autodate",
-          "required": false,
-          "system": false,
-          "autodateTriggers": ["onCreate"]
-        }
-      ],
-      "indexes": []
     },
     {
       "name": "ncm_agente_estado",
