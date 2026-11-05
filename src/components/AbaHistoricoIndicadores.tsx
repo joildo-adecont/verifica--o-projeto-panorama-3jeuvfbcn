@@ -17,6 +17,7 @@ import {
 } from '@/services/buscadorIndicadores'
 import { catalogoAgrupado } from '@/services/buscadorIndicadores'
 import { TabelaComparacaoIndices } from '@/components/TabelaComparacaoIndices'
+import { GraficoDistribuicaoSetores } from '@/components/GraficoDistribuicaoSetores'
 import type { ChaveSerieHistorica } from '@/services/seriesHistoricas'
 
 /**
@@ -55,6 +56,9 @@ export function AbaHistoricoIndicadores({
     <div className="mt-4 space-y-4">
       {/* Tabela de comparação — no mínimo 5 índices */}
       <TabelaComparacaoIndices />
+
+      {/* Distribuição por Setor — pizza do catálogo (abaixo do buscador nativo do topo) */}
+      <GraficoDistribuicaoSetores onAbrirIndicador={onSelecionar} />
 
       {/* Cabeçalho com logo ADECONT */}
       <div className="flex items-center justify-between gap-3 p-4 rounded-2xl border border-slate-200 bg-white">

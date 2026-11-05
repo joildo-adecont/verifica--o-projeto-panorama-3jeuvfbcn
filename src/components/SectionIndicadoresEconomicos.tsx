@@ -462,6 +462,16 @@ export function SectionIndicadoresEconomicos() {
     setConsulta('')
   }, [])
 
+  /** Fatia da pizza "Distribuição por Setor" (aba Estatísticas) → abre o histórico. */
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const chave = (e as CustomEvent<ChaveSerieHistorica>).detail
+      if (typeof chave === 'string') abrirIndicadorHistorico(chave)
+    }
+    window.addEventListener('panorama:abrir-indicador-historico', handler)
+    return () => window.removeEventListener('panorama:abrir-indicador-historico', handler)
+  }, [abrirIndicadorHistorico])
+
   const carregar = useCallback(async (forcar = false) => {
     setCarregando(true)
     const res = await fetchIndicadoresEconomicos(forcar)

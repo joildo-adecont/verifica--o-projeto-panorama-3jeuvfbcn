@@ -29,6 +29,8 @@ import {
   Users,
 } from 'lucide-react'
 import { SeloNivelConfianca } from '@/components/SeloNivelConfianca'
+import { GraficoDistribuicaoSetores } from '@/components/GraficoDistribuicaoSetores'
+import type { ChaveSerieHistorica } from '@/services/seriesHistoricas'
 import {
   fetchFontesEstatisticas,
   FONTES_ESTATISTICAS_META,
@@ -196,6 +198,11 @@ export function AbaEstatisticas() {
   const fontes = useMemo(() => resposta?.fontes ?? [], [resposta])
   const algumaViva = fontes.some((f) => f.fonteViva)
 
+  /** Clicar numa fatia: abre o histórico do indicador representativo do setor. */
+  const abrirIndicadorHistorico = (chave: ChaveSerieHistorica) => {
+    window.dispatchEvent(new CustomEvent('panorama:abrir-indicador-historico', { detail: chave }))
+  }
+
   if (carregando) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -216,6 +223,8 @@ export function AbaEstatisticas() {
           </p>
         </div>
       )}
+
+      <GraficoDistribuicaoSetores onAbrirIndicador={abrirIndicadorHistorico} />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {fontes.map((f) => (
