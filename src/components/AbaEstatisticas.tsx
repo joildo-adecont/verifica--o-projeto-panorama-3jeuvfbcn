@@ -27,6 +27,9 @@ import {
   Droplets,
   Briefcase,
   Users,
+  Users2,
+  Wrench,
+  HardHat,
   Coins,
 } from 'lucide-react'
 import { SeloNivelConfianca } from '@/components/SeloNivelConfianca'
@@ -56,6 +59,9 @@ const ICONE_POR_FONTE: Record<string, typeof BarChart3> = {
   caged: Users,
   b3_mercado: TrendingUp,
   bcb_bacen: Coins,
+  ibge_populacao: Users2,
+  ibge_pms: Wrench,
+  ibge_construcao: HardHat,
 }
 
 const ROSTO_POR_FONTE: Record<FonteEstatisticaId, string> = {
@@ -77,6 +83,10 @@ const ROSTO_POR_FONTE: Record<FonteEstatisticaId, string> = {
     'B3 — Ibovespa (bolsa de valores) · IFIX (fundos imobiliários) — índices de mercado financeiro',
   bcb_bacen:
     'Crédito do sistema financeiro — juros médios · juros do crédito pessoal · inadimplência',
+  ibge_populacao:
+    'Estimativas de população residente (Censo/estimativas anuais) — população do Brasil',
+  ibge_pms: 'Pesquisa Mensal de Serviços (PMS) — índice de volume de serviços · variação',
+  ibge_construcao: 'Produção da construção civil — índice de volume da produção',
 }
 
 function formatarVariacao(v: number): string {

@@ -31,7 +31,6 @@ import { ParametrizadorConferencia } from '@/components/ParametrizadorConferenci
 import { ParametrizadorNcm } from '@/components/ParametrizadorNcm'
 import { ParametrizadorConferenciaPosicao } from '@/components/ParametrizadorConferenciaPosicao'
 import { ParametrizadorEnquadramento } from '@/components/ParametrizadorEnquadramento'
-import { ParametrizadorLevantamento } from '@/components/ParametrizadorLevantamento'
 
 /**
  * PARAMETRIZADOR DE DOCUMENTOS FISCAIS DA REFORMA — Seção 31
@@ -258,7 +257,6 @@ export function SectionParametrizador() {
     | 'ncm'
     | 'posicao'
     | 'enquadramento'
-    | 'carteira'
   >('catalogo')
   const [xml, setXml] = useState('')
   const [nomeArquivo, setNomeArquivo] = useState('documento.xml')
@@ -408,7 +406,6 @@ export function SectionParametrizador() {
               { id: 'ncm' as const, nome: 'Tabela NCM', Icon: BookMarked },
               { id: 'posicao' as const, nome: 'Posição · conferir', Icon: ClipboardCheck },
               { id: 'enquadramento' as const, nome: 'Enquadramento', Icon: Building2 },
-              { id: 'carteira' as const, nome: 'Carteira · regimes', Icon: Users },
             ].map((t) => (
               <button
                 key={t.id}
@@ -913,9 +910,6 @@ export function SectionParametrizador() {
 
           {/* ══════════ ENQUADRAMENTO TRIBUTÁRIO × ATIVIDADE ══════════ */}
           {aba === 'enquadramento' && <ParametrizadorEnquadramento />}
-
-          {/* ══════════ LEVANTAMENTO DE CARTEIRA POR REGIME ══════════ */}
-          {aba === 'carteira' && <ParametrizadorLevantamento />}
 
           {/* rodapé */}
           <div className="flex items-center gap-1.5 flex-wrap rounded-lg bg-slate-50 px-2 py-1.5 text-[9px] text-slate-500">
