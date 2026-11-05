@@ -165,6 +165,21 @@ export const FONTES_ESTATISTICAS_META: Record<
     url: 'https://www.bcb.gov.br',
     tier: 'oficial_institucional',
   },
+  ibge_populacao: {
+    rotulo: 'IBGE — População Residente (Estimativas e Censo Demográfico / SIDRA)',
+    url: 'https://www.ibge.gov.br/estatisticas/sociais/populacao',
+    tier: 'oficial_institucional',
+  },
+  ibge_pms: {
+    rotulo: 'IBGE — Pesquisa Mensal de Serviços (PMS / Volume de Serviços)',
+    url: 'https://www.ibge.gov.br/estatisticas/economicas/servicos',
+    tier: 'oficial_institucional',
+  },
+  ibge_construcao: {
+    rotulo: 'IBGE — Produção da Construção Civil (Volume e Insumos Típicos / SIDRA)',
+    url: 'https://www.ibge.gov.br/estatisticas/economicas/industria',
+    tier: 'oficial_institucional',
+  },
 }
 
 export interface IndicadorEstatistico {
@@ -852,6 +867,48 @@ export function respostaFontesEstatisticasFallback(aviso: string): RespostaFonte
           baseInterna: true,
         },
       ],
+      ibge_populacao: [
+        {
+          chave: 'ibge_populacao',
+          nome: 'População residente — Brasil (base interna)',
+          categoria: 'estatisticas',
+          unidade: 'habitantes',
+          valor: 212583750,
+          periodo: '2024',
+          variacao: 0.44,
+          serie: [211755692, 212583750],
+          fonte: 'IBGE — SIDRA Tabela 6579',
+          baseInterna: true,
+        },
+      ],
+      ibge_pms: [
+        {
+          chave: 'ibge_pms',
+          nome: 'Volume de Serviços — índice PMS (base interna)',
+          categoria: 'estatisticas',
+          unidade: 'índice',
+          valor: 110.8,
+          periodo: 'último mês disponível',
+          variacao: 0.8,
+          serie: [108.5, 109.1, 109.8, 110.8],
+          fonte: 'IBGE — SIDRA Tabela 6455',
+          baseInterna: true,
+        },
+      ],
+      ibge_construcao: [
+        {
+          chave: 'ibge_construcao',
+          nome: 'Produção da Construção Civil — índice (base interna)',
+          categoria: 'estatisticas',
+          unidade: 'índice',
+          valor: 123.4,
+          periodo: 'último mês disponível',
+          variacao: 1.2,
+          serie: [120.1, 121.3, 122.0, 123.4],
+          fonte: 'IBGE — SIDRA Tabela 5906/8889',
+          baseInterna: true,
+        },
+      ],
     }
     const nomes: Record<FonteEstatisticaId, string> = {
       ibge: 'IBGE',
@@ -869,6 +926,9 @@ export function respostaFontesEstatisticasFallback(aviso: string): RespostaFonte
       caged: 'CAGED — Ministério do Trabalho e Emprego',
       b3_mercado: 'B3 — Mercado Financeiro',
       bcb_bacen: 'Banco Central do Brasil (BACEN)',
+      ibge_populacao: 'IBGE — População Residente',
+      ibge_pms: 'IBGE — Volume de Serviços (PMS)',
+      ibge_construcao: 'IBGE — Produção da Construção Civil',
     }
     return {
       fonte,
@@ -903,6 +963,9 @@ export function respostaFontesEstatisticasFallback(aviso: string): RespostaFonte
       interna('caged', 'CAGED — Ministério do Trabalho e Emprego'),
       interna('b3_mercado', 'B3 — Mercado Financeiro'),
       interna('bcb_bacen', 'Banco Central do Brasil (BACEN)'),
+      interna('ibge_populacao', 'IBGE — População Residente'),
+      interna('ibge_pms', 'IBGE — Volume de Serviços (PMS)'),
+      interna('ibge_construcao', 'IBGE — Produção da Construção Civil'),
     ],
   }
 }
