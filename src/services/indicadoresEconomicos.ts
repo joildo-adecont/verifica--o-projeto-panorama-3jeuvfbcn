@@ -80,6 +80,7 @@ export type FonteEstatisticaId =
   | 'ibge_pnad'
   | 'caged'
   | 'b3_mercado'
+  | 'bcb_bacen'
 
 export const FONTES_ESTATISTICAS_META: Record<
   FonteEstatisticaId,
@@ -154,6 +155,11 @@ export const FONTES_ESTATISTICAS_META: Record<
   b3_mercado: {
     rotulo: 'B3 — Bolsa de Valores do Brasil (Ibovespa · IFIX)',
     url: 'https://www.b3.com.br',
+    tier: 'oficial_institucional',
+  },
+  bcb_bacen: {
+    rotulo: 'Banco Central do Brasil (BACEN) — Sistema Gerenciador de Séries Temporais (SGS)',
+    url: 'https://www.bcb.gov.br',
     tier: 'oficial_institucional',
   },
 }
@@ -821,6 +827,7 @@ export function respostaFontesEstatisticasFallback(aviso: string): RespostaFonte
       ibge_pnad: 'IBGE — PNAD Contínua',
       caged: 'CAGED — Ministério do Trabalho e Emprego',
       b3_mercado: 'B3 — Mercado Financeiro',
+      bcb_bacen: 'Banco Central do Brasil (BACEN)',
     }
     return {
       fonte,
@@ -854,6 +861,7 @@ export function respostaFontesEstatisticasFallback(aviso: string): RespostaFonte
       interna('ibge_pnad', 'IBGE — PNAD Contínua'),
       interna('caged', 'CAGED — Ministério do Trabalho e Emprego'),
       interna('b3_mercado', 'B3 — Mercado Financeiro'),
+      interna('bcb_bacen', 'Banco Central do Brasil (BACEN)'),
     ],
   }
 }
@@ -922,7 +930,9 @@ export async function fetchFontesEstatisticas(
                                   ? 'caged'
                                   : chaveFonte === 'B3 — Mercado Financeiro'
                                     ? 'b3_mercado'
-                                    : 'ibge'
+                                    : chaveFonte === 'Banco Central do Brasil (BACEN)'
+                                      ? 'bcb_bacen'
+                                      : 'ibge'
         return {
           fonte: id,
           fonteNome: chaveFonte,

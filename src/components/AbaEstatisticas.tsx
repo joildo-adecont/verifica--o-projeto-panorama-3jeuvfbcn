@@ -27,6 +27,7 @@ import {
   Droplets,
   Briefcase,
   Users,
+  Coins,
 } from 'lucide-react'
 import { SeloNivelConfianca } from '@/components/SeloNivelConfianca'
 import { GraficoDistribuicaoSetores } from '@/components/GraficoDistribuicaoSetores'
@@ -54,6 +55,7 @@ const ICONE_POR_FONTE: Record<string, typeof BarChart3> = {
   ibge_pnad: Briefcase,
   caged: Users,
   b3_mercado: TrendingUp,
+  bcb_bacen: Coins,
 }
 
 const ROSTO_POR_FONTE: Record<FonteEstatisticaId, string> = {
@@ -73,6 +75,8 @@ const ROSTO_POR_FONTE: Record<FonteEstatisticaId, string> = {
   caged: 'Novo CAGED — admissões · desligamentos · saldo de empregos formais (carteira assinada)',
   b3_mercado:
     'B3 — Ibovespa (bolsa de valores) · IFIX (fundos imobiliários) — índices de mercado financeiro',
+  bcb_bacen:
+    'Crédito do sistema financeiro — juros médios · juros do crédito pessoal · inadimplência',
 }
 
 function formatarVariacao(v: number): string {
