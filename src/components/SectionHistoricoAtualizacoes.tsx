@@ -129,6 +129,32 @@ const REGISTROS: Registro[] = [
   },
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
+    data: '05/11/2026',
+    hora: '23:00',
+    titulo:
+      'Conferência de NCM por posição reveleu 3 falsos benefícios + agente validador da base NCM com 5 especialistas',
+    conteudo:
+      'A pedido do CEO: listar quais NCMs casaram por posicao (com a posicao que casou e a descricao da nota) para conferir com a contabilidade, e fazer os agentes validarem a fonte e os NCMs, pois o NCM e a raiz de toda a classificacao fiscal e contabil. O QUE A LISTA REVELOU — tres falsos beneficios no DIO SANTO, R$ 2.828,62 em jogo: (1) BANHA 1501.10.00 casou pela posicao 15 com regra do ANEXO IX, que trata de INSUMOS AGROPECUARIOS (acidos graxos para sabao), nao de banha de cozinha; (2) BACON 0210.19.00 casou pela posicao 0210 com regra do Anexo IX sobre farinhas de carne e osso para RACAO; (3) BATATA CHIPS 2004.10.00 casou pela posicao 2004 porque uma celula do Anexo VII lista 20.04, 20.05, 2002.10.00 ao lado de produtos horticolas PRE-COZIDOS — chips e frito industrializado. A LICAO: casar por posicao e necessario (a lei referencia posicoes), mas o codigo sozinho nao basta — a DESCRICAO da regra tem de ser compativel com a descricao do produto. A tela separa SUSPEITA (assunto da regra e outro: insumo, racao, industrial) de A CONFIRMAR (assunto bate, falta validar a subposicao). AGENTE VALIDADOR DA BASE NCM — 5 especialistas, 12 de 13 verificacoes OK: PROCEDENCIA (15.040 codigos, ato de origem em cada linha, 12 excecoes), INTEGRIDADE (0 duplicata, distribuicao por tamanho 2d=96 a 8d=10435), COBERTURA (205 regras de aliquota em 43 capitulos; 54 capitulos sem nenhuma regra — desenho da lei, nao falha), CASAMENTO (139 regras por codigo exato, 66 por posicao = 32,2%, e 5 regras valem para o CAPITULO INTEIRO: 10, 12, 15, 25, 31 — o casamento mais arriscado, e o 15 e justamente o que capturou a banha), FONTE VIVA (DOU varrido, 12 atos relevantes). O agente NAO corrige a tabela: um agente que reescreve 15 mil codigos por conta propria e risco, nao seguranca. DEFEITOS CORRIGIDOS NO CAMINHO: (1) alarme falso do proprio validador, que procurava TOTAL_NCM como numero e reportava 0 codigos como problema GRAVE — alarme falso em auditoria gasta a confianca de quem le; (2) a secao Parametrizador caiu para root vazio ao integrar a aba: causa era o icone ClipboardCheck usado no JSX mas AUSENTE da lista de imports do lucide-react, e o QA 5/5, o lint e o build NAO pegam isso (componente indefinido so quebra em runtime). Diagnostico por reducao: componente minimo tambem quebrava, o que apontou para a integracao e nao para o componente.',
+    fontes: [
+      {
+        titulo: 'LC 214/2025 — Anexo VII (alimentos) e Anexo IX (insumos agropecuários)',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
+      },
+      {
+        titulo: 'Resolução Gecex nº 272/2021 — tabela NCM/TEC',
+        url: 'https://www.in.gov.br/web/dou/-/resolucao-gecex-n-272-de-19-de-novembro-de-2021-361132111',
+      },
+      {
+        titulo: 'Receita Federal — NCM e TIPI',
+        url: 'https://www.gov.br/receitafederal/pt-br/assuntos/aduana-e-comercio-exterior/classificacao-fiscal-de-mercadorias/ncm',
+      },
+    ],
+    caminho:
+      'src/data/conferenciaPosicao.ts + src/components/ParametrizadorConferenciaPosicao.tsx + pocketbase/hooks/ncm_validador.js + scripts/tabela-ncm/validar_base_ncm.py',
+    versao: 'v0.0.575',
+    bloco: 'sistema',
+  },
+  {
     data: '04/11/2026',
     hora: '20:15',
     titulo:
