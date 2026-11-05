@@ -130,6 +130,28 @@ const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
     data: '06/11/2026',
+    hora: '00:20',
+    titulo:
+      'Enquadramento ampliado para 11 regimes: Simples Híbrido, isentas, imunes, produtor rural PF/PJ/integrado e cooperativa — mais 10 regimes específicos da LC 214',
+    conteudo:
+      'A pedido do CEO: incluir Simples Hibrido, isentas, imunes, produtor rural PF e PJ, e pesquisar se ha mais regimes a classificar. A PESQUISA FOI FEITA NO TEXTO INTEGRAL da LC 214 (653 mil caracteres, do Senado Federal) e cada artigo foi conferido — nada foi incluido por suposicao. (1) SIMPLES HIBRIDO — art. 41, §§3º a 6º: o optante do Simples pode apurar IBS/CBS pelo regime regular. Nao e um Simples melhorado: e o Simples em tudo, MENOS no IBS/CBS, e o ganho esta no credito amplo que o Simples puro veda (art. 41, §9º, I). Alerta registrado: se houve ressarcimento de credito no ano corrente ou anterior, a volta ao Simples puro fica VEDADA (art. 41, §5º) — a escolha deixa de ser reversivel. (2) ISENTAS — o ponto que surpreende e o art. 51: isencao ANULA o credito das operacoes anteriores, na proporcao das receitas isentas. Empresa com 40% de receita isenta perde 40% do credito das compras — a isencao pode ser pior que tributar. (3) IMUNES — art. 9º com rol de 7 incisos, e o §4º expresso: a imunidade alcanca o que a entidade FORNECE, nao o que ela COMPRA. Igreja, partido e escola pagam IBS/CBS nas aquisicoes, e o documento fiscal e obrigatorio mesmo para imune (art. 60, §2º, I). (4) PRODUTOR RURAL PF E PJ — o art. 164 diz literalmente pessoa fisica OU JURIDICA: o limite de R$ 3,6 milhoes e o tratamento sao IDENTICOS para as duas formas. O que muda na PJ e a segregacao (parte rural x industrializacao) e a soma do §6º, que considera as operacoes da PF e das PJ do mesmo grupo. (5) PRODUTOR RURAL INTEGRADO — art. 164, §1º: NUNCA e contribuinte, qualquer receita, mas exige CONTRATO de integracao vertical. Sem contrato formal, volta a ser produtor comum com o limite. (6) COOPERATIVA — art. 271: aliquota zero nas operacoes entre associado e cooperativa; nas demais, regime regular. A PESQUISA ACHOU AINDA 10 REGIMES ESPECIFICOS que o sistema nao classificava: combustiveis (174-181), servicos financeiros (182-214), planos de saude (234-241), apostas e prognosticos (242-250), missoes diplomaticas (251), ZFM e areas de livre comercio (439-461), regimes aduaneiros especiais (262-306), Repetro (380 ss.), regime automotivo (320 ss.) e bens de capital (307-320). Estes NAO entraram como opcao de regime, e a razao esta declarada: regime aduaneiro ou territorial nao e escolha do contribuinte, e condicao da operacao — coloca-los ao lado de Simples e Lucro Real misturaria naturezas diferentes e o cruzamento perderia sentido. Ficam em lista separada. RESULTADO: 11 regimes x 9 atividades = 99 cruzamentos (antes 36), e a funcao de cruzamento passou a diferenciar cada regime novo por motivo proprio (credito, estorno, contrato, segregacao), nao mais com peso generico. VALIDADO em producao: seletor com 11 regimes, 10 especificos listados, matriz e conferencia no ar.',
+    fontes: [
+      {
+        titulo: 'LC 214/2025 — texto integral (Senado Federal): arts. 9º, 41, 51, 164, 271',
+        url: 'https://legis.senado.leg.br/norma/40180341/publicacao/40181429',
+      },
+      {
+        titulo: 'LC 123/2006 — Simples Nacional e MEI',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2006-12-14;123',
+      },
+    ],
+    caminho:
+      'src/data/regimesAdicionais.ts + src/data/enquadramento.ts + src/components/ParametrizadorEnquadramento.tsx',
+    versao: 'v0.0.603',
+    bloco: 'sistema',
+  },
+  {
+    data: '06/11/2026',
     hora: '00:10',
     titulo:
       'Conferência oficial do NCM FECHADA: os 6 itens de 8 dígitos ausentes foram identificados no PDF do MDIC e inseridos na base',
