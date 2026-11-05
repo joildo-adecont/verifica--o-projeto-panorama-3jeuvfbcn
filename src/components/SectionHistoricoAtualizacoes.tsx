@@ -129,6 +129,28 @@ const REGISTROS: Registro[] = [
   },
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
+    data: '05/11/2026',
+    hora: '10:25',
+    titulo:
+      'Estado dos agentes NCM publicado: retrato no banco de produção, confirmado por leitura de volta',
+    conteudo:
+      'O CEO pediu publicacao no Skip do estado dos agentes NCM (que vivia so no banco). Publicado. VERIFICACAO EM CADEIA, e o que cada elo mostrou: (1) MIGRATIONS — 92 aplicadas em producao, zero pendentes, incluindo a 0126_ncm_estado que cria a colecao; (2) BANCO — a colecao ncm_agente_estado existe com os campos id, agente, payload e gravado_em, e tem DOIS registros reais: monitor (1.895 bytes, estado novidade, 7 atos relevantes) e validador (2.632 bytes, 12 de 13 verificacoes OK, 2 achados), ambos gravados em 05/11 as 08:44; (3) ROTA — param-ncm-status responde 200 e devolve monitor.disponivel true e validador.disponivel true, testado por dentro com o segredo do painel; (4) APP — publicado em 0.0.622 e as 13 abas do Parametrizador estao no ar, com a Carteira de regimes funcionando sobre os 497 clientes. DEFEITO DE MENSAGEM ENGANOSA CORRIGIDO: a tela do monitor dizia o monitor ainda nao rodou ou o resultado nao esta disponivel mesmo quando o banco tinha os dados — porque o componente retorna cedo quando falta o token no navegador e exibia a mesma frase dos dois casos. Agora distingue: sem token, pede a credencial e diz explicitamente que afirmar nao rodou seria mentira, porque o monitor pode ter rodado normalmente; com token e sem dado, diz que o backend ainda nao gravou. E a diferenca entre nao sei e nao existe — a mesma que ja custou caro noutras telas deste sistema. LIMITE DECLARADO: nao consigo testar a tela com token porque o valor do segredo SIMUL_PAINEL_TOKEN nao e exposto ao assistente, so ao backend. O caminho banco para rota esta provado por dentro; o ultimo elo (navegador com a credencial do CEO) so o proprio CEO pode confirmar. O estado e lido do BANCO, nao de arquivo: o tmp/ do container do assistente nao existe do lado do PocketBase, defeito ja corrigido antes.',
+    fontes: [
+      {
+        titulo: 'Resolução Gecex nº 272/2021 — tabela NCM/TEC (PDF oficial do MDIC)',
+        url: 'https://www.gov.br/mdic/pt-br/assuntos/camex/resolucoes/gecex/resolucoes-compiladas/resolucao-gecex-no-272-anexo-i-20220701.pdf',
+      },
+      {
+        titulo: 'DOU — Imprensa Nacional (fonte mestra da vigilância)',
+        url: 'https://www.in.gov.br',
+      },
+    ],
+    caminho:
+      'pocketbase/migrations/0126_ncm_estado.js + pocketbase/hooks/ncm_estado.js + src/components/ParametrizadorNcm.tsx + scripts/tabela-ncm/diario.sh',
+    versao: 'v0.0.622',
+    bloco: 'sistema',
+  },
+  {
     data: '06/11/2026',
     hora: '00:40',
     titulo:
