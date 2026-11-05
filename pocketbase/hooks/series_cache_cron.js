@@ -18,6 +18,11 @@
  * com $top devolvia só a parte ASCENDENTE antiga (Ibovespa parava em set/2019
  * — diagnóstico ao vivo 05/11). Séries IPEA são coletadas em JANELAS de
  * VALDATA (3 anos), do mais recente ao mais antigo, e reordenadas no fim.
+ *
+ * v0.0.568: sp500/dowjones/nasdaq passam a Stooq (CSV mensal, ^spx/^dji/^ndx)
+ * — os códigos IPEADATA GM366_* desses índices NÃO existem no catálogo
+ * (Metadados('X') vazio, comprovado um a um). IFIX mantém candidato IPEA;
+ * sem pontos vivos → degradação para a base interna (nunca série vazia).
  */
 cronAdd('refresh_series_cache', '20 3 * * *', () => {
   const CAB = {

@@ -35,6 +35,15 @@
  *    pela API respondem devagar (estouravam 5s); o cron refresh_series_cache
  *    aquece o cache das 5 todo dia 03:20 UTC.
  * 3. Parâmetro ?reteste=1 fura o cache e força coleta viva (validação).
+ *
+ * CORREÇÃO v0.0.568 (índices globais com fonte viva): os códigos IPEADATA
+ * GM366_SP500366/GM366_DJIA366/GM366_NASDAQ366 NÃO EXISTEM no catálogo
+ * (Metadados('X') devolve vazio, comprovado um a um — a API não aceita busca
+ * por nome). S&P 500, Dow Jones e Nasdaq passam a usar Stooq (CSV mensal,
+ * sem chave, ^spx/^dji/^ndx) como PRIMEIRO candidato vivo, com o candidato
+ * IPEA mantido por trás caso a série venha a existir. IFIX não tem código
+ * vivo comprovado (IPEA nem SGS): mantém a degradação para a base interna
+ * com aviso — nunca série vazia.
  */
 routerAdd('GET', '/backend/v1/series-historicas', (e) => {
   // ------------------------------------------------------------------
@@ -222,32 +231,47 @@ routerAdd('GET', '/backend/v1/series-historicas', (e) => {
         semVivoNoPedido: true,
         candidatos: [{ tipo: 'bcb', codigo: 19967 }],
       },
+      // S&P 500 / Dow Jones / Nasdaq: os códigos IPEADATA GM366_* NÃO existem
+      // no catálogo (Metadados('X') vazio, comprovado 05/11). Fonte viva =
+      // Stooq (CSV mensal sem chave); o candidato IPEA fica atrás caso a série
+      // venha a ser criada. Falha de ambos → base interna com aviso.
       sp500: {
-        fonte: 'IPEA — IPEADATA (S&P 500)',
+        fonte: 'S&P Dow Jones Indices / Stooq',
         agreg: 'mensal_ultimo',
         ttlMs: TTL_MERCADO_MS,
         timeoutS: TIMEOUT_MERCADO_S,
         orcamentoMs: ORCAMENTO_MERCADO_MS,
-        candidatos: [{ tipo: 'ipea', codigos: ['GM366_SP500366'] }],
+        candidatos: [
+          { tipo: 'stooq', simbolo: '%5Espx' },
+          { tipo: 'ipea', codigos: ['GM366_SP500366'] },
+        ],
       },
       dowjones: {
-        fonte: 'IPEA — IPEADATA (Dow Jones)',
+        fonte: 'S&P Dow Jones Indices / Stooq',
         agreg: 'mensal_ultimo',
         ttlMs: TTL_MERCADO_MS,
         timeoutS: TIMEOUT_MERCADO_S,
         orcamentoMs: ORCAMENTO_MERCADO_MS,
-        candidatos: [{ tipo: 'ipea', codigos: ['GM366_DJIA366'] }],
+        candidatos: [
+          { tipo: 'stooq', simbolo: '%5Edji' },
+          { tipo: 'ipea', codigos: ['GM366_DJIA366'] },
+        ],
       },
       nasdaq: {
-        fonte: 'IPEA — IPEADATA (Nasdaq)',
+        fonte: 'Nasdaq / Stooq',
         agreg: 'mensal_ultimo',
         ttlMs: TTL_MERCADO_MS,
         timeoutS: TIMEOUT_MERCADO_S,
         orcamentoMs: ORCAMENTO_MERCADO_MS,
-        candidatos: [{ tipo: 'ipea', codigos: ['GM366_NASDAQ366'] }],
+        candidatos: [
+          { tipo: 'stooq', simbolo: '%5Endx' },
+          { tipo: 'ipea', codigos: ['GM366_NASDAQ366'] },
+        ],
       },
+      // IFIX: nenhum código vivo comprovado no IPEADATA nem no BCB SGS —
+      // degradação transparente para a base interna (nunca serie vazia).
       ifix: {
-        fonte: 'IPEA — IPEADATA (IFIX)',
+        fonte: 'B3 — IFIX',
         agreg: 'mensal_ultimo',
         ttlMs: TTL_MERCADO_MS,
         timeoutS: TIMEOUT_MERCADO_S,
@@ -334,6 +358,17 @@ routerAdd('GET', '/backend/v1/series-historicas', (e) => {
           '/n1/1/v/' +
           cand.variavel +
           '/p/last%20160'
+        )
+      }
+      if (cand.tipo === 'stooq') {
+        return (
+          'https://stooq.com/q/d/l/?s=' +
+          cand.simbolo +
+          '&i=m&d1=' +
+          ANO_INICIO_FIXO +
+          '0101&d2=' +
+          (anoAtual + 1) +
+          '0101'
         )
       }
       // IPEADATA — JANELAS de VALDATA ($filter ge/lt, 3 anos por pedido),
@@ -434,6 +469,22 @@ routerAdd('GET', '/backend/v1/series-historicas', (e) => {
 
     // Um candidato = UMA fonte, com o PRÓPRIO timeout (a fonte lenta nunca
     // segura mais do que o seu limite).
+    function parseCsvLinhas(texto) {
+      // CSV do Stooq: header Date,Open,High,Low,Close[,Volume]; i=m → "YYYY-MM"
+      const linhas = String(texto || '').split(/\r?\n/)
+      const coletados = []
+      for (let i = 0; i < linhas.length; i++) {
+        const cols = linhas[i].split(',')
+        if (cols.length < 5) continue
+        const per = String(cols[0] || '').trim()
+        if (per === 'Date' || per === '' || per.indexOf('-') === -1) continue
+        const valor = parseValor(cols[4])
+        if (!isFinite(valor) || valor <= 0) continue
+        coletados.push({ periodo: per.slice(0, 7), valor: valor })
+      }
+      return coletados
+    }
+
     function parseBcbLinhas(arr) {
       const coletados = []
       for (let i = 0; i < arr.length; i++) {
@@ -458,6 +509,24 @@ routerAdd('GET', '/backend/v1/series-historicas', (e) => {
           orcamentoMs || ORCAMENTO_TOTAL_MS,
           ANO_INICIO_FIXO + '-01-01',
         )
+      }
+      // Stooq (índices globais): CSV mensal direto — sem chave, sem janela.
+      if (cand.tipo === 'stooq') {
+        const respS = $http.send({
+          url: urlDoCandidato(cand, agreg),
+          method: 'GET',
+          timeout: timeoutSegundos,
+          headers: CAB,
+        })
+        if (!respS || respS.statusCode < 200 || respS.statusCode >= 400) return []
+        const texto =
+          typeof respS.body === 'string'
+            ? respS.body
+            : typeof respS.json === 'string'
+              ? respS.json
+              : ''
+        if (texto.indexOf('Exceeded the daily hits limit') !== -1) return []
+        return parseCsvLinhas(texto)
       }
       if (cand.tipo === 'bcb' && agreg === 'mensal_ultimo') {
         // Séries DIÁRIAS: o BCData recusa janelas > 10 anos (a partir de HOJE,
@@ -576,7 +645,9 @@ routerAdd('GET', '/backend/v1/series-historicas', (e) => {
                 '): ' +
                 (candidatos[i].tipo === 'ipea'
                   ? 'ipeadata ' + String(candidatos[i].codigos || [])
-                  : urlDoCandidato(candidatos[i], item.agreg)),
+                  : candidatos[i].tipo === 'stooq'
+                    ? 'stooq ' + String(candidatos[i].simbolo || '')
+                    : urlDoCandidato(candidatos[i], item.agreg)),
             )
           }
           if (pontos.length > 0) {

@@ -130,6 +130,32 @@ const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
     data: '05/11/2026',
+    hora: '23:30',
+    titulo:
+      'Monitor diário da tabela NCM no agendamento (05:30) — e o defeito de arquitetura que o teste de leitura revelou',
+    conteudo:
+      'A pedido do CEO: colocar o monitor da tabela NCM no agendamento diario. Criado cron 540cd2493c5f5588, diario as 05:30 (antes do radar das 08:00), com entrada propria scripts/tabela-ncm/diario.sh que roda os DOIS agentes na ordem certa: primeiro o VALIDADOR (mede a base) e depois o MONITOR (olha o mundo). Se a varredura do DOU falhar, a auditoria da base ainda e util; o contrario nao vale. Exit 0 = estavel, 10 = ato novo ou atencao, 2 = falha. DEFEITO DE ARQUITETURA ACHADO AO TESTAR A LEITURA, e que teria deixado o monitor invisivel para sempre: as rotas liam tmp/ncm-*-ultimo.json com $os.readFile e devolviam no such file or directory. A causa e que o BACKEND RODA EM OUTRO HOST — o tmp/ do container do assistente nao existe do lado do PocketBase. Eu tinha assumido que era o mesmo sistema de arquivos. O sintoma seria o pior possivel: monitor rodando todo dia, arquivos sendo gravados, e a tela dizendo sem registro — cobertura aparente zero com custo real diario. CORRECAO: o estado passou a viver numa COLECAO do PocketBase (migration 0120, ncm_agente_estado, um registro por agente com payload JSON). Isso resolve duas coisas: nao ha caminho de arquivo atravessando hosts, e o estado SOBREVIVE ao reinicio do pod (o tmp/ e esvaziado quando o assistente dorme, e a tela voltava a dizer sem registro todo dia). Rotas: POST /param-ncm-estado (grava), GET /param-ncm-estado?agente= (le um), GET /param-ncm-status (os dois numa chamada, que e o que a tela usa). O cron recebeu tres passos explicitos: rodar o script, PUBLICAR o estado no banco (o script nao tem o token do painel, mas o agente do cron tem via MCP Skip) e relatar. VALIDACAO: semeei os dois estados reais pelo banco e li de volta — monitor gravou 12 atos relevantes, validador 13 verificacoes, ambos persistidos com data; as tres abas renderizam em producao (secao 245.386 bytes, Tabela NCM 247.196, Posicao 235.865); rotas respondem 401 sem token.',
+    fontes: [
+      {
+        titulo: 'Resolução Gecex nº 272/2021 — tabela NCM/TEC',
+        url: 'https://www.in.gov.br/web/dou/-/resolucao-gecex-n-272-de-19-de-novembro-de-2021-361132111',
+      },
+      {
+        titulo: 'DOU — Imprensa Nacional',
+        url: 'https://www.in.gov.br',
+      },
+      {
+        titulo: 'Resolução Gecex nº 926/2026 — altera 7 códigos NCM',
+        url: 'https://www.in.gov.br/web/dou/-/resolucao-gecex-n-926-de-24-de-junho-de-2026-714453402',
+      },
+    ],
+    caminho:
+      'scripts/tabela-ncm/diario.sh + scripts/tabela-ncm/gravar_estado.py + pocketbase/migrations/0120_ncm_estado.js + pocketbase/hooks/ncm_estado.js + src/components/ParametrizadorNcm.tsx + src/components/ParametrizadorConferenciaPosicao.tsx',
+    versao: 'v0.0.582',
+    bloco: 'sistema',
+  },
+  {
+    data: '05/11/2026',
     hora: '23:00',
     titulo:
       'Conferência de NCM por posição reveleu 3 falsos benefícios + agente validador da base NCM com 5 especialistas',
