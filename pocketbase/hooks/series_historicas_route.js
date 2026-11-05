@@ -154,7 +154,7 @@ routerAdd('GET', '/backend/v1/series-historicas', (e) => {
   } catch (_) {
     q = {}
   }
-  const chave = String(q['chave'] || '')
+  const chave = String(q['chave'] || q['serie'] || '')
   // reteste=1 (validação): fura o cache e força a coleta viva.
   const forcarVivo = q['reteste'] === '1' || q['reteste'] === 'true'
 
