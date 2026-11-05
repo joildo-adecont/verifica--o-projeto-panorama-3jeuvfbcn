@@ -29,6 +29,7 @@ import { ParametrizadorAnalisador } from '@/components/ParametrizadorAnalisador'
 import { ParametrizadorConferencia } from '@/components/ParametrizadorConferencia'
 import { ParametrizadorNcm } from '@/components/ParametrizadorNcm'
 import { ParametrizadorConferenciaPosicao } from '@/components/ParametrizadorConferenciaPosicao'
+import { ParametrizadorEnquadramento } from '@/components/ParametrizadorEnquadramento'
 
 /**
  * PARAMETRIZADOR DE DOCUMENTOS FISCAIS DA REFORMA — Seção 31
@@ -254,6 +255,7 @@ export function SectionParametrizador() {
     | 'conferencia'
     | 'ncm'
     | 'posicao'
+    | 'enquadramento'
   >('catalogo')
   const [xml, setXml] = useState('')
   const [nomeArquivo, setNomeArquivo] = useState('documento.xml')
@@ -402,6 +404,7 @@ export function SectionParametrizador() {
                  origem por linha e monitoramento pelos agentes de fontes. */
               { id: 'ncm' as const, nome: 'Tabela NCM', Icon: BookMarked },
               { id: 'posicao' as const, nome: 'Posição · conferir', Icon: ClipboardCheck },
+              { id: 'enquadramento' as const, nome: 'Enquadramento', Icon: Building2 },
             ].map((t) => (
               <button
                 key={t.id}
@@ -903,6 +906,9 @@ export function SectionParametrizador() {
 
           {/* ══════════ CONFERÊNCIA POR POSIÇÃO ══════════ */}
           {aba === 'posicao' && <ParametrizadorConferenciaPosicao />}
+
+          {/* ══════════ ENQUADRAMENTO TRIBUTÁRIO × ATIVIDADE ══════════ */}
+          {aba === 'enquadramento' && <ParametrizadorEnquadramento />}
 
           {/* rodapé */}
           <div className="flex items-center gap-1.5 flex-wrap rounded-lg bg-slate-50 px-2 py-1.5 text-[9px] text-slate-500">
