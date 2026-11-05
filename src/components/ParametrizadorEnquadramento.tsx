@@ -23,6 +23,7 @@ import {
   type RegimeId,
 } from '@/data/enquadramento'
 import { CONFERENCIA_OFICIAL } from '@/data/conferenciaOficial'
+import { REGIMES_ADICIONAIS, REGIMES_ESPECIFICOS, RESSALVA_REGIMES } from '@/data/regimesAdicionais'
 
 /**
  * ENQUADRAMENTO TRIBUTÁRIO E ATIVIDADES — o cruzamento que orienta a escolha
@@ -83,11 +84,7 @@ export function ParametrizadorEnquadramento() {
       .trim()
     if (!t) return ATIVIDADES
     return ATIVIDADES.filter((a) =>
-      `${a.nome} ${a.cnaeGrupos.join(' ')}`
-        .toLowerCase()
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .includes(t),
+      `${a.nome} ${a.cnaeGrupos.join(' ')}`.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').includes(t),
     )
   }, [busca])
 
@@ -172,7 +169,7 @@ body{font-family:ui-monospace,"Courier New",monospace;font-size:10px;line-height
           </span>
         </div>
 
-        <>
+        {true ? (
           <div className="mt-2">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               <div className="rounded-lg border border-slate-200 bg-slate-50 p-2">
@@ -211,7 +208,8 @@ body{font-family:ui-monospace,"Courier New",monospace;font-size:10px;line-height
               <span className="ml-2 text-slate-500">{conferencia.nota}</span>
             </p>
           </div>
-        </>
+        ) : (
+        )}
       </div>
 
       {/* ── seleção do cruzamento ── */}
@@ -285,10 +283,7 @@ body{font-family:ui-monospace,"Courier New",monospace;font-size:10px;line-height
             </p>
             <ul className="mt-1.5 space-y-1">
               {cruz.fatores.map((f, i) => (
-                <li
-                  key={i}
-                  className="flex items-start gap-1.5 text-[10px] leading-snug text-slate-700"
-                >
+                <li key={i} className="flex items-start gap-1.5 text-[10px] leading-snug text-slate-700">
                   <ArrowRight className="mt-0.5 w-3 h-3 shrink-0 text-slate-400" />
                   {f}
                 </li>
@@ -307,9 +302,7 @@ body{font-family:ui-monospace,"Courier New",monospace;font-size:10px;line-height
             </p>
             <p className="mt-0.5 text-[10px] text-slate-600">{regime.resumo}</p>
 
-            <p className="mt-2 text-[9px] font-bold uppercase text-slate-500">
-              Limites e condições
-            </p>
+            <p className="mt-2 text-[9px] font-bold uppercase text-slate-500">Limites e condições</p>
             <ul className="mt-0.5 space-y-0.5">
               {regime.condicoes.map((c, i) => (
                 <li key={i} className="text-[9.5px] leading-snug text-slate-700">
@@ -345,9 +338,7 @@ body{font-family:ui-monospace,"Courier New",monospace;font-size:10px;line-height
               {atividade.cnaeSecoes.join(', ')}
             </p>
 
-            <p className="mt-2 text-[9px] font-bold uppercase text-slate-500">
-              Anexos típicos da LC 214
-            </p>
+            <p className="mt-2 text-[9px] font-bold uppercase text-slate-500">Anexos típicos da LC 214</p>
             <div className="mt-0.5 flex flex-wrap gap-1">
               {atividade.anexosTipicos.map((a, i) => (
                 <span
@@ -432,9 +423,36 @@ body{font-family:ui-monospace,"Courier New",monospace;font-size:10px;line-height
         </div>
       </div>
 
+      {/* ── regimes específicos: listados, mas não são opção ── */}
+      <div className="rounded-xl border-2 border-slate-200 bg-white overflow-hidden">
+        <div className="px-3 py-2 border-b-2 border-panorama-gold/40 bg-slate-50">
+          <p className="text-[11px] font-bold text-slate-900">
+            Regimes específicos da LC 214 ({REGIMES_ESPECIFICOS.length})
+          </p>
+          <p className="text-[9px] text-slate-500">
+            não são escolha de regime — são condição da operação ou da localização
+          </p>
+        </div>
+        <div className="p-2 space-y-1">
+          {REGIMES_ESPECIFICOS.map((r, i) => (
+            <div key={i} className="rounded-lg border border-slate-200 bg-slate-50 p-2">
+              <p className="text-[10.5px] font-bold text-slate-900">{r.nome}</p>
+              <p className="text-[9px] text-slate-500">{r.base}</p>
+              <p className="mt-0.5 text-[9.5px] leading-snug text-slate-700">{r.o_que_e}</p>
+              <p className="mt-0.5 text-[9px] leading-snug text-slate-500">
+                <b>Por que separado:</b> {r.por_que_separado}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <p className="rounded-lg border border-amber-300 bg-amber-50 px-2 py-1.5 text-[9px] leading-snug text-amber-900">
         <ShieldCheck className="mr-1 inline w-3 h-3" />
         <b>Como ler:</b> {RESSALVA_ENQUADRAMENTO}
+      </p>
+      <p className="rounded-lg border border-rose-300 bg-rose-50 px-2 py-1.5 text-[9px] leading-snug text-rose-900">
+        <b>Sobre os regimes adicionais:</b> {RESSALVA_REGIMES}
       </p>
     </div>
   )

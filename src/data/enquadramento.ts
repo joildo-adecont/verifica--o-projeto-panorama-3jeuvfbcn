@@ -37,7 +37,29 @@
  * DIMENSÃO 1 — REGIMES DE ENQUADRAMENTO
  * ══════════════════════════════════════════════════════════════════ */
 
-export type RegimeId = 'mei' | 'simples' | 'presumido' | 'real'
+/**
+ * Os regimes QUE O CONTRIBUINTE ESCOLHE ou em que se enquadra.
+ *
+ * Ficam juntos porque são alternativas entre si (não se está no Simples e no
+ * Real ao mesmo tempo). Os regimes ESPECÍFICOS (combustível, financeiro, ZFM)
+ * não entram aqui: não são opção, são condição da operação — misturá-los na
+ * mesma escolha faria o cruzamento perder sentido. Eles ficam em
+ * REGIMES_ADICIONAIS/REGIMES_ESPECIFICOS.
+ */
+import { REGIMES_ADICIONAIS } from './regimesAdicionais'
+
+export type RegimeId =
+  | 'mei'
+  | 'simples'
+  | 'simples_hibrido'
+  | 'presumido'
+  | 'real'
+  | 'isenta'
+  | 'imune'
+  | 'rural_pf'
+  | 'rural_pj'
+  | 'rural_integrado'
+  | 'cooperativa'
 
 export interface Regime {
   id: RegimeId
@@ -162,6 +184,26 @@ export const REGIMES: Regime[] = [
       'Conferir a completude dos documentos de entrada (NCM, cClassTrib, CST). Documento sem esses ' +
       'campos é crédito em risco. A Lista de Conferência de NCM mostra o que está faltando.',
   },
+  /* ══ ACRESCENTADOS EM 05/11/2026 — pedido do CEO ══
+   * Simples Híbrido, Isentas, Imunes, produtor rural PF/PJ, integrado e
+   * cooperativa. Os dados completos (quem se enquadra, base legal verificada,
+   * efeito no crédito e decisão) vivem em regimesAdicionais.ts; aqui ficam
+   * reduzidos ao shape que o cruzamento usa.
+   */
+  ...REGIMES_ADICIONAIS.map((r) => ({
+    id: r.id as RegimeId,
+    nome: r.nome,
+    resumo: r.resumo,
+    condicoes: r.quem,
+    naReforma: {
+      mantem: true,
+      o_que_muda: r.naReforma,
+      base: r.base,
+      alerta: r.alerta,
+    },
+    tendencia: 'depende' as const,
+    acao: r.decisao,
+  })),
 ]
 
 /* ══════════════════════════════════════════════════════════════════
@@ -465,6 +507,112 @@ export function cruzar(regimeId: RegimeId, atividadeId: string): Cruzamento | nu
   let favor = 0
   let contra = 0
 
+  /* ══ REGIMES NOVOS (05/11/2026): cada um pesa por um motivo diferente ══ */
+  if (regimeId === 'simples_hibrido') {
+    favor++
+    fatores.push(
+      'Híbrido: mantém o DAS para os tributos da LC 123 e apura IBS/CBS pelo regime regular, ' +
+        'com crédito AMPLO — o crédito que o Simples puro não permite (art. 41, §9º, I).',
+    )
+    if (a.id === 'servicos' || a.id === 'tecnologia') {
+      contra++
+      fatores.push(
+        'Em serviço com pouca compra, o crédito amplo rende pouco: o que pesa é a alíquota sobre ' +
+          'a receita, e o híbrido não a reduz.',
+      )
+    }
+    if (a.id === 'comercio' || a.id === 'industria' || a.id === 'alimentacao') {
+      favor++
+      fatores.push(
+        'Atividade com cadeia de compra relevante: o crédito amplo tende a compensar a saída do DAS.',
+      )
+    }
+    fatores.push(
+      'ATENÇÃO: se houve ressarcimento de crédito no ano corrente ou anterior, a volta ao Simples ' +
+        'puro fica vedada (art. 41, §5º) — a escolha deixa de ser reversível.',
+    )
+  }
+
+  if (regimeId === 'isenta') {
+    contra++
+    fatores.push(
+      'Isenção ANULA o crédito das operações anteriores, na proporção das receitas isentas ' +
+        '(art. 51 e §1º) — o efeito líquido pode ser pior que tributar.',
+    )
+    if (a.id === 'agro') {
+      fatores.push(
+        'No agro, parte da receita tem alíquota zero (não isenção) — as duas coisas têm efeito ' +
+          'diferente no crédito e não devem ser somadas.',
+      )
+    }
+  }
+
+  if (regimeId === 'imune') {
+    contra++
+    fatores.push(
+      'A imunidade alcança o que a entidade FORNECE, não o que ela COMPRA (art. 9º, §4º): ' +
+        'igreja, partido e escola pagam IBS/CBS nas aquisições.',
+    )
+    fatores.push(
+      'Documento fiscal é obrigatório mesmo para imune (art. 60, §2º, I) — sem ele, o fornecedor ' +
+        'perde o crédito dele.',
+    )
+    if (a.id === 'saude' || a.id === 'servicos') {
+      favor++
+      fatores.push(
+        'Atividade típica de entidade sem fins lucrativos (educação, assistência social, saúde): ' +
+          'verificar se cumpre o art. 14 do CTN, exigido pelo art. 9º, III.',
+      )
+    }
+  }
+
+  if (regimeId === 'rural_pf' || regimeId === 'rural_pj') {
+    favor++
+    fatores.push(
+      'Produtor rural (PF ou PJ — o art. 164 não distingue) abaixo de R$ 3,6 mi NÃO é contribuinte: ' +
+        'não destaca IBS/CBS na venda.',
+    )
+    contra++
+    fatores.push(
+      'Não sendo contribuinte, o comprador PJ depende de crédito presumido — se o cliente vende ' +
+        'para indústria, isso vira desvantagem comercial.',
+    )
+    fatores.push(
+      'O limite é a SOMA das operações da PF e das PJ do mesmo grupo (art. 164, §6º): abrir empresa ' +
+        'sem planejar pode estourar o teto.',
+    )
+    if (regimeId === 'rural_pj') {
+      fatores.push(
+        'PJ rural que também industrializa ou comercializa precisa SEGREGAR a receita: só a parte ' +
+          'rural entra no limite de R$ 3,6 mi.',
+      )
+    }
+  }
+
+  if (regimeId === 'rural_integrado') {
+    favor++
+    fatores.push(
+      'Integrado NUNCA é contribuinte, qualquer que seja a receita (art. 164, caput e §1º).',
+    )
+    fatores.push(
+      'Exige CONTRATO de integração vertical: sem contrato formal, o enquadramento volta a ser de ' +
+        'produtor rural comum, com o limite de R$ 3,6 mi.',
+    )
+  }
+
+  if (regimeId === 'cooperativa') {
+    favor++
+    fatores.push(
+      'Operações entre associado e cooperativa podem ter alíquota ZERO (art. 271) — nas demais, ' +
+        'aplica-se o regime regular.',
+    )
+    contra++
+    fatores.push(
+      'Misturar operação com associado e com terceiro na mesma conta erra o resultado: só a ' +
+        'primeira tem alíquota zero.',
+    )
+  }
+
   /* 1. o regime mantém vantagem na reforma? */
   if (r.tendencia === 'mantem-vantagem') {
     favor++
@@ -531,17 +679,23 @@ export function cruzar(regimeId: RegimeId, atividadeId: string): Cruzamento | nu
     favor > contra ? 'favoravel' : contra > favor ? 'desfavoravel' : 'misto'
 
   const prioridade =
-    a.id === 'alimentacao'
-      ? 'Cruzar NCM dos insumos com o regime: a cesta básica pode estar anulando crédito.'
-      : a.id === 'servicos' || a.id === 'tecnologia'
-        ? 'Verificar se a atividade está no art. 127 (redução de 30%) e se cumpre os requisitos.'
-        : a.id === 'industria'
-          ? 'Conferir se toda entrada tem NCM e cClassTrib — crédito sem classificação é crédito perdido.'
-          : a.id === 'saude'
-            ? 'Conferir a subposição de cada dispositivo: zero e integral estão a poucos dígitos de distância.'
-            : r.tendencia === 'perde-vantagem'
-              ? 'Simular a migração de regime sobre a base real importada.'
-              : 'Cruzar o tratamento dos NCMs vendidos com a carga do regime atual.'
+    regimeId === 'simples_hibrido'
+      ? 'Simular DAS integral × (DAS sem IBS/CBS + regime regular): o híbrido ganha quando o cliente vende a PJ que se credita.'
+      : regimeId === 'isenta' || regimeId === 'imune'
+        ? 'Calcular o estorno de crédito (art. 51) ANTES de considerar a isenção uma vantagem.'
+        : regimeId === 'rural_pf' || regimeId === 'rural_pj'
+          ? 'Somar toda a receita rural do grupo (art. 164, §6º) e projetar o ponto em que virar contribuinte compensa.'
+          : a.id === 'alimentacao'
+            ? 'Cruzar NCM dos insumos com o regime: a cesta básica pode estar anulando crédito.'
+            : a.id === 'servicos' || a.id === 'tecnologia'
+              ? 'Verificar se a atividade está no art. 127 (redução de 30%) e se cumpre os requisitos.'
+              : a.id === 'industria'
+                ? 'Conferir se toda entrada tem NCM e cClassTrib — crédito sem classificação é crédito perdido.'
+                : a.id === 'saude'
+                  ? 'Conferir a subposição de cada dispositivo: zero e integral estão a poucos dígitos de distância.'
+                  : r.tendencia === 'perde-vantagem'
+                    ? 'Simular a migração de regime sobre a base real importada.'
+                    : 'Cruzar o tratamento dos NCMs vendidos com a carga do regime atual.'
 
   return { regime: regimeId, atividade: atividadeId, peso, prioridade, fatores }
 }

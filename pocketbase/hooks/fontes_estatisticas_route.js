@@ -941,6 +941,79 @@ routerAdd('GET', '/backend/v1/fontes-estatisticas', (e) => {
     return saida
   }
 
+  const coletarBcbBacen = () => {
+    // Banco Central do Brasil (BACEN) — indicadores de crédito do sistema
+    // financeiro (SGS): juros médios das operações de crédito, juros de crédito
+    // pessoal e taxa de inadimplência. Séries mensais, últimos 12 pontos.
+    const series = [
+      {
+        chave: 'juros_medio',
+        serie: 20714,
+        nome: 'Juros médios das operações de crédito — % a.a.',
+        unidade: '% a.a.',
+        categoria: 'credito',
+      },
+      {
+        chave: 'juros_pessoal',
+        serie: 20746,
+        nome: 'Juros do crédito pessoal (não consignado) — % a.a.',
+        unidade: '% a.a.',
+        categoria: 'credito',
+      },
+      {
+        chave: 'inadimplencia',
+        serie: 21114,
+        nome: 'Taxa de inadimplência do crédito — % da carteira',
+        unidade: '%',
+        categoria: 'credito',
+      },
+    ]
+    const saida = []
+    for (const s of series) {
+      try {
+        const url =
+          'https://api.bcb.gov.br/dados/serie/bcdata.sgs.' +
+          s.serie +
+          '/dados/ultimos/12?formato=json'
+        const resp = $http.send({
+          url: url,
+          method: 'GET',
+          timeout: timeoutMs,
+          headers: {
+            'User-Agent':
+              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            Accept: 'application/json,text/plain,*/*',
+          },
+        })
+        const pontos = resp.json || []
+        const dados = []
+        for (let i = 0; i < pontos.length; i++) {
+          const v = parseFloat(String(pontos[i].valor || '').replace(',', '.'))
+          if (!isFinite(v)) continue
+          dados.push({ periodo: String(pontos[i].data || ''), valor: v })
+        }
+        if (dados.length > 0) {
+          const ultimo = dados[dados.length - 1]
+          const anterior = dados.length > 1 ? dados[dados.length - 2] : null
+          saida.push({
+            chave: s.chave,
+            nome: s.nome,
+            categoria: s.categoria,
+            unidade: s.unidade,
+            valor: ultimo.valor,
+            periodo: ultimo.periodo,
+            variacao: anterior ? ultimo.valor - anterior.valor : 0,
+            serie: dados.map((d) => d.valor),
+            fonte: 'Banco Central do Brasil (SGS ' + s.serie + ')',
+          })
+        }
+      } catch (err) {
+        // série individual falhou — segue
+      }
+    }
+    return saida
+  }
+
   const baseInterna = (fonteNome, indicadores, avisoExtra) => {
     // Fallback: base interna aproximada, com aviso transparente — nunca erro cru.
     const internas = {
@@ -1254,6 +1327,41 @@ routerAdd('GET', '/backend/v1/fontes-estatisticas', (e) => {
           fonte: 'SNIS — Ministério das Cidades',
         },
       ],
+      'Banco Central do Brasil (BACEN)': [
+        {
+          chave: 'juros_medio',
+          nome: 'Juros médios das operações de crédito — % a.a. (base interna)',
+          categoria: 'credito',
+          unidade: '% a.a.',
+          valor: 24.0,
+          periodo: 'último mês disponível',
+          variacao: 0.2,
+          serie: [23.1, 23.4, 23.6, 23.8, 23.7, 23.9, 24.0],
+          fonte: 'Banco Central do Brasil (BACEN)',
+        },
+        {
+          chave: 'juros_pessoal',
+          nome: 'Juros do crédito pessoal (não consignado) — % a.a. (base interna)',
+          categoria: 'credito',
+          unidade: '% a.a.',
+          valor: 92.0,
+          periodo: 'último mês disponível',
+          variacao: -0.5,
+          serie: [94.0, 93.5, 93.8, 92.6, 92.5],
+          fonte: 'Banco Central do Brasil (BACEN)',
+        },
+        {
+          chave: 'inadimplencia',
+          nome: 'Taxa de inadimplência do crédito — % da carteira (base interna)',
+          categoria: 'credito',
+          unidade: '%',
+          valor: 3.1,
+          periodo: 'último mês disponível',
+          variacao: 0.1,
+          serie: [2.9, 3.0, 3.0, 3.1, 3.0, 3.1],
+          fonte: 'Banco Central do Brasil (BACEN)',
+        },
+      ],
       'B3 — Mercado Financeiro': [
         {
           chave: 'ibovespa',
@@ -1335,6 +1443,7 @@ routerAdd('GET', '/backend/v1/fontes-estatisticas', (e) => {
   if (fonte === 'todas' || fonte === 'caged')
     consultas.push('CAGED — Ministério do Trabalho e Emprego')
   if (fonte === 'todas' || fonte === 'b3_mercado') consultas.push('B3 — Mercado Financeiro')
+  if (fonte === 'todas' || fonte === 'bcb_bacen') consultas.push('Banco Central do Brasil (BACEN)')
 
   const fontes = []
   for (const nome of consultas) {
@@ -1356,6 +1465,7 @@ routerAdd('GET', '/backend/v1/fontes-estatisticas', (e) => {
       else if (nome === 'IBGE — PNAD Contínua') itens = coletarIbgePnad()
       else if (nome === 'CAGED — Ministério do Trabalho e Emprego') itens = coletarCaged()
       else if (nome === 'B3 — Mercado Financeiro') itens = coletarB3Mercado()
+      else if (nome === 'Banco Central do Brasil (BACEN)') itens = coletarBcbBacen()
       if (!itens || itens.length === 0) {
         viva = false
         aviso =
