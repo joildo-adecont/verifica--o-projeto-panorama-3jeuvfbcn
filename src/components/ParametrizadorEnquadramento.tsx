@@ -168,7 +168,7 @@ body{font-family:ui-monospace,"Courier New",monospace;font-size:10px;line-height
           </span>
         </div>
 
-        {true ? (
+        <>
           <div className="mt-2">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               <div className="rounded-lg border border-slate-200 bg-slate-50 p-2">
@@ -207,6 +207,7 @@ body{font-family:ui-monospace,"Courier New",monospace;font-size:10px;line-height
               <span className="ml-2 text-slate-500">{conferencia.nota}</span>
             </p>
           </div>
+        ) : (
         )}
       </div>
 

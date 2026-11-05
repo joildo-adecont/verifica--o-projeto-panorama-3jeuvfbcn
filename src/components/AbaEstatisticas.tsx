@@ -198,23 +198,18 @@ export function AbaEstatisticas() {
   const fontes = useMemo(() => resposta?.fontes ?? [], [resposta])
   const algumaViva = fontes.some((f) => f.fonteViva)
 
-  /** Clicar numa fatia: abre o histórico do indicador representativo do setor. */
+  /** Clicar numa fatia: abre o histórico do indicador representativo do setor
+   *  (evento consumido por SectionIndicadoresEconomicos → aba Histórico). */
   const abrirIndicadorHistorico = (chave: ChaveSerieHistorica) => {
     window.dispatchEvent(new CustomEvent('panorama:abrir-indicador-historico', { detail: chave }))
   }
 
-  if (carregando) {
-    return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="h-64 rounded-2xl bg-slate-100 animate-pulse" />
-        ))}
-      </div>
-    )
-  }
-
   return (
     <div className="space-y-3">
+      {/* Pizza "Distribuição por Setor" no topo da aba — contagem vem do
+          catálogo local do frontend, renderiza sempre, sem rede. */}
+      <GraficoDistribuicaoSetores onAbrirIndicador={abrirIndicadorHistorico} />
+
       {!algumaViva && fontes.length > 0 && (
         <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-50 border border-amber-300 text-amber-900">
           <p className="text-xs leading-relaxed">
@@ -224,13 +219,20 @@ export function AbaEstatisticas() {
         </div>
       )}
 
-      <GraficoDistribuicaoSetores onAbrirIndicador={abrirIndicadorHistorico} />
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        {fontes.map((f) => (
-          <CartaoFonte key={f.fonte} fonte={f} />
-        ))}
-      </div>
+      {/* Cartões das fontes — skeleton local enquanto o fetch corre. */}
+      {carregando ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="h-64 rounded-2xl bg-slate-100 animate-pulse" />
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {fontes.map((f) => (
+            <CartaoFonte key={f.fonte} fonte={f} />
+          ))}
+        </div>
+      )}
 
       {fontes.length === 0 && (
         <div className="p-8 rounded-2xl border-2 border-dashed border-slate-300 bg-white text-center text-sm text-slate-500">
