@@ -61,9 +61,24 @@ cronAdd('ipea_probe', '* * * * *', () => {
   } else {
     const v1 = r1.json && r1.json.value ? r1.json.value : []
     const nomes = v1.map(function (m) {
-      return m.SERCODIGO + ' | ' + m.SERNOME + ' | ' + String(m.SERPERIODICIDADE || '') + ' | fim:' + String(m.SERMAXDATA || '')
+      return (
+        m.SERCODIGO +
+        ' | ' +
+        m.SERNOME +
+        ' | ' +
+        String(m.SERPERIODICIDADE || '') +
+        ' | fim:' +
+        String(m.SERMAXDATA || '')
+      )
     })
-    L('PROBE metadados-codigos status=' + r1.statusCode + ' hits=' + v1.length + ' :: ' + nomes.join(' ;; '))
+    L(
+      'PROBE metadados-codigos status=' +
+        r1.statusCode +
+        ' hits=' +
+        v1.length +
+        ' :: ' +
+        nomes.join(' ;; '),
+    )
   }
 
   // 2) Metadados por nome
@@ -76,12 +91,19 @@ cronAdd('ipea_probe', '* * * * *', () => {
       continue
     }
     const vn = rn.json && rn.json.value ? rn.json.value : []
-    const lista = vn
-      .slice(0, 12)
-      .map(function (m) {
-        return m.SERCODIGO + ' | ' + m.SERNOME + ' | fim:' + String(m.SERMAXDATA || '')
-      })
-    L('PROBE nome[' + nomesBusca[i] + '] status=' + rn.statusCode + ' hits=' + vn.length + ' :: ' + lista.join(' ;; '))
+    const lista = vn.slice(0, 12).map(function (m) {
+      return m.SERCODIGO + ' | ' + m.SERNOME + ' | fim:' + String(m.SERMAXDATA || '')
+    })
+    L(
+      'PROBE nome[' +
+        nomesBusca[i] +
+        '] status=' +
+        rn.statusCode +
+        ' hits=' +
+        vn.length +
+        ' :: ' +
+        lista.join(' ;; '),
+    )
   }
 
   // 3) ValoresSerie top-2 desc para os hits do lote de códigos
@@ -92,10 +114,7 @@ cronAdd('ipea_probe', '* * * * *', () => {
   } catch (_) {}
   for (let h = 0; h < hits.length; h++) {
     const rv = get(
-      BASE +
-        "/ValoresSerie(SERCODIGO='" +
-        hits[h] +
-        "')?$top=2&$orderby=VALDATA%20desc",
+      BASE + "/ValoresSerie(SERCODIGO='" + hits[h] + "')?$top=2&$orderby=VALDATA%20desc",
       20,
     )
     if (rv.err) {
@@ -147,30 +166,35 @@ cronAdd('ipea_probe', '* * * * *', () => {
       L('PROBE stooq[' + stq[t] + '] ERRO: ' + rq.err)
       continue
     }
-    const txt = typeof rq.json === 'string' ? rq.json : rq.body ? String(rq.body) : JSON.stringify(rq.json)
+    const txt =
+      typeof rq.json === 'string' ? rq.json : rq.body ? String(rq.body) : JSON.stringify(rq.json)
     L(
-      'PROBE stooq[' + stq[t] + '] status=' + rq.statusCode + ' :: ' + String(txt || '').slice(0, 400),
+      'PROBE stooq[' +
+        stq[t] +
+        '] status=' +
+        rq.statusCode +
+        ' :: ' +
+        String(txt || '').slice(0, 400),
     )
   }
 
   L('PROBE rodada concluída')
 
-  // Publica as linhas na coleção series_cache para leitura via db_query.
+  // Publica as linhas na coleção probe_diag para leitura via db_query.
   try {
-    let rec = null
-    try {
-      rec = $app.findFirstRecordByData('series_cache', 'chave', 'probe_ipea')
-    } catch (_) {
-      const col = $app.findCollectionByNameOrId('series_cache')
-      rec = new Record(col)
-      rec.set('chave', 'probe_ipea')
+    const col = $app.findCollectionByNameOrId('probe_diag')
+    const q = $app.findRecordsByFilter(col, 'created < @now', '-created', 500, 0)
+    for (let i = 0; i < q.length; i++) {
+      if (String(q[i].getString('linha') || '').indexOf('PROBE rodada concluída') !== -1) {
+        $app.delete(q[i])
+      }
     }
-    const agora = new Date().toISOString()
-    rec.set('payload', JSON.stringify({ fetched_at_iso: agora, serie: LINHAS }))
-    rec.set('fonte', 'probe')
-    rec.set('fetched_at', agora)
-    $app.save(rec)
-    console.log('PROBE salvo em series_cache/probe_ipea (' + LINHAS.length + ' linhas)')
+    for (let i = 0; i < LINHAS.length; i++) {
+      const rec = new Record(col)
+      rec.set('linha', String(LINHAS[i]).slice(0, 3000))
+      $app.save(rec)
+    }
+    console.log('PROBE salvo em probe_diag (' + LINHAS.length + ' linhas)')
   } catch (errSave) {
     console.log('PROBE falha ao salvar: ' + String(errSave))
   }

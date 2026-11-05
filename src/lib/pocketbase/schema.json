@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-05T01:18:58.319Z",
+  "generatedAt": "2026-11-05T01:40:41.913Z",
   "collections": [
     {
       "name": "users",
@@ -3855,6 +3855,33 @@
       "indexes": [
         "CREATE UNIQUE INDEX idx_market_alerts_indice_data ON market_alerts (indice, alert_date)"
       ]
+    },
+    {
+      "name": "probe_diag",
+      "type": "base",
+      "apiRules": {
+        "list": null,
+        "view": null,
+        "create": null,
+        "update": null,
+        "delete": null
+      },
+      "fields": [
+        {
+          "name": "linha",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        }
+      ],
+      "indexes": []
     }
   ]
 }
