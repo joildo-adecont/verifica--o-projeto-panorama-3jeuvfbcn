@@ -36,6 +36,12 @@
  * pregão de cada mês = ponto mensal. Yahoo IFIX.SA só devolve o mês corrente
  * (fica atrás); o código IPEA GM366_IFIX366 (nunca comprovado) fica por
  * último, caso a série venha a existir. Sem pontos → base interna na rota.
+ *
+ * v0.0.587: PMS (ibge_pms — SIDRA t5906 v7167 c11046/56726) entra no
+ * aquecimento, com a MESMA retentativa decrescente da rota: a janela de 160
+ * meses às vezes estoura o tempo do SIDRA ("context deadline exceeded") —
+ * tentar 160 → 96 → 48; sem pontos em todas → sem cache novo (a rota
+ * degrada com aviso, nunca série vazia).
  */
 cronAdd('refresh_series_cache', '20 3 * * *', () => {
   const CAB = {
@@ -344,6 +350,59 @@ cronAdd('refresh_series_cache', '20 3 * * *', () => {
     return parseCsvLinhas(texto)
   }
 
+  // SIDRA (PMS): janela em meses, com retentativa decrescente — a janela cheia
+  // de 160 meses às vezes estoura o tempo do IBGE; 96 e 48 costumam responder.
+  function periodoSidra(codigo) {
+    const s = String(codigo || '')
+    let m = s.match(/^(\d{4})(\d{2})$/)
+    if (m) {
+      const mm = parseInt(m[2], 10)
+      return mm === 0 ? m[1] : m[1] + '-' + String(mm).padStart(2, '0')
+    }
+    m = s.match(/^(\d{4})/)
+    return m ? m[1] : s
+  }
+
+  function coletarSidra(tabela, variavel, classif, janelaMeses) {
+    const url =
+      'https://apisidra.ibge.gov.br/values/t/' +
+      tabela +
+      '/n1/1/v/' +
+      variavel +
+      '/p/last%20' +
+      janelaMeses +
+      (classif ? '/' + classif : '')
+    let resp = null
+    try {
+      resp = $http.send({ url: url, method: 'GET', timeout: TIMEOUT_PADRAO_S, headers: CAB })
+    } catch (_) {
+      resp = null
+    }
+    if (!resp || resp.statusCode < 200 || resp.statusCode >= 400) return []
+    const arr = resp.json
+    if (!Array.isArray(arr)) return []
+    const coletados = []
+    for (let i = 0; i < arr.length; i++) {
+      const linha = arr[i]
+      if (!linha) continue
+      if (linha.V === 'Valor' || linha.VL === 'Valor') continue
+      const valor = parseFloat(linha.V != null ? linha.V : linha.VL)
+      const periodo = periodoSidra(linha.D3C || linha.D2C || linha.Periodo || linha.D1C)
+      if (!isFinite(valor) || !periodo) continue
+      coletados.push({ periodo: periodo, valor: valor })
+    }
+    return coletados
+  }
+
+  function coletarSidraRetentativa(tabela, variavel, classif) {
+    const janelas = [160, 96, 48]
+    for (let j = 0; j < janelas.length; j++) {
+      const pontos = coletarSidra(tabela, variavel, classif, janelas[j])
+      if (pontos.length > 0) return pontos
+    }
+    return []
+  }
+
   function agregarMensalUltimo(pontos) {
     const porMes = {}
     const ordem = []
@@ -376,6 +435,16 @@ cronAdd('refresh_series_cache', '20 3 * * *', () => {
     { chave: 'boi_gordo', ttlMs: TTL_PADRAO_MS, fonte: 'bcb', codigo: 23447 },
     { chave: 'soja', ttlMs: TTL_PADRAO_MS, fonte: 'bcb', codigo: 23448 },
     { chave: 'milho', ttlMs: TTL_PADRAO_MS, fonte: 'bcb', codigo: 23449 },
+    // PMS: SIDRA com retentativa decrescente (160 → 96 → 48) — a janela cheia
+    // às vezes estoura o tempo do IBGE; TTL padrão de 6 h como as demais.
+    {
+      chave: 'ibge_pms',
+      ttlMs: TTL_PADRAO_MS,
+      fonte: 'sidra',
+      tabela: 5906,
+      variavel: 7167,
+      classif: 'c11046/56726',
+    },
   ]
 
   function lerCache(chave) {
@@ -441,6 +510,11 @@ cronAdd('refresh_series_cache', '20 3 * * *', () => {
         pontos = coletarB3Indice(item.indice)
         if (pontos.length === 0)
           pontos = coletarIpeaJanelas('GM366_IFIX366', TIMEOUT_MERCADO_S, ORCAMENTO_CHAVE_MS)
+      } else if (item.fonte === 'sidra') {
+        // PMS: retentativa decrescente de janela (160 → 96 → 48) — a janela
+        // cheia às vezes estoura o tempo do IBGE. Sem pontos em todas → sem
+        // cache novo (a rota degrada com aviso, nunca série vazia).
+        pontos = coletarSidraRetentativa(item.tabela, item.variavel, item.classif)
       } else {
         pontos = coletarIpeaJanelas(item.codigo, TIMEOUT_MERCADO_S, ORCAMENTO_CHAVE_MS)
       }

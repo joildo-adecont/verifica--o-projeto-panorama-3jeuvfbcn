@@ -45,6 +45,15 @@
  * vivo comprovado (IPEA nem SGS): mantém a degradação para a base interna
  * com aviso — nunca série vazia.
  *
+ * CORREÇÃO v0.0.587 (PMS — retentativa em janela menor, ao vivo):
+ * a consulta SIDRA do PMS (t5906 v7167 c11046/56726) com janela de 160 meses
+ * às vezes estoura o tempo do IBGE ("context deadline exceeded") e a série
+ * caía na base interna de forma INTERMITENTE. O candidato agora tenta a
+ * janela cheia (160), depois janelas REDUZIDAS (96 e 48 meses) — a janela
+ * menor responde rápido e costuma vir viva; falhando todas, degrada para
+ * cache/snapshot/base interna com aviso transparente (nunca série vazia,
+ * nunca erro 400). O cron 03:20 também aquece ibge_pms.
+ *
  * CORREÇÃO v0.0.585 (latência + fonte global alternativa):
  * 1. Stooq é INALCANÇÁVEL do backend (logs hooks: "context deadline exceeded"
  *    em TODAS as tentativas) e, com timeout longo, pendurava a rota 30s+.
@@ -365,7 +374,18 @@ routerAdd('GET', '/backend/v1/series-historicas', (e) => {
       },
       ibge_pms: {
         fonte: 'IBGE SIDRA t5906',
-        candidatos: [{ tipo: 'sidra', tabela: 5906, variavel: 7167, classif: 'c11046/56726' }],
+        // Retentativa decrescente: a janela de 160 meses às vezes estoura o
+        // tempo do SIDRA ("context deadline exceeded") — tentar de novo com
+        // janela MENOR (96, 48) antes de degradar para a base interna. O
+        // timeout individual sobe para 6s e o orçamento para 18s para dar
+        // espaço às 3 tentativas (pior caso ~18s, sempre com pontos no fim).
+        timeoutS: 6,
+        orcamentoMs: 18000,
+        candidatos: [
+          { tipo: 'sidra', tabela: 5906, variavel: 7167, classif: 'c11046/56726', janela: 160 },
+          { tipo: 'sidra', tabela: 5906, variavel: 7167, classif: 'c11046/56726', janela: 96 },
+          { tipo: 'sidra', tabela: 5906, variavel: 7167, classif: 'c11046/56726', janela: 48 },
+        ],
       },
       ibge_construcao: {
         fonte: 'IBGE SIDRA t8886',
@@ -430,12 +450,15 @@ routerAdd('GET', '/backend/v1/series-historicas', (e) => {
       }
       if (cand.tipo === 'sidra') {
         const classif = cand.classif ? '/' + cand.classif : ''
+        // janela (meses) por candidato — PMS usa retentativa decrescente
+        // (160 → 96 → 48) porque a janela cheia às vezes estoura o tempo.
         return (
           'https://apisidra.ibge.gov.br/values/t/' +
           cand.tabela +
           '/n1/1/v/' +
           cand.variavel +
-          '/p/last%20160' +
+          '/p/last%20' +
+          (cand.janela || 160) +
           classif
         )
       }
