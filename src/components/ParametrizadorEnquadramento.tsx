@@ -83,7 +83,11 @@ export function ParametrizadorEnquadramento() {
       .trim()
     if (!t) return ATIVIDADES
     return ATIVIDADES.filter((a) =>
-      `${a.nome} ${a.cnaeGrupos.join(' ')}`.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').includes(t),
+      `${a.nome} ${a.cnaeGrupos.join(' ')}`
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .includes(t),
     )
   }, [busca])
 
@@ -207,8 +211,7 @@ body{font-family:ui-monospace,"Courier New",monospace;font-size:10px;line-height
               <span className="ml-2 text-slate-500">{conferencia.nota}</span>
             </p>
           </div>
-        ) : (
-        )}
+        </>
       </div>
 
       {/* ── seleção do cruzamento ── */}
@@ -282,7 +285,10 @@ body{font-family:ui-monospace,"Courier New",monospace;font-size:10px;line-height
             </p>
             <ul className="mt-1.5 space-y-1">
               {cruz.fatores.map((f, i) => (
-                <li key={i} className="flex items-start gap-1.5 text-[10px] leading-snug text-slate-700">
+                <li
+                  key={i}
+                  className="flex items-start gap-1.5 text-[10px] leading-snug text-slate-700"
+                >
                   <ArrowRight className="mt-0.5 w-3 h-3 shrink-0 text-slate-400" />
                   {f}
                 </li>
@@ -301,7 +307,9 @@ body{font-family:ui-monospace,"Courier New",monospace;font-size:10px;line-height
             </p>
             <p className="mt-0.5 text-[10px] text-slate-600">{regime.resumo}</p>
 
-            <p className="mt-2 text-[9px] font-bold uppercase text-slate-500">Limites e condições</p>
+            <p className="mt-2 text-[9px] font-bold uppercase text-slate-500">
+              Limites e condições
+            </p>
             <ul className="mt-0.5 space-y-0.5">
               {regime.condicoes.map((c, i) => (
                 <li key={i} className="text-[9.5px] leading-snug text-slate-700">
@@ -337,7 +345,9 @@ body{font-family:ui-monospace,"Courier New",monospace;font-size:10px;line-height
               {atividade.cnaeSecoes.join(', ')}
             </p>
 
-            <p className="mt-2 text-[9px] font-bold uppercase text-slate-500">Anexos típicos da LC 214</p>
+            <p className="mt-2 text-[9px] font-bold uppercase text-slate-500">
+              Anexos típicos da LC 214
+            </p>
             <div className="mt-0.5 flex flex-wrap gap-1">
               {atividade.anexosTipicos.map((a, i) => (
                 <span

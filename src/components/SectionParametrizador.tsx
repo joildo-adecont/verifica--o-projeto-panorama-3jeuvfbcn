@@ -12,6 +12,7 @@ import {
   FileText,
   Folder,
   Scale,
+  Building2,
   ClipboardList,
   ClipboardCheck,
   Layers,
