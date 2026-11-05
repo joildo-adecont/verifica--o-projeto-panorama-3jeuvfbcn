@@ -470,9 +470,9 @@ export function SectionFontes() {
     },
     {
       orgao: 'IBGE — Pesquisa Mensal de Serviços (PMS / SIDRA)',
-      fonte: 'apisidra.ibge.gov.br/values/t/6455 (proxy backend)',
+      fonte: 'apisidra.ibge.gov.br/values/t/5906 (proxy backend)',
       conteudo:
-        'Índice de volume de serviços do setor terciário no Brasil (Pesquisa Mensal de Serviços / Tabela 6455)',
+        'Índice de volume de serviços do setor terciário no Brasil (Pesquisa Mensal de Serviços / Tabela 5906)',
       url: 'https://www.ibge.gov.br/estatisticas/economicas/servicos',
       statusNota:
         'Fonte oficial institucional ativa via proxy /backend/v1/fontes-estatisticas com cache e base interna de contingência.',
@@ -481,9 +481,9 @@ export function SectionFontes() {
     },
     {
       orgao: 'IBGE — Produção da Construção Civil (SIDRA)',
-      fonte: 'apisidra.ibge.gov.br/values/t/5906 (proxy backend)',
+      fonte: 'apisidra.ibge.gov.br/values/t/8886 (proxy backend)',
       conteudo:
-        'Índice de volume físico e insumos típicos da construção civil (Pesquisa Industrial Mensal / Tabela 5906)',
+        'Índice de volume físico e insumos típicos da construção civil (Pesquisa Industrial Mensal PIM-PF / Tabela 8886)',
       url: 'https://www.ibge.gov.br/estatisticas/economicas/industria',
       statusNota:
         'Fonte oficial institucional ativa via proxy /backend/v1/fontes-estatisticas com cache e base interna de contingência.',

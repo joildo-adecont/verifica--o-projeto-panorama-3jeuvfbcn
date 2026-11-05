@@ -168,7 +168,7 @@ routerAdd('GET', '/backend/v1/fontes-estatisticas', (e) => {
 
   const coletarIbgePms = () => {
     try {
-      const url = 'https://apisidra.ibge.gov.br/values/t/6455/n1/1/v/8677/p/last%2012'
+      const url = 'https://apisidra.ibge.gov.br/values/t/5906/n1/1/v/7167/p/last%2012/c11046/56726'
       const resp = $http.send({
         url: url,
         method: 'GET',
@@ -201,7 +201,7 @@ routerAdd('GET', '/backend/v1/fontes-estatisticas', (e) => {
             periodo: ultimo.periodo,
             variacao: parseFloat(variacao.toFixed(2)),
             serie: dados.map((d) => d.valor),
-            fonte: 'IBGE — SIDRA Tabela 6455',
+            fonte: 'IBGE — SIDRA Tabela 5906',
           },
         ]
       }
@@ -211,7 +211,7 @@ routerAdd('GET', '/backend/v1/fontes-estatisticas', (e) => {
 
   const coletarIbgeConstrucao = () => {
     try {
-      const url = 'https://apisidra.ibge.gov.br/values/t/5906/n1/1/v/7167/p/last%2012/c11046/56726'
+      const url = 'https://apisidra.ibge.gov.br/values/t/8886/n1/1/v/12606/p/last%2012'
       const resp = $http.send({
         url: url,
         method: 'GET',
@@ -244,7 +244,7 @@ routerAdd('GET', '/backend/v1/fontes-estatisticas', (e) => {
             periodo: ultimo.periodo,
             variacao: parseFloat(variacao.toFixed(2)),
             serie: dados.map((d) => d.valor),
-            fonte: 'IBGE — SIDRA Tabela 5906',
+            fonte: 'IBGE — SIDRA Tabela 8886',
           },
         ]
       }
@@ -1574,7 +1574,7 @@ routerAdd('GET', '/backend/v1/fontes-estatisticas', (e) => {
           periodo: 'último mês disponível',
           variacao: 0.8,
           serie: [108.5, 109.1, 109.8, 110.8],
-          fonte: 'IBGE — SIDRA Tabela 6455',
+          fonte: 'IBGE — SIDRA Tabela 5906',
         },
       ],
       'IBGE — Produção da Construção Civil': [
@@ -1587,7 +1587,7 @@ routerAdd('GET', '/backend/v1/fontes-estatisticas', (e) => {
           periodo: 'último mês disponível',
           variacao: 1.2,
           serie: [120.1, 121.3, 122.0, 123.4],
-          fonte: 'IBGE — SIDRA Tabela 5906',
+          fonte: 'IBGE — SIDRA Tabela 8886',
         },
       ],
     }

@@ -513,6 +513,39 @@ cronAdd('weekly_content_review', '0 11 * * 1', () => {
         'BCB SGS 7 (Ibovespa em pontos) e IPEADATA GM12_ERNBG11BRA_IXOB (IFIX — fundos imobiliários da B3)',
       coverageStatus: 'coberta_direta',
     },
+    // FONTES ESTATÍSTICAS — SOCIAIS E SETORIAIS IBGE (proxy /backend/v1/fontes-estatisticas)
+    {
+      key: 'ibge_populacao',
+      name: 'IBGE — População Residente (Estimativas — SIDRA Tabela 6579)',
+      url: 'https://sidra.ibge.gov.br/tabela/6579',
+      order: 53,
+      confidenceTier: 'oficial_institucional',
+      isAccessible: true,
+      alternative: 'API SIDRA Tabela 6579 (variável 9324 — população residente estimada)',
+      coverageStatus: 'coberta_direta',
+    },
+    {
+      key: 'ibge_pms',
+      name: 'IBGE — Volume de Serviços (PMS — SIDRA Tabela 5906)',
+      url: 'https://sidra.ibge.gov.br/tabela/5906',
+      order: 54,
+      confidenceTier: 'oficial_institucional',
+      isAccessible: true,
+      alternative:
+        'API SIDRA Tabela 5906 (variável 7167, classificação c11046/56726 — índice de volume de serviços)',
+      coverageStatus: 'coberta_direta',
+    },
+    {
+      key: 'ibge_construcao',
+      name: 'IBGE — Produção da Construção Civil (Insumos Típicos PIM-PF — SIDRA Tabela 8886)',
+      url: 'https://sidra.ibge.gov.br/tabela/8886',
+      order: 55,
+      confidenceTier: 'oficial_institucional',
+      isAccessible: true,
+      alternative:
+        'API SIDRA Tabela 8886 (variável 12606 — produção física de insumos típicos da construção civil)',
+      coverageStatus: 'coberta_direta',
+    },
   ]
 
   const checkedSources = []

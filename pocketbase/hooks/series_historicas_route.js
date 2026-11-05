@@ -364,12 +364,12 @@ routerAdd('GET', '/backend/v1/series-historicas', (e) => {
         candidatos: [{ tipo: 'sidra', tabela: 6579, variavel: 9324 }],
       },
       ibge_pms: {
-        fonte: 'IBGE SIDRA t6455 (PMS - Volume de Serviços)',
-        candidatos: [{ tipo: 'sidra', tabela: 6455, variavel: 8677 }],
+        fonte: 'IBGE SIDRA t5906',
+        candidatos: [{ tipo: 'sidra', tabela: 5906, variavel: 7167, classif: 'c11046/56726' }],
       },
       ibge_construcao: {
-        fonte: 'IBGE SIDRA t5906 (Produção da Construção Civil)',
-        candidatos: [{ tipo: 'sidra', tabela: 5906, variavel: 7167, classif: 'c11046/56726' }],
+        fonte: 'IBGE SIDRA t8886',
+        candidatos: [{ tipo: 'sidra', tabela: 8886, variavel: 12606 }],
       },
     }
 

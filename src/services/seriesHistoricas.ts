@@ -806,7 +806,7 @@ export const CATALOGO_SERIES: CatalogoSerie[] = [
   {
     chave: 'ibge_pms',
     nome: 'Volume de Serviços (PMS)',
-    descricao: 'Índice de volume de serviços — Pesquisa Mensal de Serviços — IBGE SIDRA 6455',
+    descricao: 'Índice de volume de serviços — Pesquisa Mensal de Serviços — IBGE SIDRA 5906',
     categoria: 'Estatísticas',
     unidade: 'índice',
     modoAcumulado: 'nivel',
@@ -819,11 +819,11 @@ export const CATALOGO_SERIES: CatalogoSerie[] = [
   {
     chave: 'ibge_construcao',
     nome: 'Produção da Construção Civil',
-    descricao: 'Índice de produção e insumos típicos da construção civil — IBGE SIDRA 5906',
+    descricao: 'Índice de produção e insumos típicos da construção civil — IBGE SIDRA 8886',
     categoria: 'Estatísticas',
     unidade: 'índice',
     modoAcumulado: 'nivel',
-    fonte: 'IBGE — SIDRA',
+    fonte: 'IBGE — SIDRA (Construção Civil)',
     fonteUrl: 'https://www.ibge.gov.br',
     ...SEL_PADRAO,
     termo: 'estatisticas construcao civil producao insumos fisicos industria ibge sidra',
