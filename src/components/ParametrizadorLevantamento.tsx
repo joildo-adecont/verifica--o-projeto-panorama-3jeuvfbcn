@@ -24,6 +24,7 @@ import {
   levantarCarteira,
   type ClienteCarteira,
 } from '@/data/levantamentoCarteira'
+import { CAMPOS_AUSENTES, CARTEIRA, ORIGEM_CARTEIRA } from '@/data/carteiraRegimes'
 
 /**
  * LEVANTAMENTO DE CARTEIRA — quem se enquadra em regime específico
@@ -67,33 +68,21 @@ export function ParametrizadorLevantamento() {
   const [filtroCriterio, setFiltroCriterio] = useState('')
 
   /**
-   * Carrega a carteira.
+   * A CARTEIRA VEM COMO DADO ESTÁTICO, e isso é decisão técnica, não preguiça.
    *
-   * A rota lê a COLEÇÃO `clients` do projeto 56819 (Sistema ADECONT Financeiro).
-   * Se não estiver acessível, a tela diz isso — não inventa carteira.
+   * A coleção `clients` vive no projeto 56819 e este app roda no 62493 —
+   * backends separados. Testado: /api/collections/clients devolve 404 daqui.
+   * Pedir ao backend algo que ele não tem faria a tela dizer "nenhum cliente se
+   * enquadra", que é mentira.
+   *
+   * O CSV da carga do sistema contábil é a fonte real disponível — e é a MESMA
+   * que alimentou o cadastro.
    */
-  const carregar = useCallback(async () => {
-    setCarregando(true)
-    setErro(null)
-    try {
-      const r = await fetch(`${BACKEND}/backend/v1/param-carteira-regimes`, {
-        headers: { 'X-Painel-Token': window.localStorage.getItem(TOKEN_KEY) || '' },
-      })
-      const j = await r.json()
-      if (!r.ok) throw new Error(j.error || `Falha (${r.status})`)
-      setClientes(j.clientes || [])
-      setOrigem(j.origem || '')
-    } catch (e: any) {
-      setErro(e.message)
-      setClientes([])
-    } finally {
-      setCarregando(false)
-    }
-  }, [])
-
   useEffect(() => {
-    carregar()
-  }, [carregar])
+    setClientes(CARTEIRA)
+    setOrigem(ORIGEM_CARTEIRA)
+    setCarregando(false)
+  }, [])
 
   const resultado = useMemo(() => levantarCarteira(clientes), [clientes])
 
@@ -266,7 +255,10 @@ body{font-family:ui-monospace,"Courier New",monospace;font-size:9.5px;line-heigh
         <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
-            onClick={carregar}
+            onClick={() => {
+              setClientes([])
+              setTimeout(() => setClientes(CARTEIRA), 60)
+            }}
             disabled={carregando}
             className="inline-flex items-center gap-1.5 rounded-lg bg-panorama-navy px-3 py-1.5 text-[11px] font-bold text-panorama-gold-light hover:bg-slate-900 disabled:opacity-40 cursor-pointer"
           >
@@ -341,6 +333,12 @@ body{font-family:ui-monospace,"Courier New",monospace;font-size:9.5px;line-heigh
         {origem && (
           <p className="mt-1.5 text-[9px] text-slate-500">
             <b>Origem dos dados:</b> {origem}
+          </p>
+        )}
+        {CAMPOS_AUSENTES.length > 0 && (
+          <p className="mt-0.5 text-[9px] text-amber-800">
+            <b>Campos ausentes no cadastro:</b> {CAMPOS_AUSENTES.join(', ')} — os critérios que
+            dependem deles saem como <b>pendente</b>, nunca como «não é».
           </p>
         )}
       </div>
