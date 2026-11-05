@@ -207,7 +207,6 @@ body{font-family:ui-monospace,"Courier New",monospace;font-size:10px;line-height
               <span className="ml-2 text-slate-500">{conferencia.nota}</span>
             </p>
           </div>
-        ) : (
         )}
       </div>
 
