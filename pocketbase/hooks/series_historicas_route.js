@@ -23,8 +23,18 @@
  * inflação/taxas/câmbio: âncoras mensais internas) — sempre com aviso transparente.
  *
  * Regras intocáveis mantidas: routerAdd com 2 argumentos; FipeZap
- * semVivoNoPedido (só cache do cron); Ibovespa via IPEADATA GM366_IBVSP366;
- * timeout individual 5s e orçamento total ~11s por pedido.
+ * semVivoNoPedido (só cache do cron); Ibovespa via IPEADATA GM366_IBVSP366.
+ *
+ * CORREÇÃO v0.0.567 (completar índices de mercado, confirmado ao vivo):
+ * 1. IPEADATA paginado por JANELAS de VALDATA ($filter ge/lt, 3 anos), do
+ *    mais recente para o mais antigo e ordenado no fim — o $orderby global
+ *    não é honrado e $top=1600 devolvia a página ASCENDENTE (Ibovespa
+ *    parava em set/2019).
+ * 2. Chaves de mercado (ibovespa/ifix/sp500/dowjones/nasdaq): timeout
+ *    individual 15s, orçamento 40s e TTL 26h — as séries GM366_* geradas
+ *    pela API respondem devagar (estouravam 5s); o cron refresh_series_cache
+ *    aquece o cache das 5 todo dia 03:20 UTC.
+ * 3. Parâmetro ?reteste=1 fura o cache e força coleta viva (validação).
  */
 routerAdd('GET', '/backend/v1/series-historicas', (e) => {
   // ------------------------------------------------------------------
@@ -111,6 +121,8 @@ routerAdd('GET', '/backend/v1/series-historicas', (e) => {
     q = {}
   }
   const chave = String(q['chave'] || '')
+  // reteste=1 (validação): fura o cache e força a coleta viva.
+  const forcarVivo = q['reteste'] === '1' || q['reteste'] === 'true'
 
   let resposta = null
   try {
@@ -119,6 +131,12 @@ routerAdd('GET', '/backend/v1/series-historicas', (e) => {
     const TETO_PONTOS = 3000
     const TTL_PADRAO_MS = 6 * 3600 * 1000 // 6 h
     const TTL_FIPEZAP_MS = 26 * 3600 * 1000 // 26 h (cron diário mantém quente)
+    // Mercado (ibovespa/ifix/sp500/dowjones/nasdaq): fontes IPEADATA geradas
+    // respondem devagar — timeout e orçamento maiores + TTL longo mantido
+    // quente pelo cron refresh_series_cache (mesmo padrão do FipeZap).
+    const TIMEOUT_MERCADO_S = 15
+    const ORCAMENTO_MERCADO_MS = 40000
+    const TTL_MERCADO_MS = 26 * 3600 * 1000 // 26 h
     const CAB = {
       'User-Agent':
         'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -188,9 +206,12 @@ routerAdd('GET', '/backend/v1/series-historicas', (e) => {
       ibovespa: {
         fonte: 'B3 / Banco Central / IPEADATA',
         agreg: 'mensal_ultimo',
+        ttlMs: TTL_MERCADO_MS,
+        timeoutS: TIMEOUT_MERCADO_S,
+        orcamentoMs: ORCAMENTO_MERCADO_MS,
         candidatos: [
-          { tipo: 'bcb', codigo: 7 },
           { tipo: 'ipea', codigos: ['GM366_IBVSP366'] },
+          { tipo: 'bcb', codigo: 7 },
         ],
       },
       // FipeZap: série correta é a SGS 19967 (mensal), porém a fonte trava.
@@ -204,21 +225,33 @@ routerAdd('GET', '/backend/v1/series-historicas', (e) => {
       sp500: {
         fonte: 'IPEA — IPEADATA (S&P 500)',
         agreg: 'mensal_ultimo',
+        ttlMs: TTL_MERCADO_MS,
+        timeoutS: TIMEOUT_MERCADO_S,
+        orcamentoMs: ORCAMENTO_MERCADO_MS,
         candidatos: [{ tipo: 'ipea', codigos: ['GM366_SP500366'] }],
       },
       dowjones: {
         fonte: 'IPEA — IPEADATA (Dow Jones)',
         agreg: 'mensal_ultimo',
+        ttlMs: TTL_MERCADO_MS,
+        timeoutS: TIMEOUT_MERCADO_S,
+        orcamentoMs: ORCAMENTO_MERCADO_MS,
         candidatos: [{ tipo: 'ipea', codigos: ['GM366_DJIA366'] }],
       },
       nasdaq: {
         fonte: 'IPEA — IPEADATA (Nasdaq)',
         agreg: 'mensal_ultimo',
+        ttlMs: TTL_MERCADO_MS,
+        timeoutS: TIMEOUT_MERCADO_S,
+        orcamentoMs: ORCAMENTO_MERCADO_MS,
         candidatos: [{ tipo: 'ipea', codigos: ['GM366_NASDAQ366'] }],
       },
       ifix: {
         fonte: 'IPEA — IPEADATA (IFIX)',
         agreg: 'mensal_ultimo',
+        ttlMs: TTL_MERCADO_MS,
+        timeoutS: TIMEOUT_MERCADO_S,
+        orcamentoMs: ORCAMENTO_MERCADO_MS,
         candidatos: [{ tipo: 'ipea', codigos: ['GM366_IFIX366'] }],
       },
       // — Agronegócio (diária → último do mês) —
@@ -303,12 +336,100 @@ routerAdd('GET', '/backend/v1/series-historicas', (e) => {
           '/p/last%20160'
         )
       }
-      // IPEADATA
-      return (
-        "https://www.ipeadata.gov.br/api/odata4/ValoresSerie(SERCODIGO='" +
-        cand.codigos[0] +
-        "')?$top=1600&$orderby=VALDATA%20desc"
-      )
+      // IPEADATA — JANELAS de VALDATA ($filter ge/lt, 3 anos por pedido),
+      // do MAIS RECENTE para o mais antigo. Confirmado ao vivo (05/11): a
+      // API NÃO honra $orderby com $filter e o $top=1600 devolvia a página
+      // ASCENDENTE (Ibovespa parava em set/2019). A ordem é corrigida no fim.
+      // dataInicial opcional corta janelas mais antigas que o início da série.
+      return {
+        base:
+          "https://www.ipeadata.gov.br/api/odata4/ValoresSerie(SERCODIGO='" +
+          cand.codigos[0] +
+          "')",
+        dataInicial: cand.dataInicial || '',
+      }
+    }
+
+    function escapeOdataData(iso) {
+      // VALDATA comparado com datetime ISO — o IPEADATA aceita '2020-01-01'.
+      return iso + 'T00:00:00'
+    }
+
+    // Coleta UMA janela (dataInicial..dataFinal ISO) de um código IPEADATA.
+    // Devolve os pontos ASCENDENTES da janela ([] em falha) e o total real.
+    function coletarJanelaIpea(base, dataInicial, dataFinal, timeoutSegundos, CABlocal) {
+      let url =
+        base +
+        '?$top=1200&$filter=VALDATA%20ge%20' +
+        escapeOdataData(dataInicial) +
+        '%20and%20VALDATA%20lt%20' +
+        escapeOdataData(dataFinal)
+      const resp = $http.send({
+        url: url,
+        method: 'GET',
+        timeout: timeoutSegundos,
+        headers: CABlocal,
+      })
+      if (!resp || resp.statusCode < 200 || resp.statusCode >= 400) return []
+      const body = resp.json
+      const arr = body && body.value ? body.value : []
+      const pontos = []
+      for (let i = 0; i < arr.length; i++) {
+        const linha = arr[i]
+        if (!linha) continue
+        const data = String(linha.VALDATA || '')
+        if (data.length < 7) continue
+        const valor = parseFloat(linha.VALVALOR)
+        if (!isFinite(valor)) continue
+        pontos.push({ periodo: data.slice(0, 7), valor: valor })
+      }
+      return pontos
+    }
+
+    // Série IPEADATA completa: janelas de 3 anos do mais recente ao mais
+    // antigo, concatenadas e REORDENADAS ascendente no fim (a página única
+    // com $top devolvia só a parte antiga — causa raiz confirmada da série
+    // do Ibovespa parar em 2019).
+    function coletarIpeaJanelas(codigos, timeoutSegundos, orcamentoMs, dataInicial) {
+      const anoAtual = new Date().getFullYear()
+      const dataInicialIso = String(dataInicial || '2014-01-01').slice(0, 10)
+      const inicioBudget = new Date().getTime()
+      for (let ci = 0; ci < codigos.length; ci++) {
+        const base = urlDoCandidato({
+          tipo: 'ipea',
+          codigos: [codigos[ci]],
+          dataInicial: dataInicialIso,
+        })
+        const todos = []
+        for (let anoFim = anoAtual + 1; anoFim >= 2014; anoFim -= 3) {
+          const restante = orcamentoMs - (new Date().getTime() - inicioBudget)
+          if (restante < 400) break
+          const dataFim = String(Math.max(anoFim, 2015)) + '-01-01'
+          const dataIniJanela =
+            dataFim === '2015-01-01' ? dataInicialIso : String(anoFim - 3) + '-01-01'
+          if (dataIniJanela >= dataFim) continue
+          let janela = []
+          try {
+            janela = coletarJanelaIpea(
+              base.base,
+              dataIniJanela,
+              dataFim,
+              Math.max(1, Math.min(timeoutSegundos, Math.floor(restante / 1000))),
+              CAB,
+            )
+          } catch (_) {
+            janela = []
+          }
+          for (let k = 0; k < janela.length; k++) todos.push(janela[k])
+        }
+        if (todos.length > 0) {
+          todos.sort(function (a, b) {
+            return a.periodo < b.periodo ? -1 : a.periodo > b.periodo ? 1 : 0
+          })
+          return todos
+        }
+      }
+      return []
     }
 
     // Um candidato = UMA fonte, com o PRÓPRIO timeout (a fonte lenta nunca
@@ -327,7 +448,17 @@ routerAdd('GET', '/backend/v1/series-historicas', (e) => {
       return coletados
     }
 
-    function coletarCandidato(cand, timeoutSegundos, agreg, inicioBudget) {
+    function coletarCandidato(cand, timeoutSegundos, agreg, inicioBudget, orcamentoMs) {
+      // IPEADATA: JANELAS de VALDATA — a página única com $top devolvia só a
+      // parte antiga da série (causa raiz do Ibovespa parar em set/2019).
+      if (cand.tipo === 'ipea') {
+        return coletarIpeaJanelas(
+          cand.codigos,
+          timeoutSegundos,
+          orcamentoMs || ORCAMENTO_TOTAL_MS,
+          ANO_INICIO_FIXO + '-01-01',
+        )
+      }
       if (cand.tipo === 'bcb' && agreg === 'mensal_ultimo') {
         // Séries DIÁRIAS: o BCData recusa janelas > 10 anos (a partir de HOJE,
         // não do ano civil — 01/01/(ano-10) também estoura) com HTTP 200 e
@@ -423,17 +554,29 @@ routerAdd('GET', '/backend/v1/series-historicas', (e) => {
       const inicio = new Date().getTime()
       const candidatos = item.candidatos || []
       for (let i = 0; i < candidatos.length; i++) {
-        const restante = ORCAMENTO_TOTAL_MS - (new Date().getTime() - inicio)
+        const orcamentoMs = item.orcamentoMs || ORCAMENTO_TOTAL_MS
+        const restante = orcamentoMs - (new Date().getTime() - inicio)
         if (restante < 400) break
-        const timeoutSegundos = Math.max(1, Math.min(TIMEOUT_FONTE_S, Math.floor(restante / 1000)))
+        const timeoutSegundos = Math.max(
+          1,
+          Math.min(item.timeoutS || TIMEOUT_FONTE_S, Math.floor(restante / 1000)),
+        )
         try {
-          const pontos = coletarCandidato(candidatos[i], timeoutSegundos, item.agreg, inicio)
+          const pontos = coletarCandidato(
+            candidatos[i],
+            timeoutSegundos,
+            item.agreg,
+            inicio,
+            orcamentoMs,
+          )
           if (pontos.length === 0) {
             console.log(
               'series-historicas: candidato sem pontos (' +
                 chave +
                 '): ' +
-                urlDoCandidato(candidatos[i], item.agreg),
+                (candidatos[i].tipo === 'ipea'
+                  ? 'ipeadata ' + String(candidatos[i].codigos || [])
+                  : urlDoCandidato(candidatos[i], item.agreg)),
             )
           }
           if (pontos.length > 0) {
@@ -537,7 +680,7 @@ routerAdd('GET', '/backend/v1/series-historicas', (e) => {
       }
     }
 
-    function resolver(c) {
+    function resolver(c, forcarVivo) {
       c = String(c || '')
       const item = CATALOGO[c]
       if (!item) {
@@ -552,6 +695,21 @@ routerAdd('GET', '/backend/v1/series-historicas', (e) => {
             ? 'Série disponível apenas na base interna aproximada do sistema.'
             : 'Série não catalogada — disponível apenas na base interna do sistema.',
         )
+      }
+
+      // reteste=1 (validação): fura o cache e força a coleta viva primeiro.
+      if (forcarVivo && !item.semVivoNoPedido) {
+        let vivosReteste = []
+        try {
+          vivosReteste = coletarVivo(item)
+        } catch (errReteste) {
+          console.log('series-historicas: reteste vivo de ' + c + ' falhou: ' + String(errReteste))
+          vivosReteste = []
+        }
+        if (vivosReteste.length > 0) {
+          salvarCache(c, vivosReteste)
+          return formatar(c, item, true, false, vivosReteste, '')
+        }
       }
 
       const ttl = item.ttlMs || TTL_PADRAO_MS
@@ -611,7 +769,7 @@ routerAdd('GET', '/backend/v1/series-historicas', (e) => {
       )
     }
 
-    resposta = resolver(chave)
+    resposta = resolver(chave, forcarVivo)
   } catch (err) {
     // LOG OBRIGATÓRIO (mantido): o erro real aparece nos logs hooks — o guard
     // abaixo NUNCA deve mascarar uma falha de execução sem rastro.

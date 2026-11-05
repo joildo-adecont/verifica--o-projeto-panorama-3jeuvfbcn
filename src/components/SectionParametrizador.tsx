@@ -25,6 +25,7 @@ import { ParametrizadorTesteIndividual } from '@/components/ParametrizadorTesteI
 import { ParametrizadorPastas } from '@/components/ParametrizadorPastas'
 import { ParametrizadorAnalisador } from '@/components/ParametrizadorAnalisador'
 import { ParametrizadorConferencia } from '@/components/ParametrizadorConferencia'
+import { ParametrizadorNcm } from '@/components/ParametrizadorNcm'
 
 /**
  * PARAMETRIZADOR DE DOCUMENTOS FISCAIS DA REFORMA — Seção 31
@@ -248,6 +249,7 @@ export function SectionParametrizador() {
     | 'pastas'
     | 'analisador'
     | 'conferencia'
+    | 'ncm'
   >('catalogo')
   const [xml, setXml] = useState('')
   const [nomeArquivo, setNomeArquivo] = useState('documento.xml')
@@ -392,6 +394,9 @@ export function SectionParametrizador() {
               /* LISTA DE CONFERÊNCIA (04/11/2026): os NCMs sem regra de alíquota,
                  separados por rendimento da conferência (caso A × caso B). */
               { id: 'conferencia' as const, nome: 'Conferência de NCM', Icon: ClipboardList },
+              /* TABELA NCM (04/11/2026): os 15.040 códigos vigentes, com ato de
+                 origem por linha e monitoramento pelos agentes de fontes. */
+              { id: 'ncm' as const, nome: 'Tabela NCM', Icon: BookMarked },
             ].map((t) => (
               <button
                 key={t.id}
@@ -887,6 +892,9 @@ export function SectionParametrizador() {
 
           {/* ══════════ LISTA DE CONFERÊNCIA DE NCM ══════════ */}
           {aba === 'conferencia' && <ParametrizadorConferencia />}
+
+          {/* ══════════ TABELA NCM COMPLETA ══════════ */}
+          {aba === 'ncm' && <ParametrizadorNcm />}
 
           {/* rodapé */}
           <div className="flex items-center gap-1.5 flex-wrap rounded-lg bg-slate-50 px-2 py-1.5 text-[9px] text-slate-500">
