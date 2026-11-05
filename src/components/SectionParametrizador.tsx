@@ -13,6 +13,7 @@ import {
   Folder,
   Scale,
   ClipboardList,
+  ClipboardCheck,
   Layers,
   RefreshCw,
   ScanLine,
