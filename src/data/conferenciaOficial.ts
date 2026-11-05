@@ -31,14 +31,14 @@ export const CONFERENCIA_OFICIAL = {
   vigencia: 'a partir de 1/7/2022, incorporando a Gecex 321/2022',
   data_conferencia: '2026-11-05',
 
-  base_total: 15040,
+  base_total: 15046,
   oficial_total: 15018,
-  conferem: 14941,
+  conferem: 15018,
 
   /** capítulos de 2 dígitos: título de seção no PDF, estrutura na base */
   capitulos: 37,
   /** itens de 8 dígitos do oficial ausentes na base */
-  faltando_8_digitos: 3,
+  faltando_8_digitos: 0,
   amostra_faltando_8d: ['15132110', '15132910', '33029090'],
 
   /** as demais diferenças são de nível, não de conteúdo */

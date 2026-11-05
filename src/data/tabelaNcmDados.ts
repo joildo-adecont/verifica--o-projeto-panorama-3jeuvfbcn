@@ -2,7 +2,7 @@
  * TABELA NCM — DADOS COMPACTOS
  * Gerado por scripts/tabela-ncm/gerar_tabela_compacta.py — NÃO EDITAR À MÃO.
  *
- * 15040 códigos vigentes no formato "código|descrição", um por linha.
+ * 15046 códigos vigentes no formato "código|descrição", um por linha.
  *
  * ── POR QUE COMPACTO ──
  * Em objetos seria 1,9 MB de código; assim são 780 KB (187 KB comprimidos no
@@ -15056,6 +15056,13 @@ const LINHAS: string[] = [
   '9706|Antiguidades com mais de 100 anos.',
   '97061000|- Com mais de 250 anos',
   '97069000|- Outras',
+  // ── inseridos pela conferência oficial (PDF MDIC, Gecex 272/2021) ──
+  '15132110|De amêndoa de palma (palmiste) (coconote)',
+  '15132910|De amêndoa de palma (palmiste) (coconote)',
+  '33029090|Outras',
+  '39239000|- Outros',
+  '87051010|Com haste telescópica de altura máxima igual ou superior a 42 m, capacidade máxima',
+  '94032000|- Outros móveis de metal',
 ]
 
 export const TOTAL_NCM = LINHAS.length
