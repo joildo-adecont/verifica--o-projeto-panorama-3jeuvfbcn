@@ -130,6 +130,32 @@ const REGISTROS: Registro[] = [
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
     data: '05/11/2026',
+    hora: '23:55',
+    titulo:
+      'Conferência da tabela NCM contra o PDF oficial do MDIC (15.018 códigos) + tabela de enquadramento tributário × atividades para o cruzamento',
+    conteudo:
+      'A pedido do CEO: conferencia completa e busca dos NCM em fontes oficiais (para analises tributarias e identificacao de produtos) e tabela de enquadramento tributario e atividades comerciais, para cruzamento na construcao da melhor opcao tributaria. (1) CONFERENCIA CONTRA A FONTE OFICIAL: baixado o PDF ORIGINAL do MDIC — Anexo I da Resolucao Gecex 272/2021, 453 paginas, 7,3 MB, vigencia desde 1/7/2022 com a Gecex 321/2022 incorporada. Extraidos 15.018 codigos; 14.941 conferem com a base do sistema. As diferencas de contagem sao de NIVEL DE DESDOBRAMENTO, nao de conteudo: 37 capitulos de 2 digitos sao TITULO DE SECAO no PDF (a base os tem como estrutura, correto) e 37 subposicoes de 6 digitos sao desdobradas em itens de 8 na base (os dois certos, em niveis diferentes). Restaram 3 itens de 8 digitos ausentes. (2) CINCO TENTATIVAS DE EXTRACAO, e o que cada erro ensinou: regex no texto corrido pegou 966 (colunas embaralhadas); corte por x0 fixo pegou 10 (engolia descricao porque a posicao de 4 digitos comeca na mesma coluna do codigo); por primeiro token pegou 957; o problema real era o PADRAO que aceitava no maximo dois niveis de ponto e nao casava 0101.21.00 (4.2.2). Corrigido para 2-4 digitos com ate 3 grupos, a extracao chegou a 15.018. LICAO: durante tres rodadas eu culpei o PDF e o layout quando o defeito era o meu regex. (3) ENQUADRAMENTO TRIBUTARIO: 4 regimes (MEI, Simples, Presumido, Real) x 9 atividades (comercio, industria, servicos, alimentacao, agro, saude, construcao, financeiro, tecnologia) = 36 cruzamentos. Cada regime traz limites, o que muda na reforma com base legal e o alerta principal; cada atividade traz grupos CNAE, anexos tipicos da LC 214, o que pesa e o cuidado especifico. O cruzamento devolve FATORES e prioridade de conferencia, nunca veredito de melhor regime — a escolha depende de folha, margem, credito acumulado e beneficio estadual, que tabela nenhuma captura. Matriz visual com 36 celulas (verde favorece, vermelho pesa, ambar depende). DEFEITOS CORRIGIDOS: o componente nasceu com ternario JSX sem else e depois com fragmento sem fechamento, quebrando o build duas vezes; e a conferencia chegou a ser lida por rota HTTP quando o backend roda em outro host e nao enxerga os arquivos do script — passou a ser DADO ESTATICO gerado no build, que e o unico caminho sem transporte.',
+    fontes: [
+      {
+        titulo: 'Anexo I da Resolução Gecex nº 272/2021 — PDF oficial do MDIC (453 páginas)',
+        url: 'https://www.gov.br/mdic/pt-br/assuntos/camex/resolucoes/gecex/resolucoes-compiladas/resolucao-gecex-no-272-anexo-i-20220701.pdf',
+      },
+      {
+        titulo: 'LC 214/2025 — arts. 41, 127, 164-171, 252-261 e 343 (normas.leg.br)',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2025-01-16;214',
+      },
+      {
+        titulo: 'LC 123/2006 — Simples Nacional e MEI',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2006-12-14;123',
+      },
+    ],
+    caminho:
+      'scripts/tabela-ncm/conferir_oficial.py + src/data/conferenciaOficial.ts + src/data/enquadramento.ts + src/components/ParametrizadorEnquadramento.tsx',
+    versao: 'v0.0.593',
+    bloco: 'sistema',
+  },
+  {
+    data: '05/11/2026',
     hora: '23:30',
     titulo:
       'Monitor diário da tabela NCM no agendamento (05:30) — e o defeito de arquitetura que o teste de leitura revelou',
