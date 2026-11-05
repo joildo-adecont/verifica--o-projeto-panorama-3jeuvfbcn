@@ -1,12 +1,12 @@
 /**
  * CARTEIRA REAL — 497 clientes do Sistema ADECONT Financeiro
- * Gerado de `artifacts/empresas_carga_skip.csv` (carga de 26/09/2026) por
+ * Gerado de "artifacts/empresas_carga_skip.csv" (carga de 26/09/2026) por
  * scripts/tabela-ncm/gerar_carteira.py — NÃO EDITAR À MÃO.
  *
  * ── POR QUE DADO ESTÁTICO, E NÃO CONSULTA AO BANCO ──
- * A coleção `clients` vive no projeto Skip **56819**, e este app roda no
- * **62493** — backends separados. Testei: `/api/collections/clients` devolve
- * **404** daqui, e `$app.findCollectionByNameOrId('clients')` responde
+ * A coleção "clients" vive no projeto Skip **56819**, e este app roda no
+ * **62493** — backends separados. Testei: "/api/collections/clients" devolve
+ * **404** daqui, e "$app.findCollectionByNameOrId('clients')" responde
  * "no rows in result set". Consultar não é possível.
  *
  * A alternativa seria pedir ao backend algo que ele não tem — e a tela diria
@@ -14,7 +14,7 @@
  * disponível, e é a MESMA que alimentou o sistema contábil.
  *
  * ── O QUE NÃO ESTÁ AQUI, E POR QUE ──
- * `cnae` e `receita_anual` vêm vazios: a exportação do sistema contábil não
+ * "cnae" e "receita_anual" vêm vazios: a exportação do sistema contábil não
  * trouxe CNAE. O levantamento trata os dois campos vazios como PENDENTE —
  * nunca como "não é".
  */
