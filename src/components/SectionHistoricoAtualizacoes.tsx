@@ -129,6 +129,24 @@ const REGISTROS: Registro[] = [
   },
   // ============ BLOCO: ATUALIZAÇÃO DO SISTEMA ============
   {
+    data: '06/11/2026',
+    hora: '00:10',
+    titulo:
+      'Conferência oficial do NCM FECHADA: os 6 itens de 8 dígitos ausentes foram identificados no PDF do MDIC e inseridos na base',
+    conteudo:
+      'O CEO pediu para corrigir os itens ausentes. A extracao correta revelou SEIS (nao tres, como a amostra sugeria): 1513.21.10 e 1513.29.10 (oleo de amendoa de palma, p.59), 3302.90.90 (p.166), 3923.90.00 (p.199), 8705.10.10 (p.414) e 9403.20.00 (p.443). Cada um foi CONFERIDO NO PDF, com pagina e linha registradas — nao incluí por semelhanca, inclui por prova documental. Os seis tem o pai na base (posicao de 4 digitos, e em quatro deles tambem a subposicao de 6), o que confirma que a falha era de espelho (a BrasilAPI nao traz todos) e nao de estrutura. Resultado: base passa de 15.040 para 15.046 codigos, a conferencia fecha em ZERO itens de 8 digitos ausentes, e os 10.441 itens de 8 digitos do PDF estao todos presentes. Integridade revalidada: zero duplicatas, distribuicao por tamanho coerente (2d=96, 4d=957, 5d=1024, 6d=1640, 7d=888, 8d=10441). POR QUE ISSO IMPORTA MAIS DO QUE PARECE: item ausente nao desaparece, ele aparece ERRADO — o motor nao acha regra para um codigo que nao conhece e o classifica como tributacao integral, quando o codigo pode ter tratamento proprio. Seis itens a mais custam nada; seis classificacoes erradas contaminam credito, debito e relatorio. Os seis ficam registrados na tela de conferencia com pagina do PDF, para que quem auditar depois veja o que foi corrigido e com que prova.',
+    fontes: [
+      {
+        titulo: 'Anexo I da Resolução Gecex nº 272/2021 — PDF oficial do MDIC',
+        url: 'https://www.gov.br/mdic/pt-br/assuntos/camex/resolucoes/gecex/resolucoes-compiladas/resolucao-gecex-no-272-anexo-i-20220701.pdf',
+      },
+    ],
+    caminho:
+      'scripts/tabela-ncm/achar_ausentes.py + scripts/tabela-ncm/inserir_ausentes.py + src/data/tabelaNcmDados.ts + src/data/conferenciaOficial.ts',
+    versao: 'v0.0.598',
+    bloco: 'sistema',
+  },
+  {
     data: '05/11/2026',
     hora: '23:55',
     titulo:
