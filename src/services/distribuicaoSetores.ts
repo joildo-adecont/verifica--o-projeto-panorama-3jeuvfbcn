@@ -42,9 +42,9 @@ const SETOR_POR_CATEGORIA: Record<string, string> = {
   Fiscal: 'Estatísticas do País',
   Renda: 'Estatísticas do País',
   Emprego: 'Emprego',
-  Educação: 'Educação',
-  Saúde: 'Saúde',
-  Saneamento: 'Saneamento',
+  Educação: 'Social',
+  Saúde: 'Social',
+  Saneamento: 'Social',
 }
 
 /** Cor própria de cada fatia — paleta consistente com o portal (navy/gold). */
@@ -57,9 +57,7 @@ const COR_POR_SETOR: Record<string, string> = {
   Agronegócio: '#15803d',
   'Estatísticas do País': '#475569',
   Emprego: '#c2410c',
-  Educação: '#2563eb',
-  Saúde: '#db2777',
-  Saneamento: '#0891b2',
+  Social: '#d946ef',
 }
 
 /** Indicador representativo de cada setor — aberto ao clicar na fatia. */
@@ -72,9 +70,7 @@ const REPRESENTANTE_POR_SETOR: Record<string, ChaveSerieHistorica> = {
   Agronegócio: 'soja',
   'Estatísticas do País': 'pib',
   Emprego: 'taxa_desemprego_pnad',
-  Educação: 'ideb_anos_iniciais',
-  Saúde: 'internacoes_aih',
-  Saneamento: 'acesso_agua',
+  Social: 'ideb_anos_iniciais',
 }
 
 /** Ordem fixa de exibição das fatias (a mesma das chaves de COR_POR_SETOR). */
