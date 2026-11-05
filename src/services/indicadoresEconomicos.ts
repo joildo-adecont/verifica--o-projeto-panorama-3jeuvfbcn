@@ -81,6 +81,9 @@ export type FonteEstatisticaId =
   | 'caged'
   | 'b3_mercado'
   | 'bcb_bacen'
+  | 'ibge_populacao'
+  | 'ibge_pms'
+  | 'ibge_construcao'
 
 export const FONTES_ESTATISTICAS_META: Record<
   FonteEstatisticaId,
