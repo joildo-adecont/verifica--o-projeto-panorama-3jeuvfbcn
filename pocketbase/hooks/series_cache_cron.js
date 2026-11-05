@@ -23,6 +23,12 @@
  * — os códigos IPEADATA GM366_* desses índices NÃO existem no catálogo
  * (Metadados('X') vazio, comprovado um a um). IFIX mantém candidato IPEA;
  * sem pontos vivos → degradação para a base interna (nunca série vazia).
+ *
+ * v0.0.585: Stooq é INALCANÇÁVEL do backend (context deadline exceeded).
+ * sp500/dowjones/nasdaq coletam agora do Yahoo Finance chart API (sem chave,
+ * %5EGSPC/%5EDJI/%5EIXIC, interval=1mo&range=15y) com timeout CURTO de 5s,
+ * tentando o Stooq logo atrás. Timeouts do cron reduzidos — o job nunca
+ * fica pendurado numa fonte morta.
  */
 cronAdd('refresh_series_cache', '20 3 * * *', () => {
   const CAB = {
@@ -31,7 +37,8 @@ cronAdd('refresh_series_cache', '20 3 * * *', () => {
     Accept: 'application/json,text/plain,*/*',
   }
   const ANO_INICIO = 2014
-  const TIMEOUT_MERCADO_S = 20 // séries IPEA geradas respondem devagar
+  const TIMEOUT_MERCADO_S = 10 // IPEA janelado (Ibovespa)
+  const TIMEOUT_GLOBAL_S = 5 // Yahoo/Stooq — curto, nunca pendura o job
   const TIMEOUT_PADRAO_S = 8
   const ORCAMENTO_CHAVE_MS = 9 * 60 * 1000 // 9 min por chave (job roda às 03:20)
   const TTL_PADRAO_MS = 6 * 3600 * 1000
@@ -168,6 +175,43 @@ cronAdd('refresh_series_cache', '20 3 * * *', () => {
     return coletados
   }
 
+  // Yahoo Finance chart API (sem chave): JSON mensal com timestamp[] + close.
+  function coletarYahoo(simbolo) {
+    let resp = null
+    try {
+      resp = $http.send({
+        url:
+          'https://query1.finance.yahoo.com/v8/finance/chart/' +
+          simbolo +
+          '?interval=1mo&range=15y',
+        method: 'GET',
+        timeout: TIMEOUT_GLOBAL_S,
+        headers: CAB,
+      })
+    } catch (_) {
+      resp = null
+    }
+    if (!resp || resp.statusCode < 200 || resp.statusCode >= 400) return []
+    const j = resp.json
+    const resultado = j && j.chart && j.chart.result ? j.chart.result[0] : null
+    if (!resultado) return []
+    const stamps = resultado.timestamp || []
+    const quote =
+      resultado.indicators && resultado.indicators.quote ? resultado.indicators.quote[0] || {} : {}
+    const closes = quote.close || []
+    const coletados = []
+    for (let i = 0; i < stamps.length && i < closes.length; i++) {
+      const d = new Date(stamps[i] * 1000)
+      const valor = parseFloat(closes[i])
+      if (!isFinite(valor) || valor <= 0) continue
+      coletados.push({
+        periodo: d.getUTCFullYear() + '-' + String(d.getUTCMonth() + 1).padStart(2, '0'),
+        valor: valor,
+      })
+    }
+    return coletados
+  }
+
   // Stooq (índices globais): CSV mensal direto — sem chave, sem janela.
   function coletarStooq(simbolo) {
     const anoAtual = new Date().getFullYear()
@@ -208,12 +252,14 @@ cronAdd('refresh_series_cache', '20 3 * * *', () => {
   // Catálogo do cron: chave → {ttlMs, fonte: 'bcb'|'ipea', codigo}
   // ORDEM: mercado primeiro (é o que o Histórico precisa ter quente).
   const CATALOGO = [
+    // Mercado primeiro (é o que o Histórico precisa ter quente). sp500/
+    // dowjones/nasdaq: Yahoo como fonte primária, Stooq atrás (rota idem).
     { chave: 'fipezap', ttlMs: TTL_LONGO_MS, fonte: 'bcb', codigo: 19967 },
     { chave: 'ibovespa', ttlMs: TTL_LONGO_MS, fonte: 'ipea', codigo: 'GM366_IBVSP366' },
     { chave: 'ifix', ttlMs: TTL_LONGO_MS, fonte: 'ipea', codigo: 'GM366_IFIX366' },
-    { chave: 'sp500', ttlMs: TTL_LONGO_MS, fonte: 'ipea', codigo: 'GM366_SP500366' },
-    { chave: 'dowjones', ttlMs: TTL_LONGO_MS, fonte: 'ipea', codigo: 'GM366_DJIA366' },
-    { chave: 'nasdaq', ttlMs: TTL_LONGO_MS, fonte: 'ipea', codigo: 'GM366_NASDAQ366' },
+    { chave: 'sp500', ttlMs: TTL_LONGO_MS, fonte: 'global', simbolo: '%5EGSPC' },
+    { chave: 'dowjones', ttlMs: TTL_LONGO_MS, fonte: 'global', simbolo: '%5EDJI' },
+    { chave: 'nasdaq', ttlMs: TTL_LONGO_MS, fonte: 'global', simbolo: '%5EIXIC' },
     { chave: 'usd', ttlMs: TTL_PADRAO_MS, fonte: 'bcb', codigo: 10813 },
     { chave: 'eur', ttlMs: TTL_PADRAO_MS, fonte: 'bcb', codigo: 21619 },
     { chave: 'gbp', ttlMs: TTL_PADRAO_MS, fonte: 'bcb', codigo: 21621 },
@@ -274,8 +320,11 @@ cronAdd('refresh_series_cache', '20 3 * * *', () => {
       let pontos = []
       if (item.fonte === 'bcb') {
         pontos = coletarBcbMensalUltimo(item.codigo)
-      } else if (item.fonte === 'stooq') {
-        pontos = coletarStooq(item.simbolo)
+      } else if (item.fonte === 'global') {
+        // Yahoo primeiro (timeout 5s), Stooq logo atrás; sem pontos nos dois
+        // → degradação para a base interna na rota (nunca série vazia).
+        pontos = coletarYahoo(item.simbolo)
+        if (pontos.length === 0) pontos = coletarStooq(item.simbolo)
       } else {
         pontos = coletarIpeaJanelas(item.codigo, TIMEOUT_MERCADO_S, ORCAMENTO_CHAVE_MS)
       }

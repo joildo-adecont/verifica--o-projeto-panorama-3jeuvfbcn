@@ -44,6 +44,17 @@
  * IPEA mantido por trás caso a série venha a existir. IFIX não tem código
  * vivo comprovado (IPEA nem SGS): mantém a degradação para a base interna
  * com aviso — nunca série vazia.
+ *
+ * CORREÇÃO v0.0.585 (latência + fonte global alternativa):
+ * 1. Stooq é INALCANÇÁVEL do backend (logs hooks: "context deadline exceeded"
+ *    em TODAS as tentativas) e, com timeout longo, pendurava a rota 30s+.
+ * 2. sp500/dowjones/nasdaq tentam agora o Yahoo Finance chart API (sem chave,
+ *    %5EGSPC/%5EDJI/%5EIXIC, interval=1mo&range=15y) como PRIMEIRO candidato
+ *    vivo, com timeout CURTO (5s). Stooq fica ATRÁS (pode voltar a responder)
+ *    e o IPEA por último. Falha de todos → base interna com aviso.
+ * 3. ORÇAMENTO TOTAL de 15s por chave global (soma de TODOS os candidatos) —
+ *    mesmo com todas as fontes mortas a resposta sai em ~15s com pontos.
+ *    Ibovespa mantém o padrão provado ao vivo (IPEA janelado, TTL 26h).
  */
 routerAdd('GET', '/backend/v1/series-historicas', (e) => {
   // ------------------------------------------------------------------
@@ -140,12 +151,16 @@ routerAdd('GET', '/backend/v1/series-historicas', (e) => {
     const TETO_PONTOS = 3000
     const TTL_PADRAO_MS = 6 * 3600 * 1000 // 6 h
     const TTL_FIPEZAP_MS = 26 * 3600 * 1000 // 26 h (cron diário mantém quente)
-    // Mercado (ibovespa/ifix/sp500/dowjones/nasdaq): fontes IPEADATA geradas
-    // respondem devagar — timeout e orçamento maiores + TTL longo mantido
-    // quente pelo cron refresh_series_cache (mesmo padrão do FipeZap).
+    // Chaves GLOBAIS (sp500/dowjones/nasdaq): fontes externas sem chave
+    // (Yahoo/Stooq) com timeout CURTO por candidato e ORÇAMENTO TOTAL de 15s
+    // — o pior caso (todas as fontes mortas) responde em ~15s, nunca 30s+.
+    const TIMEOUT_GLOBAL_S = 5
+    const ORCAMENTO_GLOBAL_MS = 15000
+    const TTL_MERCADO_MS = 26 * 3600 * 1000 // 26 h
+    // Ibovespa: IPEADATA janelado responde devagar — padrão provado ao vivo
+    // mantido (timeout 15s/orçamento 40s), aquecido pelo cron (TTL 26h).
     const TIMEOUT_MERCADO_S = 15
     const ORCAMENTO_MERCADO_MS = 40000
-    const TTL_MERCADO_MS = 26 * 3600 * 1000 // 26 h
     const CAB = {
       'User-Agent':
         'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -232,50 +247,57 @@ routerAdd('GET', '/backend/v1/series-historicas', (e) => {
         candidatos: [{ tipo: 'bcb', codigo: 19967 }],
       },
       // S&P 500 / Dow Jones / Nasdaq: os códigos IPEADATA GM366_* NÃO existem
-      // no catálogo (Metadados('X') vazio, comprovado 05/11). Fonte viva =
-      // Stooq (CSV mensal sem chave); o candidato IPEA fica atrás caso a série
-      // venha a ser criada. Falha de ambos → base interna com aviso.
+      // no catálogo (Metadados('X') vazio, comprovado 05/11) e o Stooq é
+      // INALCANÇÁVEL do backend (context deadline exceeded). Fonte viva =
+      // Yahoo Finance chart API (sem chave), timeout CURTO, orçamento TOTAL
+      // de 15s; Stooq fica atrás (pode voltar a responder) e o IPEA por
+      // último. Falha de todos → base interna com aviso, nunca série vazia.
       sp500: {
-        fonte: 'S&P Dow Jones Indices / Stooq',
+        fonte: 'S&P Dow Jones Indices / Yahoo Finance',
         agreg: 'mensal_ultimo',
         ttlMs: TTL_MERCADO_MS,
-        timeoutS: TIMEOUT_MERCADO_S,
-        orcamentoMs: ORCAMENTO_MERCADO_MS,
+        timeoutS: TIMEOUT_GLOBAL_S,
+        orcamentoMs: ORCAMENTO_GLOBAL_MS,
         candidatos: [
+          { tipo: 'yahoo', simbolo: '%5EGSPC' },
           { tipo: 'stooq', simbolo: '%5Espx' },
           { tipo: 'ipea', codigos: ['GM366_SP500366'] },
         ],
       },
       dowjones: {
-        fonte: 'S&P Dow Jones Indices / Stooq',
+        fonte: 'S&P Dow Jones Indices / Yahoo Finance',
         agreg: 'mensal_ultimo',
         ttlMs: TTL_MERCADO_MS,
-        timeoutS: TIMEOUT_MERCADO_S,
-        orcamentoMs: ORCAMENTO_MERCADO_MS,
+        timeoutS: TIMEOUT_GLOBAL_S,
+        orcamentoMs: ORCAMENTO_GLOBAL_MS,
         candidatos: [
+          { tipo: 'yahoo', simbolo: '%5EDJI' },
           { tipo: 'stooq', simbolo: '%5Edji' },
           { tipo: 'ipea', codigos: ['GM366_DJIA366'] },
         ],
       },
       nasdaq: {
-        fonte: 'Nasdaq / Stooq',
+        fonte: 'Nasdaq / Yahoo Finance',
         agreg: 'mensal_ultimo',
         ttlMs: TTL_MERCADO_MS,
-        timeoutS: TIMEOUT_MERCADO_S,
-        orcamentoMs: ORCAMENTO_MERCADO_MS,
+        timeoutS: TIMEOUT_GLOBAL_S,
+        orcamentoMs: ORCAMENTO_GLOBAL_MS,
         candidatos: [
+          { tipo: 'yahoo', simbolo: '%5EIXIC' },
           { tipo: 'stooq', simbolo: '%5Endx' },
           { tipo: 'ipea', codigos: ['GM366_NASDAQ366'] },
         ],
       },
       // IFIX: nenhum código vivo comprovado no IPEADATA nem no BCB SGS —
       // degradação transparente para a base interna (nunca serie vazia).
+      // Timeout curto: o candidato IPEA não existe no catálogo (vazio) e não
+      // justifica esperar o padrão lento do Ibovespa.
       ifix: {
         fonte: 'B3 — IFIX',
         agreg: 'mensal_ultimo',
         ttlMs: TTL_MERCADO_MS,
-        timeoutS: TIMEOUT_MERCADO_S,
-        orcamentoMs: ORCAMENTO_MERCADO_MS,
+        timeoutS: TIMEOUT_GLOBAL_S,
+        orcamentoMs: ORCAMENTO_GLOBAL_MS,
         candidatos: [{ tipo: 'ipea', codigos: ['GM366_IFIX366'] }],
       },
       // — Agronegócio (diária → último do mês) —
@@ -485,6 +507,41 @@ routerAdd('GET', '/backend/v1/series-historicas', (e) => {
       return coletados
     }
 
+    // Yahoo Finance chart API (sem chave): JSON com timestamp[] e closes
+    // mensais — %5EGSPC/%5EDJI/%5EIXIC, interval=1mo&range=15y.
+    function coletarYahoo(simbolo, timeoutSegundos) {
+      const respY = $http.send({
+        url:
+          'https://query1.finance.yahoo.com/v8/finance/chart/' +
+          simbolo +
+          '?interval=1mo&range=15y',
+        method: 'GET',
+        timeout: timeoutSegundos,
+        headers: CAB,
+      })
+      if (!respY || respY.statusCode < 200 || respY.statusCode >= 400) return []
+      const j = respY.json
+      const resultado = j && j.chart && j.chart.result ? j.chart.result[0] : null
+      if (!resultado) return []
+      const stamps = resultado.timestamp || []
+      const quote =
+        resultado.indicators && resultado.indicators.quote
+          ? resultado.indicators.quote[0] || {}
+          : {}
+      const closes = quote.close || []
+      const coletados = []
+      for (let i = 0; i < stamps.length && i < closes.length; i++) {
+        const d = new Date(stamps[i] * 1000)
+        const valor = parseFloat(closes[i])
+        if (!isFinite(valor) || valor <= 0) continue
+        coletados.push({
+          periodo: d.getUTCFullYear() + '-' + String(d.getUTCMonth() + 1).padStart(2, '0'),
+          valor: valor,
+        })
+      }
+      return coletados
+    }
+
     function parseBcbLinhas(arr) {
       const coletados = []
       for (let i = 0; i < arr.length; i++) {
@@ -509,6 +566,10 @@ routerAdd('GET', '/backend/v1/series-historicas', (e) => {
           orcamentoMs || ORCAMENTO_TOTAL_MS,
           ANO_INICIO_FIXO + '-01-01',
         )
+      }
+      // Yahoo Finance (índices globais): JSON mensal direto — sem chave.
+      if (cand.tipo === 'yahoo') {
+        return coletarYahoo(cand.simbolo, timeoutSegundos)
       }
       // Stooq (índices globais): CSV mensal direto — sem chave, sem janela.
       if (cand.tipo === 'stooq') {
@@ -647,7 +708,9 @@ routerAdd('GET', '/backend/v1/series-historicas', (e) => {
                   ? 'ipeadata ' + String(candidatos[i].codigos || [])
                   : candidatos[i].tipo === 'stooq'
                     ? 'stooq ' + String(candidatos[i].simbolo || '')
-                    : urlDoCandidato(candidatos[i], item.agreg)),
+                    : candidatos[i].tipo === 'yahoo'
+                      ? 'yahoo ' + String(candidatos[i].simbolo || '')
+                      : urlDoCandidato(candidatos[i], item.agreg)),
             )
           }
           if (pontos.length > 0) {
