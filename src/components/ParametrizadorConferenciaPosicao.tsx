@@ -122,8 +122,8 @@ export function ParametrizadorConferenciaPosicao() {
     if (!token) return
     setCarregandoVal(true)
     try {
-      const j = await chamar('param-ncm-validador')
-      setValidador(j)
+      const j = await chamar('param-ncm-status')
+      setValidador(j.validador && j.validador.disponivel ? j.validador : null)
     } catch {
       setValidador(null)
     } finally {

@@ -93,11 +93,18 @@ export function ParametrizadorNcm() {
     if (!token) return
     setCarregandoMonitor(true)
     try {
-      const r = await fetch(`${BACKEND}/backend/v1/param-ncm-monitor`, {
+      /* Rota única: devolve validador + monitor numa chamada, lendo do BANCO.
+         Antes eram duas rotas lendo arquivo em tmp/, que o backend não enxerga
+         (hosts diferentes) — a tela dizia "sem registro" para sempre. */
+      const r = await fetch(`${BACKEND}/backend/v1/param-ncm-status`, {
         headers: { 'X-Painel-Token': token },
       })
-      if (r.ok) setMonitor(await r.json())
-      else setMonitor(null)
+      if (r.ok) {
+        const j = await r.json()
+        setMonitor(j.monitor && j.monitor.disponivel ? j.monitor : null)
+      } else {
+        setMonitor(null)
+      }
     } catch {
       setMonitor(null)
     } finally {
