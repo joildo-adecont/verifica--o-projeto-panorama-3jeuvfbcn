@@ -6,15 +6,18 @@
  * (nunca erro cru). Impressão A4 com logo ADECONT no padrão dos relatórios.
  */
 import { useEffect, useMemo, useState } from 'react'
-import { Table2, Printer, X, Info, Loader2, ShieldCheck } from 'lucide-react'
+import { Table2, Printer, X, Info, Loader2, ShieldCheck, TrendingUp } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { AdecontLogo } from '@/components/AdecontLogo'
 import { SeloNivelConfianca } from '@/components/SeloNivelConfianca'
 import {
   CHAVES_COMPARACAO,
+  MINIMO_COMPARACAO,
   SELECAO_INICIAL_COMPARACAO,
+  SELECAO_TRIO_IFIX_IBOVESPA_SELIC,
   anosDisponiveisComparacao,
   compararIndices,
+  seloFonteLinha,
   type GranularidadeComparacao,
   type LinhaComparacao,
 } from '@/services/comparacaoSeries'
@@ -79,6 +82,26 @@ export function TabelaComparacaoIndices() {
     )
   }
 
+  /** Atalho: seleciona EXATAMENTE o trio IFIX × Ibovespa × Selic e plota. */
+  const selecionarTrio = () => {
+    setSelecionadas([...SELECAO_TRIO_IFIX_IBOVESPA_SELIC])
+    setAberto(true)
+    // carregar usa o estado "selecionadas", que ainda não refletiu o trio —
+    // passamos a lista explícita para não comparar a seleção antiga.
+    void (async () => {
+      setCarregando(true)
+      const res = await compararIndices(
+        SELECAO_TRIO_IFIX_IBOVESPA_SELIC,
+        granularidade,
+        anoInicio,
+        anoFim,
+      )
+      setLinhas(res)
+      setAlgumFallback(res.some((l) => l.baseInterna))
+      setCarregando(false)
+    })()
+  }
+
   const agoraFormatado = new Intl.DateTimeFormat('pt-BR', {
     dateStyle: 'full',
     timeStyle: 'medium',
@@ -102,7 +125,7 @@ export function TabelaComparacaoIndices() {
           </span>
           <span className="min-w-0">
             <span className="block text-sm font-black text-slate-900">
-              Comparação de índices (≥5)
+              Comparação de índices (mínimo 2)
             </span>
             <span className="block text-[11px] text-slate-500 mt-0.5">
               Evolução e variações mensal, anual e por período — comparáveis lado a lado e
@@ -123,7 +146,7 @@ export function TabelaComparacaoIndices() {
           <div className="min-w-0">
             <h3 className="text-sm font-black text-slate-900">Comparação de índices</h3>
             <p className="text-[11px] text-slate-500">
-              Selecione ao menos 5 índices, o recorte e o período.
+              Selecione ao menos 2 índices, o recorte e o período.
             </p>
           </div>
         </div>
@@ -140,7 +163,7 @@ export function TabelaComparacaoIndices() {
       {/* Seleção de índices */}
       <div className="p-4 rounded-2xl border border-slate-200 bg-white space-y-2">
         <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">
-          Índices ({selecionadas.length} selecionados — mínimo 5)
+          Índices ({selecionadas.length} selecionados — mínimo {MINIMO_COMPARACAO})
         </p>
         <div className="flex flex-wrap gap-1.5">
           {CHAVES_COMPARACAO.map((c) => {
@@ -161,6 +184,22 @@ export function TabelaComparacaoIndices() {
               </button>
             )
           })}
+        </div>
+
+        {/* Atalho do trio pedido — IFIX × Ibovespa × Selic (fontes vivas) */}
+        <div className="flex flex-wrap items-center gap-2 pt-2">
+          <button
+            type="button"
+            onClick={selecionarTrio}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-black bg-amber-100 text-amber-900 border border-amber-300 hover:bg-amber-200 transition-colors cursor-pointer"
+          >
+            <TrendingUp className="w-3.5 h-3.5" />
+            IFIX × Ibovespa × Selic
+          </button>
+          <span className="text-[10.5px] text-slate-400">
+            Atalho: seleciona exatamente os 3 índices (IFIX — B3, Ibovespa — IPEA, Selic — BCB SGS
+            432) e plota a comparação com as fontes vivas.
+          </span>
         </div>
 
         {/* Recorte e período */}
@@ -210,7 +249,7 @@ export function TabelaComparacaoIndices() {
           <Button
             size="sm"
             onClick={() => void carregar()}
-            disabled={carregando || selecionadas.length < 5}
+            disabled={carregando || selecionadas.length < MINIMO_COMPARACAO}
             className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2"
           >
             {carregando ? (
@@ -226,15 +265,16 @@ export function TabelaComparacaoIndices() {
             onClick={() => {
               void carregar().then(() => setImprimindo(true))
             }}
-            disabled={carregando || selecionadas.length < 5}
+            disabled={carregando || selecionadas.length < MINIMO_COMPARACAO}
             className="text-slate-600 border-slate-300 hover:bg-slate-100 gap-2"
           >
             <Printer className="w-3.5 h-3.5" /> Imprimir A4
           </Button>
         </div>
-        {selecionadas.length < 5 && (
+        {selecionadas.length < MINIMO_COMPARACAO && (
           <p className="text-[11px] text-amber-700 flex items-center gap-1">
-            <Info className="w-3 h-3" /> Selecione no mínimo 5 índices para comparar.
+            <Info className="w-3 h-3" /> Selecione no mínimo {MINIMO_COMPARACAO} índices para
+            comparar.
           </p>
         )}
       </div>
@@ -412,7 +452,23 @@ export function TabelaComparacaoIndices() {
                     {linhas.map((l) => (
                       <tr key={l.chave} className="border-b border-slate-200 break-inside-avoid">
                         <td className="py-2 pr-3 font-bold text-slate-900">{l.nome}</td>
-                        <td className="py-2 pr-3 text-slate-600">{l.fonte || '—'}</td>
+                        <td className="py-2 pr-3">
+                          <span
+                            className={
+                              'inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold ' +
+                              (l.fonteViva
+                                ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                                : 'bg-amber-50 text-amber-800 border border-amber-300')
+                            }
+                          >
+                            {l.fonteViva ? (
+                              <ShieldCheck className="h-3 w-3" />
+                            ) : (
+                              <Info className="h-3 w-3" />
+                            )}
+                            {seloFonteLinha(l)}
+                          </span>
+                        </td>
                         <td className="py-2 pr-3 text-right">{formatarValor(l.valorInicial)}</td>
                         <td className="py-2 pr-3 text-right">{formatarValor(l.valorFinal)}</td>
                         <td className="py-2 pr-3 text-right font-bold">

@@ -23,6 +23,8 @@ export interface LinhaComparacao {
   nome: string
   unidade: string
   fonte: string
+  /** Fonte REAL devolvida pela rota do backend (ex.: 'B3 — IFIX'); vazio se a rota não respondeu. */
+  fonteRota: string
   fonteViva: boolean
   baseInterna: boolean
   aviso: string
@@ -81,7 +83,7 @@ export const CHAVES_COMPARACAO: ChaveSerieHistorica[] = [
   'venda_varejo',
 ]
 
-/** Seleção padrão — 6 índices (mínimo exigido: 5). */
+/** Seleção padrão — 6 índices. */
 export const SELECAO_INICIAL_COMPARACAO: ChaveSerieHistorica[] = [
   'ipca',
   'igpm',
@@ -90,6 +92,15 @@ export const SELECAO_INICIAL_COMPARACAO: ChaveSerieHistorica[] = [
   'ibovespa',
   'sp500',
 ]
+
+/** Mínimo de índices para comparar (era 5; flexibilizado para 2 a pedido). */
+export const MINIMO_COMPARACAO = 2
+
+/**
+ * Preset do trio pedido: IFIX × Ibovespa × Selic — fontes vivas confirmadas
+ * (IFIX via B3, Ibovespa via IPEA GM366_IBVSP366, Selic via BCB SGS 432).
+ */
+export const SELECAO_TRIO_IFIX_IBOVESPA_SELIC: ChaveSerieHistorica[] = ['ifix', 'ibovespa', 'selic']
 
 /** Anos disponíveis na janela de séries (2014 — ano corrente). */
 export function anosDisponiveisComparacao(): number[] {
@@ -139,6 +150,12 @@ export function agregarSerie(
   })
 }
 
+/** Rótulo curto do selo da fonte real de cada linha (impressão A4). */
+export function seloFonteLinha(l: LinhaComparacao): string {
+  if (l.fonteViva) return l.fonteRota && l.fonteRota.trim() !== '' ? l.fonteRota : l.fonte
+  return 'Base interna do sistema (aproximada)'
+}
+
 function variacaoPct(de: number, para: number): number | undefined {
   if (!isFinite(de) || !isFinite(para) || de === 0) return undefined
   return ((para - de) / Math.abs(de)) * 100
@@ -163,6 +180,7 @@ export function montarLinhaComparacao(
   anoFim: number,
   fonteViva: boolean,
   aviso: string,
+  fonteRota?: string,
 ): LinhaComparacao {
   const item = catalogoDaChave(chave)
   const modo = item?.modoAcumulado ?? 'nivel'
@@ -214,6 +232,7 @@ export function montarLinhaComparacao(
     nome: item?.nome ?? chave,
     unidade: item?.unidade ?? '',
     fonte: item?.fonte ?? '',
+    fonteRota: fonteRota ?? '',
     fonteViva,
     baseInterna: !fonteViva,
     aviso,
@@ -256,6 +275,7 @@ export async function compararIndices(
       anoFim,
       respostas[i].fonteViva,
       respostas[i].aviso,
+      respostas[i].fonte,
     ),
   )
 }
