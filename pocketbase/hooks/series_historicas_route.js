@@ -38,11 +38,19 @@
 // argumento ('GET /caminho') NÃO registra a rota nesta JSVM: a chamada ao
 // vivo devolvia 404 "File not found" (diagnóstico 04/11/2026, requests).
 //
-// REGRAS DE ESCOPO DA JSVM: callbacks de routerAdd/cronAdd NÃO enxergam
-// constantes de nível superior dos arquivos — toda a lógica vive no objeto
-// globalThis abaixo (mesmo padrão de buscarContextoIndicadoresBCB no
-// indicadores_economicos_route.js), autossuficiente (só builtins).
-globalThis.PANORAMA_seriesHistoricasNucleo = (function () {
+// REGRAS DE ESCOPO DA JSVM: callbacks de routerAdd/cronAdd rodam em POOL
+// SEPARADO e não enxergam constantes de nível superior do arquivo. A tentativa
+// de expor o núcleo via globalThis (v0.0.562) FALHOU EM TODA CHAVE: o objeto
+// atribuído no topo do arquivo não existe dentro do pool do routerAdd
+// ("Cannot read property 'resolver' of undefined or null" nos logs hooks) e o
+// guard externo mascarava o erro devolvendo 200 com serie vazia. O núcleo
+// permanece como IIFE autossuficiente (só builtins: $app/$http), mas o
+// callback do routerAdd captura-o DIRETO NA MESMA EXECUÇÃO (const nucleo =
+// (...)()) — sem mediação de globalThis. O cron refresh_series_cache.js,
+// porém, roda em outro pool: para ele o núcleo CONTINUA exposto em globalThis
+// (dupla atribuição, barata) — se lá estiver ausente o cron já registra aviso
+// e pula o aquecimento, sem quebrar o caminho do usuário.
+const PANORAMA_seriesHistoricasNucleo = (function () {
   const TIMEOUT_FONTE_S = 5 // segundos por FONTE individual
   const ORCAMENTO_TOTAL_MS = 11000 // teto total de consultas vivas por pedido
   const TETO_PONTOS = 3000
@@ -525,6 +533,15 @@ globalThis.PANORAMA_seriesHistoricasNucleo = (function () {
 
   return { resolver: resolver, atualizar: atualizar }
 })()
+
+// Para o cron (outro pool): expõe o núcleo quando globalThis existir neste
+// escopo — no routerAdd abaixo a cópia local `PANORAMA_seriesHistoricasNucleo`
+// é a garantia de que o resolver SEMPRE existe.
+try {
+  if (typeof globalThis !== 'undefined') {
+    globalThis.PANORAMA_seriesHistoricasNucleo = PANORAMA_seriesHistoricasNucleo
+  }
+} catch (_) {}
 
 // REGRA ANTI-ERRO (contrato da aba Histórico): a rota JAMAIS responde com erro
 // HTTP — toda exceção é absorvida e o frontend recebe 200 com a base interna
