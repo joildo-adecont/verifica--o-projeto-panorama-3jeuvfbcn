@@ -82,7 +82,7 @@ const ROSTO_POR_FONTE: Record<FonteEstatisticaId, string> = {
   b3_mercado:
     'B3 — Ibovespa (bolsa de valores) · IFIX (fundos imobiliários) — índices de mercado financeiro',
   bcb_bacen:
-    'Crédito do sistema financeiro — juros médios · juros do crédito pessoal · inadimplência',
+    'Crédito do sistema financeiro — juros médios · juros do crédito pessoal · inadimplência · saldo de crédito (% do PIB)',
   ibge_populacao:
     'Estimativas de população residente (Censo/estimativas anuais) — população do Brasil',
   ibge_pms: 'Pesquisa Mensal de Serviços (PMS) — índice de volume de serviços · variação',

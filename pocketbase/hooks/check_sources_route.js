@@ -416,6 +416,18 @@ routerAdd('POST', '/backend/v1/check-sources', (e) => {
       alternative: 'Portal FAMEP e Radar Nacional ADECONT',
       coverageStatus: 'coberta_direta',
     },
+    // FONTES ESTATÍSTICAS — CRÉDITO BACEN (proxy /backend/v1/fontes-estatisticas)
+    {
+      key: 'bcb_bacen',
+      name: 'Banco Central — BACEN (Estatísticas de Crédito — SGS)',
+      url: 'https://www.bcb.gov.br/',
+      order: 50,
+      confidenceTier: 'oficial_institucional',
+      isAccessible: true,
+      alternative:
+        'BCB SGS 20714 (juros médios), 20746 (juros do crédito pessoal), 21114 (inadimplência) e 20622 (saldo de crédito — % do PIB)',
+      coverageStatus: 'coberta_direta',
+    },
   ]
 
   const results = []

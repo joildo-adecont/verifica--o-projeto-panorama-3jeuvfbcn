@@ -392,6 +392,17 @@ export function SectionFontes() {
       badgeCor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
     },
     {
+      orgao: 'BCB — BACEN (Estatísticas de Crédito)',
+      fonte: 'bcb.gov.br + SGS/API (proxy backend)',
+      conteudo:
+        'Estatísticas de crédito do sistema financeiro: juros médios das operações de crédito (SGS 20714), juros do crédito pessoal (SGS 20746), inadimplência da carteira (SGS 21114) e saldo de crédito em % do PIB (SGS 20622)',
+      url: 'https://www.bcb.gov.br/',
+      statusNota:
+        'Fonte oficial institucional ativa via proxy /backend/v1/fontes-estatisticas (séries SGS 20714, 20746, 21114 e 20622) com cache e base interna de contingência.',
+      badgeStatus: 'Oficial Integrada (Proxy)',
+      badgeCor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+    },
+    {
       orgao: 'INEP/MEC (Educação)',
       fonte: 'gov.br/inep (proxy backend)',
       conteudo:

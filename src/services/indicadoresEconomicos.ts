@@ -866,6 +866,18 @@ export function respostaFontesEstatisticasFallback(aviso: string): RespostaFonte
           fonte: 'Banco Central do Brasil (BACEN)',
           baseInterna: true,
         },
+        {
+          chave: 'saldo_credito',
+          nome: 'Saldo de crédito do sistema financeiro — % do PIB (base interna)',
+          categoria: 'credito',
+          unidade: '% do PIB',
+          valor: 55.5,
+          periodo: 'último mês disponível',
+          variacao: 0.3,
+          serie: [54.6, 54.9, 55.1, 55.2, 55.4, 55.5],
+          fonte: 'Banco Central do Brasil (BACEN) — SGS 20622',
+          baseInterna: true,
+        },
       ],
       ibge_populacao: [
         {
