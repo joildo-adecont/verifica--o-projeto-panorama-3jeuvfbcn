@@ -37,6 +37,7 @@ import {
   type ResultadoBuscaIndicador,
 } from '@/services/buscadorIndicadores'
 import { AbaMercadoFinanceiro } from '@/components/AbaMercadoFinanceiro'
+import { BotaoCadastroClientes } from '@/components/BotaoCadastroClientes'
 import type { ChaveSerieHistorica } from '@/services/seriesHistoricas'
 import {
   fetchIndicadoresEconomicos,
@@ -206,6 +207,7 @@ function CabecalhoPortal({
           </div>
         </div>
         <div className="flex items-center gap-2 shrink-0">
+          <BotaoCadastroClientes variante="header" />
           <SeloNivelConfianca
             fonte="Banco Central do Brasil (BCB)"
             tier={'oficial_institucional' as ConfidenceTier}

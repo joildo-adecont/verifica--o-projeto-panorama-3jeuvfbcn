@@ -225,6 +225,11 @@ export function PanoramaSideMenu({
 
         {/* Lista de seções / hierarquia */}
         <div className="flex-1 overflow-y-auto p-3 space-y-4">
+          {/* Acesso ao Cadastro Analítico de Clientes ADECONT */}
+          <div className="bg-slate-50 p-1.5 rounded-xl border border-slate-200/80">
+            <BotaoCadastroClientes variante="menu" aoClicar={handleClose} />
+          </div>
+
           {/* Item Página Inicial da Plataforma */}
           {!busca && !segmentoFiltro && (
             <button
@@ -535,7 +540,7 @@ export function PanoramaSideMenu({
             <div className="flex-1 overflow-y-auto p-3 space-y-4">
               {/* Acesso ao Cadastro Analítico de Clientes ADECONT */}
               <div className="bg-slate-50 p-1.5 rounded-xl border border-slate-200/80">
-                <BotaoCadastroClientes variante="menu" aoClicar={() => setAberto(false)} />
+                <BotaoCadastroClientes variante="menu" aoClicar={handleClose} />
               </div>
 
               {/* Item Página Inicial da Plataforma */}

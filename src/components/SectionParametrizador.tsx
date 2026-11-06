@@ -267,6 +267,7 @@ export function SectionParametrizador() {
     | 'carteira'
     | 'comparador'
     | 'contabil'
+    | 'pastas-dados'
   >('catalogo')
   const [xml, setXml] = useState('')
   const [nomeArquivo, setNomeArquivo] = useState('documento.xml')
