@@ -440,16 +440,23 @@ routerAdd('POST', '/backend/v1/contab-importar', (e) => {
     })
   }
 
-  /* ── tipo do documento: pelo que foi lido, não pelo nome do arquivo ── */
-  let tipo = 'indefinido'
-  if (totalAtivo > 0 || totalPassivo > 0) tipo = 'balanco'
-  if (totalReceita > 0 && totalAtivo === 0) tipo = 'dre'
+  /* ── tipo do documento: pelo que foi lido, não pelo nome do arquivo ──
+     O campo é `required` na coleção: se ficar vazio, a GRAVAÇÃO inteira falha
+     e o usuário perde a importação depois de o agente já ter feito todo o
+     trabalho. Por isso o padrão é 'balancete' — a peça que traz ativo E
+     resultado — e 'indefinido' só quando nem o conteúdo nem o nome dizem nada. */
+  let tipo = ''
   if (totalAtivo > 0 && totalReceita > 0) tipo = 'balancete'
-  const nomeBaixo = arquivoNome.toLowerCase()
-  if (tipo === 'indefinido') {
+  else if (totalAtivo > 0 || totalPassivo > 0) tipo = 'balanco'
+  else if (totalReceita > 0) tipo = 'dre'
+
+  if (!tipo) {
+    const nomeBaixo = arquivoNome.toLowerCase()
     if (/balancete/.test(nomeBaixo)) tipo = 'balancete'
     else if (/balan/.test(nomeBaixo)) tipo = 'balanco'
     else if (/dre/.test(nomeBaixo)) tipo = 'dre'
+    else if (/razao|razão/.test(nomeBaixo)) tipo = 'razao'
+    else tipo = 'indefinido'
   }
 
   const gravidadeAlta = achados.filter((a) => a.gravidade === 'ALTA').length
@@ -484,7 +491,7 @@ routerAdd('POST', '/backend/v1/contab-importar', (e) => {
     const dados = {
       cliente_cnpj: cnpj,
       cliente_nome: razao,
-      tipo_documento: tipo,
+      tipo_documento: tipo || 'indefinido',
       competencia: competencia,
       periodo_inicio: periodoInicio,
       periodo_fim: periodoFim,
