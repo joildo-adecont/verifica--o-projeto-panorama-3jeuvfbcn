@@ -20,6 +20,7 @@ import {
   ScanLine,
   ShieldCheck,
   Upload,
+  Receipt,
   Users,
   Wallet,
   XCircle,
@@ -35,6 +36,7 @@ import { ParametrizadorConferenciaPosicao } from '@/components/ParametrizadorCon
 import { ParametrizadorEnquadramento } from '@/components/ParametrizadorEnquadramento'
 import { ParametrizadorLevantamento } from '@/components/ParametrizadorLevantamento'
 import { ParametrizadorComparador } from '@/components/ParametrizadorComparador'
+import { ParametrizadorContabil } from '@/components/ParametrizadorContabil'
 
 /**
  * PARAMETRIZADOR DE DOCUMENTOS FISCAIS DA REFORMA — Seção 31
@@ -263,6 +265,7 @@ export function SectionParametrizador() {
     | 'enquadramento'
     | 'carteira'
     | 'comparador'
+    | 'contabil'
   >('catalogo')
   const [xml, setXml] = useState('')
   const [nomeArquivo, setNomeArquivo] = useState('documento.xml')
@@ -417,6 +420,10 @@ export function SectionParametrizador() {
                  em cada caminho, de 2026 a 2033, com o ponto de equilíbrio
                  entre Simples e regime regular. */
               { id: 'comparador' as const, nome: 'Comparador · regimes', Icon: Wallet },
+              /* AGENTE CONTÁBIL (05/11/2026): importa e valida balancete,
+                 balanço e DRE. É o dado que faltava para o comparador sair de
+                 "receita e crédito estimados" para "escrituração real". */
+              { id: 'contabil' as const, nome: 'Balancetes · DRE', Icon: Receipt },
             ].map((t) => (
               <button
                 key={t.id}
@@ -925,6 +932,7 @@ export function SectionParametrizador() {
           {/* ══════════ LEVANTAMENTO DE CARTEIRA POR REGIME ══════════ */}
           {aba === 'carteira' && <ParametrizadorLevantamento />}
           {aba === 'comparador' && <ParametrizadorComparador />}
+          {aba === 'contabil' && <ParametrizadorContabil />}
 
           {/* rodapé */}
           <div className="flex items-center gap-1.5 flex-wrap rounded-lg bg-slate-50 px-2 py-1.5 text-[9px] text-slate-500">

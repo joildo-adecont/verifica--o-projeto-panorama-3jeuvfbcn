@@ -544,10 +544,7 @@ export function PanoramaHeader({
           <div className="lg:hidden mt-3 pt-3 border-t border-slate-200 flex flex-col gap-2 pb-2">
             {/* Ícone do Sistema: Cadastro Analítico de Clientes no Mobile */}
             <div className="pb-1">
-              <BotaoCadastroClientes
-                variante="mobile"
-                aoClicar={() => setMobileMenuOpen(false)}
-              />
+              <BotaoCadastroClientes variante="mobile" aoClicar={() => setMobileMenuOpen(false)} />
             </div>
 
             {NAV_LINKS.map((link) => {

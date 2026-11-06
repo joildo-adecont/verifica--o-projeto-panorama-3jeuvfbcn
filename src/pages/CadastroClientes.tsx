@@ -383,7 +383,9 @@ export default function CadastroClientes() {
                     <td colSpan={8} className="py-12 text-center text-slate-500">
                       <div className="max-w-xs mx-auto flex flex-col items-center gap-2">
                         <Building2 className="w-8 h-8 text-slate-300" />
-                        <span className="font-semibold text-slate-700">Nenhum cliente encontrado</span>
+                        <span className="font-semibold text-slate-700">
+                          Nenhum cliente encontrado
+                        </span>
                         <p className="text-xs text-slate-400">
                           Tente mudar os termos de busca ou remover os filtros aplicados.
                         </p>
@@ -519,7 +521,8 @@ export default function CadastroClientes() {
               <span className="font-bold text-slate-800">
                 {Math.min(paginaAtual * porPagina, totalItens)}
               </span>{' '}
-              de <span className="font-bold text-slate-800">{totalItens.toLocaleString('pt-BR')}</span>{' '}
+              de{' '}
+              <span className="font-bold text-slate-800">{totalItens.toLocaleString('pt-BR')}</span>{' '}
               clientes
             </div>
 
@@ -666,9 +669,7 @@ export default function CadastroClientes() {
                   </div>
                   <div>
                     <span className="text-slate-400 block text-[11px]">Bairro</span>
-                    <span className="font-medium text-slate-800">
-                      {modalEmpresa.bairro || '—'}
-                    </span>
+                    <span className="font-medium text-slate-800">{modalEmpresa.bairro || '—'}</span>
                   </div>
                   <div>
                     <span className="text-slate-400 block text-[11px]">Município</span>
@@ -764,9 +765,7 @@ export default function CadastroClientes() {
       {/* RODAPÉ INSTITUCIONAL */}
       <footer className="bg-white border-t border-slate-200 py-4 mt-auto text-center text-xs text-slate-500">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span>
-            ADECONT Assessoria Contábil e Administrativa • Sistema de Gestão Analítica
-          </span>
+          <span>ADECONT Assessoria Contábil e Administrativa • Sistema de Gestão Analítica</span>
           <span className="text-[11px] text-slate-400 font-mono">
             {totalItens} registros indexados
           </span>

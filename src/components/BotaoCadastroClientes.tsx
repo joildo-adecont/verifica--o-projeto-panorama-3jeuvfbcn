@@ -38,9 +38,7 @@ export function BotaoCadastroClientes({
           <span className="truncate font-bold text-slate-900 group-hover:text-[#0F294A]">
             Cadastro de Clientes
           </span>
-          <span className="text-[10px] text-slate-400 truncate">
-            Consulta analítica ADECONT
-          </span>
+          <span className="text-[10px] text-slate-400 truncate">Consulta analítica ADECONT</span>
         </div>
       </Link>
     )
@@ -59,9 +57,7 @@ export function BotaoCadastroClientes({
             <Users2 className="w-4 h-4 text-[#D4AF37]" />
           </div>
           <div className="flex flex-col text-left min-w-0">
-            <span className="text-xs font-bold truncate leading-tight">
-              Cadastro de Clientes
-            </span>
+            <span className="text-xs font-bold truncate leading-tight">Cadastro de Clientes</span>
             <span className="text-[10px] text-[#D4AF37] truncate font-medium">
               Consulta analítica ADECONT
             </span>
