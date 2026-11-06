@@ -24,6 +24,7 @@ import {
   Users,
   Wallet,
   XCircle,
+  FolderPlus,
 } from 'lucide-react'
 import { ParametrizadorAnalise } from '@/components/ParametrizadorAnalise'
 import { ParametrizadorLote } from '@/components/ParametrizadorLote'
@@ -251,6 +252,11 @@ const ROTULO_RT: Record<string, { txt: string; cls: string }> = {
 
 export function SectionParametrizador() {
   const [token, setToken] = useState('')
+  /* Garantia das pastas contábeis (06/11/2026) — vive no cabeçalho, visível em
+   * qualquer aba. O CEO procurou o botão na tela e não achou: ele estava
+   * enterrado na aba "Pastas de dados". */
+  const [garantindoPastas, setGarantindoPastas] = useState(false)
+  const [avisoPastas, setAvisoPastas] = useState<string | null>(null)
   const [aba, setAba] = useState<
     | 'catalogo'
     | 'importar'
@@ -363,6 +369,37 @@ export function SectionParametrizador() {
     return g
   }, [resultado])
 
+  /* Percorre TODOS os clientes e cria o que faltar das pastas contábeis.
+   * Idempotente: rodar de novo não duplica. */
+  const garantirPastasContabeis = useCallback(async () => {
+    if (!token) {
+      setErro('Informe o token do painel para criar as pastas.')
+      return
+    }
+    setGarantindoPastas(true)
+    setErro(null)
+    setAvisoPastas(null)
+    try {
+      const r = await fetch(`${BACKEND}/backend/v1/param-pastas-garantir-contabil`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Painel-Token': token },
+      })
+      const j = await r.json()
+      if (!r.ok) {
+        setErro(j.error || `Falha ao criar pastas (${r.status}).`)
+        return
+      }
+      setAvisoPastas(
+        j.mensagem ||
+          `${j.pastas_criadas || 0} pasta(s) criada(s) em ${j.clientes || 0} cliente(s).`,
+      )
+    } catch {
+      setErro('Não foi possível falar com o servidor.')
+    } finally {
+      setGarantindoPastas(false)
+    }
+  }, [token])
+
   return (
     <section id="parametrizador" className="scroll-mt-24">
       <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
@@ -382,7 +419,33 @@ export function SectionParametrizador() {
                 </p>
               </div>
             </div>
+
+            {/* ── AÇÃO VISÍVEL EM QUALQUER ABA (06/11/2026) ──
+             * O botão existia, mas escondido na aba "Pastas de dados" — o CEO
+             * procurou na tela e não achou. Agora fica no cabeçalho, acima das
+             * abas: um clique garante as pastas Balanços/Balancetes/DREs/Demais
+             * em TODOS os clientes que ainda não as tenham. Idempotente. */}
+            <button
+              type="button"
+              onClick={garantirPastasContabeis}
+              disabled={garantindoPastas}
+              title="Cria as pastas Balanços, Balancetes, DREs e Demais em todo cliente que ainda não as tenha. Pode rodar quantas vezes quiser — não duplica."
+              className="ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-panorama-gold bg-panorama-gold px-3 py-2 text-[11px] font-bold text-panorama-navy shadow-sm transition-colors hover:bg-panorama-gold-light disabled:opacity-60"
+            >
+              <FolderPlus className={`h-3.5 w-3.5 ${garantindoPastas ? 'animate-pulse' : ''}`} />
+              {garantindoPastas ? 'Criando pastas…' : 'Garantir pastas contábeis'}
+            </button>
           </div>
+
+          {avisoPastas && (
+            <div className="mt-2 flex items-start gap-2 rounded-lg border border-emerald-300 bg-emerald-50 px-2.5 py-1.5 text-[11px] text-emerald-900">
+              <FolderPlus className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+              <span className="flex-1">{avisoPastas}</span>
+              <button onClick={() => setAvisoPastas(null)} className="shrink-0 font-bold">
+                ×
+              </button>
+            </div>
+          )}
 
           {/* abas */}
           <div className="flex flex-wrap gap-1.5 mt-3">
