@@ -562,9 +562,28 @@ routerAdd('POST', '/backend/v1/contab-importar', (e) => {
       }
     }
   } catch (err) {
+    /* Diagnóstico: quando a gravação falha, o erro sozinho ("campo X cannot be
+       blank") não diz se o valor chegou vazio ou se o campo nem foi enviado.
+       Devolver o que se TENTOU gravar encurta o caminho — e some da resposta
+       quando dá certo. */
+    let tentativa = null
+    try {
+      tentativa = {
+        tipo_calculado: tipo,
+        total_ativo: totalAtivo,
+        total_passivo: totalPassivo,
+        total_pl: totalPL,
+        total_receita: totalReceita,
+        formato: formato,
+        linhas: contas.length,
+      }
+    } catch (e2) {
+      tentativa = null
+    }
     return e.json(500, {
       ok: false,
       erro: 'falha ao gravar: ' + String(err && err.message ? err.message : err).slice(0, 300),
+      tentativa: tentativa,
     })
   }
 
