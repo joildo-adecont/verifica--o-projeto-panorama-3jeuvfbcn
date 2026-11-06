@@ -279,14 +279,20 @@ routerAdd('POST', '/backend/v1/contab-importar', (e) => {
       if (achou >= 2) {
         idxCab = i
         const cols = linhas[i].split(sep)
-        for (let k = 0; k < cols.length; k++) {
+        /* ── A ORDEM DESTAS COMPARAÇÕES É O DEFEITO MAIS CARO DESTE PARSER ──
+           "Saldo Anterior" casa com /saldo/ e, se testado antes, vira a coluna
+           do saldo — e então TODO saldo lido é o do período anterior. O
+           sintoma foi receita, custo e despesa zerados num balancete que os
+           tinha: os saldos anteriores das contas de resultado são zero.
+           Regra: "anterior" tem prioridade e EXCLUI a coluna do saldo atual. */
           const t = cols[k].toLowerCase()
+          const ehAnterior = /anterior|saldo\s+ini|inicial/.test(t)
           if (colCodigo < 0 && /c[oó]digo|conta/.test(t)) colCodigo = k
           if (colDesc < 0 && /descri|nome|hist[oó]rico/.test(t)) colDesc = k
-          if (colAnterior < 0 && /anterior/.test(t)) colAnterior = k
+          if (ehAnterior && colAnterior < 0) colAnterior = k
           if (colDeb < 0 && /d[ée]bito/.test(t)) colDeb = k
           if (colCred < 0 && /cr[ée]dito/.test(t)) colCred = k
-          if (colSaldo < 0 && /saldo|atual|valor/.test(t)) colSaldo = k
+          if (colSaldo < 0 && !ehAnterior && /saldo|atual|valor/.test(t)) colSaldo = k
         }
         break
       }
@@ -312,6 +318,12 @@ routerAdd('POST', '/backend/v1/contab-importar', (e) => {
       const cred = colCred >= 0 ? numBR(c[colCred]) : 0
       const anterior = colAnterior >= 0 ? numBR(c[colAnterior]) : 0
       const grupo = classificar(codigo, descr)
+
+      /* Sem coluna de saldo, o saldo é débito − crédito. Sem NENHUM dos dois,
+         a linha não tem valor: guardá-la zerada infla a contagem de "contas
+         reconhecidas" com linha que não representa nada. */
+      const semValor = colSaldo < 0 && colDeb < 0 && colCred < 0
+      if (semValor) continue
 
       contas.push({
         codigo: codigo,
