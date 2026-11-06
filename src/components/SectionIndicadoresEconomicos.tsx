@@ -445,10 +445,34 @@ function AbaCambio({ resposta }: { resposta: RespostaIndicadores }) {
   )
 }
 
+/** Lê a aba ativa da URL (#indicadores-economicos?aba=taxas). */
+function abaDaUrl(): AbaId {
+  if (typeof window === 'undefined') return 'inflacao'
+  const limpo = window.location.hash.replace(/^#/, '')
+  const [rota, query] = limpo.split('?')
+  if (rota !== 'indicadores-economicos') return 'inflacao'
+  const params = new URLSearchParams(query || '')
+  const valor = params.get('aba') as AbaId | null
+  const valida = ABAS.find((a) => a.id === valor)
+  return valida ? valida.id : 'inflacao'
+}
+
+/** Grava a aba ativa na URL para o destaque do menu de navegação do portal. */
+function gravarAbaUrl(aba: AbaId) {
+  if (typeof window === 'undefined') return
+  const [rota] = window.location.hash.replace(/^#/, '').split('?')
+  const proximo =
+    rota === 'indicadores-economicos' ? `#indicadores-economicos?aba=${aba}` : window.location.hash
+  if (proximo !== window.location.hash) {
+    // replaceState: muda só a aba, sem poluir o histórico nem disparar hashchange
+    window.history.replaceState(null, '', proximo)
+  }
+}
+
 export function SectionIndicadoresEconomicos() {
   const [resposta, setResposta] = useState<RespostaIndicadores | null>(null)
   const [carregando, setCarregando] = useState(true)
-  const [aba, setAba] = useState<AbaId>('inflacao')
+  const [aba, setAba] = useState<AbaId>(abaDaUrl)
   const [consulta, setConsulta] = useState('')
   const [historicoSelecionado, setHistoricoSelecionado] = useState<ChaveSerieHistorica | null>(null)
 
@@ -457,11 +481,33 @@ export function SectionIndicadoresEconomicos() {
     [consulta],
   )
 
+  /**
+   * Troca de aba — atualiza o estado E grava na URL (#indicadores-economicos?aba=X),
+   * para o destaque do item ativo no menu de navegação do portal (MenuNavegacaoPortal).
+   */
+  const mudarAba = useCallback((nova: AbaId) => {
+    setAba(nova)
+    gravarAbaUrl(nova)
+  }, [])
+
   /** Clicar num resultado do buscador: muda para a aba Histórico com o indicador aberto. */
-  const abrirIndicadorHistorico = useCallback((chave: ChaveSerieHistorica) => {
-    setHistoricoSelecionado(chave)
-    setAba('historico')
-    setConsulta('')
+  const abrirIndicadorHistorico = useCallback(
+    (chave: ChaveSerieHistorica) => {
+      setHistoricoSelecionado(chave)
+      mudarAba('historico')
+      setConsulta('')
+    },
+    [mudarAba],
+  )
+
+  /**
+   * Navegação pelo menu do portal (hash ?aba=X) com a seção já montada:
+   * o hashchange manda e o estado interno da aba segue a URL.
+   */
+  useEffect(() => {
+    const aoTrocarHash = () => setAba(abaDaUrl())
+    window.addEventListener('hashchange', aoTrocarHash)
+    return () => window.removeEventListener('hashchange', aoTrocarHash)
   }, [])
 
   /** Fatia da pizza "Distribuição por Setor" (aba Estatísticas) → abre o histórico. */
@@ -524,7 +570,7 @@ export function SectionIndicadoresEconomicos() {
               <button
                 key={a.id}
                 type="button"
-                onClick={() => setAba(a.id)}
+                onClick={() => mudarAba(a.id)}
                 className={`px-4 py-2.5 rounded-t-lg transition-colors border-b-2 whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
                   ativa
                     ? 'border-panorama-navy text-panorama-navy bg-white shadow-xs font-bold'

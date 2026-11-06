@@ -3,6 +3,7 @@ import { X, Search, ChevronRight, Menu, Lock } from 'lucide-react'
 import { GRUPOS, ITEM_INSTALADOR_CEO, SEGMENTOS_SISTEMA } from '@/components/navegacao'
 import { AdecontLogo } from '@/components/AdecontLogo'
 import { BotaoSegmentoOficial } from '@/components/ItensSegmentoMenu'
+import { BlocoMenuIndicadores } from '@/components/BlocoMenuIndicadores'
 import { BotaoCadastroClientes } from '@/components/BotaoCadastroClientes'
 import {
   obterUsuarioAtivoLocal,
@@ -263,6 +264,11 @@ export function PanoramaSideMenu({
               </div>
               <ChevronRight className="w-4 h-4 shrink-0 text-slate-400" />
             </button>
+          )}
+
+          {/* ── BLOCO PORTAL PANORAMA RT: abas de indicadores, clicáveis e com item ativo ── */}
+          {!busca && !segmentoFiltro && (
+            <BlocoMenuIndicadores hashAtivo={hashAtual} aoNavegar={handleNavegar} />
           )}
 
           {/* Grupos organizados por segmento */}
@@ -578,6 +584,11 @@ export function PanoramaSideMenu({
                   </div>
                   <ChevronRight className="w-4 h-4 shrink-0 text-slate-400" />
                 </button>
+              )}
+
+              {/* ── BLOCO PORTAL PANORAMA RT: abas de indicadores, clicáveis e com item ativo ── */}
+              {!busca && !segmentoFiltro && (
+                <BlocoMenuIndicadores hashAtivo={hashAtual} aoNavegar={handleNavegar} />
               )}
 
               {/* Grupos organizados por segmento */}

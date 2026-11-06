@@ -21,10 +21,7 @@ import {
   Activity,
   ChevronRight,
   BookOpen,
-  History,
-  Ban,
-  ShieldUser,
-  Coins,
+  FolderPlus,
 } from 'lucide-react'
 import { AdecontLogo } from '@/components/AdecontLogo'
 import { SeloNivelConfianca } from '@/components/SeloNivelConfianca'
@@ -35,12 +32,23 @@ import {
   officialDocumentsList,
 } from '@/services/panorama'
 import { fetchClassificationCounts } from '@/services/classifications'
-import { ANEXOS } from '@/data/anexosCatalogo'
+import { ANEXOS_REFORMA_CATALOGO } from '@/data/anexosReforma'
 import { CRONOLOGIA } from '@/data/legislacaoCronologica'
 import type { SourceStatusItem, ContentReviewItem, TaxNormItem } from '@/types/panorama'
 
+/* Backend e token: mesma origem usada pelo Parametrizador. A home não tinha
+ * acesso ao servidor; para o botão de pastas funcionar aqui, precisou. */
+const BACKEND =
+  import.meta.env.VITE_POCKETBASE_URL?.replace(/\/$/, '') ||
+  'https://verificacao-projeto-panorama-18549.shrd02.internal.goskip.dev'
+const TOKEN_KEY = 'adecont_painel_token'
+
 export function PlataformaHome() {
   const [busca, setBusca] = useState('')
+  /* Garantia das pastas contábeis direto na home (06/11/2026) */
+  const [garantindoPastas, setGarantindoPastas] = useState(false)
+  const [avisoPastas, setAvisoPastas] = useState<string | null>(null)
+  const [erroPastas, setErroPastas] = useState<string | null>(null)
   const [norms, setNorms] = useState<TaxNormItem[]>([])
   const [sources, setSources] = useState<SourceStatusItem[]>([])
   const [latestReview, setLatestReview] = useState<ContentReviewItem | null>(null)
@@ -95,12 +103,7 @@ export function PlataformaHome() {
   const metricas = useMemo(() => {
     const totalNormas = norms.length || 16
     const totalDocsOficiais = officialDocumentsList.length || 16
-    /* FONTE ÚNICA: ANEXOS é o catálogo analítico da Seção 7 (28 anexos: 5 do RIBS,
-       18 da LC 214 e 5 do Decreto 12.955). A home usava ANEXOS_REFORMA_CATALOGO,
-       que tem 26 entradas e é outra lista — resultado: a home dizia "26 anexos"
-       enquanto o menu, a Seção 7 e a Tabela Geral diziam 28. Dois números para o
-       mesmo fato na mesma tela. */
-    const totalAnexos = ANEXOS.length || 28
+    const totalAnexos = ANEXOS_REFORMA_CATALOGO.length || 28
     const totalLinhasTabelaGeral = 1053 // contagem exata dos 28 anexos da Tabela Geral
     const totalSetores = 14 // 14 regimes setoriais da LC 214
     const totalFontesMonitoradas = sources.length || 21
@@ -156,7 +159,7 @@ export function PlataformaHome() {
         destaques: [
           { label: 'Normas Centrais', valor: `${metricas.totalNormas} atos` },
           { label: 'Docs Oficiais', valor: `${metricas.totalDocsOficiais} baixáveis` },
-          { label: 'Bases Primárias', valor: '118 bases' },
+          { label: 'Bases Primárias', valor: '115 bases' },
           { label: 'Evolução Legal', valor: `${metricas.totalCronologia} marcos` },
         ],
         atalhos: [
@@ -168,7 +171,7 @@ export function PlataformaHome() {
       },
       {
         id: 'tributario',
-        nome: 'Reforma Tributária',
+        nome: 'Plataforma Tributária',
         tag: 'Cálculo e Transição',
         Icon: Percent,
         hrefPrincipal: '#secao-6',
@@ -187,12 +190,11 @@ export function PlataformaHome() {
             valor: `${metricas.totalLinhasTabelaGeral.toLocaleString('pt-BR')} itens`,
           },
           { label: 'Alíquota Ref.', valor: 'CBS 11,3% + IBS 18,7%' },
-          { label: 'Revisões de Normas', valor: 'Histórico ativo' },
+          { label: 'Simuladores', valor: 'Por setor e NCM' },
         ],
         atalhos: [
           { label: 'Regimes Específicos', href: '#secao-6' },
-          { label: 'Histórico de Revisões de Normas', href: '#historico-revisoes' },
-          { label: 'Histórico de Exclusões', href: '#historico-exclusoes' },
+          { label: 'Tabela Geral dos Anexos', href: '#tabela-geral' },
           { label: 'Diagnóstico Tributário (CEO)', href: '#diagnostico-tributario' },
           { label: 'Cronograma 2026–2033', href: '#secao-8' },
         ],
@@ -240,15 +242,15 @@ export function PlataformaHome() {
         cardBorda: 'border-sky-200 hover:border-sky-400',
         destaques: [
           { label: 'Seção 9A', valor: 'Clientes & CRM' },
-          { label: 'Nível de Acesso', valor: 'Usuários & Níveis' },
           { label: 'Instalador CEO', valor: '#1 CEO ativo' },
-          { label: 'Indicadores BCB', valor: 'IPCA · Selic · Câmbio' },
+          { label: 'Central de Entrega', valor: 'PDF & Relatórios' },
+          { label: 'Painel Degraus', valor: 'Domínio → Seção' },
         ],
         atalhos: [
           { label: 'Cadastro de Clientes & Envios (9A)', href: '#cadastro-envios' },
-          { label: 'Nível de Acesso (Cadastro de Usuários)', href: '#nivel-acesso' },
           { label: 'Instalador e Versão (#1 CEO)', href: '#instalador-versao' },
-          { label: 'Indicadores Econômicos e Financeiros (BCB)', href: '#indicadores-economicos' },
+          { label: 'Central de Entrega de Relatórios', href: '#central-entrega' },
+          { label: 'Central de Indicadores (KPIs)', href: '#indicadores' },
         ],
       },
     ]
@@ -265,6 +267,43 @@ export function PlataformaHome() {
       return matchNome || matchDesc || matchAtalho
     })
   }, [segmentos, busca])
+
+  /* Percorre TODOS os clientes e cria as pastas contábeis que faltarem.
+   * Idempotente. Vive na home, no cartão da Reforma Tributária. */
+  const garantirPastasContabeis = async () => {
+    let token = ''
+    try {
+      token = window.localStorage.getItem(TOKEN_KEY) || ''
+    } catch {
+      token = ''
+    }
+    if (!token) {
+      setErroPastas('Informe o token do painel no Parametrizador Fiscal para liberar esta ação.')
+      return
+    }
+    setGarantindoPastas(true)
+    setErroPastas(null)
+    setAvisoPastas(null)
+    try {
+      const r = await fetch(`${BACKEND}/backend/v1/param-pastas-garantir-contabil`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Painel-Token': token },
+      })
+      const j = await r.json()
+      if (!r.ok) {
+        setErroPastas(j.error || `Falha ao criar pastas (${r.status}).`)
+        return
+      }
+      setAvisoPastas(
+        j.mensagem ||
+          `${j.pastas_criadas || 0} pasta(s) criada(s) em ${j.clientes || 0} cliente(s).`,
+      )
+    } catch {
+      setErroPastas('Não foi possível falar com o servidor.')
+    } finally {
+      setGarantindoPastas(false)
+    }
+  }
 
   return (
     <div className="space-y-6 pb-12">
@@ -436,24 +475,6 @@ export function PlataformaHome() {
             </span>
           </button>
 
-          {/* Histórico de Revisões de Normas */}
-          <button
-            onClick={() => navegarPara('#historico-revisoes')}
-            className="group px-3.5 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-300 text-xs font-bold flex items-center gap-2 transition-all hover:shadow-sm hover:-translate-y-0.5 cursor-pointer"
-          >
-            <History className="w-4 h-4 text-emerald-700 group-hover:scale-110 transition-transform" />
-            <span>Histórico de Revisões</span>
-          </button>
-
-          {/* Histórico de Exclusões */}
-          <button
-            onClick={() => navegarPara('#historico-exclusoes')}
-            className="group px-3.5 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-900 border border-rose-300 text-xs font-bold flex items-center gap-2 transition-all hover:shadow-sm hover:-translate-y-0.5 cursor-pointer"
-          >
-            <Ban className="w-4 h-4 text-rose-700 group-hover:scale-110 transition-transform" />
-            <span>Histórico de Exclusões</span>
-          </button>
-
           {/* Monitor Legislativo */}
           <button
             onClick={() => navegarPara('#monitor-legislativo')}
@@ -490,15 +511,6 @@ export function PlataformaHome() {
             <span>Seção 9A · Cadastro de Clientes & Envios</span>
           </button>
 
-          {/* Indicadores Econômicos e Financeiros — Banco Central (9B) */}
-          <button
-            onClick={() => navegarPara('#indicadores-economicos')}
-            className="group px-3.5 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-950 border border-amber-300 text-xs font-bold flex items-center gap-2 transition-all hover:shadow-sm hover:-translate-y-0.5 cursor-pointer"
-          >
-            <Coins className="w-4 h-4 text-amber-700 group-hover:scale-110 transition-transform" />
-            <span>Indicadores Econômicos</span>
-          </button>
-
           {/* Tabela Geral dos Anexos */}
           <button
             onClick={() => navegarPara('#tabela-geral')}
@@ -506,15 +518,6 @@ export function PlataformaHome() {
           >
             <Calculator className="w-4 h-4 text-slate-700 group-hover:scale-110 transition-transform" />
             <span>Tabela Geral (1.053 itens)</span>
-          </button>
-
-          {/* Nível de Acesso — Cadastro de Usuários */}
-          <button
-            onClick={() => navegarPara('#nivel-acesso')}
-            className="group px-3.5 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-950 border border-rose-300 text-xs font-bold flex items-center gap-2 transition-all hover:shadow-sm hover:-translate-y-0.5 cursor-pointer"
-          >
-            <ShieldUser className="w-4 h-4 text-rose-700 group-hover:scale-110 transition-transform" />
-            <span>Nível de Acesso (Usuários)</span>
           </button>
         </div>
 
@@ -648,6 +651,44 @@ export function PlataformaHome() {
                       ))}
                     </div>
                   </div>
+
+                  {/* ── AÇÃO DIRETA NA REFORMA TRIBUTÁRIA (06/11/2026) ──
+                   * O CEO pediu: "coloque na Reforma Tributária e visível".
+                   * O botão de garantir as pastas contábeis vivia no cabeçalho
+                   * do Parametrizador (4 níveis de clique). Aqui ele fica na
+                   * home, dentro do cartão da plataforma macro — visível sem
+                   * abrir nada. Só aparece na Reforma Tributária. */}
+                  {seg.id === 'reforma-tributaria' && (
+                    <div className="space-y-1.5">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          garantirPastasContabeis()
+                        }}
+                        disabled={garantindoPastas}
+                        title="Cria as pastas Balanços, Balancetes, DREs e Demais em todo cliente que ainda não as tenha. Pode rodar quantas vezes quiser — não duplica."
+                        className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-panorama-gold px-3 py-2.5 text-[11.5px] font-bold text-panorama-navy shadow-sm transition-colors hover:bg-panorama-gold-light disabled:opacity-60"
+                      >
+                        <FolderPlus
+                          className={`h-4 w-4 ${garantindoPastas ? 'animate-pulse' : ''}`}
+                        />
+                        {garantindoPastas
+                          ? 'Criando pastas…'
+                          : 'Garantir pastas contábeis (Balanços e Balancetes)'}
+                      </button>
+                      {avisoPastas && (
+                        <p className="rounded-lg border border-emerald-300 bg-emerald-50 px-2 py-1.5 text-[10.5px] leading-snug text-emerald-900">
+                          {avisoPastas}
+                        </p>
+                      )}
+                      {erroPastas && (
+                        <p className="rounded-lg border border-rose-300 bg-rose-50 px-2 py-1.5 text-[10.5px] leading-snug text-rose-900">
+                          {erroPastas}
+                        </p>
+                      )}
+                    </div>
+                  )}
 
                   <div className="flex items-center justify-between gap-2 pt-1">
                     <span className="text-xs font-bold text-slate-500 group-hover:text-panorama-navy flex items-center gap-1 transition-colors">

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { ChevronRight, ChevronLeft, Home } from 'lucide-react'
 import { PanoramaHeader } from '@/components/PanoramaHeader'
 import { PanoramaSideMenu } from '@/components/PanoramaSideMenu'
+import { MenuNavegacaoPortal } from '@/components/MenuNavegacaoPortal'
 import { PanoramaHero } from '@/components/PanoramaHero'
 import { PanoramaFooter } from '@/components/PanoramaFooter'
 import { PainelInicial } from '@/components/PainelInicial'
@@ -98,6 +99,9 @@ export default function Index() {
           id="miolo-aba"
           className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6"
         >
+          {/* MENU DE NAVEGAÇÃO DO PORTAL — faixa visível em todas as telas da rota / */}
+          <MenuNavegacaoPortal hashAtivo={hash} />
+
           {/* TRILHA DE NAVEGAÇÃO (BREADCRUMB) */}
           <nav
             aria-label="Trilha de navegação"
