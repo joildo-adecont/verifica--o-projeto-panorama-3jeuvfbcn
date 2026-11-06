@@ -173,12 +173,26 @@ export function lerContas(linhas: string[]): ContaPDF[] {
     if (limpa.includes('BALANCETE') && !limpa.includes('Código')) continue
 
     const campos = limpa.split(/\s+/)
-    if (campos.length < 6) continue
+    if (campos.length < 4) continue
 
-    const u = campos.slice(-4)
-    if (!u.every((t) => EH_VALOR.test(t))) continue
+    /* ── BALANCETE *E* BALANÇO (06/11/2026) ──
+     * BALANCETE: 4 colunas (Saldo Anterior · Débito · Crédito · Saldo Atual).
+     * BALANÇO PATRIMONIAL: 2 colunas (Saldo Anterior · Saldo Atual).
+     * Antes exigia 4 e descartava o balanço EM SILÊNCIO — o contador importava
+     * e a pasta ficava vazia sem explicação. Agora tenta 4 e cai para 2. */
+    let u = campos.slice(-4)
+    let qtd = 4
+    if (!u.every((t) => EH_VALOR.test(t))) {
+      const u2 = campos.slice(-2)
+      if (u2.every((t) => EH_VALOR.test(t))) {
+        u = u2
+        qtd = 2
+      } else {
+        continue
+      }
+    }
 
-    const cabeca = campos.slice(0, -4)
+    const cabeca = campos.slice(0, -qtd)
     if (cabeca.length < 2) continue
 
     const codigo = cabeca[0]
@@ -188,9 +202,14 @@ export function lerContas(linhas: string[]): ContaPDF[] {
     if (!descricao) continue
 
     const sa = valorBR(u[0])
-    const db = valorBR(u[1])
-    const cr = valorBR(u[2])
-    const at = valorBR(u[3])
+    let db = { valor: 0, natureza: '' as 'devedora' | 'credora' | '' }
+    let cr = db
+    let at = valorBR(u[1])
+    if (qtd === 4) {
+      db = valorBR(u[1])
+      cr = valorBR(u[2])
+      at = valorBR(u[3])
+    }
 
     contas.push({
       codigo,

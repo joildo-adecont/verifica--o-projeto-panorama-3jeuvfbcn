@@ -416,3 +416,144 @@ routerAdd('GET', '/backend/v1/param-pastas-dados-conteudo', (e) => {
     total: xmls.length + contabeis.length,
   })
 })
+
+/* ══════════════════════════════════════════════════════════════════════════
+ * GARANTIR PASTAS CONTÁBEIS EM TODOS OS CLIENTES (06/11/2026)
+ *
+ * Pedido do CEO: "Incluir os balancetes e balanços criando uma pasta dentro
+ * do cliente."
+ *
+ * ── O PROBLEMA QUE ISTO RESOLVE ──
+ * A árvore de pastas (XMLs Entradas, XMLs Saídas, Documentos Contábeis >
+ * Balanços/Balancetes/DREs/Demais, Relatórios) é criada quando o cliente é
+ * cadastrado. Cliente que já existia antes da pasta contábil nascer NÃO ganha
+ * as pastas novas — ele fica com a árvore velha e o contador não tem onde
+ * soltar o balanço. Isso é backfill, e sem ele a estrutura só vale para
+ * cliente novo.
+ *
+ * ── O QUE A ROTA FAZ ──
+ * Percorre as pastas-base, e para cada cliente garante que existam as 4
+ * contábeis. IDEMPOTENTE: se já existir, reaproveita; se faltar, cria. Pode
+ * rodar quantas vezes quiser. Responde quantas criou e em quais clientes.
+ * ══════════════════════════════════════════════════════════════════════════ */
+routerAdd('POST', '/backend/v1/param-pastas-garantir-contabil', (e) => {
+  e.response.header().set('Access-Control-Allow-Origin', '*')
+  var esperado = $secrets.get('SIMUL_PAINEL_TOKEN') || ''
+  var recebido = e.request.header.get('X-Painel-Token') || ''
+  if (!esperado || recebido !== esperado) {
+    return e.json(401, { success: false, error: 'Token do painel ausente ou inválido.' })
+  }
+
+  var col = app.findCollectionByNameOrId('param_pastas')
+
+  function norm(s) {
+    return String(s || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim()
+  }
+
+  /* as filhas de Documentos Contábeis — exatamente as que o CEO pediu */
+  var FILHAS = [
+    { nome: 'Balanços', tipo: 'balanco', cor: 'amber', obs: 'Balanços patrimoniais' },
+    { nome: 'Balancetes', tipo: 'balancete', cor: 'amber', obs: 'Balancetes mensais' },
+    { nome: 'DREs', tipo: 'dre', cor: 'amber', obs: 'Demonstrativos de resultado' },
+    {
+      nome: 'Demais Documentos',
+      tipo: 'demais',
+      cor: 'slate',
+      obs: 'Outros documentos financeiros',
+    },
+  ]
+
+  var bases = []
+  try {
+    bases = app.findRecordsByFilter('param_pastas', 'tipo = "base"', '', 500, 0)
+  } catch (err) {
+    bases = []
+  }
+
+  var criadas = 0
+  var clientesTocados = []
+  var jaTinham = 0
+
+  for (var b = 0; b < bases.length; b++) {
+    var base = bases[b]
+    var cnpj = base.getString('cnpj')
+    var clienteId = base.getString('cliente_id')
+
+    /* acha (ou cria) a pasta-mãe "Documentos Contábeis" deste cliente */
+    var mae = null
+    try {
+      mae = app.findFirstRecordByFilter('param_pastas', 'pai = {:p} && tipo = "contabil"', {
+        p: base.id,
+      })
+    } catch (err) {
+      mae = null
+    }
+    if (!mae) {
+      mae = new Record(col)
+      mae.set('nome', 'Documentos Contábeis')
+      mae.set('nome_busca', norm('Documentos Contabeis'))
+      mae.set('cnpj', cnpj)
+      mae.set('cliente_id', clienteId)
+      mae.set('tipo', 'contabil')
+      mae.set('pai', base.id)
+      mae.set('cor', 'amber')
+      mae.set('ativo', true)
+      mae.set('observacao', 'Balanços, balancetes e DREs')
+      mae.set('criado_em', new Date().toISOString().replace('T', ' ').slice(0, 19))
+      app.save(mae)
+      criadas++
+      if (clientesTocados.indexOf(base.getString('nome')) === -1) {
+        clientesTocados.push(base.getString('nome'))
+      }
+    }
+
+    for (var i = 0; i < FILHAS.length; i++) {
+      var f = FILHAS[i]
+      var existe = null
+      try {
+        existe = app.findFirstRecordByFilter('param_pastas', 'pai = {:p} && tipo = {:t}', {
+          p: mae.id,
+          t: f.tipo,
+        })
+      } catch (err) {
+        existe = null
+      }
+      if (existe) {
+        jaTinham++
+        continue
+      }
+      var nova = new Record(col)
+      nova.set('nome', f.nome)
+      nova.set('nome_busca', norm(f.nome))
+      nova.set('cnpj', cnpj)
+      nova.set('cliente_id', clienteId)
+      nova.set('tipo', f.tipo)
+      nova.set('pai', mae.id)
+      nova.set('cor', f.cor)
+      nova.set('ativo', true)
+      nova.set('observacao', f.obs)
+      nova.set('criado_em', new Date().toISOString().replace('T', ' ').slice(0, 19))
+      app.save(nova)
+      criadas++
+      if (clientesTocados.indexOf(base.getString('nome')) === -1) {
+        clientesTocados.push(base.getString('nome'))
+      }
+    }
+  }
+
+  return e.json(200, {
+    success: true,
+    clientes: bases.length,
+    pastas_criadas: criadas,
+    pastas_ja_existentes: jaTinham,
+    clientes_com_pasta_nova: clientesTocados,
+    mensagem:
+      criadas === 0
+        ? 'Todos os clientes já tinham as pastas contábeis.'
+        : criadas + ' pasta(s) criada(s) em ' + clientesTocados.length + ' cliente(s).',
+  })
+})

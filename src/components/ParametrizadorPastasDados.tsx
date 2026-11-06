@@ -13,6 +13,7 @@ import {
   RefreshCw,
   Upload,
   X,
+  FolderPlus,
 } from 'lucide-react'
 import { extrairTextoPDF, lerContas } from '@/services/leitorBalancetePDF'
 
@@ -243,6 +244,25 @@ export function ParametrizadorPastasDados() {
     }
   }
 
+  /* ── GARANTIR PASTAS CONTÁBEIS EM TODOS OS CLIENTES (06/11/2026) ──
+   * Cliente cadastrado ANTES da pasta contábil existir não a recebia: a árvore
+   * só era montada na criação. Este botão faz o backfill — percorre todos e
+   * cria o que falta (Balanços, Balancetes, DREs, Demais). Idempotente. */
+  const garantirContabil = async () => {
+    setImportando(true)
+    setErro(null)
+    setAviso(null)
+    try {
+      const j = await chamar('param-pastas-garantir-contabil', { method: 'POST' })
+      setAviso(j.mensagem || `${j.pastas_criadas} pasta(s) criada(s).`)
+      carregar()
+    } catch (e: any) {
+      setErro(e.message)
+    } finally {
+      setImportando(false)
+    }
+  }
+
   const totalDocumentos = clientes.reduce((s, c) => s + (c.total || 0), 0)
   const totalPastas = clientes.reduce((s, c) => s + contar(c), 0)
 
@@ -299,6 +319,15 @@ export function ParametrizadorPastasDados() {
             placeholder="CNPJ ou razão social do cliente para criar a pasta…"
             className="min-w-[240px] flex-1 rounded-lg border border-slate-300 px-2.5 py-1.5 text-[11px] focus:border-panorama-navy focus:outline-none"
           />
+          <button
+            onClick={garantirContabil}
+            disabled={importando || !token}
+            title="Cria as pastas Balanços, Balancetes, DREs e Demais em todo cliente que ainda não as tenha"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-amber-400 bg-amber-50 px-2.5 py-1.5 text-[11px] font-bold text-amber-900 hover:bg-amber-100 disabled:opacity-50"
+          >
+            <FolderPlus className="h-3.5 w-3.5" />
+            Garantir pastas contábeis
+          </button>
           <button
             onClick={criarCliente}
             disabled={criando || !novoCliente.trim()}
