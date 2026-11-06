@@ -358,7 +358,7 @@ routerAdd('POST', '/backend/v1/contab-importar-pdf', (e) => {
       periodo_fim: periodoFim,
       arquivo_nome: arquivoNome,
       hash_arquivo: hash,
-      formato: 'pdf_balancete',
+      formato: 'txt_delimitado',
       status: 'ok',
       linhas: contas.length,
       contas_reconhecidas: contas.length - naoClassificadas.length,
