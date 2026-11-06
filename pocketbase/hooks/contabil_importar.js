@@ -342,11 +342,35 @@ routerAdd('POST', '/backend/v1/contab-importar', (e) => {
     }
   }
 
-  /* ── ESPECIALISTA 4: FECHAMENTO ── */
+  /* ── ESPECIALISTA 4: FECHAMENTO ──
+     ── A SOMA É SÓ DAS FOLHAS, E ISSO É O PONTO ──
+     Um balancete traz a conta sintética (1.1 ATIVO CIRCULANTE = 185.000) E as
+     analíticas que a compõem (1.1.1 = 42.000, 1.1.2 = 113.000, 1.1.3 = 30.000).
+     Somar tudo conta o mesmo dinheiro duas vezes: neste teste o ativo saía
+     800.000 quando o real é 800.000 − 185.000 − 215.000 = 400.000... e o
+     passivo fechava por coincidência aritmética, o que é pior: dava a impressão
+     de balanço conferido.
+     Regra: soma-se a conta que NÃO TEM FILHA. Quem tem filha é totalizadora, e
+     o valor dela é a soma das filhas, não um valor próprio. */
+  const temFilha = {}
+  for (let i = 0; i < contas.length; i++) {
+    const cod = String(contas[i].codigo || '')
+    if (!cod || cod.indexOf('.') < 0) continue
+    const partes = cod.split('.')
+    /* registra todos os prefixos como "têm filha" — 1.2.1 marca 1.2 e 1 */
+    for (let p = 1; p < partes.length; p++) {
+      temFilha[partes.slice(0, p).join('.')] = true
+    }
+  }
+
+  const ehFolha = (codigo) => !temFilha[String(codigo || '')]
+
   const somar = (grupo) => {
     let t = 0
     for (let i = 0; i < contas.length; i++) {
-      if (contas[i].grupo === grupo) t += contas[i].saldo_atual
+      if (contas[i].grupo !== grupo) continue
+      if (!ehFolha(contas[i].codigo)) continue
+      t += contas[i].saldo_atual
     }
     return Math.round(t * 100) / 100
   }
@@ -362,7 +386,9 @@ routerAdd('POST', '/backend/v1/contab-importar', (e) => {
   /* imobilizado: soma das contas marcadas com crédito de imobilizado */
   let imobilizado = 0
   for (let i = 0; i < contas.length; i++) {
-    if (contas[i].efeito_reforma === 'credito_imobilizado') imobilizado += contas[i].saldo_atual
+    if (contas[i].efeito_reforma !== 'credito_imobilizado') continue
+    if (!ehFolha(contas[i].codigo)) continue
+    imobilizado += contas[i].saldo_atual
   }
   imobilizado = Math.round(imobilizado * 100) / 100
 
