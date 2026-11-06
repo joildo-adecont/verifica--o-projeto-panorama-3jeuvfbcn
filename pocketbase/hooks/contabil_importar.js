@@ -518,13 +518,24 @@ routerAdd('POST', '/backend/v1/contab-importar', (e) => {
 
     let rec = null
     if (existente) {
-      existente.set(dados)
+      /* `set(objeto)` sobrescreve o registro inteiro em alguns caminhos do
+         JSVM — inclusive os campos que não estão no objeto. Por isso cada
+         campo é atribuído UM A UM: é mais verboso e é o que garante que o
+         valor chegue. O sintoma que obrigou isso: o save() passava e o
+         registro ficava com TODOS os campos vazios. */
+      const chavesExist = Object.keys(dados)
+      for (let k = 0; k < chavesExist.length; k++) {
+        existente.set(chavesExist[k], dados[chavesExist[k]])
+      }
       app.save(existente)
       rec = existente
       substituiu = true
     } else {
       rec = new Record(col)
-      rec.set(dados)
+      const chaves = Object.keys(dados)
+      for (let k = 0; k < chaves.length; k++) {
+        rec.set(chaves[k], dados[chaves[k]])
+      }
       app.save(rec)
     }
     documentoId = rec.id
