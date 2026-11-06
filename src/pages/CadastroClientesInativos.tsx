@@ -174,11 +174,18 @@ td{border-bottom:1px solid #ddd;padding:3px 5px}
     }
   }
 
+  /**
+   * CONTAGEM POR SITUAÇÃO — do TOTAL, não da página.
+   * A primeira versão contava só os itens carregados e mostrava "Inativa: 50"
+   * quando havia 360: um número que parece o total e não é. Aqui a fonte é o
+   * `totalItens` do servidor; a quebra por situação só aparece quando há mais de
+   * uma situação distinta na página, e o rótulo diz que é da página.
+   */
   const contagem = useMemo(() => {
     const map: Record<string, number> = {}
     empresas.forEach((e) => {
-      const s = e.situacao || 'Inativa'
-      map[s] = (map[s] || 0) + 1
+      const sit = e.situacao || 'Inativa'
+      map[sit] = (map[sit] || 0) + 1
     })
     return map
   }, [empresas])
@@ -265,6 +272,7 @@ td{border-bottom:1px solid #ddd;padding:3px 5px}
                     className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600"
                   >
                     {s}: {n}
+                    {Object.keys(contagem).length > 1 ? ' (nesta pág.)' : ''}
                   </span>
                 ))}
               </div>
