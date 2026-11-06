@@ -5,30 +5,27 @@
  * necessários e ajude o SKIP realizar a tarefa mais rápido".
  *
  * ── POR QUE UMA ROTA, E NÃO UM `seed` NA MIGRATION ──
- * Uma migration com 943 registros embutidos no código é frágil de três formas:
- *   1. o arquivo de migration passa de 1 MB e o build fica lento;
- *   2. cada correção de dado exige uma migration nova — e migration aplicada
- *      não se edita;
- *   3. se a importação falhar no meio, o Rollback apaga tudo e não se sabe
- *      onde parou.
- * A rota recebe um LOTE (até 200 registros), grava e devolve o que fez. Se um
- * lote falhar, os outros nove continuam válidos e basta reenviar aquele.
+ * Migration com 943 registros embutidos no código é frágil: passa de 1 MB, cada
+ * correção de dado exige migration nova (e migration aplicada não se edita) e,
+ * se falhar no meio, o Rollback apaga tudo sem dizer onde parou. A rota recebe
+ * um LOTE, grava e devolve o que fez: se um lote falhar, os outros nove
+ * continuam válidos e basta reenviar aquele.
  *
  * ── A CHAVE DE DEDUPLICAÇÃO ──
- * `codigo` é o código do contribuinte no sistema contábil e é único por
- * construção (a coleção já tem índice único). O upsert procura por código:
- * reenviar o mesmo lote ATUALIZA em vez de duplicar. Importação repetível é o
- * que permite corrigir sem medo.
+ * `codigo` é o código do contribuinte no sistema contábil, único por construção
+ * (a coleção tem índice único). Reenviar o mesmo lote ATUALIZA em vez de
+ * duplicar — importação repetível é o que permite corrigir sem medo.
  *
  * ── O QUE ESTA ROTA NÃO FAZ ──
- * Não inventa campo. Se o PDF não trouxe o dado (há 159 registros sem CNAE e
- * 471 sem capital social — pessoas físicas em sua maioria), o campo fica vazio.
- * Preencher por dedução criaria cadastro que a fonte não sustenta.
+ * Não inventa campo. Se o PDF não trouxe o dado (159 registros sem CNAE, 471
+ * sem capital social — pessoas físicas em maioria), o campo fica vazio.
  *
- * ── A REGRA DO JSVM (custou uma reprovação de QA) ──
- * O PocketBase executa cada callback em um pool de VM separado: funções
- * declaradas no topo do arquivo NÃO existem dentro do handler e dão
- * ReferenceError. Todo helper tem de estar INLINE no corpo do callback.
+ * ── DUAS ARMADILHAS DO JSVM QUE CUSTARAM RODADAS ──
+ * 1. Callback roda em pool de VM separado: função declarada no topo do arquivo
+ *    NÃO existe dentro do handler (ReferenceError). Todo helper vai INLINE.
+ * 2. `e.bindBody()` não existe: o corpo lê-se em `$apis.requestInfo(e).data`
+ *    para JSON, ou de `e.request.postFormValue()`/body cru. Sem isso a rota
+ *    recebe o lote inteiro e responde "nenhum item no corpo".
  */
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -36,24 +33,61 @@
  * Corpo: { itens: [...], lote: "lote_01_0001-0100.json" }
  * ══════════════════════════════════════════════════════════════════════════ */
 routerAdd('POST', '/backend/v1/importar-empresas-lote', (e) => {
-  /* ── token: helper INLINE ── */
   const recebido = e.request.header.get('x-painel-token') || ''
   const esperado = $secrets.get('SIMUL_PAINEL_TOKEN') || ''
   if (!esperado || recebido !== esperado) {
     return e.json(401, { ok: false, erro: 'token inválido' })
   }
 
-  /* ── corpo ── */
+  /* ── corpo: três caminhos, o primeiro que funcionar ── */
   let corpo = {}
   try {
-    corpo = e.bindBody ? e.bindBody() : $apis.requestInfo(e).data
+    const info = $apis.requestInfo(e)
+    if (info && info.data && typeof info.data === 'object') corpo = info.data
   } catch (err) {
     corpo = {}
   }
 
+  if (!corpo || !Array.isArray(corpo.itens)) {
+    try {
+      const bruto = toString(e.request.body)
+      if (bruto) {
+        const parsed = JSON.parse(bruto)
+        if (parsed && Array.isArray(parsed.itens)) corpo = parsed
+      }
+    } catch (err) {
+      /* segue com o que tiver */
+    }
+  }
+
+  /* Também aceita form-encoded: itens=<json> */
+  if (!corpo || !Array.isArray(corpo.itens)) {
+    try {
+      const txt = e.request.postFormValue('itens')
+      if (txt) {
+        const parsed = JSON.parse(txt)
+        if (Array.isArray(parsed)) corpo = { itens: parsed, lote: e.request.postFormValue('lote') }
+      }
+    } catch (err) {
+      /* segue */
+    }
+  }
+
   const itens = Array.isArray(corpo.itens) ? corpo.itens : []
+
   if (!itens.length) {
-    return e.json(400, { ok: false, erro: 'nenhum item no corpo' })
+    let amostra = ''
+    try {
+      amostra = toString(e.request.body).slice(0, 200)
+    } catch (err) {
+      amostra = '(corpo ilegível)'
+    }
+    return e.json(400, {
+      ok: false,
+      erro: 'nenhum item no corpo',
+      dica: 'envie JSON {"itens":[...]} com Content-Type: application/json',
+      recebido: amostra,
+    })
   }
   if (itens.length > 200) {
     return e.json(400, { ok: false, erro: 'lote acima de 200 registros' })
@@ -67,7 +101,6 @@ routerAdd('POST', '/backend/v1/importar-empresas-lote', (e) => {
   for (let i = 0; i < itens.length; i++) {
     const b = itens[i] || {}
 
-    /* ── normalizadores INLINE ── */
     const soDigitos = (v) => String(v || '').replace(/\D/g, '')
     const limpar = (v) =>
       String(v || '')
@@ -84,8 +117,8 @@ routerAdd('POST', '/backend/v1/importar-empresas-lote', (e) => {
       continue
     }
 
-    /* Só os campos que existem na coleção. Campo a mais faz o PocketBase
-       recusar o registro inteiro — e o lote perderia os 100 por um detalhe. */
+    /* Só campos que existem na coleção: campo a mais faz o PocketBase recusar
+       o registro inteiro e o lote perderia os 100 por um detalhe. */
     const dados = {
       codigo: codigo,
       tipo_documento: limpar(b.tipo_documento),
@@ -97,7 +130,6 @@ routerAdd('POST', '/backend/v1/importar-empresas-lote', (e) => {
       inscricao_estadual: limpar(b.inscricao_estadual),
       inscricao_suframa: limpar(b.inscricao_suframa),
       pagina: Number(b.pagina) || 0,
-      /* campos da migration 0134 */
       nome: limpar(b.nome),
       nome_fantasia: limpar(b.nome_fantasia),
       natureza_juridica: limpar(b.natureza_juridica),
