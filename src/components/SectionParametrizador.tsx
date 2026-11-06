@@ -37,6 +37,7 @@ import { ParametrizadorEnquadramento } from '@/components/ParametrizadorEnquadra
 import { ParametrizadorLevantamento } from '@/components/ParametrizadorLevantamento'
 import { ParametrizadorComparador } from '@/components/ParametrizadorComparador'
 import { ParametrizadorContabil } from '@/components/ParametrizadorContabil'
+import { ParametrizadorPastasDados } from '@/components/ParametrizadorPastasDados'
 
 /**
  * PARAMETRIZADOR DE DOCUMENTOS FISCAIS DA REFORMA — Seção 31
@@ -424,6 +425,9 @@ export function SectionParametrizador() {
                  balanço e DRE. É o dado que faltava para o comparador sair de
                  "receita e crédito estimados" para "escrituração real". */
               { id: 'contabil' as const, nome: 'Balancetes · DRE', Icon: Receipt },
+              /* Pastas de dados por cliente (06/11/2026): o repositório de onde
+                 os especialistas puxam XMLs e documentos contábeis do cliente. */
+              { id: 'pastas-dados' as const, nome: 'Pastas de dados', Icon: Folder },
             ].map((t) => (
               <button
                 key={t.id}
@@ -933,6 +937,7 @@ export function SectionParametrizador() {
           {aba === 'carteira' && <ParametrizadorLevantamento />}
           {aba === 'comparador' && <ParametrizadorComparador />}
           {aba === 'contabil' && <ParametrizadorContabil />}
+          {aba === 'pastas-dados' && <ParametrizadorPastasDados />}
 
           {/* rodapé */}
           <div className="flex items-center gap-1.5 flex-wrap rounded-lg bg-slate-50 px-2 py-1.5 text-[9px] text-slate-500">
