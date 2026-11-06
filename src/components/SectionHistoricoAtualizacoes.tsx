@@ -70,6 +70,41 @@ function ehRecente(dataBR: string): boolean {
 
 const REGISTROS: Registro[] = [
   {
+    data: '06/11/2026',
+    hora: '08:35',
+    titulo: 'Medida Provisória nº 1.399, de 04/11/2026 — alíquotas do Imposto Seletivo para 2027',
+    conteudo:
+      'Entrou pela rotina diária do radar Lefisc × fontes oficiais, com as duas fontes concordando em tipo, número, ano e objeto — nenhuma divergência. Publicada no DOU de 04/11/2026, edição extra DO1_EXTRA_B, e listada pela Lefisc (id 237600). Objeto: estabelece as alíquotas e normas complementares do Imposto Seletivo para o ano-calendário de 2027, em regime de implementação gradual. O que muda na prática: o IS passa a ter alíquota no primeiro ano de cobrança, com efeitos a partir de 02/02/2027, simultaneamente à redução a zero das alíquotas do IPI sobre os bens prejudiciais à saúde ou ao meio ambiente. Até 31/12/2027 as alíquotas do IS de veículos, aeronaves, embarcações, produtos fumígenos, bebidas alcoólicas e bebidas açucaradas correspondem às atuais alíquotas do IPI, após fatores específicos de conversão — ou seja, o primeiro ano preserva a carga atual. Veículos da posição 87.03 da NCM partem de alíquota-base de 6,3%, com ajustes por critérios como a potência do sistema de propulsão. O regime é temporário por construção: o art. 15 prevê projeto de lei com as alíquotas definitivas, a ser enviado ao Congresso até o fim de maio de 2027. Situação: vigente. Incorporada à linha do tempo da Seção 1 e ao Monitor Legislativo (Seção 12A); o tipo "Medida Provisória" passou a existir na linha do tempo, com cor e filtro próprios.',
+    fontes: [
+      {
+        titulo: 'DOU — texto integral publicado (edição extra de 04/11/2026)',
+        url: 'https://www.in.gov.br/web/dou/-/medida-provisoria-n-1.399-de-4-de-novembro-de-2026-741754451',
+      },
+      {
+        titulo: 'Planalto — texto consolidado da MP 1.399/2026',
+        url: 'http://www.planalto.gov.br/ccivil_03/_ato2023-2026/2026/mpv/mpv1399.htm',
+      },
+    ],
+    caminho: 'src/data/legislacaoCronologica.ts (MP 1.399/2026)',
+    bloco: 'legislacao',
+  },
+  {
+    data: '06/11/2026',
+    hora: '08:20',
+    titulo:
+      'Radar diário corrigido: ato já confirmado não regride mais para "só na Lefisc" ao sair da janela do DOU',
+    conteudo:
+      'Defeito encontrado na execução de hoje: o Ato Técnico Conjunto nº 10, já confirmado no DOU de 29/10 e publicado neste sistema em 31/10, voltou a aparecer como "só na Lefisc — não publicar até sair no DOU". Causa: a janela de consulta do DOU é de 3 dias e a Lefisc reexibe o mesmo ato por vários dias; quando o ato saía da janela, o cruzamento perdia a referência oficial e o veredito regredia — o painel público passava a dizer "não publicar" sobre um ato que o sistema já havia publicado com base no próprio DOU. Correção: criado um registro de confirmações (state/confirmados.json) que guarda assinatura, título, data, seção e link oficial de cada ato confirmado; o cruzamento consulta esse registro antes de concluir que um ato "só existe na Lefisc". Segundo defeito corrigido no mesmo ponto: o comparador lia o número do DOU sem tratar separador de milhar e acusou divergência falsa na MP 1.399 ("Lefisc diz 1399, DOU diz 1") — era a mesma falha já corrigida no extrator de assinatura, que ficou esquecida no comparador de diferenças. Com as duas correções o resultado do dia ficou: 2 confirmados, 0 divergentes, 0 só oficial, 0 só na Lefisc, 63 fora do escopo. Nenhum item que exista apenas na Lefisc foi publicado — a regra de que o órgão oficial confirma continua valendo.',
+    fontes: [
+      {
+        titulo: 'Rotina do radar',
+        url: 'scripts/radar_lefisc/comparar.py',
+      },
+    ],
+    caminho: 'scripts/radar_lefisc/comparar.py + state/confirmados.json',
+    bloco: 'sistema',
+  },
+  {
     data: '04/11/2026',
     hora: '11:00',
     titulo:

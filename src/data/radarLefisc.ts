@@ -54,20 +54,29 @@ export interface RadarLefisc {
 export const FONTE_MESTRA = 'DOU'
 
 export const RADAR_LEFISC: RadarLefisc = {
-  executadoEm: '2026-11-05T08:01:38-03:00',
+  executadoEm: '2026-11-06T08:34:53-03:00',
   janelaDouDias: 3,
   fontes: {
-    lefisc: { itens: 58, ok: true },
-    dou: { itens: 2, ok: true },
+    lefisc: { itens: 65, ok: true },
+    dou: { itens: 1, ok: true },
   },
   resumo: {
     divergentes: 0,
-    confirmados: 1,
+    confirmados: 2,
     soOficial: 0,
     soLefisc: 0,
-    foraDoEscopo: 57,
+    foraDoEscopo: 63,
   },
   linhas: [
+    {
+      veredito: 'CONFIRMADO',
+      titulo: 'MEDIDA PROVISÓRIA Nº 1.399, DE 4 DE NOVEMBRO DE 2026',
+      link: 'https://www.in.gov.br/web/dou/-/medida-provisoria-n-1.399-de-4-de-novembro-de-2026-741754451',
+      data: '04/11/2026',
+      secao: 'DO1_EXTRA_B',
+      lefisc:
+        'Estabelece alíquotas e normas complementares aplicáveis ao Imposto Seletivo para o ano-calendário de 2027, em Regime de Implementação Gradual.',
+    },
     {
       veredito: 'CONFIRMADO',
       titulo: 'ATO TÉCNICO CONJUNTO RFB/SUFIS/CGIBS/DIRETORIA-EXECUTIVA Nº 10, DE 28 DE OUTUBRO D',
@@ -76,11 +85,6 @@ export const RADAR_LEFISC: RadarLefisc = {
       secao: 'DO1_EXTRA_C',
       lefisc:
         'Dispõe sobre a aprovação conjunta da Secretaria Especial da Receita Federal do Brasil (RFB) e do Comitê Gestor do Imposto sobre Bens e Serviços (CGIBS) da documentação técnica dos ',
-      trechoIntegra:
-        'Art. 1º Fica aprovada a documentação técnica a seguir indicada, cujas especificações se aplicam à Contribuição sobre Bens e Serviços - CBS e ao Imposto sobre Bens e Serviços - IBS, constituída pelos seguintes instrumentos:',
-      criterioTrecho: 'Art. 1º',
-      caracteresIntegra: 4483,
-      origemIntegra: 'Lefisc',
     },
   ],
   erros: [],

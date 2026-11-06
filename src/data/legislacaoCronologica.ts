@@ -23,6 +23,7 @@ export type TipoNorma =
   | 'Decreto'
   | 'Portaria Conjunta'
   | 'Ato Conjunto'
+  | 'Medida Provisória'
   | 'Instrução Normativa'
   | 'Solução de Consulta'
   | 'Ato Declaratório'
@@ -61,6 +62,29 @@ export interface ItemCronologia {
  */
 export const CRONOLOGIA: ItemCronologia[] = [
   // ───────────────────────── 2026 ─────────────────────────
+  {
+    /*
+     * MP 1.399/2026 — incluída em 06/11/2026 pelo radar Lefisc × oficial.
+     * Confirmada nas DUAS fontes no mesmo dia: DOU de 04/11/2026 (DO1_EXTRA_B,
+     * edição extra) e Lefisc (idBanco 237600), que concordam em tipo, número, ano
+     * e objeto — nenhuma divergência. É a norma que dá número ao Imposto Seletivo
+     * no primeiro ano de cobrança: sem ela, o IS de 2027 não teria alíquota.
+     * Fonte oficial: DOU/Imprensa Nacional (link abaixo). Texto consolidado:
+     * planalto.gov.br/ccivil_03/_ato2023-2026/2026/mpv/mpv1399.htm
+     */
+    codigo: 'MP 1.399/2026',
+    tipo: 'Medida Provisória',
+    data: '2026-11-04',
+    publicacao: '2026-11-04',
+    titulo: 'Medida Provisória nº 1.399, de 4 de novembro de 2026',
+    objeto:
+      'Alíquotas e normas complementares do Imposto Seletivo para o ano-calendário de 2027, em regime de implementação gradual',
+    url: 'https://www.in.gov.br/web/dou/-/medida-provisoria-n-1.399-de-4-de-novembro-de-2026-741754451',
+    situacao: 'vigente',
+    papel: 'regulamento',
+    incorporada: false,
+    nota: 'DOU de 04/11/2026, DO1_EXTRA_B. Efeitos a partir de 02/02/2027 e vigência até 31/12/2027; nesse período as alíquotas do IS de veículos, aeronaves, embarcações, produtos fumígenos, bebidas alcoólicas e bebidas açucaradas correspondem às atuais alíquotas do IPI, após fatores específicos de conversão — a cobrança começa junto com a redução a zero do IPI desses bens. Caráter temporário: o art. 15 prevê projeto de lei com as alíquotas definitivas, a ser enviado até o fim de maio de 2027. Veículos da posição 87.03 partem de alíquota-base de 6,3%, com ajustes por critérios de potência, eficiência e outros.',
+  },
   {
     codigo: 'Decreto 13.140/2026',
     tipo: 'Decreto',
