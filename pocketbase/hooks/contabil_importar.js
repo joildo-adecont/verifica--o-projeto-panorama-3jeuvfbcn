@@ -488,10 +488,15 @@ routerAdd('POST', '/backend/v1/contab-importar', (e) => {
       existente = null
     }
 
+    /* Um campo `select` recebe STRING, não array. `maxSelect: 1` em alguns
+       caminhos do PocketBase espera lista — e um valor que JÁ está no formato
+       certo passaria, enquanto array viraria "cannot be blank" na validação.
+       Aqui o valor é normalizado antes de tocar no registro. */
+    const valorTipo = typeof tipo === 'string' && tipo ? tipo : 'indefinido'
     const dados = {
       cliente_cnpj: cnpj,
       cliente_nome: razao,
-      tipo_documento: tipo || 'indefinido',
+      tipo_documento: valorTipo,
       competencia: competencia,
       periodo_inicio: periodoInicio,
       periodo_fim: periodoFim,
@@ -523,6 +528,21 @@ routerAdd('POST', '/backend/v1/contab-importar', (e) => {
       app.save(rec)
     }
     documentoId = rec.id
+
+    /* Confirmação de leitura: gravar e acreditar no retorno do save() é o que
+       produziu o sintoma mais caro deste projeto — "written: true" e o dado
+       errado. Aqui o registro é RELIDO antes de seguir. */
+    try {
+      const conferido = app.findRecordById('cont_documentos', documentoId)
+      if (!String(conferido.get('tipo_documento') || '')) {
+        throw new Error('tipo_documento não persistiu')
+      }
+    } catch (errConf) {
+      throw new Error(
+        'confirmação falhou: ' +
+          String(errConf && errConf.message ? errConf.message : errConf).slice(0, 150),
+      )
+    }
 
     /* linhas: apaga as antigas deste documento e regrava */
     try {
