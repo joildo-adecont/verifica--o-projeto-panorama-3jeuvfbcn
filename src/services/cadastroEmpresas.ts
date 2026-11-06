@@ -60,6 +60,12 @@ function mapearRegistro(r: any): EmpresaRecord {
     foro_comarca: r.foro_comarca || '',
     duracao_contrato: r.duracao_contrato || '',
     pagina: r.pagina || 0,
+    tipo_cadastro:
+      r.tipo_cadastro || (r.tipo_documento === 'CPF' ? 'Pessoa Física' : 'Pessoa Jurídica'),
+    cpf_cnpj: r.numero_documento || r.cpf_cnpj || '',
+    telefone_2: r.telefone_2 || r.fax || '',
+    data_inicio_atividades: r.inicio_atividades || r.data_inicio_atividades || '',
+    data_cadastro: r.data_inscricao || r.cliente_desde || r.data_cadastro || '',
     created: r.created,
     updated: r.updated,
   }

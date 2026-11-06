@@ -753,12 +753,13 @@ export default function CadastroClientes() {
       {/* MODAL DO RELATÓRIO A4 IMPRIMÍVEL COM SELO ADECONT */}
       {modalRelatorioAberto && (
         <RelatorioClientesImprimivel
-          aberto={modalRelatorioAberto}
           aoFechar={() => setModalRelatorioAberto(false)}
           empresas={empresasRelatorio}
           termoBusca={termoBusca}
           filtroTipoDoc={filtroTipoDoc}
           filtroSituacao={filtroSituacao}
+          ordenacao={ordenacao}
+          totalBanco={totalItens}
         />
       )}
 
