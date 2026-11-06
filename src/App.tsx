@@ -5,6 +5,7 @@ import { Toaster } from '@/components/ui/toaster'
 import { Toaster as Sonner } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import Index from './pages/Index'
+import CadastroClientes from './pages/CadastroClientes'
 import NotFound from './pages/NotFound'
 import Layout from './components/Layout'
 
@@ -28,6 +29,7 @@ const App = () => (
       <Routes>
         <Route element={<Layout />}>
           <Route path="/" element={<Index />} />
+          <Route path="/cadastro-clientes" element={<CadastroClientes />} />
           {/* ADD ALL CUSTOM ROUTES MUST BE ADDED HERE */}
         </Route>
         {/* Simulador e Cadastro/Envios: qualquer variacao de URL cai no arquivo estatico correto */}

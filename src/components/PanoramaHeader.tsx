@@ -25,6 +25,7 @@ import {
   SistemaUsuario,
 } from '@/services/sistemaUsuarios'
 import { ModalLogin } from '@/components/ModalLogin'
+import { BotaoCadastroClientes } from '@/components/BotaoCadastroClientes'
 import type { SourceStatusItem } from '@/types/panorama'
 
 interface PanoramaHeaderProps {
@@ -269,6 +270,9 @@ export function PanoramaHeader({
               <RotateCw className={`w-3 h-3 ${isRefreshing ? 'animate-spin' : ''}`} />
               <span>🔄 Atualizar agora</span>
             </button>
+
+            {/* Ícone do Sistema: Cadastro Analítico de Clientes ADECONT */}
+            <BotaoCadastroClientes variante="header" />
 
             <AlternadorTema />
           </div>
@@ -538,6 +542,14 @@ export function PanoramaHeader({
         {/* Mobile Drawer */}
         {mobileMenuOpen && (
           <div className="lg:hidden mt-3 pt-3 border-t border-slate-200 flex flex-col gap-2 pb-2">
+            {/* Ícone do Sistema: Cadastro Analítico de Clientes no Mobile */}
+            <div className="pb-1">
+              <BotaoCadastroClientes
+                variante="mobile"
+                aoClicar={() => setMobileMenuOpen(false)}
+              />
+            </div>
+
             {NAV_LINKS.map((link) => {
               const { Icon } = link
               return (
