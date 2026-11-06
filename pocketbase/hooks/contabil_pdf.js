@@ -56,106 +56,6 @@
  * o arquivo estivesse vazio.
  */
 
-/** Converte "1.994.882,26D" em número e natureza. */
-function valorBR(tok) {
-  var t = String(tok || '').trim()
-  var natureza = ''
-  if (t.length && (t.charAt(t.length - 1) === 'D' || t.charAt(t.length - 1) === 'C')) {
-    natureza = t.charAt(t.length - 1) === 'C' ? 'credora' : 'devedora'
-    t = t.substring(0, t.length - 1)
-  }
-  t = t.replace(/\./g, '').replace(',', '.')
-  var v = parseFloat(t)
-  if (isNaN(v)) v = 0
-  return { valor: Math.round(v * 100) / 100, natureza: natureza }
-}
-
-/** "1.994.882,26" ou "1.994.882,26D" */
-function ehValor(tok) {
-  return /^-?[\d.]+,\d{2}[DC]?$/.test(String(tok || '').trim())
-}
-
-/* ══════════════════════════════════════════════════════════════════════
- * Leitura das linhas de conta
- * ══════════════════════════════════════════════════════════════════════ */
-function lerLinhas(texto) {
-  var linhas = String(texto || '').split(/\r?\n/)
-  var contas = []
-
-  for (var i = 0; i < linhas.length; i++) {
-    var bruta = linhas[i].replace(/\s+$/, '')
-    var limpa = bruta.replace(/^\s+/, '')
-    if (!limpa) continue
-    if (limpa.indexOf('Sistema licenciado') === 0) continue
-    if (limpa.indexOf('Empresa:') === 0) continue
-    if (limpa.indexOf('C.N.P.J.') === 0) continue
-    if (limpa.indexOf('Período:') === 0) continue
-    if (limpa.indexOf('Periodo:') === 0) continue
-    if (limpa.indexOf('Código Descrição') === 0) continue
-    if (limpa.indexOf('BALANCETE') >= 0 && limpa.indexOf('Código') < 0) continue
-
-    var campos = limpa.split(/\s+/)
-    if (campos.length < 6) continue
-
-    /* âncora: os QUATRO últimos campos têm de ser valores monetários */
-    var u = campos.slice(campos.length - 4)
-    if (!ehValor(u[0]) || !ehValor(u[1]) || !ehValor(u[2]) || !ehValor(u[3])) continue
-
-    var cabeca = campos.slice(0, campos.length - 4)
-    if (cabeca.length < 2) continue
-
-    var codigo = cabeca[0]
-    if (!/^\d{1,9}$/.test(codigo)) continue
-
-    var descricao = cabeca.slice(1).join(' ').replace(/\s+/g, ' ').trim()
-    if (!descricao) continue
-
-    var sa = valorBR(u[0])
-    var db = valorBR(u[1])
-    var cr = valorBR(u[2])
-    var at = valorBR(u[3])
-
-    contas.push({
-      codigo: codigo,
-      descricao: descricao,
-      saldo_anterior: sa.valor,
-      debito: db.valor,
-      credito: cr.valor,
-      saldo_atual: at.valor,
-      natureza: at.natureza,
-    })
-  }
-
-  /* ── grupo de cada conta, pelo PLANO DA EMPRESA ──
-     A descrição solta engana: "RECEITAS" aparece em vários níveis e
-     "RESULTADO" aparece dentro do PL. O que define é a conta-âncora de topo
-     que veio antes. */
-  var grupo = null
-  for (var g = 0; g < contas.length; g++) {
-    var d = String(contas[g].descricao).toUpperCase().trim()
-    if (d === 'ATIVO') grupo = 'ativo'
-    else if (d === 'PASSIVO') grupo = 'passivo'
-    else if (d.indexOf('PATRIMÔNIO LÍQUIDO') === 0 || d.indexOf('PATRIMONIO LIQUIDO') === 0)
-      grupo = 'patrimonio_liquido'
-    else if (d === 'RECEITAS') grupo = 'receita'
-    else if (d === 'CUSTOS E DESPESAS') grupo = 'custo'
-    contas[g].grupo = grupo || 'nao_classificada'
-  }
-
-  return contas
-}
-
-/** Total de uma linha de topo (por descrição exata). */
-function totalDe(contas, descricao) {
-  var alvo = String(descricao).toUpperCase().trim()
-  for (var i = 0; i < contas.length; i++) {
-    if (String(contas[i].descricao).toUpperCase().trim() === alvo) {
-      return contas[i].saldo_atual
-    }
-  }
-  return null
-}
-
 /* ══════════════════════════════════════════════════════════════════════
  * POST /backend/v1/contab-importar-pdf
  * body: { arquivo_nome, conteudo_base64 }  →  lê, confere e GRAVA
@@ -166,6 +66,121 @@ routerAdd('POST', '/backend/v1/contab-importar-pdf', (e) => {
   var recebido = e.request.header.get('X-Painel-Token') || ''
   if (!esperado || recebido !== esperado) {
     return e.json(401, { success: false, error: 'Token do painel ausente ou inválido.' })
+  }
+
+  /** Converte "1.994.882,26D" em número e natureza. */
+  function valorBR(tok) {
+    var t = String(tok || '').trim()
+    var natureza = ''
+    if (t.length && (t.charAt(t.length - 1) === 'D' || t.charAt(t.length - 1) === 'C')) {
+      natureza = t.charAt(t.length - 1) === 'C' ? 'credora' : 'devedora'
+      t = t.substring(0, t.length - 1)
+    }
+    t = t.replace(/\./g, '').replace(',', '.')
+    var v = parseFloat(t)
+    if (isNaN(v)) v = 0
+    return { valor: Math.round(v * 100) / 100, natureza: natureza }
+  }
+
+  /** "1.994.882,26" ou "1.994.882,26D" */
+  function ehValor(tok) {
+    return /^-?[\d.]+,\d{2}[DC]?$/.test(String(tok || '').trim())
+  }
+
+  /* ══════════════════════════════════════════════════════════════════════
+   * Leitura das linhas de conta
+   * ══════════════════════════════════════════════════════════════════════ */
+  function lerLinhas(texto) {
+    var linhas = String(texto || '').split(/\r?\n/)
+    var contas = []
+
+    for (var i = 0; i < linhas.length; i++) {
+      var bruta = linhas[i].replace(/\s+$/, '')
+      var limpa = bruta.replace(/^\s+/, '')
+      if (!limpa) continue
+      if (limpa.indexOf('Sistema licenciado') === 0) continue
+      if (limpa.indexOf('Empresa:') === 0) continue
+      if (limpa.indexOf('C.N.P.J.') === 0) continue
+      if (limpa.indexOf('Período:') === 0) continue
+      if (limpa.indexOf('Periodo:') === 0) continue
+      if (limpa.indexOf('Código Descrição') === 0) continue
+      if (limpa.indexOf('BALANCETE') >= 0 && limpa.indexOf('Código') < 0) continue
+
+      var campos = limpa.split(/\s+/)
+      if (campos.length < 6) continue
+
+      /* âncora: os QUATRO últimos campos têm de ser valores monetários */
+      var u = campos.slice(campos.length - 4)
+      if (!ehValor(u[0]) || !ehValor(u[1]) || !ehValor(u[2]) || !ehValor(u[3])) continue
+
+      var cabeca = campos.slice(0, campos.length - 4)
+      if (cabeca.length < 2) continue
+
+      var codigo = cabeca[0]
+      if (!/^\d{1,9}$/.test(codigo)) continue
+
+      var descricao = cabeca.slice(1).join(' ').replace(/\s+/g, ' ').trim()
+      if (!descricao) continue
+
+      var sa = valorBR(u[0])
+      var db = valorBR(u[1])
+      var cr = valorBR(u[2])
+      var at = valorBR(u[3])
+
+      contas.push({
+        codigo: codigo,
+        descricao: descricao,
+        saldo_anterior: sa.valor,
+        debito: db.valor,
+        credito: cr.valor,
+        saldo_atual: at.valor,
+        natureza: at.natureza,
+      })
+    }
+
+    /* ── grupo de cada conta, pelo PLANO DA EMPRESA ──
+       A descrição solta engana: "RECEITAS" aparece em vários níveis e
+       "RESULTADO" aparece dentro do PL. O que define é a conta-âncora de topo
+       que veio antes. */
+    var grupo = null
+    for (var g = 0; g < contas.length; g++) {
+      var d = String(contas[g].descricao).toUpperCase().trim()
+      if (d === 'ATIVO') grupo = 'ativo'
+      else if (d === 'PASSIVO') grupo = 'passivo'
+      else if (d.indexOf('PATRIMÔNIO LÍQUIDO') === 0 || d.indexOf('PATRIMONIO LIQUIDO') === 0)
+        grupo = 'patrimonio_liquido'
+      else if (d === 'RECEITAS') grupo = 'receita'
+      else if (d === 'CUSTOS E DESPESAS') grupo = 'custo'
+      contas[g].grupo = grupo || 'nao_classificada'
+    }
+
+    return contas
+  }
+
+  /** Total de uma linha de topo (por descrição exata). */
+  function totalDe(contas, descricao) {
+    var alvo = String(descricao).toUpperCase().trim()
+    for (var i = 0; i < contas.length; i++) {
+      if (String(contas[i].descricao).toUpperCase().trim() === alvo) {
+        return contas[i].saldo_atual
+      }
+    }
+    return null
+  }
+
+  /** Hash simples e estável (FNV-1a de 64 bits em hex) — não é SHA-256, e o
+   *  nome diz isso para ninguém confiar nele como prova criptográfica. */
+  function sha256Hex(s) {
+    var h1 = 0x811c9dc5
+    var h2 = 0x01000193
+    for (var i = 0; i < s.length; i++) {
+      var c = s.charCodeAt(i)
+      h1 = (h1 ^ c) >>> 0
+      h1 = (h1 * 16777619) >>> 0
+      h2 = (h2 + c * (i + 1)) >>> 0
+      h2 = (h2 * 2654435761) >>> 0
+    }
+    return ('00000000' + h1.toString(16)).slice(-8) + ('00000000' + h2.toString(16)).slice(-8)
   }
 
   var body = e.requestInfo().body || {}
@@ -414,18 +429,3 @@ routerAdd('POST', '/backend/v1/contab-importar-pdf', (e) => {
     return e.json(500, { success: false, error: String(err).slice(0, 300) })
   }
 })
-
-/** Hash simples e estável (FNV-1a de 64 bits em hex) — não é SHA-256, e o
- *  nome diz isso para ninguém confiar nele como prova criptográfica. */
-function sha256Hex(s) {
-  var h1 = 0x811c9dc5
-  var h2 = 0x01000193
-  for (var i = 0; i < s.length; i++) {
-    var c = s.charCodeAt(i)
-    h1 = (h1 ^ c) >>> 0
-    h1 = (h1 * 16777619) >>> 0
-    h2 = (h2 + c * (i + 1)) >>> 0
-    h2 = (h2 * 2654435761) >>> 0
-  }
-  return ('00000000' + h1.toString(16)).slice(-8) + ('00000000' + h2.toString(16)).slice(-8)
-}
