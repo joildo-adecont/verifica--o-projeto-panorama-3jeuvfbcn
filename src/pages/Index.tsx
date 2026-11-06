@@ -23,8 +23,10 @@ import {
   ArrowUpDown,
   ExternalLink,
 } from 'lucide-react'
+import { Printer, FileSpreadsheet } from 'lucide-react'
 import { AdecontLogo } from '@/components/AdecontLogo'
-import { listarEmpresas } from '@/services/cadastroEmpresas'
+import { listarEmpresas, listarEmpresasParaRelatorio } from '@/services/cadastroEmpresas'
+import { RelatorioClientesImprimivel } from '@/components/RelatorioClientesImprimivel'
 import type { EmpresaRecord } from '@/types/cadastroEmpresas'
 
 export default function Index() {
@@ -47,6 +49,11 @@ export default function Index() {
   // Item selecionado para expansão / detalhes
   const [empresaExpandidaId, setEmpresaExpandidaId] = useState<number | null>(null)
   const [modalEmpresa, setModalEmpresa] = useState<EmpresaRecord | null>(null)
+
+  // Estado do Relatório A4 impresso/PDF
+  const [modalRelatorioAberto, setModalRelatorioAberto] = useState<boolean>(false)
+  const [empresasRelatorio, setEmpresasRelatorio] = useState<EmpresaRecord[]>([])
+  const [gerandoRelatorio, setGerandoRelatorio] = useState<boolean>(false)
 
   // Carrega dados da coleção cadastro_empresas
   const carregarDados = useCallback(async () => {
@@ -118,6 +125,34 @@ export default function Index() {
   const temFiltroAtivo =
     termoBusca.trim() !== '' || filtroTipoDoc !== 'TODOS' || filtroSituacao !== 'TODOS'
 
+  // Prepara e abre a prévia A4 da consulta com os filtros ativos
+  const abrirRelatorioA4 = async () => {
+    setGerandoRelatorio(true)
+    try {
+      // Se a consulta inteira já coube na página atual e não há mais páginas, usa a lista atual
+      if (totalItens <= porPagina && empresas.length > 0) {
+        setEmpresasRelatorio(empresas)
+      } else {
+        // Busca todos os registros correspondentes aos filtros ativos
+        const dadosCompletos = await listarEmpresasParaRelatorio({
+          busca: termoBusca,
+          tipoDocumento: filtroTipoDoc,
+          situacao: filtroSituacao,
+          ordenacao,
+        })
+        setEmpresasRelatorio(dadosCompletos.length > 0 ? dadosCompletos : empresas)
+      }
+      setModalRelatorioAberto(true)
+    } catch (e) {
+      console.error('Falha ao gerar lista para relatório A4:', e)
+      // Fallback seguro: usa as empresas da página atual
+      setEmpresasRelatorio(empresas)
+      setModalRelatorioAberto(true)
+    } finally {
+      setGerandoRelatorio(false)
+    }
+  }
+
   // Estatísticas rápidas da lista atual
   const contadores = useMemo(() => {
     return {
@@ -158,11 +193,21 @@ export default function Index() {
             <button
               onClick={() => carregarDados()}
               disabled={carregando}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#D4AF37] hover:bg-[#c29f2f] text-xs font-bold text-[#0F294A] transition-colors shadow-sm disabled:opacity-60 cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-semibold text-slate-100 transition-colors border border-white/10 disabled:opacity-60 cursor-pointer"
               title="Atualizar lista"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${carregando ? 'animate-spin' : ''}`} />
               <span className="hidden sm:inline">Atualizar</span>
+            </button>
+
+            <button
+              onClick={abrirRelatorioA4}
+              disabled={gerandoRelatorio || carregando || totalItens === 0}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#D4AF37] hover:bg-[#c29f2f] text-xs font-bold text-[#0F294A] transition-colors shadow-sm disabled:opacity-50 cursor-pointer"
+              title="Gerar e imprimir relatório A4 da consulta com selo ADECONT"
+            >
+              <Printer className="w-3.5 h-3.5" />
+              <span>{gerandoRelatorio ? 'Gerando...' : 'Imprimir / A4'}</span>
             </button>
           </div>
         </div>
@@ -247,6 +292,16 @@ export default function Index() {
                   Limpar filtros
                 </button>
               )}
+
+              <button
+                onClick={abrirRelatorioA4}
+                disabled={gerandoRelatorio || carregando || totalItens === 0}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0F294A] hover:bg-[#183b68] text-xs font-bold text-white transition-colors shadow-xs disabled:opacity-50 cursor-pointer ml-auto"
+                title="Imprimir relatório A4 com os filtros ativos"
+              >
+                <Printer className="w-3.5 h-3.5 text-[#D4AF37]" />
+                <span>{gerandoRelatorio ? 'Carregando A4...' : 'Relatório A4'}</span>
+              </button>
             </div>
           </div>
 
@@ -945,6 +1000,19 @@ export default function Index() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* MODAL / PRÉVIA DO RELATÓRIO A4 IMPRESSO */}
+      {modalRelatorioAberto && (
+        <RelatorioClientesImprimivel
+          empresas={empresasRelatorio}
+          termoBusca={termoBusca}
+          filtroTipoDoc={filtroTipoDoc}
+          filtroSituacao={filtroSituacao}
+          ordenacao={ordenacao}
+          totalBanco={totalItens}
+          aoFechar={() => setModalRelatorioAberto(false)}
+        />
       )}
 
       {/* RODAPÉ INSTITUCIONAL */}

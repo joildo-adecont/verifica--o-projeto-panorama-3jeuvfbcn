@@ -157,3 +157,72 @@ export async function obterEmpresaPorCodigo(codigo: number): Promise<EmpresaReco
     return null
   }
 }
+
+/**
+ * Busca todos os registros correspondentes aos filtros informados (até um limite seguro, ex.: 1500)
+ * para emissão do relatório A4 impresso/PDF completo da consulta atual.
+ */
+export async function listarEmpresasParaRelatorio(
+  filtros: FiltrosEmpresas = {},
+  limite: number = 1000,
+): Promise<EmpresaRecord[]> {
+  const conditions: string[] = []
+
+  if (filtros.busca && filtros.busca.trim()) {
+    const q = filtros.busca.trim().replace(/['"\\]/g, '')
+    const numLimpo = q.replace(/\D/g, '')
+
+    const subConds: string[] = [
+      `razao_social ~ '${q}'`,
+      `nome ~ '${q}'`,
+      `apelido ~ '${q}'`,
+      `nome_fantasia ~ '${q}'`,
+      `numero_documento ~ '${q}'`,
+      `municipio ~ '${q}'`,
+      `ramo_atividade ~ '${q}'`,
+      `cnae ~ '${q}'`,
+    ]
+
+    if (/^\d+$/.test(q)) {
+      subConds.push(`codigo = ${parseInt(q, 10)}`)
+    }
+
+    if (numLimpo.length >= 3) {
+      subConds.push(`documento_limpo ~ '${numLimpo}'`)
+    }
+
+    conditions.push(`(${subConds.join(' || ')})`)
+  }
+
+  if (filtros.tipoDocumento && filtros.tipoDocumento !== 'TODOS') {
+    if (filtros.tipoDocumento === 'SEM_DOC') {
+      conditions.push(`(numero_documento = '' || numero_documento = null)`)
+    } else {
+      conditions.push(`tipo_documento = '${filtros.tipoDocumento}'`)
+    }
+  }
+
+  if (filtros.situacao && filtros.situacao !== 'TODOS') {
+    conditions.push(`situacao ~ '${filtros.situacao}'`)
+  }
+
+  let sort = 'codigo'
+  if (filtros.ordenacao === 'codigo-desc') sort = '-codigo'
+  else if (filtros.ordenacao === 'nome-asc') sort = 'razao_social'
+  else if (filtros.ordenacao === 'nome-desc') sort = '-razao_social'
+
+  const filterString = conditions.join(' && ')
+
+  try {
+    const items = await pb.collection('cadastro_empresas').getFullList({
+      filter: filterString || undefined,
+      sort,
+      batch: limite,
+    })
+
+    return items.map(mapearRegistro)
+  } catch (err) {
+    console.error('Erro ao listar empresas para relatório:', err)
+    return []
+  }
+}
