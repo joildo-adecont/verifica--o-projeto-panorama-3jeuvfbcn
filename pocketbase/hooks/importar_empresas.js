@@ -11,217 +11,202 @@
  *      não se edita;
  *   3. se a importação falhar no meio, o Rollback apaga tudo e não se sabe
  *      onde parou.
- * A rota recebe um LOTE (100 registros), grava, e devolve o que fez. Se um lote
- * falhar, os outros nove continuam válidos e basta reenviar aquele.
+ * A rota recebe um LOTE (até 200 registros), grava e devolve o que fez. Se um
+ * lote falhar, os outros nove continuam válidos e basta reenviar aquele.
  *
  * ── A CHAVE DE DEDUPLICAÇÃO ──
  * `codigo` é o código do contribuinte no sistema contábil e é único por
  * construção (a coleção já tem índice único). O upsert procura por código:
- * reenviar o mesmo lote ATUALIZA em vez de duplicar. Isso torna a importação
- * repetível — e repetível é o que permite corrigir sem medo.
+ * reenviar o mesmo lote ATUALIZA em vez de duplicar. Importação repetível é o
+ * que permite corrigir sem medo.
  *
  * ── O QUE ESTA ROTA NÃO FAZ ──
  * Não inventa campo. Se o PDF não trouxe o dado (há 159 registros sem CNAE e
  * 471 sem capital social — pessoas físicas em sua maioria), o campo fica vazio.
- * Preencher por dedução seria criar cadastro que a fonte não sustenta.
+ * Preencher por dedução criaria cadastro que a fonte não sustenta.
+ *
+ * ── A REGRA DO JSVM (custou uma reprovação de QA) ──
+ * O PocketBase executa cada callback em um pool de VM separado: funções
+ * declaradas no topo do arquivo NÃO existem dentro do handler e dão
+ * ReferenceError. Todo helper tem de estar INLINE no corpo do callback.
  */
 
-/* ── helpers INLINE (o JSVM não enxerga função top-level) ── */
-
-function soDigitos(v) {
-  return String(v || '').replace(/\D/g, '')
-}
-
-function limpar(v) {
-  return String(v || '')
-    .replace(/\s+/g, ' ')
-    .trim()
-}
-
-/** Extrai o número do código CNAE (4 primeiros dígitos) para o cruzamento. */
-function cnaeDivisao(cnae) {
-  const d = soDigitos(cnae)
-  return d.length >= 2 ? d.slice(0, 2) : ''
-}
-
-function tokenOk(e, app) {
+/* ══════════════════════════════════════════════════════════════════════════
+ * POST /backend/v1/importar-empresas-lote
+ * Corpo: { itens: [...], lote: "lote_01_0001-0100.json" }
+ * ══════════════════════════════════════════════════════════════════════════ */
+routerAdd('POST', '/backend/v1/importar-empresas-lote', (e) => {
+  /* ── token: helper INLINE ── */
   const recebido = e.request.header.get('x-painel-token') || ''
   const esperado = $secrets.get('SIMUL_PAINEL_TOKEN') || ''
-  return Boolean(esperado) && recebido === esperado
-}
-
-function jsonResposta(e, status, corpo) {
-  return e.json(status, corpo)
-}
-
-/** Grava ou atualiza UM registro. Devolve 'novo', 'atualizado' ou 'erro'. */
-function gravarUm(app, bruto) {
-  const codigo = Number(bruto.codigo)
-  if (!codigo || !Number.isFinite(codigo)) {
-    return { resultado: 'erro', motivo: 'código ausente' }
+  if (!esperado || recebido !== esperado) {
+    return e.json(401, { ok: false, erro: 'token inválido' })
   }
 
-  /* Os campos gravados são SÓ os que existem na coleção. Acrescentar campo
-     aqui sem a migration correspondente faz o PocketBase recusar o registro
-     inteiro — e o lote perderia os 100 por causa de um campo a mais. */
-  const dados = {
-    codigo: codigo,
-    tipo_documento: limpar(bruto.tipo_documento),
-    numero_documento: limpar(bruto.numero_documento),
-    documento_limpo: soDigitos(bruto.documento_limpo || bruto.numero_documento),
-    razao_social: limpar(bruto.razao_social) || 'SEM RAZÃO SOCIAL',
-    apelido: limpar(bruto.apelido),
-    data_inscricao: limpar(bruto.data_inscricao),
-    inscricao_estadual: limpar(bruto.inscricao_estadual),
-    inscricao_suframa: limpar(bruto.inscricao_suframa),
-    pagina: Number(bruto.pagina) || 0,
-    /* campos novos (migration 0134) */
-    nome: limpar(bruto.nome),
-    nome_fantasia: limpar(bruto.nome_fantasia),
-    natureza_juridica: limpar(bruto.natureza_juridica),
-    cnae: limpar(bruto.cnae),
-    cnae_divisao: cnaeDivisao(bruto.cnae),
-    ramo_atividade: limpar(bruto.ramo_atividade),
-    inicio_atividades: limpar(bruto.inicio_atividades),
-    cliente_desde: limpar(bruto.cliente_desde),
-    situacao: limpar(bruto.situacao),
-    tipo_endereco: limpar(bruto.tipo_endereco),
-    endereco: limpar(bruto.endereco),
-    numero_endereco: limpar(bruto.numero),
-    bairro: limpar(bruto.bairro),
-    complemento: limpar(bruto.complemento),
-    municipio: limpar(bruto.municipio),
-    uf: limpar(bruto.uf).slice(0, 2).toUpperCase(),
-    cep: soDigitos(bruto.cep),
-    pais: limpar(bruto.pais),
-    telefone: limpar(bruto.telefone),
-    fax: limpar(bruto.fax),
-    email: limpar(bruto.email),
-    pagina_internet: limpar(bruto.pagina_internet),
-    inscricao_municipal: limpar(bruto.inscricao_municipal),
-    inscricao_junta_comercial: limpar(bruto.inscricao_junta_comercial),
-    capital_social: limpar(bruto.capital_social),
-    contador: limpar(bruto.contador),
-    responsavel_legal: limpar(bruto.responsavel_legal),
-    foro_comarca: limpar(bruto.foro_comarca),
-    duracao_contrato: limpar(bruto.duracao_contrato),
-  }
-
-  let existente = null
+  /* ── corpo ── */
+  let corpo = {}
   try {
-    existente = app.findFirstRecordByFilter('cadastro_empresas', 'codigo = {:c}', { c: codigo })
+    corpo = e.bindBody ? e.bindBody() : $apis.requestInfo(e).data
   } catch (err) {
-    existente = null
+    corpo = {}
   }
 
-  try {
-    if (existente) {
-      existente.set(dados)
-      app.save(existente)
-      return { resultado: 'atualizado', codigo: codigo }
+  const itens = Array.isArray(corpo.itens) ? corpo.itens : []
+  if (!itens.length) {
+    return e.json(400, { ok: false, erro: 'nenhum item no corpo' })
+  }
+  if (itens.length > 200) {
+    return e.json(400, { ok: false, erro: 'lote acima de 200 registros' })
+  }
+
+  const app = $app
+  let novos = 0
+  let atualizados = 0
+  const erros = []
+
+  for (let i = 0; i < itens.length; i++) {
+    const b = itens[i] || {}
+
+    /* ── normalizadores INLINE ── */
+    const soDigitos = (v) => String(v || '').replace(/\D/g, '')
+    const limpar = (v) =>
+      String(v || '')
+        .replace(/\s+/g, ' ')
+        .trim()
+    const cnaeDivisao = (c) => {
+      const d = soDigitos(c)
+      return d.length >= 2 ? d.slice(0, 2) : ''
     }
-    const col = app.findCollectionByNameOrId('cadastro_empresas')
-    const rec = new Record(col)
-    rec.set(dados)
-    app.save(rec)
-    return { resultado: 'novo', codigo: codigo }
-  } catch (err) {
-    return {
-      resultado: 'erro',
+
+    const codigo = Number(b.codigo)
+    if (!codigo || !Number.isFinite(codigo)) {
+      erros.push({ codigo: null, motivo: 'código ausente' })
+      continue
+    }
+
+    /* Só os campos que existem na coleção. Campo a mais faz o PocketBase
+       recusar o registro inteiro — e o lote perderia os 100 por um detalhe. */
+    const dados = {
       codigo: codigo,
-      motivo: String(err && err.message ? err.message : err).slice(0, 200),
+      tipo_documento: limpar(b.tipo_documento),
+      numero_documento: limpar(b.numero_documento),
+      documento_limpo: soDigitos(b.documento_limpo || b.numero_documento),
+      razao_social: limpar(b.razao_social) || 'SEM RAZÃO SOCIAL',
+      apelido: limpar(b.apelido),
+      data_inscricao: limpar(b.data_inscricao),
+      inscricao_estadual: limpar(b.inscricao_estadual),
+      inscricao_suframa: limpar(b.inscricao_suframa),
+      pagina: Number(b.pagina) || 0,
+      /* campos da migration 0134 */
+      nome: limpar(b.nome),
+      nome_fantasia: limpar(b.nome_fantasia),
+      natureza_juridica: limpar(b.natureza_juridica),
+      cnae: limpar(b.cnae),
+      cnae_divisao: cnaeDivisao(b.cnae),
+      ramo_atividade: limpar(b.ramo_atividade),
+      inicio_atividades: limpar(b.inicio_atividades),
+      cliente_desde: limpar(b.cliente_desde),
+      situacao: limpar(b.situacao),
+      tipo_endereco: limpar(b.tipo_endereco),
+      endereco: limpar(b.endereco),
+      numero_endereco: limpar(b.numero),
+      bairro: limpar(b.bairro),
+      complemento: limpar(b.complemento),
+      municipio: limpar(b.municipio),
+      uf: limpar(b.uf).slice(0, 2).toUpperCase(),
+      cep: soDigitos(b.cep),
+      pais: limpar(b.pais),
+      telefone: limpar(b.telefone),
+      fax: limpar(b.fax),
+      email: limpar(b.email),
+      pagina_internet: limpar(b.pagina_internet),
+      inscricao_municipal: limpar(b.inscricao_municipal),
+      inscricao_junta_comercial: limpar(b.inscricao_junta_comercial),
+      capital_social: limpar(b.capital_social),
+      contador: limpar(b.contador),
+      responsavel_legal: limpar(b.responsavel_legal),
+      foro_comarca: limpar(b.foro_comarca),
+      duracao_contrato: limpar(b.duracao_contrato),
+    }
+
+    let existente = null
+    try {
+      existente = app.findFirstRecordByFilter('cadastro_empresas', 'codigo = {:c}', { c: codigo })
+    } catch (err) {
+      existente = null
+    }
+
+    try {
+      if (existente) {
+        existente.set(dados)
+        app.save(existente)
+        atualizados++
+      } else {
+        const col = app.findCollectionByNameOrId('cadastro_empresas')
+        const rec = new Record(col)
+        rec.set(dados)
+        app.save(rec)
+        novos++
+      }
+    } catch (err) {
+      const msg = String(err && err.message ? err.message : err).slice(0, 200)
+      erros.push({ codigo: codigo, motivo: msg })
     }
   }
-}
 
-/* ── ROTAS ── */
+  let total = -1
+  try {
+    total = app.countRecords('cadastro_empresas')
+  } catch (err) {
+    total = -1
+  }
 
-/**
- * POST /backend/v1/importar-empresas-lote
- * Corpo: { itens: [...], lote: "lote_01_0001-0100.json", total_lotes: 10 }
- * Devolve o balanço do lote e o total atual na coleção.
- */
-routerAdd(
-  'POST',
-  '/backend/v1/importar-empresas-lote',
-  (e) => {
-    if (!tokenOk(e, null)) {
-      return jsonResposta(e, 401, { ok: false, erro: 'token inválido' })
-    }
+  return e.json(200, {
+    ok: true,
+    lote: corpo.lote || '',
+    recebidos: itens.length,
+    novos: novos,
+    atualizados: atualizados,
+    erros: erros.slice(0, 20),
+    total_erros: erros.length,
+    total_na_colecao: total,
+  })
+})
 
-    let corpo = {}
-    try {
-      corpo = e.bindBody ? e.bindBody() : $apis.requestInfo(e).data
-    } catch (err) {
-      corpo = {}
-    }
-
-    const itens = Array.isArray(corpo.itens) ? corpo.itens : []
-    if (!itens.length) {
-      return jsonResposta(e, 400, { ok: false, erro: 'nenhum item no corpo' })
-    }
-    if (itens.length > 200) {
-      return jsonResposta(e, 400, { ok: false, erro: 'lote acima de 200 registros' })
-    }
-
-    const app = $app
-    let novos = 0
-    let atualizados = 0
-    const erros = []
-
-    for (let i = 0; i < itens.length; i++) {
-      const r = gravarUm(app, itens[i])
-      if (r.resultado === 'novo') novos++
-      else if (r.resultado === 'atualizado') atualizados++
-      else erros.push({ codigo: r.codigo || null, motivo: r.motivo })
-    }
-
-    let total = 0
-    try {
-      total = app.countRecords('cadastro_empresas')
-    } catch (err) {
-      total = -1
-    }
-
-    return jsonResposta(e, 200, {
-      ok: true,
-      lote: corpo.lote || '',
-      recebidos: itens.length,
-      novos: novos,
-      atualizados: atualizados,
-      erros: erros.slice(0, 20),
-      total_erros: erros.length,
-      total_na_colecao: total,
-    })
-  },
-  $apis.requireRecordAuth ? undefined : undefined,
-)
-
-/** GET /backend/v1/importar-empresas-status — quanto já entrou. */
+/* ══════════════════════════════════════════════════════════════════════════
+ * GET /backend/v1/importar-empresas-status — quanto já entrou, e coberto
+ * ══════════════════════════════════════════════════════════════════════════ */
 routerAdd('GET', '/backend/v1/importar-empresas-status', (e) => {
-  if (!tokenOk(e, null)) {
-    return jsonResposta(e, 401, { ok: false, erro: 'token inválido' })
+  const recebido = e.request.header.get('x-painel-token') || ''
+  const esperado = $secrets.get('SIMUL_PAINEL_TOKEN') || ''
+  if (!esperado || recebido !== esperado) {
+    return e.json(401, { ok: false, erro: 'token inválido' })
   }
+
   const app = $app
   let total = 0
   let comCnae = 0
   let ativas = 0
+  let comDocumento = 0
+
   try {
-    total = app.countRecords('cadastro_empresas')
-    comCnae = app.countRecords('cadastro_empresas', $dbx.exp('cnae != ""'))
-    ativas = app.countRecords('cadastro_empresas', $dbx.exp('situacao = "Ativa"'))
-  } catch (err) {
-    /* conta por varredura se a expressão não for suportada */
-    try {
-      const todos = app.findAllRecords('cadastro_empresas')
-      total = todos.length
-      for (const r of todos) {
-        if (String(r.get('cnae') || '').trim()) comCnae++
-        if (String(r.get('situacao') || '') === 'Ativa') ativas++
-      }
-    } catch (err2) {
-      return jsonResposta(e, 500, { ok: false, erro: String(err2).slice(0, 200) })
+    const todos = app.findAllRecords('cadastro_empresas')
+    total = todos.length
+    for (let i = 0; i < todos.length; i++) {
+      const r = todos[i]
+      if (String(r.get('cnae') || '').trim()) comCnae++
+      if (String(r.get('situacao') || '') === 'Ativa') ativas++
+      if (String(r.get('documento_limpo') || '').trim()) comDocumento++
     }
+  } catch (err) {
+    return e.json(500, { ok: false, erro: String(err).slice(0, 300) })
   }
-  return jsonResposta(e, 200, { ok: true, total: total, com_cnae: comCnae, ativas: ativas })
+
+  return e.json(200, {
+    ok: true,
+    total: total,
+    com_cnae: comCnae,
+    com_documento: comDocumento,
+    ativas: ativas,
+  })
 })
