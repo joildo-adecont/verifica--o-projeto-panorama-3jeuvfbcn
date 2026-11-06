@@ -188,11 +188,10 @@ routerAdd('POST', '/backend/v1/contab-importar-pdf', (e) => {
   /* a pasta do cliente onde o documento vai ficar guardado */
   var pastaId = String(body.pasta || '')
   var pastaNome = String(body.pasta_nome || '')
-  var b64 = String(body.conteudo_base64 || '')
-  if (!b64) {
-    return e.json(400, { success: false, error: 'Envie o PDF em conteudo_base64.' })
-  }
-  b64 = b64.replace(/^data:application\/pdf;base64,/, '')
+  /* O binário do PDF NÃO é exigido: quem decodifica o PDF é o navegador, que
+     manda o TEXTO já extraído. Guardar o base64 aqui só serviria para inchar o
+     registro — o conteúdo útil é o texto, e é ele que identifica o documento
+     pelo hash. Se o chamador mandar base64, é ignorado de propósito. */
 
   /* ── a leitura do PDF acontece no NAVEGADOR ──
      O JSVM do PocketBase não expõe zlib nem um decodificador de PDF, e
