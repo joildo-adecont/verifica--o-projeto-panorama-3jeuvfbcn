@@ -86,17 +86,23 @@ const CORES: Record<string, string> = {
   teal: 'text-teal-600',
 }
 
+/* Os tipos cabem em 12 caracteres (limite do campo no banco), por isso são
+   curtos: balancete, balanco, dre, demais — todos filhos de `contabil`. */
 const ICONE: Record<string, typeof Folder> = {
   xml_entrada: FileSpreadsheet,
   xml_saida: FileSpreadsheet,
   entrada: FileSpreadsheet,
   saida: FileSpreadsheet,
-  contabil_balancete: FileText,
-  contabil_balanco: FileText,
-  contabil_dre: FileText,
-  contabil_demais: FileText,
+  contabil: Folder,
+  balancete: FileText,
+  balanco: FileText,
+  dre: FileText,
+  demais: FileText,
   relatorios: FileText,
 }
+
+/** Pastas que recebem documento contábil (aceitam PDF). */
+const TIPOS_CONTABEIS = ['contabil', 'balancete', 'balanco', 'dre', 'demais']
 
 export function ParametrizadorPastasDados() {
   const [token, setToken] = useState('')
@@ -457,7 +463,7 @@ function Filha({
 }) {
   const Icone = ICONE[pasta.tipo] || Folder
   const cor = CORES[pasta.cor] || 'text-slate-600'
-  const contabil = pasta.tipo.startsWith('contabil')
+  const contabil = TIPOS_CONTABEIS.includes(pasta.tipo)
 
   return (
     <div className="border-b border-slate-200/60 py-1 last:border-0">
