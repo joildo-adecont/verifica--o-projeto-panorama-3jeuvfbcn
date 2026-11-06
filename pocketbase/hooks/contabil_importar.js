@@ -285,6 +285,7 @@ routerAdd('POST', '/backend/v1/contab-importar', (e) => {
            sintoma foi receita, custo e despesa zerados num balancete que os
            tinha: os saldos anteriores das contas de resultado são zero.
            Regra: "anterior" tem prioridade e EXCLUI a coluna do saldo atual. */
+        for (let k = 0; k < cols.length; k++) {
           const t = cols[k].toLowerCase()
           const ehAnterior = /anterior|saldo\s+ini|inicial/.test(t)
           if (colCodigo < 0 && /c[oó]digo|conta/.test(t)) colCodigo = k
