@@ -19,6 +19,7 @@ import {
   RefreshCw,
   Scale,
   ShieldCheck,
+  Trash2,
   Upload,
   XCircle,
 } from 'lucide-react'
@@ -164,6 +165,7 @@ export function ParametrizadorContabil() {
   const [erro, setErro] = useState<string | null>(null)
   const [arrastando, setArrastando] = useState(false)
   const [abertos, setAbertos] = useState<Record<string, boolean>>({})
+  const [excluindo, setExcluindo] = useState('')
 
   useEffect(() => {
     try {
@@ -258,6 +260,33 @@ export function ParametrizadorContabil() {
       importar(f)
     }
   }
+
+  /**
+   * EXCLUIR UM DOCUMENTO IMPORTADO.
+   * Importação errada precisa ter volta: sem isso, o balancete do cliente
+   * trocado fica contaminando o cruzamento para sempre. Confirma antes —
+   * apagar dado do usuário é irreversível.
+   */
+  const excluir = useCallback(
+    async (id: string, nome: string) => {
+      if (!window.confirm(`Excluir a importação "${nome}"? As contas ligadas a ela também saem.`))
+        return
+      setExcluindo(id)
+      try {
+        await chamar('contab-excluir', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ documento_id: id }),
+        })
+        await carregarDocumentos()
+      } catch (e: any) {
+        setErro(e.message)
+      } finally {
+        setExcluindo('')
+      }
+    },
+    [chamar, carregarDocumentos],
+  )
 
   const exportarCsv = () => {
     if (!resultado) return
@@ -619,6 +648,9 @@ export function ParametrizadorContabil() {
                   <th className="border-b-2 border-panorama-gold px-2 py-1.5 text-left font-bold">
                     Status
                   </th>
+                  <th className="border-b-2 border-panorama-gold px-2 py-1.5 text-center font-bold">
+                    —
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -644,6 +676,23 @@ export function ParametrizadorContabil() {
                       >
                         {d.status}
                       </span>
+                    </td>
+                    <td className="px-2 py-1.5 text-center">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          excluir(d.id, d.cliente_nome || d.competencia || d.tipo_documento)
+                        }
+                        disabled={excluindo === d.id}
+                        title="Excluir esta importação"
+                        className="rounded p-1 text-slate-400 hover:bg-red-50 hover:text-red-600 disabled:opacity-40 cursor-pointer"
+                      >
+                        {excluindo === d.id ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <Trash2 className="w-3.5 h-3.5" />
+                        )}
+                      </button>
                     </td>
                   </tr>
                 ))}

@@ -748,6 +748,77 @@ routerAdd('GET', '/backend/v1/contab-documentos', (e) => {
 })
 
 /* ══════════════════════════════════════════════════════════════════════════
+ * POST /backend/v1/contab-excluir  { documento_id }
+ * Remove o documento E as suas linhas.
+ *
+ * Sem esta rota não há como desfazer uma importação errada: o usuário sobe o
+ * balancete do cliente trocado e o número fica contaminando o cruzamento para
+ * sempre. Excluir é operação de escrita, então exige token e devolve o que
+ * apagou — não é um DELETE silencioso.
+ * ══════════════════════════════════════════════════════════════════════════ */
+routerAdd('POST', '/backend/v1/contab-excluir', (e) => {
+  const recebido = e.request.header.get('x-painel-token') || ''
+  const esperado = $secrets.get('SIMUL_PAINEL_TOKEN') || ''
+  if (!esperado || recebido !== esperado) {
+    return e.json(401, { ok: false, erro: 'token inválido' })
+  }
+
+  let corpo = {}
+  try {
+    const info = $apis.requestInfo(e)
+    if (info && info.data && typeof info.data === 'object') corpo = info.data
+  } catch (err) {
+    corpo = {}
+  }
+  if (!corpo || !corpo.documento_id) {
+    try {
+      corpo = JSON.parse(toString(e.request.body)) || {}
+    } catch (err) {
+      corpo = corpo || {}
+    }
+  }
+
+  const docId = String(corpo.documento_id || '')
+  if (!docId) {
+    return e.json(400, { ok: false, erro: 'documento_id ausente' })
+  }
+
+  const app = $app
+  let linhasApagadas = 0
+  let documentoApagado = false
+
+  try {
+    const linhas = app.findRecordsByFilter('cont_contas', 'documento_id = {:d}', '', 5000, 0, {
+      d: docId,
+    })
+    for (let i = 0; i < linhas.length; i++) {
+      app.delete(linhas[i])
+      linhasApagadas++
+    }
+  } catch (err) {
+    /* documento sem linhas */
+  }
+
+  try {
+    const doc = app.findRecordById('cont_documentos', docId)
+    app.delete(doc)
+    documentoApagado = true
+  } catch (err) {
+    return e.json(404, {
+      ok: false,
+      erro: 'documento não encontrado',
+      linhas_apagadas: linhasApagadas,
+    })
+  }
+
+  return e.json(200, {
+    ok: true,
+    documento_apagado: documentoApagado,
+    linhas_apagadas: linhasApagadas,
+  })
+})
+
+/* ══════════════════════════════════════════════════════════════════════════
  * GET /backend/v1/contab-resumo?cnpj=&competencia=
  * O que o ANALISADOR consome: números contábeis prontos para o cruzamento.
  * ══════════════════════════════════════════════════════════════════════════ */
