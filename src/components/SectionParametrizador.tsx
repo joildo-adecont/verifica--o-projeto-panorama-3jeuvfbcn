@@ -21,6 +21,7 @@ import {
   ShieldCheck,
   Upload,
   Users,
+  Wallet,
   XCircle,
 } from 'lucide-react'
 import { ParametrizadorAnalise } from '@/components/ParametrizadorAnalise'
@@ -33,6 +34,7 @@ import { ParametrizadorNcm } from '@/components/ParametrizadorNcm'
 import { ParametrizadorConferenciaPosicao } from '@/components/ParametrizadorConferenciaPosicao'
 import { ParametrizadorEnquadramento } from '@/components/ParametrizadorEnquadramento'
 import { ParametrizadorLevantamento } from '@/components/ParametrizadorLevantamento'
+import { ParametrizadorComparador } from '@/components/ParametrizadorComparador'
 
 /**
  * PARAMETRIZADOR DE DOCUMENTOS FISCAIS DA REFORMA — Seção 31
@@ -260,6 +262,7 @@ export function SectionParametrizador() {
     | 'posicao'
     | 'enquadramento'
     | 'carteira'
+    | 'comparador'
   >('catalogo')
   const [xml, setXml] = useState('')
   const [nomeArquivo, setNomeArquivo] = useState('documento.xml')
@@ -410,6 +413,10 @@ export function SectionParametrizador() {
               { id: 'posicao' as const, nome: 'Posição · conferir', Icon: ClipboardCheck },
               { id: 'enquadramento' as const, nome: 'Enquadramento', Icon: Building2 },
               { id: 'carteira' as const, nome: 'Carteira · regimes', Icon: Users },
+              /* COMPARADOR DE REGIMES (05/11/2026): carga de IBS/CBS + crédito
+                 em cada caminho, de 2026 a 2033, com o ponto de equilíbrio
+                 entre Simples e regime regular. */
+              { id: 'comparador' as const, nome: 'Comparador · regimes', Icon: Wallet },
             ].map((t) => (
               <button
                 key={t.id}
@@ -917,6 +924,7 @@ export function SectionParametrizador() {
 
           {/* ══════════ LEVANTAMENTO DE CARTEIRA POR REGIME ══════════ */}
           {aba === 'carteira' && <ParametrizadorLevantamento />}
+          {aba === 'comparador' && <ParametrizadorComparador />}
 
           {/* rodapé */}
           <div className="flex items-center gap-1.5 flex-wrap rounded-lg bg-slate-50 px-2 py-1.5 text-[9px] text-slate-500">

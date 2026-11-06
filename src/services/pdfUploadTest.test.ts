@@ -1,2 +1,1 @@
-// deleted probe test
-export const emptyTest = true
+export const empty = true
