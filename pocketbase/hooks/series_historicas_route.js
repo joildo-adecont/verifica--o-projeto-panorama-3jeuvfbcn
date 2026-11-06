@@ -112,6 +112,7 @@ routerAdd('GET', '/backend/v1/series-historicas', (e) => {
     juros_medio: [3.5, 3.7, 3.6, 3.3, 3.2, 3.1, 3.0, 3.2, 3.5, 3.8, 4.0, 4.1, 4.0],
     juros_pessoal: [4.5, 4.8, 4.9, 4.6, 4.5, 4.4, 4.3, 4.5, 4.9, 5.2, 5.4, 5.5, 5.4],
     inadimplencia: [3.0, 3.5, 3.8, 3.2, 2.8, 2.6, 2.8, 2.9, 2.6, 3.0, 3.1, 3.0, 3.0],
+    saldo_credito: [51.8, 52.3, 52.9, 53.5, 54.1, 54.6, 55.0, 55.3, 55.5, 55.6, 55.55, 55.5, 55.55],
     usd: [2.35, 3.35, 3.5, 3.2, 3.65, 3.95, 5.2, 5.4, 5.15, 5.0, 5.45, 5.85, 5.45],
     eur: [3.05, 3.7, 3.85, 3.55, 4.25, 4.4, 5.9, 6.1, 5.55, 5.45, 5.95, 6.35, 5.95],
     gbp: [3.9, 4.65, 4.6, 4.1, 4.75, 4.9, 6.6, 7.0, 6.4, 6.3, 6.9, 7.3, 6.9],
@@ -222,6 +223,9 @@ routerAdd('GET', '/backend/v1/series-historicas', (e) => {
       juros_medio: { fonte: 'BCB SGS 20714', candidatos: [{ tipo: 'bcb', codigo: 20714 }] },
       juros_pessoal: { fonte: 'BCB SGS 20746', candidatos: [{ tipo: 'bcb', codigo: 20746 }] },
       inadimplencia: { fonte: 'BCB SGS 21114', candidatos: [{ tipo: 'bcb', codigo: 21114 }] },
+      // Saldo das operações de crédito com recursos livres (relação crédito/PIB,
+      // ~55 ao vivo) — série MENSAL, unidade distinta das taxas (% do PIB).
+      saldo_credito: { fonte: 'BCB SGS 20622', candidatos: [{ tipo: 'bcb', codigo: 20622 }] },
       // — Câmbio (diária → último do mês) —
       usd: {
         fonte: 'BCB SGS 10813',

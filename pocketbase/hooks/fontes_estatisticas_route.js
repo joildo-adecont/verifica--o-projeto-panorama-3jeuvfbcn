@@ -1097,6 +1097,16 @@ routerAdd('GET', '/backend/v1/fontes-estatisticas', (e) => {
         unidade: '%',
         categoria: 'credito',
       },
+      {
+        chave: 'saldo_credito',
+        serie: 20622,
+        // SGS 20622: saldo das operações de crédito com recursos livres em
+        // relação ao PIB (~55,5 ao vivo — conferido em 11/2026). Unidade
+        // distinta das taxas acima: é razão crédito/PIB, não % a.a.
+        nome: 'Saldo das operações de crédito com recursos livres — % do PIB',
+        unidade: '% do PIB',
+        categoria: 'credito',
+      },
     ]
     const saida = []
     for (const s of series) {
