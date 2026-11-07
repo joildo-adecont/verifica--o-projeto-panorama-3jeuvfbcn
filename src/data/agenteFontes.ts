@@ -77,8 +77,8 @@ export const FONTES_VIGIADAS: FonteVigiada[] = [
   {
     id: 'cgibs',
     rotulo: 'CGIBS — resoluções',
-    orgao: 'Comitê Gestor do IBS',
-    url: 'https://cgibs.gov.br',
+    grupo: 'primaria',
+    url: 'https://www.cgibs.gov.br/',
     status: 'ativa',
     tipo: 'catalogo',
     verifica: 'resoluções e atos do Comitê Gestor',

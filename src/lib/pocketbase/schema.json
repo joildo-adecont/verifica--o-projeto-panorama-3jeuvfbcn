@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-07T23:15:25.983Z",
+  "generatedAt": "2026-11-07T23:32:25.835Z",
   "collections": [
     {
       "name": "users",
@@ -3129,8 +3129,8 @@
       "name": "economic_indicators_cache",
       "type": "base",
       "apiRules": {
-        "list": null,
-        "view": null,
+        "list": "",
+        "view": "",
         "create": null,
         "update": null,
         "delete": null
@@ -3163,10 +3163,10 @@
       "name": "param_documentos",
       "type": "base",
       "apiRules": {
-        "list": null,
-        "view": null,
-        "create": null,
-        "update": null,
+        "list": "",
+        "view": "",
+        "create": "",
+        "update": "",
         "delete": null
       },
       "fields": [
@@ -3335,10 +3335,10 @@
       "name": "param_itens",
       "type": "base",
       "apiRules": {
-        "list": null,
-        "view": null,
-        "create": null,
-        "update": null,
+        "list": "",
+        "view": "",
+        "create": "",
+        "update": "",
         "delete": null
       },
       "fields": [
@@ -3620,10 +3620,10 @@
       "name": "param_pastas",
       "type": "base",
       "apiRules": {
-        "list": null,
-        "view": null,
-        "create": null,
-        "update": null,
+        "list": "",
+        "view": "",
+        "create": "",
+        "update": "",
         "delete": null
       },
       "fields": [
@@ -3694,8 +3694,8 @@
       "name": "series_cache",
       "type": "base",
       "apiRules": {
-        "list": null,
-        "view": null,
+        "list": "",
+        "view": "",
         "create": null,
         "update": null,
         "delete": null
@@ -3732,8 +3732,8 @@
       "name": "news_cache",
       "type": "base",
       "apiRules": {
-        "list": null,
-        "view": null,
+        "list": "",
+        "view": "",
         "create": null,
         "update": null,
         "delete": null
@@ -3794,10 +3794,10 @@
       "name": "market_alerts",
       "type": "base",
       "apiRules": {
-        "list": null,
-        "view": null,
+        "list": "",
+        "view": "",
         "create": null,
-        "update": null,
+        "update": "",
         "delete": null
       },
       "fields": [
@@ -4222,6 +4222,12 @@
           "type": "number",
           "required": false,
           "system": false
+        },
+        {
+          "name": "documento",
+          "type": "text",
+          "required": false,
+          "system": false
         }
       ],
       "indexes": [
@@ -4235,7 +4241,8 @@
         "CREATE INDEX idx_cadastro_empresas_uf_mun ON cadastro_empresas (uf, municipio)",
         "CREATE INDEX idx_cadastro_empresas_situacao ON cadastro_empresas (situacao)",
         "CREATE INDEX idx_cadastro_empresas_arquivado ON cadastro_empresas (arquivado)",
-        "CREATE INDEX idx_cadastro_empresas_subst ON cadastro_empresas (substituido_por_id)"
+        "CREATE INDEX idx_cadastro_empresas_subst ON cadastro_empresas (substituido_por_id)",
+        "CREATE INDEX idx_cadastro_empresas_doc_compat ON cadastro_empresas (documento)"
       ]
     },
     {
@@ -4790,6 +4797,12 @@
           "type": "text",
           "required": false,
           "system": false
+        },
+        {
+          "name": "documento",
+          "type": "text",
+          "required": false,
+          "system": false
         }
       ],
       "indexes": [
@@ -4797,7 +4810,8 @@
         "CREATE INDEX idx_inativos_doc ON cadastro_empresas_inativos (documento_limpo)",
         "CREATE INDEX idx_inativos_razao ON cadastro_empresas_inativos (razao_social)",
         "CREATE INDEX idx_inativos_uf_mun ON cadastro_empresas_inativos (uf, municipio)",
-        "CREATE INDEX idx_inativos_cnae_div ON cadastro_empresas_inativos (cnae_divisao)"
+        "CREATE INDEX idx_inativos_cnae_div ON cadastro_empresas_inativos (cnae_divisao)",
+        "CREATE INDEX idx_cadastro_empresas_inativos_doc_compat ON cadastro_empresas_inativos (documento)"
       ]
     },
     {
