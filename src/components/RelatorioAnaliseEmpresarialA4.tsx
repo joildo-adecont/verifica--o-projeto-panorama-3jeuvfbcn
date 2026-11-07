@@ -7,29 +7,28 @@ import type {
   ItemChecklistDoc,
   AchadoDueDiligence,
   ParecerFinalAnalise,
+  AnaliseBalanco3Exercicios,
 } from '@/types/analisesEmpresariaisModel'
 import { calcular25Indicadores } from '@/services/motorAnaliseEmpresarial'
 import {
   Printer,
   X,
-  CheckCircle2,
   TrendingUp,
   ShieldCheck,
   Scale,
   FileText,
   AlertTriangle,
-  XCircle,
   Award,
 } from 'lucide-react'
 
 interface RelatorioAnaliseEmpresarialA4Props {
   dossie: SinteseAnaliseEmpresarial
   indicadoresModelo?: ItemIndicador[]
-  scoreResultado?: ScorePonderadoResultado
+  scoreResultado?: ScorePonderadoResultado | null
   checklistItens?: ItemChecklistDoc[]
   achados?: AchadoDueDiligence[]
-  parecerFinal?: ParecerFinalAnalise
-  balanco3Anos?: import('@/types/analisesEmpresariaisModel').AnaliseBalanco3Exercicios
+  parecerFinal?: ParecerFinalAnalise | null
+  balanco3Anos?: AnaliseBalanco3Exercicios
   regimeTributario?: string
   onClose: () => void
 }
@@ -45,14 +44,7 @@ export const RelatorioAnaliseEmpresarialA4: React.FC<RelatorioAnaliseEmpresarial
   regimeTributario,
   onClose,
 }) => {
-  const {
-    cliente,
-    indicadores,
-    normasRelevantes,
-    indicesMacro,
-    parecerEspecialistas,
-    dataAnalise,
-  } = dossie
+  const { cliente, indicadores, parecerEspecialistas, dataAnalise } = dossie
 
   const brl = (v?: number | null) =>
     Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
@@ -135,8 +127,12 @@ export const RelatorioAnaliseEmpresarialA4: React.FC<RelatorioAnaliseEmpresarial
             <div>
               <p className="text-[10px] font-bold text-slate-500 uppercase">Regime Tributário</p>
               <p className="text-xs font-semibold text-slate-800">
-                {regimeTributario || cliente.enquadramento_tributario || cliente.regime_tributario || 'Não Definido'}
-              </p>            </div>
+                {regimeTributario ||
+                  cliente.enquadramento_tributario ||
+                  cliente.regime_tributario ||
+                  'Não Definido'}
+              </p>{' '}
+            </div>
             <div>
               <p className="text-[10px] font-bold text-slate-500 uppercase">CNAE Principal</p>
               <p className="text-xs text-slate-800">
