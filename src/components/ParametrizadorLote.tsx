@@ -12,6 +12,16 @@ import {
   RefreshCw,
   Upload,
   XCircle,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+  Filter,
+  Search,
+  Clock,
+  Trash2,
+  FileCode,
+  Layers,
 } from 'lucide-react'
 import { CBS_POR_ANO, IBS_REF, REF_TOTAL, ibsDoAno, pct, totalDoAno } from '@/data/aliquotas'
 import { classificarNCM } from '@/data/motorClassificacao'
@@ -82,10 +92,24 @@ export function ParametrizadorLote() {
 
   // lote
   const LIMITE_ARQUIVOS_LOTE = 10000
+  const ITENS_POR_PAGINA = 50
+
   const [arquivos, setArquivos] = useState<{ nome: string; xml: string }[]>([])
   const [avisoLimite, setAvisoLimite] = useState<string | null>(null)
   const [resultadoLote, setResultadoLote] = useState<any>(null)
+  const [progressoLote, setProgressoLote] = useState<number>(0)
+  const [statusProgressoLote, setStatusProgressoLote] = useState<string>('')
   const inputRef = useRef<HTMLInputElement | null>(null)
+
+  // Paginação e filtros da fila de envio (antes de processar)
+  const [paginaFila, setPaginaFila] = useState(1)
+  const [buscaFila, setBuscaFila] = useState('')
+
+  // Paginação e filtros do resultado (após processar)
+  type FiltroResultadoStatus = 'todos' | 'importado' | 'repetido' | 'invalido'
+  const [filtroResStatus, setFiltroResStatus] = useState<FiltroResultadoStatus>('todos')
+  const [buscaResultado, setBuscaResultado] = useState('')
+  const [paginaResultado, setPaginaResultado] = useState(1)
 
   // totalizadores
   const [de, setDe] = useState('')
@@ -217,6 +241,100 @@ export function ParametrizadorLote() {
     }
   }
 
+  const limparFila = () => {
+    setArquivos([])
+    setAvisoLimite(null)
+    setPaginaFila(1)
+    if (inputRef.current) inputRef.current.value = ''
+  }
+
+  const removerArquivoFila = (indexGlobal: number) => {
+    setArquivos((prev) => prev.filter((_, idx) => idx !== indexGlobal))
+  }
+
+  // Filtragem da fila antes de processar
+  const arquivosFilaFiltrados = useMemo(() => {
+    if (!buscaFila.trim()) return arquivos.map((a, idx) => ({ ...a, originalIndex: idx }))
+    const t = buscaFila.trim().toLowerCase()
+    return arquivos
+      .map((a, idx) => ({ ...a, originalIndex: idx }))
+      .filter((a) => a.nome.toLowerCase().includes(t))
+  }, [arquivos, buscaFila])
+
+  const totalPaginasFila = Math.max(1, Math.ceil(arquivosFilaFiltrados.length / ITENS_POR_PAGINA))
+
+  useEffect(() => {
+    if (paginaFila > totalPaginasFila) setPaginaFila(totalPaginasFila)
+  }, [paginaFila, totalPaginasFila])
+
+  const arquivosFilaPaginados = useMemo(() => {
+    const inicio = (paginaFila - 1) * ITENS_POR_PAGINA
+    return arquivosFilaFiltrados.slice(inicio, inicio + ITENS_POR_PAGINA)
+  }, [arquivosFilaFiltrados, paginaFila])
+
+  const indiceInicioFila =
+    arquivosFilaFiltrados.length === 0 ? 0 : (paginaFila - 1) * ITENS_POR_PAGINA + 1
+  const indiceFimFila = Math.min(paginaFila * ITENS_POR_PAGINA, arquivosFilaFiltrados.length)
+
+  // Filtragem dos resultados após processar
+  const resultadosBrutos = (resultadoLote?.resultados ?? []) as any[]
+
+  const contadoresResultado = useMemo(() => {
+    let importado = 0
+    let repetido = 0
+    let invalido = 0
+    for (const r of resultadosBrutos) {
+      if (r.status === 'importado') importado++
+      else if (r.status === 'repetido') repetido++
+      else invalido++
+    }
+    return {
+      todos: resultadosBrutos.length,
+      importado,
+      repetido,
+      invalido,
+    }
+  }, [resultadosBrutos])
+
+  const resultadosFiltrados = useMemo(() => {
+    return resultadosBrutos.filter((r) => {
+      if (filtroResStatus === 'importado' && r.status !== 'importado') return false
+      if (filtroResStatus === 'repetido' && r.status !== 'repetido') return false
+      if (filtroResStatus === 'invalido' && (r.status === 'importado' || r.status === 'repetido'))
+        return false
+
+      if (buscaResultado.trim()) {
+        const termo = buscaResultado.trim().toLowerCase()
+        const bateNome = r.nome ? String(r.nome).toLowerCase().includes(termo) : false
+        const bateMotivo = r.motivo ? String(r.motivo).toLowerCase().includes(termo) : false
+        const batePasta = r.pasta ? String(r.pasta).toLowerCase().includes(termo) : false
+        const bateMotivoPasta = r.motivo_sem_pasta
+          ? String(r.motivo_sem_pasta).toLowerCase().includes(termo)
+          : false
+        if (!bateNome && !bateMotivo && !batePasta && !bateMotivoPasta) return false
+      }
+      return true
+    })
+  }, [resultadosBrutos, filtroResStatus, buscaResultado])
+
+  const totalPaginasResultado = Math.max(
+    1,
+    Math.ceil(resultadosFiltrados.length / ITENS_POR_PAGINA),
+  )
+
+  useEffect(() => {
+    if (paginaResultado > totalPaginasResultado) setPaginaResultado(totalPaginasResultado)
+  }, [paginaResultado, totalPaginasResultado])
+
+  const resultadosPaginados = useMemo(() => {
+    const inicio = (paginaResultado - 1) * ITENS_POR_PAGINA
+    return resultadosFiltrados.slice(inicio, inicio + ITENS_POR_PAGINA)
+  }, [resultadosFiltrados, paginaResultado])
+
+  const indiceInicioRes =
+    resultadosFiltrados.length === 0 ? 0 : (paginaResultado - 1) * ITENS_POR_PAGINA + 1
+  const indiceFimRes = Math.min(paginaResultado * ITENS_POR_PAGINA, resultadosFiltrados.length)
+
   const importarLote = async () => {
     if (!token) {
       setErro('Informe o token do painel.')
@@ -228,15 +346,40 @@ export function ParametrizadorLote() {
     }
     setOcupado(true)
     setErro(null)
+    setProgressoLote(10)
+    setStatusProgressoLote(`Preparando ${arquivos.length} XMLs para importação...`)
+
+    // Simulação visual de avanço de progresso durante a requisição grande
+    const totalArqs = arquivos.length
+    const timer = setInterval(() => {
+      setProgressoLote((p) => {
+        if (p >= 85) return p
+        const next = p + Math.floor(Math.random() * 8) + 2
+        const estimado = Math.min(totalArqs, Math.round((next / 100) * totalArqs))
+        setStatusProgressoLote(`Processando arquivo ${estimado} de ${totalArqs}...`)
+        return next
+      })
+    }, 500)
+
     try {
       const j = await chamar('param-importar-lote', { arquivos, pasta: pastaAlvo })
+      clearInterval(timer)
+      setProgressoLote(100)
+      setStatusProgressoLote(`Concluído: ${j.total_arquivos || totalArqs} arquivo(s) processados.`)
+
       setResultadoLote(j)
       setArquivos([])
+      setPaginaFila(1)
+      setPaginaResultado(1)
+      setFiltroResStatus('todos')
+      setBuscaResultado('')
       if (inputRef.current) inputRef.current.value = ''
       carregarTotalizadores()
       carregarIbs()
     } catch (e: any) {
+      clearInterval(timer)
       setErro(e.message)
+      setStatusProgressoLote('Falha durante o processamento do lote.')
     } finally {
       setOcupado(false)
     }
@@ -425,19 +568,84 @@ export function ParametrizadorLote() {
       {/* ══════════ 1. LOTE ══════════ */}
       {aba === 'lote' && (
         <>
-          <div className="rounded-xl border-2 border-slate-200 bg-white p-3">
+          {/* Resumo consolidado STICKY / FIXO NO TOPO após processamento */}
+          {resultadoLote && (
+            <div className="sticky top-2 z-20 rounded-xl border-2 border-panorama-gold/60 bg-white/95 backdrop-blur-md p-3 shadow-md space-y-2.5">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2">
+                <div className="flex items-center gap-2">
+                  <span className="flex items-center justify-center w-6 h-6 rounded-md bg-panorama-navy text-panorama-gold-light text-xs font-bold shrink-0">
+                    ✓
+                  </span>
+                  <div>
+                    <p className="text-[11.5px] font-bold text-slate-900">
+                      Resumo Consolidado do Lote{' '}
+                      {resultadoLote.lote ? `#${resultadoLote.lote}` : ''}
+                    </p>
+                    <p className="text-[10px] text-slate-500">
+                      Entradas: <b>{brl(resultadoLote.valor_entrada)}</b> · Saídas:{' '}
+                      <b>{brl(resultadoLote.valor_saida)}</b>
+                    </p>
+                  </div>
+                </div>
+                <div className="text-[10.5px] text-slate-600 font-mono font-medium">
+                  Total: {resultadoLote.total_arquivos} arquivo(s)
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {[
+                  {
+                    r: 'Entraram (Sucesso)',
+                    v: resultadoLote.entraram,
+                    cor: 'text-emerald-700',
+                    bg: 'bg-emerald-50/50',
+                  },
+                  {
+                    r: 'Repetidos (Rejeitados)',
+                    v: resultadoLote.repetidos,
+                    cor: 'text-amber-700',
+                    bg: 'bg-amber-50/50',
+                  },
+                  {
+                    r: 'Inválidos / Erros',
+                    v: resultadoLote.invalidos,
+                    cor: resultadoLote.invalidos > 0 ? 'text-rose-700' : 'text-slate-400',
+                    bg: resultadoLote.invalidos > 0 ? 'bg-rose-50/50' : 'bg-slate-50/50',
+                  },
+                  {
+                    r: 'Total Arquivos',
+                    v: resultadoLote.total_arquivos,
+                    cor: 'text-slate-900',
+                    bg: 'bg-slate-50/50',
+                  },
+                ].map((k) => (
+                  <div key={k.r} className={`rounded-lg border border-slate-200 ${k.bg} p-2`}>
+                    <p className="text-[8.5px] font-bold uppercase tracking-wide text-slate-500 truncate">
+                      {k.r}
+                    </p>
+                    <p className={`text-[17px] font-bold tabular-nums leading-tight ${k.cor}`}>
+                      {k.v}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Caixa de Entrada e Configurações de Envio */}
+          <div className="rounded-xl border-2 border-slate-200 bg-white p-3 space-y-2">
             <p className="text-[11px] font-bold text-slate-900 flex items-center gap-1.5">
-              <FileStack className="w-3.5 h-3.5" />
-              Importar vários XMLs de uma vez
+              <FileStack className="w-3.5 h-3.5 text-panorama-navy" />
+              Importar vários XMLs de uma vez (Lotes até 10.000)
             </p>
-            <p className="mt-0.5 text-[10px] leading-snug text-slate-500">
+            <p className="text-[10px] leading-snug text-slate-500">
               Aceita NF de <b>entrada</b> e de <b>saída</b> na mesma leva. A direção de cada
               documento vem do <b>CFOP</b> declarado nele (1/2/3 = entrada, 5/6/7 = saída) — o
               sistema lê o que o documento diz, não adivinha. Reimportar o mesmo arquivo{' '}
-              <b>não duplica</b>: é reconhecido pela chave de acesso.
+              <b>não duplica</b>: é reconhecido pela chave de acesso de 44 dígitos.
             </p>
 
-            <div className="mt-2 flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2 pt-1">
               <label className="inline-flex items-center gap-1.5 rounded-lg bg-panorama-navy px-3 py-1.5 text-[11px] font-bold text-panorama-gold-light hover:bg-slate-900 cursor-pointer">
                 <Upload className="w-3.5 h-3.5" />
                 Escolher XMLs (vários)
@@ -454,18 +662,30 @@ export function ParametrizadorLote() {
                 type="button"
                 onClick={importarLote}
                 disabled={ocupado || !arquivos.length}
-                className="inline-flex items-center gap-1.5 rounded-lg border-2 border-panorama-navy px-3 py-1.5 text-[11px] font-bold text-panorama-navy hover:bg-slate-50 disabled:opacity-40 cursor-pointer"
+                className="inline-flex items-center gap-1.5 rounded-lg border-2 border-panorama-navy bg-panorama-navy text-white px-3 py-1.5 text-[11px] font-bold hover:bg-slate-900 disabled:opacity-40 cursor-pointer"
               >
                 {ocupado ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-panorama-gold-light" />
                 ) : (
-                  <ArrowDownToLine className="w-3.5 h-3.5" />
+                  <Layers className="w-3.5 h-3.5 text-panorama-gold-light" />
                 )}
-                Processar lote
+                {ocupado ? 'Processando lote...' : `Processar Lote (${arquivos.length})`}
               </button>
+
+              {arquivos.length > 0 && (
+                <button
+                  type="button"
+                  onClick={limparFila}
+                  disabled={ocupado}
+                  className="inline-flex items-center gap-1 rounded-lg border border-rose-300 bg-rose-50 px-2 py-1.5 text-[10.5px] font-medium text-rose-700 hover:bg-rose-100 cursor-pointer disabled:opacity-40"
+                >
+                  <Trash2 className="w-3 h-3" /> Limpar fila
+                </button>
+              )}
+
               {arquivos.length > 0 && (
                 <span className="text-[10.5px] font-bold text-slate-700">
-                  {arquivos.length} arquivo(s) na fila
+                  {arquivos.length} arquivo(s) carregados
                   {arquivos.length >= LIMITE_ARQUIVOS_LOTE && (
                     <span className="ml-1 text-[9.5px] text-amber-800">
                       (limite de 10.000 atingido)
@@ -476,13 +696,13 @@ export function ParametrizadorLote() {
             </div>
 
             {avisoLimite && (
-              <p className="mt-2 flex items-start gap-1.5 rounded-lg border border-amber-300 bg-amber-50 p-2 text-[10.5px] text-amber-900">
+              <p className="flex items-start gap-1.5 rounded-lg border border-amber-300 bg-amber-50 p-2 text-[10.5px] text-amber-900">
                 <Info className="mt-0.5 w-3.5 h-3.5 shrink-0 text-amber-700" />
                 {avisoLimite}
               </p>
             )}
 
-            <label className="mt-2 block max-w-[420px]">
+            <label className="block max-w-[420px] pt-1">
               <span className="text-[10px] font-bold text-slate-600">
                 Pasta do cliente (opcional)
                 <span className="ml-1 font-normal text-slate-500">
@@ -511,89 +731,424 @@ export function ParametrizadorLote() {
             </label>
           </div>
 
-          {resultadoLote && (
-            <>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {[
-                  { r: 'Entraram', v: resultadoLote.entraram, cor: 'text-emerald-700' },
-                  { r: 'Repetidos', v: resultadoLote.repetidos, cor: 'text-slate-600' },
-                  {
-                    r: 'Inválidos',
-                    v: resultadoLote.invalidos,
-                    cor: resultadoLote.invalidos > 0 ? 'text-rose-700' : 'text-slate-400',
-                  },
-                  { r: 'Arquivos', v: resultadoLote.total_arquivos, cor: 'text-slate-900' },
-                ].map((k) => (
-                  <div key={k.r} className="rounded-xl border-2 border-slate-200 bg-white p-2.5">
-                    <p className="text-[9px] font-bold uppercase tracking-wide text-slate-500">
-                      {k.r}
-                    </p>
-                    <p className={`text-[19px] font-bold tabular-nums leading-tight ${k.cor}`}>
-                      {k.v}
-                    </p>
+          {/* Barra de Progresso durante processamento */}
+          {ocupado && (
+            <div className="rounded-xl border-2 border-panorama-gold/60 bg-amber-50/50 p-3 space-y-2">
+              <div className="flex items-center justify-between text-xs font-semibold text-slate-900">
+                <span className="flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-panorama-navy animate-spin" />
+                  {statusProgressoLote || 'Importando lote de XMLs...'}
+                </span>
+                <span className="font-mono font-bold text-panorama-navy">{progressoLote}%</span>
+              </div>
+              <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                <div
+                  className="bg-panorama-navy h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${progressoLote}%` }}
+                />
+              </div>
+              <p className="text-[10.5px] text-slate-500">
+                Você pode continuar navegando a lista paginada abaixo enquanto o lote é processado.
+              </p>
+            </div>
+          )}
+
+          {/* FILA ANTES DO PROCESSAMENTO: PAGINADA E BUSCÁVEL */}
+          {arquivos.length > 0 && !resultadoLote && (
+            <div className="rounded-xl border-2 border-slate-200 bg-white overflow-hidden space-y-2 p-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-2">
+                <div className="flex items-center gap-2">
+                  <FileCode className="w-4 h-4 text-panorama-navy" />
+                  <span className="text-xs font-bold text-slate-900">
+                    Fila de Envio: {arquivos.length} arquivo(s)
+                  </span>
+                </div>
+
+                <div className="relative w-full sm:w-64">
+                  <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="text"
+                    value={buscaFila}
+                    onChange={(e) => {
+                      setBuscaFila(e.target.value)
+                      setPaginaFila(1)
+                    }}
+                    placeholder="Buscar por nome do arquivo..."
+                    className="w-full pl-8 pr-2 py-1 text-[11px] rounded-lg border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:border-panorama-gold"
+                  />
+                </div>
+              </div>
+
+              {/* Paginação da Fila */}
+              <div className="flex items-center justify-between gap-2 text-[11px] text-slate-500 px-1">
+                <div>
+                  Mostrando{' '}
+                  <b>
+                    {indiceInicioFila}–{indiceFimFila}
+                  </b>{' '}
+                  de <b>{arquivosFilaFiltrados.length}</b> arquivos
+                </div>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setPaginaFila(1)}
+                    disabled={paginaFila <= 1}
+                    className="p-1 rounded border border-slate-200 hover:bg-slate-50 disabled:opacity-30 cursor-pointer"
+                    title="Primeira página"
+                  >
+                    <ChevronsLeft className="w-3 h-3" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPaginaFila((p) => Math.max(1, p - 1))}
+                    disabled={paginaFila <= 1}
+                    className="p-1 rounded border border-slate-200 hover:bg-slate-50 disabled:opacity-30 cursor-pointer"
+                    title="Página anterior"
+                  >
+                    <ChevronLeft className="w-3 h-3" />
+                  </button>
+                  <span className="px-1 font-medium text-slate-700">
+                    Pág. {paginaFila} de {totalPaginasFila}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setPaginaFila((p) => Math.min(totalPaginasFila, p + 1))}
+                    disabled={paginaFila >= totalPaginasFila}
+                    className="p-1 rounded border border-slate-200 hover:bg-slate-50 disabled:opacity-30 cursor-pointer"
+                    title="Próxima página"
+                  >
+                    <ChevronRight className="w-3 h-3" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPaginaFila(totalPaginasFila)}
+                    disabled={paginaFila >= totalPaginasFila}
+                    className="p-1 rounded border border-slate-200 hover:bg-slate-50 disabled:opacity-30 cursor-pointer"
+                    title="Última página"
+                  >
+                    <ChevronsRight className="w-3 h-3" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Lista paginada de arquivos */}
+              <div className="max-h-[380px] overflow-y-auto divide-y divide-slate-100 rounded-lg border border-slate-100">
+                {arquivosFilaPaginados.map((arq) => (
+                  <div
+                    key={arq.originalIndex}
+                    className="p-2 flex items-center justify-between gap-2 hover:bg-slate-50 text-xs"
+                  >
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                      <span className="font-mono text-[10px] text-slate-400 w-8 text-right shrink-0">
+                        #{arq.originalIndex + 1}
+                      </span>
+                      <FileCode className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                      <span className="font-mono text-[11px] text-slate-800 truncate">
+                        {arq.nome}
+                      </span>
+                    </div>
+                    {!ocupado && (
+                      <button
+                        type="button"
+                        onClick={() => removerArquivoFila(arq.originalIndex)}
+                        className="p-1 text-slate-400 hover:text-rose-600 rounded cursor-pointer"
+                        title="Remover arquivo"
+                      >
+                        ✕
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>
+            </div>
+          )}
 
-              <div className="rounded-xl border-2 border-slate-200 bg-white overflow-hidden">
-                <p className="px-3 py-2 text-[11px] font-bold text-slate-900 border-b-2 border-panorama-gold/40 bg-slate-50 flex items-center gap-1.5">
-                  <FileStack className="w-3.5 h-3.5" />
-                  Lote {resultadoLote.lote} · entrada {brl(resultadoLote.valor_entrada)} · saída{' '}
-                  {brl(resultadoLote.valor_saida)}
+          {/* LISTA DE RESULTADOS APÓS PROCESSAR COM FILTROS E PAGINAÇÃO */}
+          {resultadoLote && (
+            <div className="rounded-xl border-2 border-slate-200 bg-white overflow-hidden space-y-2">
+              <div className="px-3 py-2 border-b-2 border-panorama-gold/40 bg-slate-50 flex flex-col md:flex-row md:items-center justify-between gap-2">
+                <p className="text-[11px] font-bold text-slate-900 flex items-center gap-1.5">
+                  <FileStack className="w-3.5 h-3.5 text-panorama-navy" />
+                  Detalhamento dos Arquivos do Lote ({resultadoLote.total_arquivos})
                 </p>
-                <div className="max-h-[400px] overflow-y-auto divide-y divide-slate-100">
-                  {(resultadoLote.resultados ?? []).map((r: any, i: number) => (
-                    <div key={i} className="px-3 py-1.5 flex items-start gap-2">
-                      {r.status === 'importado' ? (
-                        <CheckCircle2 className="mt-0.5 w-3.5 h-3.5 shrink-0 text-emerald-700" />
-                      ) : r.status === 'repetido' ? (
-                        <Info className="mt-0.5 w-3.5 h-3.5 shrink-0 text-slate-400" />
-                      ) : (
-                        <XCircle className="mt-0.5 w-3.5 h-3.5 shrink-0 text-rose-600" />
-                      )}
-                      <div className="min-w-0 flex-1">
-                        <p className="text-[10.5px] font-bold text-slate-900 truncate">{r.nome}</p>
-                        <p className="text-[9.5px] text-slate-600">
-                          {r.status === 'importado' && (
-                            <>
-                              <span
-                                className={`mr-1 rounded px-1 text-[8.5px] font-bold ${
-                                  r.direcao === 'entrada'
-                                    ? 'bg-blue-100 text-blue-800'
-                                    : r.direcao === 'saida'
-                                      ? 'bg-emerald-100 text-emerald-800'
-                                      : 'bg-amber-100 text-amber-900'
-                                }`}
-                              >
-                                {r.direcao || 'sem direção'}
-                              </span>
-                              {r.itens} item(ns) · CFOP {r.cfop_predominante || '—'} ·{' '}
-                              {brl(r.valor)}
-                              {r.conflito > 0 && (
-                                <span className="ml-1 text-amber-800 font-bold">
-                                  · {r.conflito} item(ns) de direção oposta
-                                </span>
-                              )}
-                              {r.pasta && (
-                                <span className="ml-1 rounded bg-violet-100 px-1 text-[8.5px] font-bold text-violet-800">
-                                  {r.pasta}
-                                </span>
-                              )}
-                              {r.motivo_sem_pasta && (
-                                <span className="ml-1 block text-[8.5px] text-amber-800">
-                                  {r.motivo_sem_pasta}
-                                </span>
-                              )}
-                            </>
-                          )}
-                          {r.status !== 'importado' && (r.motivo || r.status)}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
+
+                <div className="relative w-full md:w-64">
+                  <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="text"
+                    value={buscaResultado}
+                    onChange={(e) => {
+                      setBuscaResultado(e.target.value)
+                      setPaginaResultado(1)
+                    }}
+                    placeholder="Buscar por arquivo, pasta, motivo..."
+                    className="w-full pl-8 pr-2 py-1 text-[11px] rounded-lg border border-slate-300 bg-white focus:outline-none focus:border-panorama-gold"
+                  />
                 </div>
               </div>
-            </>
+
+              {/* Chips de filtro rápido por status */}
+              <div className="px-3 pt-1 flex flex-wrap items-center gap-1.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1 mr-1">
+                  <Filter className="w-3 h-3" /> Filtrar:
+                </span>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFiltroResStatus('todos')
+                    setPaginaResultado(1)
+                  }}
+                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10.5px] font-bold border transition-colors cursor-pointer ${
+                    filtroResStatus === 'todos'
+                      ? 'bg-panorama-navy text-white border-panorama-navy'
+                      : 'bg-white text-slate-600 border-slate-300 hover:bg-slate-50'
+                  }`}
+                >
+                  Todos
+                  <span className="ml-1 text-[9px] px-1 py-0.2 rounded-full bg-black/10 font-mono">
+                    {contadoresResultado.todos}
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFiltroResStatus('importado')
+                    setPaginaResultado(1)
+                  }}
+                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10.5px] font-bold border transition-colors cursor-pointer ${
+                    filtroResStatus === 'importado'
+                      ? 'bg-emerald-700 text-white border-emerald-700'
+                      : 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100'
+                  }`}
+                >
+                  <CheckCircle2 className="w-3 h-3" />
+                  Importados (Sucesso)
+                  <span className="ml-1 text-[9px] px-1 py-0.2 rounded-full bg-black/10 font-mono">
+                    {contadoresResultado.importado}
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFiltroResStatus('repetido')
+                    setPaginaResultado(1)
+                  }}
+                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10.5px] font-bold border transition-colors cursor-pointer ${
+                    filtroResStatus === 'repetido'
+                      ? 'bg-amber-600 text-white border-amber-600'
+                      : 'bg-amber-50 text-amber-900 border-amber-300 hover:bg-amber-100'
+                  }`}
+                >
+                  <Info className="w-3 h-3" />
+                  Repetidos (Rejeitados)
+                  <span className="ml-1 text-[9px] px-1 py-0.2 rounded-full bg-black/10 font-mono">
+                    {contadoresResultado.repetido}
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFiltroResStatus('invalido')
+                    setPaginaResultado(1)
+                  }}
+                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10.5px] font-bold border transition-colors cursor-pointer ${
+                    filtroResStatus === 'invalido'
+                      ? 'bg-rose-700 text-white border-rose-700'
+                      : 'bg-rose-50 text-rose-800 border-rose-300 hover:bg-rose-100'
+                  }`}
+                >
+                  <XCircle className="w-3 h-3" />
+                  Inválidos / Erros
+                  <span className="ml-1 text-[9px] px-1 py-0.2 rounded-full bg-black/10 font-mono">
+                    {contadoresResultado.invalido}
+                  </span>
+                </button>
+              </div>
+
+              {/* Barra de Paginação Superior do Resultado */}
+              <div className="px-3 flex items-center justify-between gap-2 text-[11px] text-slate-500">
+                <div>
+                  Mostrando{' '}
+                  <b>
+                    {indiceInicioRes}–{indiceFimRes}
+                  </b>{' '}
+                  de <b>{resultadosFiltrados.length}</b> arquivos
+                </div>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setPaginaResultado(1)}
+                    disabled={paginaResultado <= 1}
+                    className="p-1 rounded border border-slate-200 hover:bg-slate-50 disabled:opacity-30 cursor-pointer"
+                    title="Primeira página"
+                  >
+                    <ChevronsLeft className="w-3 h-3" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPaginaResultado((p) => Math.max(1, p - 1))}
+                    disabled={paginaResultado <= 1}
+                    className="p-1 rounded border border-slate-200 hover:bg-slate-50 disabled:opacity-30 cursor-pointer"
+                    title="Página anterior"
+                  >
+                    <ChevronLeft className="w-3 h-3" />
+                  </button>
+                  <span className="px-1 font-medium text-slate-700">
+                    Pág. {paginaResultado} de {totalPaginasResultado}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setPaginaResultado((p) => Math.min(totalPaginasResultado, p + 1))
+                    }
+                    disabled={paginaResultado >= totalPaginasResultado}
+                    className="p-1 rounded border border-slate-200 hover:bg-slate-50 disabled:opacity-30 cursor-pointer"
+                    title="Próxima página"
+                  >
+                    <ChevronRight className="w-3 h-3" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPaginaResultado(totalPaginasResultado)}
+                    disabled={paginaResultado >= totalPaginasResultado}
+                    className="p-1 rounded border border-slate-200 hover:bg-slate-50 disabled:opacity-30 cursor-pointer"
+                    title="Última página"
+                  >
+                    <ChevronsRight className="w-3 h-3" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Lista Paginada do Resultado */}
+              {resultadosPaginados.length === 0 ? (
+                <div className="p-6 text-center text-xs text-slate-400">
+                  Nenhum arquivo encontrado com os filtros atuais.
+                </div>
+              ) : (
+                <div className="max-h-[440px] overflow-y-auto divide-y divide-slate-100">
+                  {resultadosPaginados.map((r: any, i: number) => {
+                    const globalIdx = (paginaResultado - 1) * ITENS_POR_PAGINA + i + 1
+                    return (
+                      <div key={i} className="px-3 py-2 flex items-start gap-2 hover:bg-slate-50">
+                        <span className="font-mono text-[10px] text-slate-400 w-7 text-right shrink-0 mt-0.5">
+                          #{globalIdx}
+                        </span>
+                        {r.status === 'importado' ? (
+                          <CheckCircle2 className="mt-0.5 w-3.5 h-3.5 shrink-0 text-emerald-700" />
+                        ) : r.status === 'repetido' ? (
+                          <Info className="mt-0.5 w-3.5 h-3.5 shrink-0 text-amber-600" />
+                        ) : (
+                          <XCircle className="mt-0.5 w-3.5 h-3.5 shrink-0 text-rose-600" />
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[10.5px] font-bold text-slate-900 truncate">
+                            {r.nome}
+                          </p>
+                          <div className="text-[9.5px] text-slate-600 mt-0.5">
+                            {r.status === 'importado' && (
+                              <>
+                                <span
+                                  className={`mr-1 rounded px-1.5 py-0.2 text-[8.5px] font-bold ${
+                                    r.direcao === 'entrada'
+                                      ? 'bg-blue-100 text-blue-800'
+                                      : r.direcao === 'saida'
+                                        ? 'bg-emerald-100 text-emerald-800'
+                                        : 'bg-amber-100 text-amber-900'
+                                  }`}
+                                >
+                                  {r.direcao || 'sem direção'}
+                                </span>
+                                {r.itens} item(ns) · CFOP {r.cfop_predominante || '—'} ·{' '}
+                                <b>{brl(r.valor)}</b>
+                                {r.conflito > 0 && (
+                                  <span className="ml-1 text-amber-800 font-bold">
+                                    · {r.conflito} item(ns) de direção oposta
+                                  </span>
+                                )}
+                                {r.pasta && (
+                                  <span className="ml-1 rounded bg-violet-100 px-1.5 py-0.2 text-[8.5px] font-bold text-violet-800">
+                                    {r.pasta}
+                                  </span>
+                                )}
+                                {r.motivo_sem_pasta && (
+                                  <span className="ml-1 block text-[8.5px] text-amber-800">
+                                    {r.motivo_sem_pasta}
+                                  </span>
+                                )}
+                              </>
+                            )}
+                            {r.status === 'repetido' && (
+                              <span className="text-amber-800 font-medium">
+                                {r.motivo ||
+                                  'Nota já cadastrada (chave de 44 dígitos duplicada): registro mantido intacto.'}
+                              </span>
+                            )}
+                            {r.status !== 'importado' && r.status !== 'repetido' && (
+                              <span className="text-rose-700 font-medium">
+                                {r.motivo || 'Falha na leitura ou XML inválido.'}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+
+              {/* Barra de Paginação Inferior do Resultado */}
+              {totalPaginasResultado > 1 && (
+                <div className="px-3 py-2 border-t border-slate-100 flex items-center justify-between gap-2 text-[11px] text-slate-500">
+                  <div>
+                    Página {paginaResultado} de {totalPaginasResultado}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => setPaginaResultado(1)}
+                      disabled={paginaResultado <= 1}
+                      className="p-1 rounded border border-slate-200 hover:bg-slate-50 disabled:opacity-30 cursor-pointer"
+                      title="Primeira página"
+                    >
+                      <ChevronsLeft className="w-3 h-3" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPaginaResultado((p) => Math.max(1, p - 1))}
+                      disabled={paginaResultado <= 1}
+                      className="p-1 rounded border border-slate-200 hover:bg-slate-50 disabled:opacity-30 cursor-pointer"
+                      title="Página anterior"
+                    >
+                      <ChevronLeft className="w-3 h-3" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setPaginaResultado((p) => Math.min(totalPaginasResultado, p + 1))
+                      }
+                      disabled={paginaResultado >= totalPaginasResultado}
+                      className="p-1 rounded border border-slate-200 hover:bg-slate-50 disabled:opacity-30 cursor-pointer"
+                      title="Próxima página"
+                    >
+                      <ChevronRight className="w-3 h-3" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPaginaResultado(totalPaginasResultado)}
+                      disabled={paginaResultado >= totalPaginasResultado}
+                      className="p-1 rounded border border-slate-200 hover:bg-slate-50 disabled:opacity-30 cursor-pointer"
+                      title="Última página"
+                    >
+                      <ChevronsRight className="w-3 h-3" />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           )}
         </>
       )}
