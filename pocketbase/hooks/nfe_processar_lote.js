@@ -19,7 +19,7 @@
  * Bloco IBSCBS (Reforma Tributária):
  *   - Extrai do total (IBSCBSTot: vBCIBSCBS, vIBS, vCBS, vCredPres, vCredPresCondSus)
  *   - Extrai de cada item (IBSCBS: CST, cClassTrib, vBC, pIBSUF, vIBSUF, pIBSMun, vIBSMun, vIBS, pCBS, vCBS, etc.)
- * Deduplica por chave_acesso de 44 dígitos (atualiza itens e dados sem duplicar registro).
+ * Deduplica por chave_acesso de 44 dígitos: rejeita arquivos duplicados sem tocar no registro existente.
  */
 
 routerAdd('OPTIONS', '/backend/v1/nfe-processar-lote', (e) => {
@@ -653,8 +653,35 @@ routerAdd('POST', '/backend/v1/nfe-processar-lote', (e) => {
           nfeExistente = null
         }
 
-        var nfeRecord = nfeExistente || new Record(colNfe)
-        var eraDuplicada = Boolean(nfeExistente)
+        // Se a chave de acesso já existe no banco, REJEITA a duplicata imediatamente:
+        // O registro original (nota, itens, análise dos agentes, totais) permanece 100% intacto.
+        // Nenhuma atualização nem exclusão/recriação de itens é executada. Fica sempre apenas UM registro.
+        if (nfeExistente) {
+          duplicadas++
+          resultados.push({
+            arquivo: nomeArquivo,
+            status: 'duplicada',
+            chave: chave,
+            numero: numero || nfeExistente.getString('numero'),
+            nfe_id: nfeExistente.id,
+            cliente_vinculado: clienteVinculado
+              ? clienteVinculado.nome
+              : nfeExistente.getString('cliente_nome') || 'Consumidor final / Manual',
+            cliente_cnpj: clienteVinculado
+              ? clienteVinculado.cnpj
+              : nfeExistente.getString('cliente_cnpj') ||
+                (tipoOperacao === 'compra' ? destCnpjCpf : emitCnpjCpf),
+            tipo: tipoOperacao,
+            itens: listaItens.length,
+            valor_total: vNF,
+            motivo:
+              'Chave de acesso já cadastrada no sistema. Arquivo rejeitado por duplicidade; o registro original foi mantido intacto sem alterações.',
+          })
+          continue
+        }
+
+        // Nota nova (não duplicada) -> cria novo registro e seus itens
+        var nfeRecord = new Record(colNfe)
 
         nfeRecord.set('chave_acesso', chave)
         nfeRecord.set('lote_id', loteRec.id)
@@ -729,29 +756,11 @@ routerAdd('POST', '/backend/v1/nfe-processar-lote', (e) => {
         nfeRecord.set('duplicatas', listaDuplicatas)
         nfeRecord.set('quantidade_itens', listaItens.length)
         nfeRecord.set('arquivo_origem', nomeArquivo)
-        if (!eraDuplicada) {
-          nfeRecord.set('analise_status', 'pendente')
-        }
+        nfeRecord.set('analise_status', 'pendente')
 
         $app.save(nfeRecord)
 
-        // Se era duplicada, remove itens anteriores para evitar duplicidade de itens
-        if (eraDuplicada) {
-          try {
-            var itensAntigos = $app.findRecordsByFilter(
-              'nfes_itens',
-              'nfe_id = "' + nfeRecord.id + '"',
-              '',
-              1000,
-              0,
-            )
-            for (var k = 0; k < itensAntigos.length; k++) {
-              $app.delete(itensAntigos[k])
-            }
-          } catch (_) {}
-        }
-
-        // Grava itens na coleção nfes_itens
+        // Grava itens na coleção nfes_itens para a nota nova
         for (var m = 0; m < listaItens.length; m++) {
           var itemObj = listaItens[m]
           var itemRec = new Record(colItens)
@@ -830,49 +839,23 @@ routerAdd('POST', '/backend/v1/nfe-processar-lote', (e) => {
         somaProd += vProd
         somaNF += vNF
 
-        if (eraDuplicada) {
-          duplicadas++
-          resultados.push({
-            arquivo: nomeArquivo,
-            status: 'duplicada',
-            chave: chave,
-            numero: numero,
-            nfe_id: nfeRecord.id,
-            cliente_vinculado: clienteVinculado
-              ? clienteVinculado.nome
-              : 'Consumidor final / Manual',
-            cliente_cnpj: clienteVinculado
-              ? clienteVinculado.cnpj
-              : tipoOperacao === 'compra'
-                ? destCnpjCpf
-                : emitCnpjCpf,
-            tipo: tipoOperacao,
-            itens: listaItens.length,
-            valor_total: vNF,
-            motivo:
-              'Chave já cadastrada anteriormente; itens e totais foram atualizados sem duplicação de nota.',
-          })
-        } else {
-          processadasSucesso++
-          resultados.push({
-            arquivo: nomeArquivo,
-            status: 'ok',
-            chave: chave,
-            numero: numero,
-            nfe_id: nfeRecord.id,
-            cliente_vinculado: clienteVinculado
-              ? clienteVinculado.nome
-              : 'Consumidor final / Manual',
-            cliente_cnpj: clienteVinculado
-              ? clienteVinculado.cnpj
-              : tipoOperacao === 'compra'
-                ? destCnpjCpf
-                : emitCnpjCpf,
-            tipo: tipoOperacao,
-            itens: listaItens.length,
-            valor_total: vNF,
-          })
-        }
+        processadasSucesso++
+        resultados.push({
+          arquivo: nomeArquivo,
+          status: 'ok',
+          chave: chave,
+          numero: numero,
+          nfe_id: nfeRecord.id,
+          cliente_vinculado: clienteVinculado ? clienteVinculado.nome : 'Consumidor final / Manual',
+          cliente_cnpj: clienteVinculado
+            ? clienteVinculado.cnpj
+            : tipoOperacao === 'compra'
+              ? destCnpjCpf
+              : emitCnpjCpf,
+          tipo: tipoOperacao,
+          itens: listaItens.length,
+          valor_total: vNF,
+        })
       } catch (errNota) {
         erros++
         resultados.push({

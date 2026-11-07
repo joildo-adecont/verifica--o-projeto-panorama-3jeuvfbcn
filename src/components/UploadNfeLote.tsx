@@ -14,6 +14,7 @@ import {
   Sparkles,
   Trash2,
   Layers,
+  ShieldAlert,
 } from 'lucide-react'
 import { processarLoteNfe } from '@/services/nfeService'
 import type { ProcessamentoLoteResponse } from '@/types/nfes'
@@ -542,7 +543,11 @@ export const UploadNfeLote: React.FC<UploadNfeLoteProps> = ({
                 status: achado.status,
                 mensagem:
                   achado.motivo ||
-                  (achado.status === 'ok' ? 'Processado com sucesso' : 'Duplicada'),
+                  (achado.status === 'ok'
+                    ? 'Processado com sucesso'
+                    : achado.status === 'duplicada'
+                      ? 'Rejeitado por duplicidade (já cadastrado)'
+                      : 'Erro no arquivo'),
               }
             }
             return arq
@@ -572,8 +577,9 @@ export const UploadNfeLote: React.FC<UploadNfeLoteProps> = ({
               </CardTitle>
               <CardDescription>
                 Arraste ou selecione múltiplos arquivos XML (.xml) de notas fiscais eletrônicas de
-                compra e venda. O pipeline extrai produtos, deduplica pela chave de acesso de 44
-                dígitos e vincula automaticamente ao cadastro da empresa.
+                compra e venda. O pipeline extrai produtos, rejeita arquivos duplicados pela chave
+                de acesso de 44 dígitos (mantendo intacto o registro existente) e vincula
+                automaticamente ao cadastro da empresa.
               </CardDescription>
             </div>
             <div className="flex items-center gap-2">
@@ -681,9 +687,13 @@ export const UploadNfeLote: React.FC<UploadNfeLoteProps> = ({
                       {arq.status === 'duplicada' && (
                         <Badge
                           variant="outline"
-                          className="text-amber-600 border-amber-500/30 bg-amber-500/10"
+                          className="text-amber-700 dark:text-amber-400 border-amber-500/40 bg-amber-500/15 font-medium"
+                          title={
+                            arq.mensagem || 'Chave de acesso já existente: rejeitada sem alterações'
+                          }
                         >
-                          <Copy className="w-3 h-3 mr-1" /> Duplicada
+                          <ShieldAlert className="w-3 h-3 mr-1 text-amber-600 dark:text-amber-400" />{' '}
+                          Duplicada (Rejeitada)
                         </Badge>
                       )}
                       {arq.status === 'erro' && (
@@ -766,7 +776,7 @@ export const UploadNfeLote: React.FC<UploadNfeLoteProps> = ({
                   </span>
                 </div>
                 <div className="p-2.5 rounded-lg bg-background border border-border/40">
-                  <span className="text-muted-foreground block">Notas Duplicadas</span>
+                  <span className="text-muted-foreground block">Duplicadas (Rejeitadas)</span>
                   <span className="text-base font-bold text-amber-600">
                     {resultadoLote.duplicadas}
                   </span>
@@ -785,6 +795,19 @@ export const UploadNfeLote: React.FC<UploadNfeLoteProps> = ({
                   </span>
                 </div>
               </div>
+
+              {resultadoLote.duplicadas > 0 && (
+                <div className="flex items-start gap-2 p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-xs text-amber-800 dark:text-amber-300">
+                  <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
+                  <div>
+                    <strong>
+                      {resultadoLote.duplicadas} arquivo(s) rejeitado(s) por duplicidade:
+                    </strong>{' '}
+                    a chave de acesso já consta no sistema. O registro original e seus itens foram
+                    mantidos intactos, sem duplicar nem sobrescrever.
+                  </div>
+                </div>
+              )}
 
               {resultadoLote.cliente_vinculado && (
                 <div className="flex items-center gap-2 p-2 rounded-lg bg-primary/10 border border-primary/20 text-xs text-primary">
