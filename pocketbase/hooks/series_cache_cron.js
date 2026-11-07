@@ -427,6 +427,7 @@ cronAdd('refresh_series_cache', '20 3 * * *', () => {
     { chave: 'sp500', ttlMs: TTL_LONGO_MS, fonte: 'global', simbolo: '%5EGSPC' },
     { chave: 'dowjones', ttlMs: TTL_LONGO_MS, fonte: 'global', simbolo: '%5EDJI' },
     { chave: 'nasdaq', ttlMs: TTL_LONGO_MS, fonte: 'global', simbolo: '%5EIXIC' },
+    { chave: 'ipca15', ttlMs: TTL_PADRAO_MS, fonte: 'bcb', codigo: 7478 },
     { chave: 'usd', ttlMs: TTL_PADRAO_MS, fonte: 'bcb', codigo: 10813 },
     { chave: 'eur', ttlMs: TTL_PADRAO_MS, fonte: 'bcb', codigo: 21619 },
     { chave: 'gbp', ttlMs: TTL_PADRAO_MS, fonte: 'bcb', codigo: 21621 },
