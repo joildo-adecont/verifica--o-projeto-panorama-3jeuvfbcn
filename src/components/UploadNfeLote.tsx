@@ -23,9 +23,16 @@ import {
   Clock,
   ChevronDown,
   ChevronUp,
+  Download,
 } from 'lucide-react'
 import { processarLoteNfe } from '@/services/nfeService'
 import type { ProcessamentoLoteResponse } from '@/types/nfes'
+import {
+  extrairMetadadosNfeXml,
+  gerarCsvLoteXml,
+  baixarArquivoCsv,
+  type ItemLoteExportacao,
+} from '@/services/exportarLoteXmlCsv'
 
 interface UploadNfeLoteProps {
   onProcessamentoConcluido?: (resultado: ProcessamentoLoteResponse) => void
@@ -591,6 +598,68 @@ export const UploadNfeLote: React.FC<UploadNfeLoteProps> = ({
   const indiceInicio = arquivosFiltrados.length === 0 ? 0 : (paginaAtual - 1) * ITENS_POR_PAGINA + 1
   const indiceFim = Math.min(paginaAtual * ITENS_POR_PAGINA, arquivosFiltrados.length)
 
+  const handleExportarCsv = () => {
+    if (arquivosFiltrados.length === 0) return
+
+    const itensParaExportar: ItemLoteExportacao[] = arquivosFiltrados.map((arq) => {
+      // Extração de metadados a partir do XML em memória
+      const meta = extrairMetadadosNfeXml(arq.xml)
+
+      // Se o lote já foi processado e o backend devolveu dados estruturados,
+      // cruzamos com o retorno do backend para máxima precisão
+      const retBackend = resultadoLote?.resultados?.find((r) => r.arquivo === arq.nome)
+
+      let statusFormatado = 'Pendente'
+      if (arq.status === 'ok') statusFormatado = 'Processada'
+      else if (arq.status === 'duplicada') statusFormatado = 'Duplicada (Rejeitada)'
+      else if (arq.status === 'erro') statusFormatado = 'Erro'
+
+      const chaveFinal = retBackend?.chave || meta.chaveAcesso || ''
+      const numeroFinal = retBackend?.numero || meta.numero || ''
+      const tipoFinal =
+        retBackend?.tipo === 'compra'
+          ? 'Compra'
+          : retBackend?.tipo === 'venda'
+            ? 'Venda'
+            : meta.tipoOperacao || ''
+      const itensFinal = retBackend?.itens !== undefined ? retBackend.itens : meta.quantidadeItens
+      const valorFinal =
+        retBackend?.valor_total !== undefined ? retBackend.valor_total : meta.valorTotal
+
+      const motivoErroFinal =
+        arq.mensagem ||
+        retBackend?.motivo ||
+        (arq.status === 'duplicada'
+          ? 'Nota já cadastrada (chave de 44 dígitos duplicada): rejeitada sem alterações'
+          : '')
+
+      return {
+        nomeArquivo: arq.nome,
+        statusFormatado,
+        chaveAcesso: chaveFinal,
+        numero: numeroFinal,
+        serie: meta.serie || '',
+        naturezaOperacao: meta.naturezaOperacao || '',
+        direcao:
+          meta.direcao ||
+          (tipoFinal === 'Compra' ? 'Entrada' : tipoFinal === 'Venda' ? 'Saída' : ''),
+        tipoOperacao: tipoFinal,
+        emitenteNome: meta.emitenteNome || '',
+        emitenteDoc: meta.emitenteDoc || '',
+        destinatarioNome: meta.destinatarioNome || '',
+        destinatarioDoc: meta.destinatarioDoc || '',
+        dataEmissao: meta.dataEmissao || '',
+        quantidadeItens: itensFinal,
+        valorTotal: valorFinal,
+        motivoErro: motivoErroFinal,
+      }
+    })
+
+    const csv = gerarCsvLoteXml(itensParaExportar)
+    const dataHoje = new Date().toISOString().slice(0, 10)
+    baixarArquivoCsv(csv, `lote-nfes-${dataHoje}.csv`)
+  }
+
   const handleProcessarLote = async () => {
     if (arquivos.length === 0) return
 
@@ -984,7 +1053,7 @@ export const UploadNfeLote: React.FC<UploadNfeLoteProps> = ({
                   </button>
 
                   {/* Busca textual rápida */}
-                  <div className="relative flex-1 min-w-[160px] sm:max-w-[240px] ml-auto">
+                  <div className="relative flex-1 min-w-[160px] sm:max-w-[240px]">
                     <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
                     <input
                       type="text"
@@ -997,6 +1066,23 @@ export const UploadNfeLote: React.FC<UploadNfeLoteProps> = ({
                       className="w-full pl-8 pr-2.5 py-1 text-xs rounded-md border border-border/70 bg-background focus:outline-none focus:ring-1 focus:ring-primary"
                     />
                   </div>
+
+                  {/* Botão Exportar CSV */}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleExportarCsv}
+                    disabled={arquivosFiltrados.length === 0}
+                    className="h-7 text-xs font-semibold gap-1.5 border-panorama-gold/40 text-panorama-navy dark:text-panorama-gold hover:bg-panorama-gold/10 hover:border-panorama-gold cursor-pointer"
+                    title={`Exportar ${arquivosFiltrados.length} arquivo(s) visíveis para planilha CSV`}
+                  >
+                    <Download className="w-3.5 h-3.5 text-panorama-gold" />
+                    <span>Exportar CSV</span>
+                    <span className="text-[10px] px-1 py-0.2 rounded bg-muted font-mono">
+                      {arquivosFiltrados.length}
+                    </span>
+                  </Button>
                 </div>
               </div>
 

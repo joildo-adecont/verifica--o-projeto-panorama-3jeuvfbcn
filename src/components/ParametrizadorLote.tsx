@@ -22,8 +22,15 @@ import {
   Trash2,
   FileCode,
   Layers,
+  Download,
 } from 'lucide-react'
 import { CBS_POR_ANO, IBS_REF, REF_TOTAL, ibsDoAno, pct, totalDoAno } from '@/data/aliquotas'
+import {
+  extrairMetadadosNfeXml,
+  gerarCsvLoteXml,
+  baixarArquivoCsv,
+  type ItemLoteExportacao,
+} from '@/services/exportarLoteXmlCsv'
 import { classificarNCM } from '@/data/motorClassificacao'
 
 /**
@@ -334,6 +341,97 @@ export function ParametrizadorLote() {
   const indiceInicioRes =
     resultadosFiltrados.length === 0 ? 0 : (paginaResultado - 1) * ITENS_POR_PAGINA + 1
   const indiceFimRes = Math.min(paginaResultado * ITENS_POR_PAGINA, resultadosFiltrados.length)
+
+  // Exportação CSV da fila de arquivos pré-envio
+  const exportarCsvFila = () => {
+    if (arquivosFilaFiltrados.length === 0) return
+
+    const itensParaExportar: ItemLoteExportacao[] = arquivosFilaFiltrados.map((arq) => {
+      const meta = extrairMetadadosNfeXml(arq.xml)
+      return {
+        nomeArquivo: arq.nome,
+        statusFormatado: 'Na Fila',
+        chaveAcesso: meta.chaveAcesso || '',
+        numero: meta.numero || '',
+        serie: meta.serie || '',
+        naturezaOperacao: meta.naturezaOperacao || '',
+        direcao: meta.direcao || '',
+        tipoOperacao: meta.tipoOperacao || '',
+        emitenteNome: meta.emitenteNome || '',
+        emitenteDoc: meta.emitenteDoc || '',
+        destinatarioNome: meta.destinatarioNome || '',
+        destinatarioDoc: meta.destinatarioDoc || '',
+        dataEmissao: meta.dataEmissao || '',
+        quantidadeItens: meta.quantidadeItens,
+        valorTotal: meta.valorTotal,
+        motivoErro: '',
+      }
+    })
+
+    const csv = gerarCsvLoteXml(itensParaExportar)
+    const dataHoje = new Date().toISOString().slice(0, 10)
+    baixarArquivoCsv(csv, `parametrizador-fila-${dataHoje}.csv`)
+  }
+
+  // Exportação CSV dos resultados pós-processamento
+  const exportarCsvResultados = () => {
+    if (resultadosFiltrados.length === 0) return
+
+    // Mapeia arquivos originais em memória para recuperar XML/metadados adicionais quando possível
+    const xmlMap = new Map<string, string>()
+    for (const a of arquivos) {
+      xmlMap.set(a.nome, a.xml)
+    }
+
+    const itensParaExportar: ItemLoteExportacao[] = resultadosFiltrados.map((r: any) => {
+      const xml = xmlMap.get(r.nome) || ''
+      const meta = xml ? extrairMetadadosNfeXml(xml) : {}
+
+      let statusFormatado = 'Inválido / Erro'
+      if (r.status === 'importado') statusFormatado = 'Importado'
+      else if (r.status === 'repetido') statusFormatado = 'Repetido (Rejeitado)'
+
+      const direcaoFormatada =
+        r.direcao === 'entrada' ? 'Entrada' : r.direcao === 'saida' ? 'Saída' : meta.direcao || ''
+
+      const tipoFormatado =
+        direcaoFormatada === 'Entrada'
+          ? 'Compra'
+          : direcaoFormatada === 'Saída'
+            ? 'Venda'
+            : meta.tipoOperacao || ''
+
+      const motivoErroFinal =
+        r.status === 'repetido'
+          ? r.motivo || 'Nota já cadastrada (chave de 44 dígitos duplicada): mantida intacta.'
+          : r.status !== 'importado'
+            ? r.motivo || 'Falha na leitura ou XML inválido.'
+            : r.motivo_sem_pasta || ''
+
+      return {
+        nomeArquivo: r.nome,
+        statusFormatado,
+        chaveAcesso: r.chave || meta.chaveAcesso || '',
+        numero: r.numero ? String(r.numero) : meta.numero || '',
+        serie: meta.serie || '',
+        naturezaOperacao: meta.naturezaOperacao || '',
+        direcao: direcaoFormatada,
+        tipoOperacao: tipoFormatado,
+        emitenteNome: meta.emitenteNome || '',
+        emitenteDoc: meta.emitenteDoc || '',
+        destinatarioNome: meta.destinatarioNome || '',
+        destinatarioDoc: meta.destinatarioDoc || '',
+        dataEmissao: meta.dataEmissao || '',
+        quantidadeItens: r.itens !== undefined ? r.itens : meta.quantidadeItens,
+        valorTotal: r.valor !== undefined ? r.valor : meta.valorTotal,
+        motivoErro: motivoErroFinal,
+      }
+    })
+
+    const csv = gerarCsvLoteXml(itensParaExportar)
+    const dataHoje = new Date().toISOString().slice(0, 10)
+    baixarArquivoCsv(csv, `parametrizador-resultados-${dataHoje}.csv`)
+  }
 
   const importarLote = async () => {
     if (!token) {
@@ -764,18 +862,34 @@ export function ParametrizadorLote() {
                   </span>
                 </div>
 
-                <div className="relative w-full sm:w-64">
-                  <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input
-                    type="text"
-                    value={buscaFila}
-                    onChange={(e) => {
-                      setBuscaFila(e.target.value)
-                      setPaginaFila(1)
-                    }}
-                    placeholder="Buscar por nome do arquivo..."
-                    className="w-full pl-8 pr-2 py-1 text-[11px] rounded-lg border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:border-panorama-gold"
-                  />
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <div className="relative flex-1 sm:w-64">
+                    <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type="text"
+                      value={buscaFila}
+                      onChange={(e) => {
+                        setBuscaFila(e.target.value)
+                        setPaginaFila(1)
+                      }}
+                      placeholder="Buscar por nome do arquivo..."
+                      className="w-full pl-8 pr-2 py-1 text-[11px] rounded-lg border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:border-panorama-gold"
+                    />
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={exportarCsvFila}
+                    disabled={arquivosFilaFiltrados.length === 0}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-bold rounded-lg border border-panorama-gold/60 text-panorama-navy hover:bg-panorama-gold/10 hover:border-panorama-gold disabled:opacity-40 cursor-pointer shrink-0 transition-colors"
+                    title={`Exportar ${arquivosFilaFiltrados.length} arquivo(s) da fila para CSV`}
+                  >
+                    <Download className="w-3.5 h-3.5 text-panorama-gold" />
+                    <span>Exportar CSV</span>
+                    <span className="text-[10px] px-1 py-0.2 rounded bg-slate-100 font-mono">
+                      {arquivosFilaFiltrados.length}
+                    </span>
+                  </button>
                 </div>
               </div>
 
@@ -872,18 +986,34 @@ export function ParametrizadorLote() {
                   Detalhamento dos Arquivos do Lote ({resultadoLote.total_arquivos})
                 </p>
 
-                <div className="relative w-full md:w-64">
-                  <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input
-                    type="text"
-                    value={buscaResultado}
-                    onChange={(e) => {
-                      setBuscaResultado(e.target.value)
-                      setPaginaResultado(1)
-                    }}
-                    placeholder="Buscar por arquivo, pasta, motivo..."
-                    className="w-full pl-8 pr-2 py-1 text-[11px] rounded-lg border border-slate-300 bg-white focus:outline-none focus:border-panorama-gold"
-                  />
+                <div className="flex items-center gap-2 w-full md:w-auto">
+                  <div className="relative flex-1 md:w-64">
+                    <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type="text"
+                      value={buscaResultado}
+                      onChange={(e) => {
+                        setBuscaResultado(e.target.value)
+                        setPaginaResultado(1)
+                      }}
+                      placeholder="Buscar por arquivo, pasta, motivo..."
+                      className="w-full pl-8 pr-2 py-1 text-[11px] rounded-lg border border-slate-300 bg-white focus:outline-none focus:border-panorama-gold"
+                    />
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={exportarCsvResultados}
+                    disabled={resultadosFiltrados.length === 0}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-bold rounded-lg border border-panorama-gold/60 text-panorama-navy hover:bg-panorama-gold/10 hover:border-panorama-gold disabled:opacity-40 cursor-pointer shrink-0 transition-colors"
+                    title={`Exportar ${resultadosFiltrados.length} resultado(s) visíveis para CSV`}
+                  >
+                    <Download className="w-3.5 h-3.5 text-panorama-gold" />
+                    <span>Exportar CSV</span>
+                    <span className="text-[10px] px-1 py-0.2 rounded bg-slate-100 font-mono">
+                      {resultadosFiltrados.length}
+                    </span>
+                  </button>
                 </div>
               </div>
 
