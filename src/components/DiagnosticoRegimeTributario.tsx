@@ -546,7 +546,10 @@ export const DiagnosticoRegimeTributario: React.FC = () => {
               {data.alertaDivergencia.economiaEstimadaAnualTexto && (
                 <div className="w-full pt-1.5 mt-1 border-t border-slate-800 flex items-center justify-between gap-2">
                   <span className="text-[11px] text-emerald-400 font-semibold">
-                    Economia Estimada:
+                    {data.alertaDivergencia.tipo === 'atencao' &&
+                    data.alertaDivergencia.regimeCadastrado.includes('Presumido')
+                      ? 'Economia Estimada:'
+                      : 'Diferença Estimada:'}
                   </span>
                   <span className="font-black text-emerald-300 text-xs">
                     {data.alertaDivergencia.economiaEstimadaAnualTexto}/ano

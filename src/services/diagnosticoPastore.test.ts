@@ -615,6 +615,103 @@ describe('diagnosticoPastore - Alertas de divergência entre cadastro e recomend
     expect(alerta3.tipo).toBe('neutro')
   })
 
+  it('cenário 6: Cadastro Simples Híbrido com receita ABAIXO do sublimite emite alerta informativo de não acionado', () => {
+    const alerta = avaliarDivergenciaRegime({
+      regimeCadastrado: 'Simples Híbrido',
+      receitaAnualizada: 2848822.88, // R$ 2,85 mi (< R$ 3,6 mi)
+      regimeRecomendadoTecnico: 'Simples Nacional',
+    })
+
+    expect(alerta.tipo).toBe('neutro')
+    expect(alerta.divergente).toBe(true)
+    expect(alerta.titulo).toContain('Abaixo do Sublimite (Não Acionado)')
+    expect(alerta.mensagem).toContain('permanece abaixo do sublimite estadual de R$ 3,6 milhões')
+    expect(alerta.regimeCadastrado).toBe('Simples Híbrido')
+    expect(alerta.regimeRecomendado).toBe('Simples Nacional')
+  })
+
+  it('cenário 7: Cadastro Simples Híbrido com receita ACIMA do sublimite emite selo de conformidade pleno', () => {
+    const alerta = avaliarDivergenciaRegime({
+      regimeCadastrado: 'Simples Híbrido',
+      receitaAnualizada: 4200000.0, // R$ 4,2 mi (> R$ 3,6 mi e <= R$ 4,8 mi)
+      regimeRecomendadoTecnico: 'Simples Híbrido',
+    })
+
+    expect(alerta.tipo).toBe('conformidade')
+    expect(alerta.divergente).toBe(false)
+    expect(alerta.titulo).toContain('Simples Híbrido em Conformidade')
+    expect(alerta.mensagem).toContain('exatamente o modelo tributário recomendado')
+    expect(alerta.ultrapassouSublimiteHibrido).toBe(true)
+  })
+
+  it('cenário 8: Cadastro Regime Regular IBS/CBS antes de 2027 emite alerta informativo de antecipação à Reforma', () => {
+    const alerta = avaliarDivergenciaRegime({
+      regimeCadastrado: 'Regime Regular IBS/CBS',
+      receitaAnualizada: 2848822.88,
+      regimeRecomendadoTecnico: 'Simples Nacional',
+    })
+
+    expect(alerta.tipo).toBe('neutro')
+    expect(alerta.divergente).toBe(true)
+    expect(alerta.titulo).toContain('Antecipação à Reforma Tributária')
+    expect(alerta.mensagem).toContain('vigência plena inicia em 2027')
+    expect(alerta.justificativaTecnica).toContain('Janela Crítica 2027–2029')
+    expect(alerta.regimeCadastrado).toBe('Regime Regular IBS/CBS')
+  })
+
+  it('cenário 9: Cadastro Lucro Real com receita dentro do teto do Simples emite alerta informativo de alto custo de conformidade', () => {
+    const alerta = avaliarDivergenciaRegime({
+      regimeCadastrado: 'Lucro Real',
+      receitaAnualizada: 2848822.88,
+      regimeRecomendadoTecnico: 'Simples Nacional',
+      tabelaValoresPercentuais: [
+        {
+          regimeId: 'simples',
+          nomeRegime: 'Simples Nacional',
+          rotuloCurto: 'Simples',
+          aliquotaEfetivaPct: 9.2,
+          cargaAnualEstimada: 262091.7,
+          diferencaVsSimplesBrl: 0,
+          diferencaVsSimplesPontosPct: 0,
+          vantagens: [],
+          desvantagens: [],
+        },
+        {
+          regimeId: 'lucro_real_puro',
+          nomeRegime: 'Lucro Real Puro',
+          rotuloCurto: 'Lucro Real',
+          aliquotaEfetivaPct: 8.89,
+          cargaAnualEstimada: 253260.35,
+          diferencaVsSimplesBrl: -8831.35,
+          diferencaVsSimplesPontosPct: -0.31,
+          vantagens: [],
+          desvantagens: [],
+        },
+      ],
+    })
+
+    expect(alerta.tipo).toBe('neutro')
+    expect(alerta.divergente).toBe(true)
+    expect(alerta.titulo).toContain('Alto Custo de Conformidade para o Porte')
+    expect(alerta.mensagem).toContain('dentro do teto do Simples Nacional')
+    expect(alerta.justificativaTecnica).toContain('ECD, ECF, LALUR, DCTFWeb')
+    expect(alerta.economiaEstimadaAnualBrl).toBeDefined()
+    expect(alerta.economiaEstimadaAnualTexto).toBeDefined()
+  })
+
+  it('cenário 10: Cadastro Lucro Real com receita acima de R$ 4,8 mi emite conformidade legal de porte mandatório', () => {
+    const alerta = avaliarDivergenciaRegime({
+      regimeCadastrado: 'Lucro Real',
+      receitaAnualizada: 6000000.0, // R$ 6,0 mi
+      regimeRecomendadoTecnico: 'Lucro Real',
+    })
+
+    expect(alerta.tipo).toBe('conformidade')
+    expect(alerta.divergente).toBe(false)
+    expect(alerta.titulo).toContain('Lucro Real em Conformidade com o Porte')
+    expect(alerta.estourouTetoSimples).toBe(true)
+  })
+
   it('normalizarNomeRegime lida com variações e maiúsculas/minúsculas', () => {
     expect(normalizarNomeRegime('simples nacional')).toBe('Simples Nacional')
     expect(normalizarNomeRegime('Simples Híbrido 2027')).toBe('Simples Híbrido')

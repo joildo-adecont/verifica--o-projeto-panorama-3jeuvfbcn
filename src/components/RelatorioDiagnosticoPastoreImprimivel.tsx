@@ -146,7 +146,11 @@ export const RelatorioDiagnosticoPastoreImprimivel: React.FC<
               {data.alertaDivergencia.justificativaTecnica}
               {data.alertaDivergencia.economiaEstimadaAnualTexto && (
                 <span className="font-bold text-emerald-900 ml-1.5">
-                  (Impacto fiscal estimado: economia de{' '}
+                  (Impacto fiscal estimado:{' '}
+                  {data.alertaDivergencia.tipo === 'atencao' &&
+                  data.alertaDivergencia.regimeCadastrado.includes('Presumido')
+                    ? 'economia de '
+                    : 'diferença de '}
                   {data.alertaDivergencia.economiaEstimadaAnualTexto}/ano).
                 </span>
               )}

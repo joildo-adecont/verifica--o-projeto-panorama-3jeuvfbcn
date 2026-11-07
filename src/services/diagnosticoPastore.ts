@@ -644,7 +644,72 @@ export function avaliarDivergenciaRegime(params: {
   const itemReforma = tabelaValoresPercentuais.find((t) => t.regimeId === 'reforma_2027')
   const itemLucroReal = tabelaValoresPercentuais.find((t) => t.regimeId === 'lucro_real_puro')
 
-  // Se o cadastro é Lucro Presumido
+  // Se o cadastro é Simples Híbrido:
+  // Cenário 5: receita acima do sublimite de R$ 3,6 mi e dentro do teto de R$ 4,8 mi -> Conformidade plena
+  // Cenário 3: receita ABAIXO do sublimite de R$ 3,6 mi -> Alerta informativo: híbrido não acionado
+  if (regimeCadNorm === 'Simples Híbrido') {
+    if (ultrapassouSublimiteHibrido) {
+      const recFormatada = receitaAnualizada.toLocaleString('pt-BR', {
+        style: 'currency',
+        currency: 'BRL',
+      })
+      return {
+        tipo: 'conformidade',
+        divergente: false,
+        titulo: 'Regime Simples Híbrido em Conformidade com a Faixa de Receita',
+        mensagem: `Conformidade Plena: regime cadastrado (${rawCadastrado}) é exatamente o modelo tributário recomendado pela LC 214/2025 para a receita projetada de ${recFormatada} (faixa entre R$ 3,6 mi e R$ 4,8 mi).`,
+        justificativaTecnica: `Na faixa de faturamento entre R$ 3,6 mi e R$ 4,8 mi, o Simples Híbrido entra em vigor com apuração de ICMS e ISS no regime regular (com creditamento integral sobre autopeças adquiridas) e recolhimento dos tributos federais e CPP unificados no DAS.`,
+        regimeCadastrado: rawCadastrado,
+        regimeRecomendado: 'Simples Híbrido',
+        receitaAnualizada,
+        estourouTetoSimples: false,
+        ultrapassouSublimiteHibrido: true,
+      }
+    }
+
+    if (receitaAnualizada <= SUBLIMITE_SIMPLES) {
+      const recFormatada = receitaAnualizada.toLocaleString('pt-BR', {
+        style: 'currency',
+        currency: 'BRL',
+      })
+      return {
+        tipo: 'neutro',
+        divergente: true,
+        titulo: 'Simples Híbrido Cadastrado — Abaixo do Sublimite (Não Acionado)',
+        mensagem: `Aviso Informativo: a empresa está cadastrada em Simples Híbrido, porém a receita projetada (${recFormatada}) permanece abaixo do sublimite estadual de R$ 3,6 milhões, mantendo o modelo híbrido inativo.`,
+        justificativaTecnica: `Conforme a LC 214/2025 e LC 123/2006, o mecanismo de segregação híbrida (IBS/CBS e ICMS/ISS por fora do DAS) só é ativado quando o faturamento acumulado supera R$ 3.600.000,00. Na receita atual, a empresa opera operacionalmente como Simples Nacional integral.`,
+        regimeCadastrado: rawCadastrado,
+        regimeRecomendado: 'Simples Nacional',
+        receitaAnualizada,
+        estourouTetoSimples: false,
+        ultrapassouSublimiteHibrido: false,
+      }
+    }
+  }
+
+  // Se o cadastro é Regime Regular IBS/CBS antes de 2027:
+  // Cenário 4: Alerta informativo de antecipação — regime regular pleno só a partir de 2027; considerar transição
+  if (regimeCadNorm === 'Regime Regular IBS/CBS') {
+    const anoVigente = new Date().getFullYear()
+    const recFormatada = receitaAnualizada.toLocaleString('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    })
+    return {
+      tipo: 'neutro',
+      divergente: true,
+      titulo: 'Regime Regular IBS/CBS Cadastrado — Antecipação à Reforma Tributária',
+      mensagem: `Aviso de Antecipação: regime cadastrado (${rawCadastrado}) é o modelo definitivo da Reforma Tributária (LC 214/2025), cuja vigência plena inicia em 2027. Para o ano-teste de 2026, vigora alíquota-teste de 0,1% IBS e 0,9% CBS.`,
+      justificativaTecnica: `Para a receita atual de ${recFormatada} em ${anoVigente}, a empresa pode manter o Simples Nacional para desoneração de folha e simplicidade de apuração, ou planejar a migração estratégica para o Regime Regular na Janela Crítica 2027–2029 para repassar créditos plenos de IBS/CBS às frotas e pessoas jurídicas clientes.`,
+      regimeCadastrado: rawCadastrado,
+      regimeRecomendado: recTecnica,
+      receitaAnualizada,
+      estourouTetoSimples: false,
+      ultrapassouSublimiteHibrido,
+    }
+  }
+
+  // Cenário 1: Se o cadastro é Lucro Presumido: alerta âmbar de sobretaxação com cálculo exato de economia
   if (regimeCadNorm === 'Lucro Presumido') {
     const custoPresumido = itemCadastrado?.cargaAnualEstimada || receitaAnualizada * 0.126
     const custoSimples = itemSimples?.cargaAnualEstimada || receitaAnualizada * 0.092
@@ -663,7 +728,7 @@ export function avaliarDivergenciaRegime(params: {
       divergente: true,
       titulo: 'Divergência Cadastral: Sobretaxação no Lucro Presumido',
       mensagem: `Divergência detectada: regime cadastrado (${rawCadastrado}) difere da recomendação técnica (${recTecnica}), gerando sobrecusto anual estimado de ${economiaFmt}.`,
-      justificativaTecnica: `A Pastore apurou margem real líquida de ~${margemRetidaLiquidaPct.toFixed(1)}%. O Lucro Presumido presume margens artificiais de 8% em peças e 32% em serviços com CPP patronal integral de 28,8% sobre folha a fundo perdido. A migração para ${recTecnica} proporciona economia de ~${difPp.toFixed(1)} p.p. na carga fiscal efetiva.`,
+      justificativaTecnica: `A Pastore apurou margem real líquida de ~${margemRetidaLiquidaPct.toFixed(1)}%. O Lucro Presumido presume margens fiscais de 8% em peças e 32% em serviços, acrescidas de CPP patronal integral de 28,8% sobre folha de pagamento sem dedutibilidade. A migração para ${recTecnica} proporciona economia de ~${difPp.toFixed(1)} p.p. na carga fiscal efetiva (economia de ${economiaFmt}/ano).`,
       regimeCadastrado: rawCadastrado,
       regimeRecomendado: recTecnica,
       economiaEstimadaAnualBrl: economiaBrl,
@@ -675,32 +740,47 @@ export function avaliarDivergenciaRegime(params: {
     }
   }
 
-  // Se o cadastro é Lucro Real mas a recomendação imediata é Simples
-  if (
-    regimeCadNorm === 'Lucro Real' &&
-    (recTecnica === 'Simples Nacional' || recTecnica === 'Simples Híbrido')
-  ) {
+  // Cenário 2: Se o cadastro é Lucro Real com receita dentro do teto do Simples:
+  // Alerta informativo — regime tecnicamente válido mas com custo de conformidade alto para o porte; estimar diferença vs Simples
+  if (regimeCadNorm === 'Lucro Real') {
     const custoReal = itemLucroReal?.cargaAnualEstimada || receitaAnualizada * 0.0889
     const custoSimples = itemSimples?.cargaAnualEstimada || receitaAnualizada * 0.092
-    const economiaBrl = Math.abs(custoReal - custoSimples)
-    const economiaFmt = economiaBrl.toLocaleString('pt-BR', {
+    const diferencaBrl = Math.abs(custoReal - custoSimples)
+    const diferencaFmt = diferencaBrl.toLocaleString('pt-BR', {
       style: 'currency',
       currency: 'BRL',
     })
 
-    return {
-      tipo: 'atencao',
-      divergente: true,
-      titulo: 'Divergência Cadastral: Lucro Real vs Simples Nacional',
-      mensagem: `Divergência detectada: regime cadastrado (${rawCadastrado}) difere da recomendação técnica imediata (${recTecnica}).`,
-      justificativaTecnica: `O Lucro Real exige alto custo de conformidade (ECD/ECF/LALUR) e recolhimento patronal de INSS sobre a folha. Para a receita projetada de ~R$ 2,85 mi, o Simples Nacional oferece menor complexidade operacional, enquanto o Lucro Real combinado ao IBS/CBS desponta como rota preferencial para 2027+.`,
-      regimeCadastrado: rawCadastrado,
-      regimeRecomendado: recTecnica,
-      economiaEstimadaAnualBrl: economiaBrl,
-      economiaEstimadaAnualTexto: economiaFmt,
-      receitaAnualizada,
-      estourouTetoSimples: false,
-      ultrapassouSublimiteHibrido: false,
+    // Se a receita está dentro do teto do Simples Nacional (R$ 4,8 mi)
+    if (!estourouTetoSimples) {
+      return {
+        tipo: 'neutro',
+        divergente: true,
+        titulo: 'Lucro Real Cadastrado — Alto Custo de Conformidade para o Porte',
+        mensagem: `Aviso Informativo: empresa cadastrada em Lucro Real enquanto a receita projetada (${receitaAnualizada.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}) está dentro do teto do Simples Nacional (${recTecnica}). Diferença de custo tributário estimada em ${diferencaFmt}/ano.`,
+        justificativaTecnica: `O Lucro Real é tecnicamente válido e permite dedução da folha no IRPJ/CSLL, porém exige alto custo de conformidade acessória (ECD, ECF, LALUR, DCTFWeb) e recolhimento patronal de INSS (28,8%). Para a receita anual de ~R$ 2,85 mi, o Simples Nacional oferece menor complexidade operacional imediata, mantendo o Lucro Real como opção estratégica preferencial a partir de 2027 com IBS/CBS.`,
+        regimeCadastrado: rawCadastrado,
+        regimeRecomendado: recTecnica,
+        economiaEstimadaAnualBrl: diferencaBrl,
+        economiaEstimadaAnualTexto: diferencaFmt,
+        receitaAnualizada,
+        estourouTetoSimples: false,
+        ultrapassouSublimiteHibrido,
+      }
+    } else {
+      // Receita acima do teto de R$ 4,8 mi: Lucro Real é de fato o regime legalmente mandatório
+      return {
+        tipo: 'conformidade',
+        divergente: false,
+        titulo: 'Lucro Real em Conformidade com o Porte de Faturamento',
+        mensagem: `Conformidade Legal: o regime Lucro Real registrado no cadastro coincide com a exigência legal para empresas com faturamento acima do teto do Simples Nacional (R$ 4,8 mi).`,
+        justificativaTecnica: `Com receita anualizada em ${receitaAnualizada.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}, a empresa está legalmente impedida de optar pelo Simples Nacional, sendo o Lucro Real a sistemática correta e recomendada pela ADECONT para aproveitamento de créditos não cumulativos e dedutibilidade fiscal de custos operacionais e encargos de folha.`,
+        regimeCadastrado: rawCadastrado,
+        regimeRecomendado: 'Lucro Real',
+        receitaAnualizada,
+        estourouTetoSimples: true,
+        ultrapassouSublimiteHibrido: false,
+      }
     }
   }
 
@@ -724,11 +804,10 @@ export function avaliarDivergenciaRegime(params: {
     }
   }
 
-  // Se o regime cadastrado é compatível/igual ao recomendado
+  // Se o regime cadastrado é compatível/igual ao recomendado (Ex: Simples Nacional)
   if (
     regimeCadNorm === recTecnica ||
-    (regimeCadNorm === 'Simples Nacional' && recTecnica.includes('Simples Nacional')) ||
-    (regimeCadNorm === 'Simples Híbrido' && recTecnica.includes('Simples Híbrido'))
+    (regimeCadNorm === 'Simples Nacional' && recTecnica.includes('Simples Nacional'))
   ) {
     return {
       tipo: 'conformidade',
