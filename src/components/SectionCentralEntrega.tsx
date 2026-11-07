@@ -125,6 +125,15 @@ export const ITENS_ENTREGA: ItemEntrega[] = [
     url: ENVIOS_URL,
     acoes: ['print'],
   },
+  {
+    id: 'rel-parecer-sistema',
+    titulo: 'Parecer Técnico da Auditoria do Sistema Panorama',
+    desc: 'Dossiê formal de auditoria dos módulos, agentes especialistas, fontes oficiais e integridade de APIs — pronto para emissão e impressão A4.',
+    categoria: 'relatorio',
+    tecla: 'shift+p',
+    url: '/#parecer-auditoria',
+    acoes: ['print', 'mail'],
+  },
   // ===== LEGISLAÇÃO =====
   {
     id: 'leg-busca-avancada',

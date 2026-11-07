@@ -38,6 +38,7 @@ import { PainelDegraus } from '@/components/PainelDegraus'
 import { SectionHistoricoAtualizacoes } from '@/components/SectionHistoricoAtualizacoes'
 import { SectionHistoricoRevisoes } from '@/components/SectionHistoricoRevisoes'
 import { SectionHistoricoExclusoes } from '@/components/SectionHistoricoExclusoes'
+import { SectionParecerSistema } from '@/components/SectionParecerSistema'
 import { SectionLefisc } from '@/components/SectionLefisc'
 import { SectionRadarNacional } from '@/components/SectionRadarNacional'
 import { SectionNfesPipeline } from '@/components/SectionNfesPipeline'
@@ -181,6 +182,8 @@ const COMPONENTES: Record<string, ComponentType<PropsAba>> = {
   '#mapa': PainelDegraus,
   '#nfes': SectionNfesPipeline,
   '#documentos-fiscais': SectionNfesPipeline,
+  '#parecer-auditoria': SectionParecerSistema,
+  '#parecer-sistema': SectionParecerSistema,
 }
 
 /**

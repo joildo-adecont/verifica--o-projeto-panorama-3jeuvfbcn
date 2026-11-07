@@ -29,7 +29,8 @@ export type StatusFonte = 'ativa' | 'bloqueada' | 'sem_rota' | 'nao_usar'
 export interface FonteVigiada {
   id: string
   rotulo: string
-  orgao: string
+  orgao?: string
+  grupo?: string
   url: string
   status: StatusFonte
   tipo: string
@@ -77,6 +78,7 @@ export const FONTES_VIGIADAS: FonteVigiada[] = [
   {
     id: 'cgibs',
     rotulo: 'CGIBS — resoluções',
+    orgao: 'Comitê Gestor do IBS (CGIBS)',
     grupo: 'primaria',
     url: 'https://www.cgibs.gov.br/',
     status: 'ativa',
