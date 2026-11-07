@@ -89,6 +89,28 @@ const REGISTROS: Registro[] = [
     bloco: 'legislacao',
   },
   {
+    data: '07/11/2026',
+    hora: '14:30',
+    titulo:
+      'Fluxo de alteração de Regime Tributário simplificado: select inline com auto-save na listagem, integração na Ficha e seletor rápido no diagnóstico',
+    conteudo:
+      'Atendendo à diretriz de reduzir cliques e agilizar a rotina operacional do escritório contábil: (1) LISTAGEM DE CLIENTES: a coluna "Regime Tributário" agora conta com select inline estilizado no padrão ADECONT e gravação imediata no onChange via atualizarEmpresa(id, { regime_tributario: novoRegime }), exibindo feedback visual na linha (spinner, check verde e badge colorido correspondente ao regime selecionado), mantendo fallback seguro "Não informado" para registros legados; (2) FICHA CADASTRAL: remoção do botão isolado "Salvar Regime", unificando a alteração de regime ao fluxo direto da ficha; (3) BANNER DO DIAGNÓSTICO: inclusão de Seletor Rápido de Regime Tributário diretamente no topo do banner de divergência/conformidade, salvando na base e recalculando em tempo real os alertas técnicos com sincronização bidirecional entre módulos via evento CustomEvent; (4) FILTROS E RELATÓRIOS: preservados integralmente os filtros facetados por regime na listagem, o relatório A4 imprimível da carteira e o relatório técnico do diagnóstico.',
+    fontes: [
+      {
+        titulo: 'Portal ADECONT — Gestão e Parametrização Tributária',
+        url: '#clientes',
+      },
+      {
+        titulo: 'LC 123/2006 e Emenda Constitucional 132/2023 (Reforma Tributária)',
+        url: 'https://normas.leg.br/?urn=urn:lex:br:federal:lei.complementar:2006-12-14;123',
+      },
+    ],
+    caminho:
+      'src/pages/CadastroClientes.tsx + src/components/DiagnosticoRegimeTributario.tsx + src/types/cadastroEmpresas.ts + src/services/cadastroEmpresasRegime.test.ts',
+    versao: 'v0.0.702',
+    bloco: 'sistema',
+  },
+  {
     data: '06/11/2026',
     hora: '08:20',
     titulo:

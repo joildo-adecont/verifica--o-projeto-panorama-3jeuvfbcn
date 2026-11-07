@@ -22,28 +22,27 @@ import {
   X,
   ArrowUpDown,
   ExternalLink,
+  Printer,
+  FileSpreadsheet,
+  Check,
+  Loader2,
 } from 'lucide-react'
-import { Printer, FileSpreadsheet } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { AdecontLogo } from '@/components/AdecontLogo'
-import { Check, Loader2, Save } from 'lucide-react'
 import {
   listarEmpresas,
   listarEmpresasParaRelatorio,
   atualizarEmpresa,
 } from '@/services/cadastroEmpresas'
 import { RelatorioClientesImprimivel } from '@/components/RelatorioClientesImprimivel'
-import type { EmpresaRecord } from '@/types/cadastroEmpresas'
+import {
+  type EmpresaRecord,
+  OPCOES_REGIME_TRIBUTARIO,
+  type RegimeTributarioTipo,
+  EVENTO_REGIME_TRIBUTARIO_ALTERADO,
+} from '@/types/cadastroEmpresas'
 
-export const OPCOES_REGIME_TRIBUTARIO = [
-  'Simples Nacional',
-  'Simples Híbrido',
-  'Lucro Presumido',
-  'Lucro Real',
-  'Regime Regular IBS/CBS',
-] as const
-
-export type RegimeTributarioTipo = (typeof OPCOES_REGIME_TRIBUTARIO)[number]
+export { OPCOES_REGIME_TRIBUTARIO, type RegimeTributarioTipo }
 
 export default function CadastroClientes() {
   const [empresas, setEmpresas] = useState<EmpresaRecord[]>([])
@@ -67,55 +66,146 @@ export default function CadastroClientes() {
   const [empresaExpandidaId, setEmpresaExpandidaId] = useState<number | null>(null)
   const [modalEmpresa, setModalEmpresa] = useState<EmpresaRecord | null>(null)
 
-  // Edição do regime tributário na ficha do cliente
-  const [regimeSelecionado, setRegimeSelecionado] = useState<string>('')
-  const [salvandoRegime, setSalvandoRegime] = useState<boolean>(false)
-  const [sucessoSalvarRegime, setSucessoSalvarRegime] = useState<string | null>(null)
-  const [erroSalvarRegime, setErroSalvarRegime] = useState<string | null>(null)
+  // Estados de alteração inline na listagem: empresa em alteração e feedback
+  const [salvandoInlineCodigo, setSalvandoInlineCodigo] = useState<number | null>(null)
+  const [statusInline, setStatusInline] = useState<
+    Record<number, { tipo: 'ok' | 'erro'; texto: string }>
+  >({})
 
-  // Ao abrir o modal da ficha do cliente, sincroniza o regime atual
+  // Edição do regime tributário na ficha do cliente (modal)
+  const [salvandoFichaRegime, setSalvandoFichaRegime] = useState<boolean>(false)
+  const [feedbackFicha, setFeedbackFicha] = useState<{ tipo: 'ok' | 'erro'; texto: string } | null>(
+    null,
+  )
+
+  // Ao abrir o modal da ficha do cliente, sincroniza
   const abrirFichaCliente = (emp: EmpresaRecord) => {
     setModalEmpresa(emp)
-    setRegimeSelecionado(emp.regime_tributario || '')
-    setSucessoSalvarRegime(null)
-    setErroSalvarRegime(null)
+    setFeedbackFicha(null)
   }
 
-  const salvarRegimeCliente = async () => {
+  // Alteração inline na tabela ou através do seletor da Ficha Cadastral (onChange com auto-save)
+  const handleAlterarRegimeInline = async (emp: EmpresaRecord, novoRegime: string) => {
+    const cod = emp.codigo
+    setSalvandoInlineCodigo(cod)
+    setStatusInline((prev) => ({ ...prev, [cod]: { tipo: 'ok', texto: 'Salvando…' } }))
+
+    try {
+      const idOuCodigo = emp.id || emp.codigo
+      const res = await atualizarEmpresa(idOuCodigo, {
+        regime_tributario: novoRegime,
+      })
+
+      if (res.sucesso) {
+        // Atualiza estado local da listagem
+        setEmpresas((prev) =>
+          prev.map((item) =>
+            item.codigo === cod ? { ...item, regime_tributario: novoRegime } : item,
+          ),
+        )
+
+        // Se a modal da ficha estiver aberta para essa mesma empresa, atualiza
+        setModalEmpresa((prev) =>
+          prev && prev.codigo === cod ? { ...prev, regime_tributario: novoRegime } : prev,
+        )
+
+        setStatusInline((prev) => ({
+          ...prev,
+          [cod]: { tipo: 'ok', texto: novoRegime ? 'Regime atualizado!' : 'Regime removido' },
+        }))
+
+        // Notifica outros componentes abertos (ex: banner do Diagnóstico Tributário)
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(
+            new CustomEvent(EVENTO_REGIME_TRIBUTARIO_ALTERADO, {
+              detail: {
+                codigo: cod,
+                id: emp.id,
+                documento_limpo: emp.documento_limpo,
+                regime_tributario: novoRegime,
+              },
+            }),
+          )
+        }
+      } else {
+        setStatusInline((prev) => ({
+          ...prev,
+          [cod]: { tipo: 'erro', texto: res.mensagem || 'Falha ao salvar' },
+        }))
+      }
+    } catch (e: any) {
+      console.error('Erro ao atualizar regime inline:', e)
+      setStatusInline((prev) => ({
+        ...prev,
+        [cod]: { tipo: 'erro', texto: e?.message || 'Erro ao salvar' },
+      }))
+    } finally {
+      setSalvandoInlineCodigo(null)
+      // Limpa status após 3 segundos
+      setTimeout(() => {
+        setStatusInline((prev) => {
+          const next = { ...prev }
+          delete next[cod]
+          return next
+        })
+      }, 3000)
+    }
+  }
+
+  // Alteração integrada na Ficha Cadastral (onChange auto-save sem botão secundário separado)
+  const handleAlterarRegimeFicha = async (novoRegime: string) => {
     if (!modalEmpresa) return
-    setSalvandoRegime(true)
-    setSucessoSalvarRegime(null)
-    setErroSalvarRegime(null)
+    setSalvandoFichaRegime(true)
+    setFeedbackFicha(null)
 
     try {
       const idOuCodigo = modalEmpresa.id || modalEmpresa.codigo
       const res = await atualizarEmpresa(idOuCodigo, {
-        regime_tributario: regimeSelecionado,
+        regime_tributario: novoRegime,
       })
 
       if (res.sucesso) {
-        setSucessoSalvarRegime('Regime tributário atualizado com sucesso!')
-        // Atualiza o estado da empresa no modal e na listagem
         const empresaAtualizada: EmpresaRecord = {
           ...modalEmpresa,
-          regime_tributario: regimeSelecionado,
+          regime_tributario: novoRegime,
         }
         setModalEmpresa(empresaAtualizada)
         setEmpresas((prev) =>
           prev.map((item) =>
-            item.codigo === modalEmpresa.codigo
-              ? { ...item, regime_tributario: regimeSelecionado }
-              : item,
+            item.codigo === modalEmpresa.codigo ? { ...item, regime_tributario: novoRegime } : item,
           ),
         )
+        setFeedbackFicha({
+          tipo: 'ok',
+          texto: 'Regime tributário atualizado e gravado na Ficha Cadastral!',
+        })
+
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(
+            new CustomEvent(EVENTO_REGIME_TRIBUTARIO_ALTERADO, {
+              detail: {
+                codigo: modalEmpresa.codigo,
+                id: modalEmpresa.id,
+                documento_limpo: modalEmpresa.documento_limpo,
+                regime_tributario: novoRegime,
+              },
+            }),
+          )
+        }
       } else {
-        setErroSalvarRegime(res.mensagem || 'Falha ao salvar o regime tributário.')
+        setFeedbackFicha({
+          tipo: 'erro',
+          texto: res.mensagem || 'Falha ao salvar regime na Ficha Cadastral.',
+        })
       }
     } catch (e: any) {
-      console.error('Erro ao salvar regime:', e)
-      setErroSalvarRegime(e?.message || 'Erro inesperado ao salvar regime tributário.')
+      console.error('Erro ao salvar regime na ficha:', e)
+      setFeedbackFicha({
+        tipo: 'erro',
+        texto: e?.message || 'Erro ao gravar regime tributário.',
+      })
     } finally {
-      setSalvandoRegime(false)
+      setSalvandoFichaRegime(false)
     }
   }
 
@@ -161,6 +251,50 @@ export default function CadastroClientes() {
     }, 250)
     return () => clearTimeout(timer)
   }, [carregarDados])
+
+  // Ouvinte de sincronização em tempo real quando o regime for alterado externamente (ex.: pelo Diagnóstico)
+  useEffect(() => {
+    const handleEventoRegime = (e: Event) => {
+      const custom = e as CustomEvent<{
+        codigo?: number
+        id?: string
+        documento_limpo?: string
+        regime_tributario?: string
+      }>
+      const detalhe = custom.detail
+      if (!detalhe) return
+
+      setEmpresas((prev) =>
+        prev.map((item) => {
+          const coincide =
+            (detalhe.codigo && item.codigo === detalhe.codigo) ||
+            (detalhe.id && item.id === detalhe.id) ||
+            (detalhe.documento_limpo && item.documento_limpo === detalhe.documento_limpo)
+          if (coincide && detalhe.regime_tributario !== undefined) {
+            return { ...item, regime_tributario: detalhe.regime_tributario }
+          }
+          return item
+        }),
+      )
+
+      setModalEmpresa((prev) => {
+        if (!prev) return null
+        const coincide =
+          (detalhe.codigo && prev.codigo === detalhe.codigo) ||
+          (detalhe.id && prev.id === detalhe.id) ||
+          (detalhe.documento_limpo && prev.documento_limpo === detalhe.documento_limpo)
+        if (coincide && detalhe.regime_tributario !== undefined) {
+          return { ...prev, regime_tributario: detalhe.regime_tributario }
+        }
+        return prev
+      })
+    }
+
+    window.addEventListener(EVENTO_REGIME_TRIBUTARIO_ALTERADO, handleEventoRegime)
+    return () => {
+      window.removeEventListener(EVENTO_REGIME_TRIBUTARIO_ALTERADO, handleEventoRegime)
+    }
+  }, [])
 
   const alternarExpansao = (codigo: number) => {
     setEmpresaExpandidaId((prev) => (prev === codigo ? null : codigo))
@@ -428,7 +562,7 @@ export default function CadastroClientes() {
                   </th>
                   <th className="py-3 px-3 min-w-[170px]">Apelido / Fantasia</th>
                   <th className="py-3 px-3 min-w-[150px]">CNPJ / CPF</th>
-                  <th className="py-3 px-3 min-w-[150px]">Regime Tributário</th>
+                  <th className="py-3 px-3 min-w-[210px]">Regime Tributário</th>
                   <th className="py-3 px-3 min-w-[140px]">Município / UF</th>
                   <th className="py-3 px-3 min-w-[130px]">Contato</th>
                   <th className="py-3 px-3 w-24 text-center">Situação</th>
@@ -531,27 +665,93 @@ export default function CadastroClientes() {
                           )}
                         </td>
 
-                        {/* Regime Tributário */}
-                        <td className="py-3 px-3">
-                          {emp.regime_tributario ? (
-                            <span
-                              className={`inline-block px-2 py-0.5 rounded-md text-[10px] font-bold tracking-tight whitespace-nowrap border ${
-                                emp.regime_tributario === 'Simples Nacional'
-                                  ? 'bg-blue-50 text-blue-700 border-blue-200'
-                                  : emp.regime_tributario === 'Simples Híbrido'
-                                    ? 'bg-cyan-50 text-cyan-700 border-cyan-200'
-                                    : emp.regime_tributario === 'Lucro Presumido'
-                                      ? 'bg-amber-50 text-amber-700 border-amber-200'
-                                      : emp.regime_tributario === 'Lucro Real'
-                                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                        : 'bg-purple-50 text-purple-700 border-purple-200'
-                              }`}
-                            >
-                              {emp.regime_tributario}
-                            </span>
-                          ) : (
-                            <span className="text-slate-400 italic text-[11px]">Não informado</span>
-                          )}
+                        {/* Regime Tributário (Select Inline com Auto-Save e Badge Visual) */}
+                        <td className="py-2.5 px-3">
+                          <div className="flex flex-col gap-1 min-w-[190px]">
+                            <div className="flex items-center gap-1.5">
+                              {/* Badge indicador visual rápido */}
+                              {emp.regime_tributario ? (
+                                <span
+                                  className={`w-2.5 h-2.5 rounded-full shrink-0 border ${
+                                    emp.regime_tributario === 'Simples Nacional'
+                                      ? 'bg-blue-500 border-blue-600'
+                                      : emp.regime_tributario === 'Simples Híbrido'
+                                        ? 'bg-cyan-500 border-cyan-600'
+                                        : emp.regime_tributario === 'Lucro Presumido'
+                                          ? 'bg-amber-500 border-amber-600'
+                                          : emp.regime_tributario === 'Lucro Real'
+                                            ? 'bg-emerald-500 border-emerald-600'
+                                            : 'bg-purple-500 border-purple-600'
+                                  }`}
+                                  title={`Regime atual: ${emp.regime_tributario}`}
+                                />
+                              ) : (
+                                <span
+                                  className="w-2.5 h-2.5 rounded-full shrink-0 bg-slate-300 border border-slate-400"
+                                  title="Regime não informado"
+                                />
+                              )}
+
+                              {/* Select inline estilizador ADECONT */}
+                              <div className="relative flex-1">
+                                <select
+                                  aria-label={`Regime tributário da empresa ${emp.razao_social || emp.codigo}`}
+                                  value={emp.regime_tributario || ''}
+                                  disabled={salvandoInlineCodigo === emp.codigo}
+                                  onChange={(e) => handleAlterarRegimeInline(emp, e.target.value)}
+                                  className={`w-full py-1 pl-2 pr-6 text-[11px] font-semibold rounded-md border transition-all cursor-pointer bg-white focus:outline-none focus:ring-2 focus:ring-[#D4AF37] disabled:opacity-60 disabled:cursor-wait ${
+                                    emp.regime_tributario === 'Simples Nacional'
+                                      ? 'text-blue-900 border-blue-300 bg-blue-50/40 hover:border-blue-400'
+                                      : emp.regime_tributario === 'Simples Híbrido'
+                                        ? 'text-cyan-900 border-cyan-300 bg-cyan-50/40 hover:border-cyan-400'
+                                        : emp.regime_tributario === 'Lucro Presumido'
+                                          ? 'text-amber-900 border-amber-300 bg-amber-50/40 hover:border-amber-400'
+                                          : emp.regime_tributario === 'Lucro Real'
+                                            ? 'text-emerald-900 border-emerald-300 bg-emerald-50/40 hover:border-emerald-400'
+                                            : emp.regime_tributario === 'Regime Regular IBS/CBS'
+                                              ? 'text-purple-900 border-purple-300 bg-purple-50/40 hover:border-purple-400'
+                                              : 'text-slate-500 border-slate-300 bg-slate-50/60 italic hover:border-slate-400'
+                                  }`}
+                                >
+                                  <option value="" className="text-slate-400 font-normal italic">
+                                    Não informado
+                                  </option>
+                                  {OPCOES_REGIME_TRIBUTARIO.map((opc) => (
+                                    <option
+                                      key={opc}
+                                      value={opc}
+                                      className="text-slate-800 font-semibold not-italic"
+                                    >
+                                      {opc}
+                                    </option>
+                                  ))}
+                                </select>
+                                {salvandoInlineCodigo === emp.codigo && (
+                                  <span className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
+                                    <Loader2 className="w-3 h-3 text-[#D4AF37] animate-spin" />
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Feedback inline temporário (sucesso ou erro) */}
+                            {statusInline[emp.codigo] && (
+                              <div
+                                className={`text-[10px] font-bold flex items-center gap-1 leading-none ${
+                                  statusInline[emp.codigo].tipo === 'ok'
+                                    ? 'text-emerald-700'
+                                    : 'text-rose-700'
+                                }`}
+                              >
+                                {statusInline[emp.codigo].tipo === 'ok' ? (
+                                  <Check className="w-2.5 h-2.5 shrink-0" />
+                                ) : (
+                                  <AlertCircle className="w-2.5 h-2.5 shrink-0" />
+                                )}
+                                <span>{statusInline[emp.codigo].texto}</span>
+                              </div>
+                            )}
+                          </div>
                         </td>
 
                         {/* Município / UF */}
@@ -781,7 +981,8 @@ export default function CadastroClientes() {
                       <span>Regime Tributário</span>
                     </label>
                     <p className="text-[10px] text-slate-500">
-                      Regime tributário formal para fins de diagnóstico e parametrização ADECONT
+                      Alteração direta na Ficha Cadastral (gravação automática ao selecionar nova
+                      opção)
                     </p>
                   </div>
                   {modalEmpresa.regime_tributario ? (
@@ -795,61 +996,42 @@ export default function CadastroClientes() {
                   )}
                 </div>
 
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                  <div className="flex-1">
-                    <select
-                      id="select-regime-tributario"
-                      value={regimeSelecionado}
-                      onChange={(e) => {
-                        setRegimeSelecionado(e.target.value)
-                        setSucessoSalvarRegime(null)
-                        setErroSalvarRegime(null)
-                      }}
-                      className="w-full px-3 py-2 text-xs font-semibold bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0F294A]/20 focus:border-[#0F294A] text-slate-800"
-                    >
-                      <option value="">Não informado / Em definição</option>
-                      {OPCOES_REGIME_TRIBUTARIO.map((opcao) => (
-                        <option key={opcao} value={opcao}>
-                          {opcao}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={salvarRegimeCliente}
-                    disabled={
-                      salvandoRegime || regimeSelecionado === (modalEmpresa.regime_tributario || '')
-                    }
-                    className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#0F294A] hover:bg-[#1a3d68] text-white text-xs font-bold transition-colors disabled:opacity-50 disabled:pointer-events-none cursor-pointer shrink-0"
-                    title="Gravar alteração do Regime Tributário no cadastro do cliente"
+                <div className="relative">
+                  <select
+                    id="select-regime-tributario"
+                    value={modalEmpresa.regime_tributario || ''}
+                    disabled={salvandoFichaRegime}
+                    onChange={(e) => handleAlterarRegimeFicha(e.target.value)}
+                    className="w-full px-3 py-2 pr-8 text-xs font-semibold bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0F294A]/20 focus:border-[#0F294A] text-slate-800 disabled:opacity-60 cursor-pointer"
                   >
-                    {salvandoRegime ? (
-                      <>
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                        <span>Salvando...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Save className="w-3.5 h-3.5 text-[#D4AF37]" />
-                        <span>Salvar Regime</span>
-                      </>
-                    )}
-                  </button>
+                    <option value="">Não informado / Em definição</option>
+                    {OPCOES_REGIME_TRIBUTARIO.map((opcao) => (
+                      <option key={opcao} value={opcao}>
+                        {opcao}
+                      </option>
+                    ))}
+                  </select>
+                  {salvandoFichaRegime && (
+                    <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
+                      <Loader2 className="w-4 h-4 text-[#D4AF37] animate-spin" />
+                    </div>
+                  )}
                 </div>
 
-                {sucessoSalvarRegime && (
-                  <div className="flex items-center gap-1.5 text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-lg">
-                    <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                    <span>{sucessoSalvarRegime}</span>
-                  </div>
-                )}
-
-                {erroSalvarRegime && (
-                  <div className="flex items-center gap-1.5 text-[11px] font-semibold text-rose-700 bg-rose-50 border border-rose-200 px-3 py-1.5 rounded-lg">
-                    <AlertCircle className="w-3.5 h-3.5 text-rose-600 shrink-0" />
-                    <span>{erroSalvarRegime}</span>
+                {feedbackFicha && (
+                  <div
+                    className={`flex items-center gap-1.5 text-[11px] font-semibold px-3 py-1.5 rounded-lg border ${
+                      feedbackFicha.tipo === 'ok'
+                        ? 'text-emerald-700 bg-emerald-50 border-emerald-200'
+                        : 'text-rose-700 bg-rose-50 border-rose-200'
+                    }`}
+                  >
+                    {feedbackFicha.tipo === 'ok' ? (
+                      <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    ) : (
+                      <AlertCircle className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+                    )}
+                    <span>{feedbackFicha.texto}</span>
                   </div>
                 )}
               </div>

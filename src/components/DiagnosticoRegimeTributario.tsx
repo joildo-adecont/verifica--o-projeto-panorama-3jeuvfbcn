@@ -11,6 +11,10 @@ import {
 } from '@/services/diagnosticoPastore'
 import RelatorioDiagnosticoPastoreImprimivel from './RelatorioDiagnosticoPastoreImprimivel'
 import {
+  OPCOES_REGIME_TRIBUTARIO,
+  EVENTO_REGIME_TRIBUTARIO_ALTERADO,
+} from '@/types/cadastroEmpresas'
+import {
   Building2,
   TrendingUp,
   Scale,
@@ -58,6 +62,10 @@ export const DiagnosticoRegimeTributario: React.FC = () => {
   const [editNumFuncionarios, setEditNumFuncionarios] = useState<number>(9)
   const [editFolhaMensal, setEditFolhaMensal] = useState<number>(31850)
   const [editEncargosMensais, setEditEncargosMensais] = useState<number>(5730)
+
+  // Estado do seletor rápido de regime no próprio banner de divergência/conformidade
+  const [salvandoRegimeRapido, setSalvandoRegimeRapido] = useState<boolean>(false)
+  const [feedbackRegimeRapido, setFeedbackRegimeRapido] = useState<string | null>(null)
 
   const carregar = async () => {
     setCarregando(true)
@@ -158,6 +166,106 @@ export const DiagnosticoRegimeTributario: React.FC = () => {
       setTimeout(() => setMensagemSalvo(null), 4000)
     }
   }
+
+  // Alteração rápida de regime diretamente pelo banner de divergência/conformidade
+  const handleAlterarRegimeRapido = async (novoRegime: string) => {
+    if (!data) return
+    setSalvandoRegimeRapido(true)
+    setFeedbackRegimeRapido(null)
+
+    // Recalcular alerta de divergência imediatamente em memória
+    const novoAlerta = avaliarDivergenciaRegime({
+      regimeCadastrado: novoRegime,
+      receitaAnualizada: data.receitaAnualizada,
+      regimeRecomendadoTecnico: 'Simples Nacional',
+      tabelaValoresPercentuais: data.tabelaValoresPercentuais,
+      margemRetidaLiquidaPct: data.margemRetidaLiquidaPct,
+    })
+
+    // Atualiza estado de diagnóstico imediatamente (tempo real)
+    setData({
+      ...data,
+      regimeTributarioAtual: novoRegime,
+      alertaDivergencia: novoAlerta,
+      empresa: data.empresa ? { ...data.empresa, regime_tributario: novoRegime } : null,
+    })
+    setEditRegimeTributario(novoRegime)
+
+    try {
+      const resp = await salvarDadosFolhaEEnquadramentoPastore({
+        regime_tributario: novoRegime,
+        enquadramento_tributario: editEnquadramento,
+        cnaes_secundarios: editCnaesSecundarios,
+        num_funcionarios: Number(editNumFuncionarios) || 0,
+        folha_salarial_mensal: Number(editFolhaMensal) || 0,
+        encargos_mensais: Number(editEncargosMensais) || 0,
+      })
+
+      if (resp.sucesso) {
+        setFeedbackRegimeRapido('Regime gravado no cadastro!')
+        // Notifica outros módulos abertos (ex: listagem de Cadastro de Clientes)
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(
+            new CustomEvent(EVENTO_REGIME_TRIBUTARIO_ALTERADO, {
+              detail: {
+                codigo: data.empresa?.codigo || 1,
+                id: data.empresa?.id,
+                documento_limpo: data.empresa?.documento_limpo || '92353630000168',
+                regime_tributario: novoRegime,
+              },
+            }),
+          )
+        }
+      } else {
+        setFeedbackRegimeRapido(`Aviso: ${resp.mensagem}`)
+      }
+    } catch (err: any) {
+      console.error('Erro ao salvar regime rápido no diagnóstico:', err)
+      setFeedbackRegimeRapido(`Erro: ${err?.message || 'Falha ao gravar regime'}`)
+    } finally {
+      setSalvandoRegimeRapido(false)
+      setTimeout(() => setFeedbackRegimeRapido(null), 3500)
+    }
+  }
+
+  // Ouvinte de sincronização para quando o regime for alterado na lista ou ficha de clientes
+  useEffect(() => {
+    const handleSincronizacaoExterna = (e: Event) => {
+      const custom = e as CustomEvent<{
+        codigo?: number
+        id?: string
+        documento_limpo?: string
+        regime_tributario?: string
+      }>
+      const detalhe = custom.detail
+      if (!detalhe || detalhe.regime_tributario === undefined) return
+
+      // Se for a Pastore (código 1 ou CNPJ 92353630000168) ou caso data não tenha restrição
+      const novoRegime = detalhe.regime_tributario
+      setEditRegimeTributario(novoRegime)
+      setData((prev) => {
+        if (!prev) return null
+        const novoAlerta = avaliarDivergenciaRegime({
+          regimeCadastrado: novoRegime,
+          receitaAnualizada: prev.receitaAnualizada,
+          regimeRecomendadoTecnico: 'Simples Nacional',
+          tabelaValoresPercentuais: prev.tabelaValoresPercentuais,
+          margemRetidaLiquidaPct: prev.margemRetidaLiquidaPct,
+        })
+        return {
+          ...prev,
+          regimeTributarioAtual: novoRegime,
+          alertaDivergencia: novoAlerta,
+          empresa: prev.empresa ? { ...prev.empresa, regime_tributario: novoRegime } : null,
+        }
+      })
+    }
+
+    window.addEventListener(EVENTO_REGIME_TRIBUTARIO_ALTERADO, handleSincronizacaoExterna)
+    return () => {
+      window.removeEventListener(EVENTO_REGIME_TRIBUTARIO_ALTERADO, handleSincronizacaoExterna)
+    }
+  }, [])
 
   useEffect(() => {
     carregar()
@@ -529,8 +637,43 @@ export const DiagnosticoRegimeTributario: React.FC = () => {
               </div>
             </div>
 
-            {/* Badges de Comparação Rápida */}
-            <div className="flex md:flex-col items-end justify-between md:justify-start gap-2 flex-shrink-0 bg-slate-950/60 p-3 rounded-lg border border-white/10 text-xs min-w-[220px]">
+            {/* Badges de Comparação Rápida + Seletor Rápido de Regime */}
+            <div className="flex md:flex-col items-stretch justify-between md:justify-start gap-2.5 flex-shrink-0 bg-slate-950/80 p-3.5 rounded-lg border border-white/15 text-xs min-w-[260px]">
+              {/* Seletor Rápido no Banner */}
+              <div className="w-full pb-2 border-b border-slate-800 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1">
+                    <Briefcase className="w-3 h-3 text-[#D4AF37]" />
+                    <span>Seletor Rápido</span>
+                  </span>
+                  {salvandoRegimeRapido ? (
+                    <span className="text-[10px] text-amber-300 flex items-center gap-1 font-mono">
+                      <RefreshCw className="w-3 h-3 animate-spin" /> Salvando...
+                    </span>
+                  ) : feedbackRegimeRapido ? (
+                    <span className="text-[10px] text-emerald-300 font-semibold">
+                      {feedbackRegimeRapido}
+                    </span>
+                  ) : (
+                    <span className="text-[9px] text-slate-400 font-medium">recalcula na hora</span>
+                  )}
+                </div>
+                <select
+                  value={data.alertaDivergencia.regimeCadastrado || ''}
+                  disabled={salvandoRegimeRapido}
+                  onChange={(e) => handleAlterarRegimeRapido(e.target.value)}
+                  className="w-full px-2.5 py-1.5 text-xs font-semibold bg-slate-900 border border-slate-700 hover:border-amber-500/60 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500/30 text-white cursor-pointer disabled:opacity-50"
+                  title="Alterar regime tributário diretamente pelo banner — salva no cadastro e recalcula imediatamente"
+                >
+                  <option value="">Não informado / Em definição</option>
+                  {OPCOES_REGIME_TRIBUTARIO.map((opcao) => (
+                    <option key={opcao} value={opcao} className="bg-slate-900 text-white">
+                      {opcao}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               <div className="w-full flex items-center justify-between gap-3">
                 <span className="text-slate-400 text-[11px]">Regime Cadastrado:</span>
                 <span className="font-bold font-mono text-cyan-300 bg-slate-900 px-2 py-0.5 rounded border border-cyan-900/60">
@@ -544,7 +687,7 @@ export const DiagnosticoRegimeTributario: React.FC = () => {
                 </span>
               </div>
               {data.alertaDivergencia.economiaEstimadaAnualTexto && (
-                <div className="w-full pt-1.5 mt-1 border-t border-slate-800 flex items-center justify-between gap-2">
+                <div className="w-full pt-1.5 mt-0.5 border-t border-slate-800 flex items-center justify-between gap-2">
                   <span className="text-[11px] text-emerald-400 font-semibold">
                     {data.alertaDivergencia.tipo === 'atencao' &&
                     data.alertaDivergencia.regimeCadastrado.includes('Presumido')

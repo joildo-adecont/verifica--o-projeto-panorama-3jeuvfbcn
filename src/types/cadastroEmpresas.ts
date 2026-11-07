@@ -1,3 +1,17 @@
+// Lista oficial dos 5 regimes tributários reconhecidos no sistema ADECONT
+export const OPCOES_REGIME_TRIBUTARIO = [
+  'Simples Nacional',
+  'Simples Híbrido',
+  'Lucro Presumido',
+  'Lucro Real',
+  'Regime Regular IBS/CBS',
+] as const
+
+export type RegimeTributarioTipo = (typeof OPCOES_REGIME_TRIBUTARIO)[number]
+
+// Nome do evento CustomEvent para sincronização em tempo real entre módulos
+export const EVENTO_REGIME_TRIBUTARIO_ALTERADO = 'adecont:regime_tributario_alterado'
+
 // Interface completa para os registros da coleção `cadastro_empresas` (PocketBase)
 export interface EmpresaRecord {
   id?: string
