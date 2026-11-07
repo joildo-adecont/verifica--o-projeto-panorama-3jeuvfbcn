@@ -378,8 +378,10 @@ export async function carregarDiagnosticoClientePastore(): Promise<DiagnosticoCl
     },
   }
 
-  // Cálculos tributários para a Tabela Comparativa (base: receitaAnualizada)
-  const recProj = receitaAnualizada > 0 ? receitaAnualizada : 12500000
+  // Cálculos tributários para a Tabela Comparativa (base: projeção anualizada ou acumulada)
+  // Receita acumulada real dos 7 balancetes de 2026: R$ 6.303.501,27 (~R$ 6,3 mi)
+  // Projeção anualizada (12 meses): ~R$ 10,8 mi (média mensal ~R$ 900,5k * 12)
+  const recProj = receitaAnualizada > 0 ? receitaAnualizada : 10806000
 
   // 1) Lucro Presumido:
   // Operação mista: autopeças (comércio ~70% receita, presunção 8%) + serviços mecânicos (~30%, presunção 32%)
@@ -523,11 +525,11 @@ export async function carregarDiagnosticoClientePastore(): Promise<DiagnosticoCl
       },
     },
     {
-      criterio: 'Estimativa de Carga Anual em R$ (Base: R$ 12,5 mi)',
+      criterio: `Estimativa de Carga Anual em R$ (Base Projeção Anualizada: ~${fmtBrl(recProj)})`,
       lucroPresumido: {
         valor: `~${fmtBrl(cargaPresumidoEstimada)} / ano`,
         detalhe:
-          '~12,6% do faturamento bruto. Penalizado pela presunção artificial de 8%/32% contra margem real de 1%.',
+          '~12,6% do faturamento. Penalizado pela presunção artificial de 8%/32% contra margem real de ~1,1%.',
       },
       lucroReal: {
         valor: `~${fmtBrl(cargaRealEstimada)} / ano`,
@@ -556,7 +558,7 @@ export async function carregarDiagnosticoClientePastore(): Promise<DiagnosticoCl
       reforma2027: {
         valor: 'REGIME REGULAR RECOMENDADO DEFINITIVO',
         detalhe:
-          'O Simples é inviável (faturamento > R$ 12 mi). O Regime Regular do IBS/CBS + Lucro Real é a rota de menor custo fiscal e maior transparência.',
+          'O Simples é inviável (receita acumulada de R$ 6,3 mi em 7 meses e projeção anualizada de ~R$ 10,8 mi superam o teto de R$ 4,8 mi). O Regime Regular do IBS/CBS + Lucro Real é a rota de menor custo fiscal e maior transparência.',
         destaque: true,
       },
     },
@@ -567,16 +569,16 @@ export async function carregarDiagnosticoClientePastore(): Promise<DiagnosticoCl
       'Regime Regular da Reforma Tributária 2027+ (IBS/CBS) combinado ao Lucro Real',
     titulo: 'Veredito Técnico ADECONT: Regime Regular (IBS/CBS) + Lucro Real',
     motivoPrincipal:
-      'A AUTO MECÂNICA IRMÃOS PASTORE LTDA fatura ~R$ 12,5 milhões/ano (muito acima do teto de R$ 4,8 mi do Simples Nacional) e opera com margem retida líquida de apenas ~1,1% da receita (comprovada nos 7 balancetes contábeis de 2026). Por isso, a presunção fiscal do Lucro Presumido sobretaxa o cliente de forma desproporcional. A partir de 2027, o Regime Regular de IBS/CBS garante crédito financeiro pleno sobre o expressivo volume de compras de autopeças (como Cobra Rolamentos e distribuidores), enquanto o Lucro Real mantém a tributação direta de IRPJ/CSLL atrelada apenas ao lucro efetivo, gerando economia anual estimada de mais de R$ 500 mil em relação ao Presumido.',
+      'A AUTO MECÂNICA IRMÃOS PASTORE LTDA apurou receita acumulada de R$ 6.303.501,27 (~R$ 6,3 milhões) nos 7 balancetes contábeis de 2026 (jan–jul) — resultando em uma projeção anualizada de ~R$ 10,8 milhões, que supera amplamente o teto de R$ 4,8 mi do Simples Nacional —, operando com margem retida líquida de apenas ~1,1% da receita. Por isso, a presunção fiscal do Lucro Presumido sobretaxa o cliente de forma desproporcional. A partir de 2027, o Regime Regular de IBS/CBS garante crédito financeiro pleno sobre o expressivo volume de compras de autopeças (como Cobra Rolamentos e distribuidores), enquanto o Lucro Real mantém a tributação direta de IRPJ/CSLL atrelada apenas ao lucro efetivo, gerando economia anual estimada de mais de R$ 500 mil em relação ao Presumido.',
     pontosChave: [
-      'Simples Nacional Inviável: Faturamento anualizado de ~R$ 12,5 mi extrapola o teto de R$ 4,8 mi em mais de 160%.',
+      'Simples Nacional Inviável: A receita acumulada de R$ 6,3 milhões em apenas 7 meses (e projeção anualizada de ~R$ 10,8 mi) já extrapola com folga o teto de R$ 4,8 mi do Simples Nacional.',
       'Margem Real Estreita (~1,1%): Balancetes comprovam crescimento de PL de R$ 72,5 mil sobre R$ 6,3 mi faturados. A presunção de 8% (comércio) e 32% (serviços) do Lucro Presumido cria lucro fictício e imposto excessivo.',
       'Crédito Integral de Autopeças (2027+): No Regime Regular de IBS/CBS, 100% das notas fiscais de entrada (Cobra Rolamentos, baterias, componentes mecânicos) geram crédito que abate o imposto devido nas vendas a consumidor final (CFOP 5102).',
       'Fim da Cumulatividade e do Resíduo Fiscal: Não haverá diferencial de alíquota prejudicial nas saídas para pessoas físicas; o imposto incidirá estritamente sobre o valor agregado pela oficina mecânica.',
       'Transição Harmonizada (2026→2033): Adequação cadastral prévia dos códigos NCM e cClassTrib no Parametrizador assegura aproveitamento automático de créditos desde o primeiro dia de vigência da LC 214/2025.',
     ],
     resumoCargaEstimada:
-      'Economia anual projetada de ~R$ 525.000,00 na adoção do Regime Regular + Lucro Real frente à manutenção do Lucro Presumido tradicional.',
+      'Economia anual projetada de mais de R$ 500 mil na adoção do Regime Regular + Lucro Real frente à manutenção do Lucro Presumido tradicional.',
   }
 
   return {
