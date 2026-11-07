@@ -40,6 +40,7 @@ import { SectionHistoricoRevisoes } from '@/components/SectionHistoricoRevisoes'
 import { SectionHistoricoExclusoes } from '@/components/SectionHistoricoExclusoes'
 import { SectionLefisc } from '@/components/SectionLefisc'
 import { SectionRadarNacional } from '@/components/SectionRadarNacional'
+import { SectionNfesPipeline } from '@/components/SectionNfesPipeline'
 import { NAVEGACAO } from '@/components/navegacao'
 import type { TaxNormItem } from '@/types/panorama'
 
@@ -178,6 +179,8 @@ const COMPONENTES: Record<string, ComponentType<PropsAba>> = {
   '#lefisc': SectionLefisc,
   '#radar-nacional': SectionRadarNacional,
   '#mapa': PainelDegraus,
+  '#nfes': SectionNfesPipeline,
+  '#documentos-fiscais': SectionNfesPipeline,
 }
 
 /**

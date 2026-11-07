@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-07T00:29:41.605Z",
+  "generatedAt": "2026-11-07T01:31:22.192Z",
   "collections": [
     {
       "name": "users",
@@ -4720,6 +4720,643 @@
         "CREATE INDEX idx_inativos_razao ON cadastro_empresas_inativos (razao_social)",
         "CREATE INDEX idx_inativos_uf_mun ON cadastro_empresas_inativos (uf, municipio)",
         "CREATE INDEX idx_inativos_cnae_div ON cadastro_empresas_inativos (cnae_divisao)"
+      ]
+    },
+    {
+      "name": "nfes_lote",
+      "type": "base",
+      "apiRules": {
+        "list": "",
+        "view": "",
+        "create": "",
+        "update": "",
+        "delete": ""
+      },
+      "fields": [
+        {
+          "name": "cliente_id",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "cliente_cnpj",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "cliente_nome",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "tipo",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": ["compra", "venda", "misto"]
+        },
+        {
+          "name": "total_arquivos",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "processadas_sucesso",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "duplicadas",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "erros",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "total_itens",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "valor_total_produtos",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "valor_total_nf",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "status",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": ["processando", "concluido", "concluido_com_erros", "falha"]
+        },
+        {
+          "name": "resumo_arquivos",
+          "type": "json",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "observacao",
+          "type": "text",
+          "required": false,
+          "system": false
+        }
+      ],
+      "indexes": [
+        "CREATE INDEX idx_nfes_lote_cliente ON nfes_lote (cliente_id)",
+        "CREATE INDEX idx_nfes_lote_cnpj ON nfes_lote (cliente_cnpj)",
+        "CREATE INDEX idx_nfes_lote_status ON nfes_lote (status)"
+      ]
+    },
+    {
+      "name": "nfes",
+      "type": "base",
+      "apiRules": {
+        "list": "",
+        "view": "",
+        "create": "",
+        "update": "",
+        "delete": ""
+      },
+      "fields": [
+        {
+          "name": "chave_acesso",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "lote_id",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "numero",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "serie",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "natureza_operacao",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "data_emissao",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "data_saida_entrada",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "tipo_operacao",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": ["compra", "venda", "entrada", "saida"]
+        },
+        {
+          "name": "cliente_id",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "cliente_cnpj",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "cliente_nome",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "vinculo_cliente_status",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": ["vinculado", "nao_localizado", "pendente"]
+        },
+        {
+          "name": "emit_cnpj_cpf",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "emit_razao_social",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "emit_nome_fantasia",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "emit_uf",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "emit_municipio",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "emit_ie",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "emit_crt",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "dest_cnpj_cpf",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "dest_razao_social",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "dest_uf",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "dest_municipio",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "dest_ie",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "valor_produtos",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "valor_frete",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "valor_seguro",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "valor_desconto",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "valor_outras_despesas",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "valor_total_nfe",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "base_icms",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "valor_icms",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "base_icms_st",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "valor_icms_st",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "valor_pis",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "valor_cofins",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "valor_ipi",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "forma_pagamento",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "duplicatas",
+          "type": "json",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "quantidade_itens",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "arquivo_origem",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "analise",
+          "type": "json",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "analise_status",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": ["pendente", "analisado", "erro"]
+        }
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX idx_nfes_chave ON nfes (chave_acesso)",
+        "CREATE INDEX idx_nfes_lote ON nfes (lote_id)",
+        "CREATE INDEX idx_nfes_cliente ON nfes (cliente_id)",
+        "CREATE INDEX idx_nfes_cliente_cnpj ON nfes (cliente_cnpj)",
+        "CREATE INDEX idx_nfes_emit_cnpj ON nfes (emit_cnpj_cpf)",
+        "CREATE INDEX idx_nfes_dest_cnpj ON nfes (dest_cnpj_cpf)",
+        "CREATE INDEX idx_nfes_tipo ON nfes (tipo_operacao)",
+        "CREATE INDEX idx_nfes_data ON nfes (data_emissao)"
+      ]
+    },
+    {
+      "name": "nfes_itens",
+      "type": "base",
+      "apiRules": {
+        "list": "",
+        "view": "",
+        "create": "",
+        "update": "",
+        "delete": ""
+      },
+      "fields": [
+        {
+          "name": "nfe_id",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "chave_acesso",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "numero_item",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "codigo_produto",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "descricao",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "ncm",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "cest",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "cfop",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "unidade",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "quantidade",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "valor_unitario",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "valor_total",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "valor_desconto",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "valor_frete",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "origem",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "cst_icms",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "base_icms",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "aliquota_icms",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "valor_icms",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "cst_icms_st",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "base_icms_st",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "aliquota_icms_st",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "valor_icms_st",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "cst_pis",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "base_pis",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "aliquota_pis",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "valor_pis",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "cst_cofins",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "base_cofins",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "aliquota_cofins",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "valor_cofins",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "cst_ipi",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "aliquota_ipi",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "valor_ipi",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "cclass_trib_sugerido",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "regime_reforma_sugerido",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "credito_presumido_reforma",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "parecer_item",
+          "type": "json",
+          "required": false,
+          "system": false
+        }
+      ],
+      "indexes": [
+        "CREATE INDEX idx_nfes_itens_nfe ON nfes_itens (nfe_id)",
+        "CREATE INDEX idx_nfes_itens_chave ON nfes_itens (chave_acesso)",
+        "CREATE INDEX idx_nfes_itens_ncm ON nfes_itens (ncm)",
+        "CREATE INDEX idx_nfes_itens_cfop ON nfes_itens (cfop)",
+        "CREATE INDEX idx_nfes_itens_cest ON nfes_itens (cest)",
+        "CREATE INDEX idx_nfes_itens_cst_icms ON nfes_itens (cst_icms)"
       ]
     }
   ]

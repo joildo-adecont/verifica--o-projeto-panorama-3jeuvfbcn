@@ -28,6 +28,7 @@ import {
   Coins,
   History,
   Users2,
+  FileSpreadsheet,
   ChevronRight,
 } from 'lucide-react'
 import type { ComponentType } from 'react'
@@ -191,7 +192,7 @@ export function MenuNavegacaoPortal({ hashAtivo }: MenuNavegacaoPortalProps) {
             </li>
           )
         })}
-        {/* Módulo fora do hash — rota própria no react-router */}
+        {/* Módulos fora do hash — rotas próprias no react-router */}
         <li className="shrink-0">
           <Link
             to="/cadastro-clientes"
@@ -204,6 +205,23 @@ export function MenuNavegacaoPortal({ hashAtivo }: MenuNavegacaoPortalProps) {
             <span className="whitespace-nowrap leading-tight">Cadastro de Clientes</span>
             <span className="hidden xl:inline text-[10.5px] font-medium text-slate-400 truncate max-w-[180px]">
               Consulta analítica ADECONT
+            </span>
+          </Link>
+        </li>
+        <li className="shrink-0">
+          <Link
+            to="/nfes"
+            className="group inline-flex items-center gap-2 pl-1.5 pr-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap border-2 bg-white text-slate-700 border-transparent hover:border-purple-500/60 hover:bg-purple-50/50 cursor-pointer shrink-0"
+            title="Pipeline de Documentos Fiscais (NFes) — Upload em lote, extração, deduplicação e agentes nativos"
+          >
+            <span className="inline-flex items-center justify-center w-6 h-6 rounded-md bg-purple-700 border border-purple-700 text-white shrink-0 group-hover:scale-105 transition-transform">
+              <FileSpreadsheet className="w-3.5 h-3.5" />
+            </span>
+            <span className="whitespace-nowrap leading-tight text-purple-950 font-bold">
+              Documentos Fiscais (NFes)
+            </span>
+            <span className="hidden xl:inline text-[10.5px] font-medium text-purple-600 truncate max-w-[180px]">
+              Pipeline & Agentes IA
             </span>
           </Link>
         </li>

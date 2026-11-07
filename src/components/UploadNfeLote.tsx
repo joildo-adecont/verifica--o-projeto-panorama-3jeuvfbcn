@@ -1,0 +1,756 @@
+import React, { useState, useRef } from 'react'
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Progress } from '@/components/ui/progress'
+import {
+  UploadCloud,
+  FileCode,
+  CheckCircle2,
+  AlertTriangle,
+  XCircle,
+  Copy,
+  Building2,
+  Sparkles,
+  Trash2,
+  Layers,
+} from 'lucide-react'
+import { processarLoteNfe } from '@/services/nfeService'
+import type { ProcessamentoLoteResponse } from '@/types/nfes'
+
+interface UploadNfeLoteProps {
+  onProcessamentoConcluido?: (resultado: ProcessamentoLoteResponse) => void
+  onIrParaNotas?: () => void
+}
+
+interface ArquivoSelecionado {
+  id: string
+  nome: string
+  tamanho: number
+  xml: string
+  status: 'pendente' | 'processando' | 'ok' | 'duplicada' | 'erro'
+  mensagem?: string
+}
+
+export const UploadNfeLote: React.FC<UploadNfeLoteProps> = ({
+  onProcessamentoConcluido,
+  onIrParaNotas,
+}) => {
+  const [arquivos, setArquivos] = useState<ArquivoSelecionado[]>([])
+  const [processando, setProcessando] = useState(false)
+  const [progresso, setProgresso] = useState(0)
+  const [resultadoLote, setResultadoLote] = useState<ProcessamentoLoteResponse | null>(null)
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
+
+  const handleFiles = async (fileList: FileList | null) => {
+    if (!fileList || fileList.length === 0) return
+
+    const novos: ArquivoSelecionado[] = []
+    const promises: Promise<void>[] = []
+
+    for (let i = 0; i < fileList.length; i++) {
+      const file = fileList[i]
+      if (!file.name.toLowerCase().endsWith('.xml')) continue
+
+      const p = new Promise<void>((resolve) => {
+        const reader = new FileReader()
+        reader.onload = (e) => {
+          const content = (e.target?.result as string) || ''
+          novos.push({
+            id: `${file.name}-${file.size}-${Date.now()}-${Math.random()}`,
+            nome: file.name,
+            tamanho: file.size,
+            xml: content,
+            status: 'pendente',
+          })
+          resolve()
+        }
+        reader.onerror = () => resolve()
+        reader.readAsText(file)
+      })
+      promises.push(p)
+    }
+
+    await Promise.all(promises)
+    setArquivos((prev) => [...prev, ...novos])
+    setResultadoLote(null)
+  }
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    handleFiles(e.dataTransfer.files)
+  }
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+  }
+
+  const carregarExemploPastore = () => {
+    const xmlExemplo = `<?xml version="1.0" encoding="UTF-8"?>
+<nfeProc xmlns="http://www.portalfiscal.inf.br/nfe" versao="4.00">
+  <NFe xmlns="http://www.portalfiscal.inf.br/nfe">
+    <infNFe Id="NFe41260141844038000128550010000415601000415608" versao="4.00">
+      <ide>
+        <cUF>41</cUF>
+        <cNF>00041560</cNF>
+        <natOp>VENDA DE MERCADORIA ADQUIRIDA DE TERCEIROS</natOp>
+        <mod>55</mod>
+        <serie>1</serie>
+        <nNF>41560</nNF>
+        <dhEmi>2026-01-16T10:45:00-03:00</dhEmi>
+        <tpNF>1</tpNF>
+        <idDest>2</idDest>
+        <cMunFG>4106902</cMunFG>
+        <tpImp>1</tpImp>
+        <tpEmis>1</tpEmis>
+      </ide>
+      <emit>
+        <CNPJ>41844038000128</CNPJ>
+        <xNome>PATRAL SUL PECAS LTDA</xNome>
+        <xFant>PATRAL SUL</xFant>
+        <enderEmit>
+          <xLgr>RODOVIA BR 116</xLgr>
+          <nro>14800</nro>
+          <xBairro>TATUQUARA</xBairro>
+          <cMun>4106902</cMun>
+          <xMun>CURITIBA</xMun>
+          <UF>PR</UF>
+          <CEP>81690400</CEP>
+        </enderEmit>
+        <IE>9089765432</IE>
+        <CRT>3</CRT>
+      </emit>
+      <dest>
+        <CNPJ>92353630000168</CNPJ>
+        <xNome>AUTO MECANICA IRMAOS PASTORE LTDA</xNome>
+        <enderDest>
+          <xLgr>AVENIDA MOREIRA PAZ</xLgr>
+          <nro>450</nro>
+          <xBairro>CENTRO</xBairro>
+          <cMun>4322509</cMun>
+          <xMun>VACARIA</xMun>
+          <UF>RS</UF>
+          <CEP>95200000</CEP>
+        </enderDest>
+        <indIEDest>1</indIEDest>
+        <IE>1560023456</IE>
+      </dest>
+      <det nItem="1">
+        <prod>
+          <cProd>PTR-101</cProd>
+          <cEAN>SEM GTIN</cEAN>
+          <xProd>CORREIA DENTADA SINCRONIZADORA</xProd>
+          <NCM>40103100</NCM>
+          <CEST>0100100</CEST>
+          <CFOP>6102</CFOP>
+          <uCom>PC</uCom>
+          <qCom>2.0000</qCom>
+          <vUnCom>45.0000</vUnCom>
+          <vProd>90.00</vProd>
+          <indTot>1</indTot>
+        </prod>
+        <imposto>
+          <ICMS>
+            <ICMS00>
+              <orig>0</orig>
+              <CST>00</CST>
+              <modBC>3</modBC>
+              <vBC>90.00</vBC>
+              <pICMS>12.00</pICMS>
+              <vICMS>10.80</vICMS>
+            </ICMS00>
+          </ICMS>
+          <PIS>
+            <PISAliq>
+              <CST>01</CST>
+              <vBC>90.00</vBC>
+              <pPIS>0.65</pPIS>
+              <vPIS>0.59</vPIS>
+            </PISAliq>
+          </PIS>
+          <COFINS>
+            <COFINSAliq>
+              <CST>01</CST>
+              <vBC>90.00</vBC>
+              <pCOFINS>3.00</pCOFINS>
+              <vCOFINS>2.70</vCOFINS>
+            </COFINSAliq>
+          </COFINS>
+        </imposto>
+      </det>
+      <det nItem="2">
+        <prod>
+          <cProd>PTR-205</cProd>
+          <cEAN>SEM GTIN</cEAN>
+          <xProd>TENSOR CORREIA DENTADA MOTOR</xProd>
+          <NCM>84099190</NCM>
+          <CEST>0100300</CEST>
+          <CFOP>6102</CFOP>
+          <uCom>PC</uCom>
+          <qCom>2.0000</qCom>
+          <vUnCom>65.5000</vUnCom>
+          <vProd>131.00</vProd>
+          <indTot>1</indTot>
+        </prod>
+        <imposto>
+          <ICMS>
+            <ICMS00>
+              <orig>0</orig>
+              <CST>00</CST>
+              <modBC>3</modBC>
+              <vBC>131.00</vBC>
+              <pICMS>12.00</pICMS>
+              <vICMS>15.72</vICMS>
+            </ICMS00>
+          </ICMS>
+          <PIS>
+            <PISAliq>
+              <CST>01</CST>
+              <vBC>131.00</vBC>
+              <pPIS>0.65</pPIS>
+              <vPIS>0.85</vPIS>
+            </PISAliq>
+          </PIS>
+          <COFINS>
+            <COFINSAliq>
+              <CST>01</CST>
+              <vBC>131.00</vBC>
+              <pCOFINS>3.00</pCOFINS>
+              <vCOFINS>3.93</vCOFINS>
+            </COFINSAliq>
+          </COFINS>
+        </imposto>
+      </det>
+      <det nItem="3">
+        <prod>
+          <cProd>PTR-310</cProd>
+          <cEAN>SEM GTIN</cEAN>
+          <xProd>FILTRO DE OLEO LUBRIFICANTE</xProd>
+          <NCM>84212300</NCM>
+          <CEST>0100400</CEST>
+          <CFOP>6102</CFOP>
+          <uCom>PC</uCom>
+          <qCom>6.0000</qCom>
+          <vUnCom>28.0000</vUnCom>
+          <vProd>168.00</vProd>
+          <indTot>1</indTot>
+        </prod>
+        <imposto>
+          <ICMS>
+            <ICMS00>
+              <orig>0</orig>
+              <CST>00</CST>
+              <modBC>3</modBC>
+              <vBC>168.00</vBC>
+              <pICMS>12.00</pICMS>
+              <vICMS>20.16</vICMS>
+            </ICMS00>
+          </ICMS>
+          <PIS>
+            <PISAliq>
+              <CST>01</CST>
+              <vBC>168.00</vBC>
+              <pPIS>0.65</pPIS>
+              <vPIS>1.09</vPIS>
+            </PISAliq>
+          </PIS>
+          <COFINS>
+            <COFINSAliq>
+              <CST>01</CST>
+              <vBC>168.00</vBC>
+              <pCOFINS>3.00</pCOFINS>
+              <vCOFINS>5.04</vCOFINS>
+            </COFINSAliq>
+          </COFINS>
+        </imposto>
+      </det>
+      <det nItem="4">
+        <prod>
+          <cProd>PTR-401</cProd>
+          <cEAN>SEM GTIN</cEAN>
+          <xProd>PASTILHA FREIO DIANTEIRO CERAMICA</xProd>
+          <NCM>87083019</NCM>
+          <CEST>0100500</CEST>
+          <CFOP>6102</CFOP>
+          <uCom>JG</uCom>
+          <qCom>4.0000</qCom>
+          <vUnCom>78.0000</vUnCom>
+          <vProd>312.00</vProd>
+          <indTot>1</indTot>
+        </prod>
+        <imposto>
+          <ICMS>
+            <ICMS00>
+              <orig>0</orig>
+              <CST>00</CST>
+              <modBC>3</modBC>
+              <vBC>312.00</vBC>
+              <pICMS>12.00</pICMS>
+              <vICMS>37.44</vICMS>
+            </ICMS00>
+          </ICMS>
+          <PIS>
+            <PISAliq>
+              <CST>01</CST>
+              <vBC>312.00</vBC>
+              <pPIS>0.65</pPIS>
+              <vPIS>2.03</vPIS>
+            </PISAliq>
+          </PIS>
+          <COFINS>
+            <COFINSAliq>
+              <CST>01</CST>
+              <vBC>312.00</vBC>
+              <pCOFINS>3.00</pCOFINS>
+              <vCOFINS>9.36</vCOFINS>
+            </COFINSAliq>
+          </COFINS>
+        </imposto>
+      </det>
+      <det nItem="5">
+        <prod>
+          <cProd>PTR-550</cProd>
+          <cEAN>SEM GTIN</cEAN>
+          <xProd>DISCO DE FREIO VENTILADO</xProd>
+          <NCM>87083090</NCM>
+          <CEST>0100600</CEST>
+          <CFOP>6102</CFOP>
+          <uCom>PC</uCom>
+          <qCom>2.0000</qCom>
+          <vUnCom>120.0000</vUnCom>
+          <vProd>240.00</vProd>
+          <indTot>1</indTot>
+        </prod>
+        <imposto>
+          <ICMS>
+            <ICMS00>
+              <orig>0</orig>
+              <CST>00</CST>
+              <modBC>3</modBC>
+              <vBC>240.00</vBC>
+              <pICMS>12.00</pICMS>
+              <vICMS>28.80</vICMS>
+            </ICMS00>
+          </ICMS>
+          <PIS>
+            <PISAliq>
+              <CST>01</CST>
+              <vBC>240.00</vBC>
+              <pPIS>0.65</pPIS>
+              <vPIS>1.56</vPIS>
+            </PISAliq>
+          </PIS>
+          <COFINS>
+            <COFINSAliq>
+              <CST>01</CST>
+              <vBC>240.00</vBC>
+              <pCOFINS>3.00</pCOFINS>
+              <vCOFINS>7.20</vCOFINS>
+            </COFINSAliq>
+          </COFINS>
+        </imposto>
+      </det>
+      <det nItem="6">
+        <prod>
+          <cProd>PTR-620</cProd>
+          <cEAN>SEM GTIN</cEAN>
+          <xProd>AMORTECEDOR PRESSURIZADO DIANTEIRO</xProd>
+          <NCM>87088000</NCM>
+          <CEST>0100700</CEST>
+          <CFOP>6102</CFOP>
+          <uCom>PC</uCom>
+          <qCom>2.0000</qCom>
+          <vUnCom>113.6400</vUnCom>
+          <vProd>227.28</vProd>
+          <indTot>1</indTot>
+        </prod>
+        <imposto>
+          <ICMS>
+            <ICMS00>
+              <orig>0</orig>
+              <CST>00</CST>
+              <modBC>3</modBC>
+              <vBC>227.28</vBC>
+              <pICMS>12.00</pICMS>
+              <vICMS>27.27</vICMS>
+            </ICMS00>
+          </ICMS>
+          <PIS>
+            <PISAliq>
+              <CST>01</CST>
+              <vBC>227.28</vBC>
+              <pPIS>0.65</pPIS>
+              <vPIS>1.48</vPIS>
+            </PISAliq>
+          </PIS>
+          <COFINS>
+            <COFINSAliq>
+              <CST>01</CST>
+              <vBC>227.28</vBC>
+              <pCOFINS>3.00</pCOFINS>
+              <vCOFINS>6.82</vCOFINS>
+            </COFINSAliq>
+          </COFINS>
+        </imposto>
+      </det>
+      <total>
+        <ICMSTot>
+          <vBC>1168.28</vBC>
+          <vICMS>140.19</vICMS>
+          <vICMSDeson>0.00</vICMSDeson>
+          <vFCP>0.00</vFCP>
+          <vBCST>0.00</vBCST>
+          <vST>0.00</vST>
+          <vFCPST>0.00</vFCPST>
+          <vFCPSTRet>0.00</vFCPSTRet>
+          <vProd>1168.28</vProd>
+          <vFrete>94.00</vFrete>
+          <vSeg>0.00</vSeg>
+          <vDesc>0.00</vDesc>
+          <vII>0.00</vII>
+          <vIPI>0.00</vIPI>
+          <vIPIDevol>0.00</vIPIDevol>
+          <vPIS>5.04</vPIS>
+          <vCOFINS>23.27</vCOFINS>
+          <vOutro>0.00</vOutro>
+          <vNF>1262.28</vNF>
+        </ICMSTot>
+      </total>
+      <cobr>
+        <fat>
+          <nFat>41560</nFat>
+          <vOrig>1262.28</vOrig>
+          <vDesc>0.00</vDesc>
+          <vLiq>1262.28</vLiq>
+        </fat>
+        <dup>
+          <nDup>001</nDup>
+          <dVenc>2026-02-16</dVenc>
+          <vDup>420.76</vDup>
+        </dup>
+        <dup>
+          <nDup>002</nDup>
+          <dVenc>2026-03-16</dVenc>
+          <vDup>420.76</vDup>
+        </dup>
+        <dup>
+          <nDup>003</nDup>
+          <dVenc>2026-04-16</dVenc>
+          <vDup>420.76</vDup>
+        </dup>
+      </cobr>
+      <pag>
+        <detPag>
+          <tPag>15</tPag>
+          <vPag>1262.28</vPag>
+        </detPag>
+      </pag>
+    </infNFe>
+  </NFe>
+</nfeProc>`
+
+    const novo: ArquivoSelecionado = {
+      id: `exemplo-pastore-${Date.now()}`,
+      nome: 'NFe_41560_Patral_Pastore_Real.xml',
+      tamanho: xmlExemplo.length,
+      xml: xmlExemplo,
+      status: 'pendente',
+    }
+
+    setArquivos((prev) => [...prev, novo])
+  }
+
+  const limparLista = () => {
+    setArquivos([])
+    setResultadoLote(null)
+  }
+
+  const removerArquivo = (id: string) => {
+    setArquivos((prev) => prev.filter((a) => a.id !== id))
+  }
+
+  const handleProcessarLote = async () => {
+    if (arquivos.length === 0) return
+
+    setProcessando(true)
+    setProgresso(20)
+
+    try {
+      const payload = arquivos.map((a) => ({
+        nome: a.nome,
+        xml: a.xml,
+      }))
+
+      setProgresso(50)
+      const res = await processarLoteNfe(payload)
+      setProgresso(100)
+
+      setResultadoLote(res)
+
+      // Atualiza o status visual dos arquivos baseado no retorno
+      if (res.resultados && res.resultados.length > 0) {
+        setArquivos((prev) =>
+          prev.map((arq) => {
+            const achado = res.resultados.find((r) => r.arquivo === arq.nome)
+            if (achado) {
+              return {
+                ...arq,
+                status: achado.status,
+                mensagem:
+                  achado.motivo ||
+                  (achado.status === 'ok' ? 'Processado com sucesso' : 'Duplicada'),
+              }
+            }
+            return arq
+          }),
+        )
+      }
+
+      if (onProcessamentoConcluido) {
+        onProcessamentoConcluido(res)
+      }
+    } catch (err) {
+      console.error('Erro ao processar lote:', err)
+    } finally {
+      setProcessando(false)
+    }
+  }
+
+  return (
+    <div className="space-y-6">
+      <Card className="border-border/60 shadow-sm">
+        <CardHeader className="pb-4">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div>
+              <CardTitle className="text-xl flex items-center gap-2">
+                <UploadCloud className="w-5 h-5 text-primary" />
+                Upload em Lote de Documentos Fiscais (NF-e)
+              </CardTitle>
+              <CardDescription>
+                Arraste ou selecione múltiplos arquivos XML (.xml) de notas fiscais eletrônicas de
+                compra e venda. O pipeline extrai produtos, deduplica pela chave de acesso de 44
+                dígitos e vincula automaticamente ao cadastro da empresa.
+              </CardDescription>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={carregarExemploPastore}
+                className="text-xs border-dashed"
+                title="Carrega a NFe 41560 da Auto Mecânica Pastore com 6 itens de autopeças e duplicatas"
+              >
+                <Sparkles className="w-3.5 h-3.5 mr-1 text-amber-500" />
+                Carregar Exemplo Real (Pastore)
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Dropzone */}
+          <div
+            onDrop={handleDrop}
+            onDragOver={handleDragOver}
+            onClick={() => fileInputRef.current?.click()}
+            className="border-2 border-dashed border-border/80 hover:border-primary/60 rounded-xl p-8 text-center cursor-pointer transition-colors bg-muted/20 hover:bg-muted/40"
+          >
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept=".xml,text/xml"
+              className="hidden"
+              onChange={(e) => handleFiles(e.target.files)}
+            />
+            <div className="flex flex-col items-center justify-center space-y-3">
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                <UploadCloud className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-foreground">
+                  Clique para selecionar ou arraste arquivos XML aqui
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Suporta grandes lotes de NF-e modelo 55 (nacional padrão SEFAZ)
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Lista de Arquivos Selecionados */}
+          {arquivos.length > 0 && (
+            <div className="space-y-3 pt-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Arquivos na fila ({arquivos.length})
+                </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={limparLista}
+                  disabled={processando}
+                  className="text-xs text-destructive hover:text-destructive h-7 px-2"
+                >
+                  <Trash2 className="w-3.5 h-3.5 mr-1" /> Limpar fila
+                </Button>
+              </div>
+
+              <div className="max-h-60 overflow-y-auto space-y-2 pr-1">
+                {arquivos.map((arq) => (
+                  <div
+                    key={arq.id}
+                    className="flex items-center justify-between p-2.5 rounded-lg border border-border/50 bg-background/60 text-xs"
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      <FileCode className="w-4 h-4 text-primary shrink-0" />
+                      <span className="font-mono truncate max-w-xs md:max-w-md">{arq.nome}</span>
+                      <span className="text-muted-foreground shrink-0">
+                        ({Math.round(arq.tamanho / 1024)} KB)
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      {arq.status === 'ok' && (
+                        <Badge
+                          variant="outline"
+                          className="text-emerald-600 border-emerald-500/30 bg-emerald-500/10"
+                        >
+                          <CheckCircle2 className="w-3 h-3 mr-1" /> Processada
+                        </Badge>
+                      )}
+                      {arq.status === 'duplicada' && (
+                        <Badge
+                          variant="outline"
+                          className="text-amber-600 border-amber-500/30 bg-amber-500/10"
+                        >
+                          <Copy className="w-3 h-3 mr-1" /> Duplicada
+                        </Badge>
+                      )}
+                      {arq.status === 'erro' && (
+                        <Badge
+                          variant="outline"
+                          className="text-destructive border-destructive/30 bg-destructive/10"
+                        >
+                          <XCircle className="w-3 h-3 mr-1" /> Erro
+                        </Badge>
+                      )}
+                      {arq.status === 'pendente' && (
+                        <Badge variant="secondary" className="text-muted-foreground">
+                          Pronto para envio
+                        </Badge>
+                      )}
+
+                      {!processando && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removerArquivo(arq.id)}
+                          className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
+                        >
+                          ✕
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {processando && (
+                <div className="space-y-1.5 pt-2">
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>Processando lote e cruzando com o cadastro...</span>
+                    <span>{progresso}%</span>
+                  </div>
+                  <Progress value={progresso} className="h-1.5" />
+                </div>
+              )}
+
+              <div className="pt-2 flex flex-col sm:flex-row items-center justify-end gap-3">
+                <Button
+                  onClick={handleProcessarLote}
+                  disabled={processando || arquivos.length === 0}
+                  className="w-full sm:w-auto"
+                >
+                  <Layers className="w-4 h-4 mr-2" />
+                  {processando ? 'Processando Lote...' : `Processar Lote (${arquivos.length} NFes)`}
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Resumo do Lote Concluído */}
+          {resultadoLote && (
+            <div className="p-4 rounded-xl border border-border/70 bg-muted/30 space-y-3 mt-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                  <span className="font-semibold text-sm">Resumo da Execução do Lote</span>
+                </div>
+                {onIrParaNotas && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={onIrParaNotas}
+                    className="text-xs h-7"
+                  >
+                    Visualizar Notas Importadas →
+                  </Button>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                <div className="p-2.5 rounded-lg bg-background border border-border/40">
+                  <span className="text-muted-foreground block">Notas com Sucesso</span>
+                  <span className="text-base font-bold text-emerald-600">
+                    {resultadoLote.processadas_sucesso}
+                  </span>
+                </div>
+                <div className="p-2.5 rounded-lg bg-background border border-border/40">
+                  <span className="text-muted-foreground block">Notas Duplicadas</span>
+                  <span className="text-base font-bold text-amber-600">
+                    {resultadoLote.duplicadas}
+                  </span>
+                </div>
+                <div className="p-2.5 rounded-lg bg-background border border-border/40">
+                  <span className="text-muted-foreground block">Total de Itens</span>
+                  <span className="text-base font-bold">{resultadoLote.total_itens}</span>
+                </div>
+                <div className="p-2.5 rounded-lg bg-background border border-border/40">
+                  <span className="text-muted-foreground block">Valor Total NF</span>
+                  <span className="text-base font-bold">
+                    R${' '}
+                    {resultadoLote.valor_total_nf.toLocaleString('pt-BR', {
+                      minimumFractionDigits: 2,
+                    })}
+                  </span>
+                </div>
+              </div>
+
+              {resultadoLote.cliente_vinculado && (
+                <div className="flex items-center gap-2 p-2 rounded-lg bg-primary/10 border border-primary/20 text-xs text-primary">
+                  <Building2 className="w-4 h-4 shrink-0" />
+                  <span>
+                    <strong>Cliente Vinculado Automaticamente:</strong>{' '}
+                    {resultadoLote.cliente_vinculado.nome} (CNPJ{' '}
+                    {resultadoLote.cliente_vinculado.cnpj})
+                  </span>
+                </div>
+              )}
+
+              {resultadoLote.erros > 0 && (
+                <div className="flex items-center gap-2 p-2 rounded-lg bg-destructive/10 border border-destructive/20 text-xs text-destructive">
+                  <AlertTriangle className="w-4 h-4 shrink-0" />
+                  <span>
+                    {resultadoLote.erros} arquivo(s) apresentaram inconsistência na leitura.
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  )
+}

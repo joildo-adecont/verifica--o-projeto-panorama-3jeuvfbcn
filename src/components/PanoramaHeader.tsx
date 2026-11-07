@@ -26,6 +26,7 @@ import {
 } from '@/services/sistemaUsuarios'
 import { ModalLogin } from '@/components/ModalLogin'
 import { BotaoCadastroClientes } from '@/components/BotaoCadastroClientes'
+import { BotaoDocumentosFiscais } from '@/components/BotaoDocumentosFiscais'
 import type { SourceStatusItem } from '@/types/panorama'
 
 interface PanoramaHeaderProps {
@@ -273,6 +274,9 @@ export function PanoramaHeader({
 
             {/* Ícone do Sistema: Cadastro Analítico de Clientes ADECONT */}
             <BotaoCadastroClientes variante="header" />
+
+            {/* Módulo Documentos Fiscais (NFes) & Agentes Especialistas */}
+            <BotaoDocumentosFiscais variante="header" />
 
             <AlternadorTema />
           </div>
@@ -543,8 +547,9 @@ export function PanoramaHeader({
         {mobileMenuOpen && (
           <div className="lg:hidden mt-3 pt-3 border-t border-slate-200 flex flex-col gap-2 pb-2">
             {/* Ícone do Sistema: Cadastro Analítico de Clientes no Mobile */}
-            <div className="pb-1">
+            <div className="pb-1 space-y-2">
               <BotaoCadastroClientes variante="mobile" aoClicar={() => setMobileMenuOpen(false)} />
+              <BotaoDocumentosFiscais variante="mobile" aoClicar={() => setMobileMenuOpen(false)} />
             </div>
 
             {NAV_LINKS.map((link) => {

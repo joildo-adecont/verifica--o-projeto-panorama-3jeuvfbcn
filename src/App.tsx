@@ -7,6 +7,7 @@ import { TooltipProvider } from '@/components/ui/tooltip'
 import Index from './pages/Index'
 import CadastroClientes from './pages/CadastroClientes'
 import CadastroClientesInativos from './pages/CadastroClientesInativos'
+import DocumentosFiscaisNfePage from './pages/DocumentosFiscaisNfe'
 import NotFound from './pages/NotFound'
 import Layout from './components/Layout'
 
@@ -32,6 +33,8 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/cadastro-clientes" element={<CadastroClientes />} />
           <Route path="/cadastro-clientes-inativos" element={<CadastroClientesInativos />} />
+          <Route path="/nfes" element={<DocumentosFiscaisNfePage />} />
+          <Route path="/documentos-fiscais" element={<DocumentosFiscaisNfePage />} />
           {/* ADD ALL CUSTOM ROUTES MUST BE ADDED HERE */}
         </Route>
         {/* Simulador e Cadastro/Envios: qualquer variacao de URL cai no arquivo estatico correto */}
