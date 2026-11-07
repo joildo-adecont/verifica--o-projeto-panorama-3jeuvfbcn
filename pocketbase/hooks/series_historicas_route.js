@@ -218,7 +218,11 @@ routerAdd('GET', '/backend/v1/series-historicas', (e) => {
         agreg: 'mensal_ultimo',
         candidatos: [{ tipo: 'bcb', codigo: 226 }],
       },
-      poupanca: { fonte: 'BCB SGS 195', candidatos: [{ tipo: 'bcb', codigo: 195 }] },
+      poupanca: {
+        fonte: 'BCB SGS 195',
+        agreg: 'mensal_ultimo',
+        candidatos: [{ tipo: 'bcb', codigo: 195 }],
+      },
       tjlp: { fonte: 'BCB SGS 254', candidatos: [{ tipo: 'bcb', codigo: 254 }] },
       juros_medio: { fonte: 'BCB SGS 20714', candidatos: [{ tipo: 'bcb', codigo: 20714 }] },
       juros_pessoal: { fonte: 'BCB SGS 20746', candidatos: [{ tipo: 'bcb', codigo: 20746 }] },
