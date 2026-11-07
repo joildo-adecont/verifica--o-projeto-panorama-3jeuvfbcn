@@ -193,4 +193,118 @@ describe('diagnosticoPastore - recálculo por balancetes cumulativos', () => {
     expect(simplesHibrido.pontoDeVirada.explicacao).toContain('3.600.000,00')
     expect(simplesHibrido.pontoDeVirada.vantagemVsSimplesPuro).toContain('145.600')
   })
+
+  it('calcula o Lucro Real puro completo com IRPJ, CSLL, PIS/COFINS e custos de conformidade', async () => {
+    const diag = await carregarDiagnosticoClientePastore()
+    const { lucroRealPuro } = diag
+
+    expect(lucroRealPuro).toBeDefined()
+    expect(lucroRealPuro.receitaBruta).toBeCloseTo(diag.receitaAnualizada, 2)
+    expect(lucroRealPuro.margemLucroRealPct).toBeCloseTo(diag.margemRetidaLiquidaPct, 2)
+
+    // Lucro real derivado dos balancetes (~R$ 124 mil/ano)
+    expect(lucroRealPuro.lucroRealAnualEstimado).toBeGreaterThan(110000)
+    expect(lucroRealPuro.lucroRealAnualEstimado).toBeLessThan(140000)
+
+    // Isento de adicional de 10% do IRPJ porque lucro <= R$ 240 mil/ano (R$ 20 mil/mês)
+    expect(lucroRealPuro.limiteIsencaoAdicionalIrpj).toBe(240000)
+    expect(lucroRealPuro.lucroExcedenteAdicional).toBe(0)
+    expect(lucroRealPuro.irpjAdicional10).toBe(0)
+
+    // IRPJ base 15% e CSLL 9%
+    expect(lucroRealPuro.irpjBase15).toBeCloseTo(lucroRealPuro.lucroRealAnualEstimado * 0.15, 2)
+    expect(lucroRealPuro.csll9).toBeCloseTo(lucroRealPuro.lucroRealAnualEstimado * 0.09, 2)
+    expect(lucroRealPuro.irpjCsllConsolidado).toBeCloseTo(
+      lucroRealPuro.irpjBase15 + lucroRealPuro.csll9,
+      2,
+    )
+    expect(lucroRealPuro.irpjCsllAliquotaEfetivaPct).toBeLessThan(1.5) // ~1,04%
+
+    // PIS e COFINS não-cumulativos
+    expect(lucroRealPuro.pisNaoCumulativoAliqPct).toBe(1.65)
+    expect(lucroRealPuro.cofinsNaoCumulativoAliqPct).toBe(7.6)
+    expect(lucroRealPuro.comprasInsumosAnual).toBeGreaterThan(2500000)
+
+    // Obrigações acessórias completas listadas (ECD, ECF, etc.)
+    expect(lucroRealPuro.obrigacoesAcessorias.length).toBeGreaterThanOrEqual(4)
+    const nomesObrigacoes = lucroRealPuro.obrigacoesAcessorias.map((o) => o.nome).join(' ')
+    expect(nomesObrigacoes).toContain('ECD')
+    expect(nomesObrigacoes).toContain('ECF')
+    expect(nomesObrigacoes).toContain('EFD')
+    expect(lucroRealPuro.custoConformidadeAnualEstimado).toBeGreaterThan(15000)
+  })
+
+  it('consolida tabela de valores em R$, percentuais e vantagens/desvantagens por regime', async () => {
+    const diag = await carregarDiagnosticoClientePastore()
+    const { tabelaValoresPercentuais } = diag
+
+    expect(tabelaValoresPercentuais).toBeDefined()
+    expect(tabelaValoresPercentuais).toHaveLength(5)
+
+    const ids = tabelaValoresPercentuais.map((t) => t.regimeId)
+    expect(ids).toEqual([
+      'simples',
+      'simples_hibrido',
+      'lucro_presumido',
+      'lucro_real_puro',
+      'reforma_2027',
+    ])
+
+    const simples = tabelaValoresPercentuais.find((t) => t.regimeId === 'simples')!
+    expect(simples.ehRegimeReferencia).toBe(true)
+    expect(simples.diferencaVsSimplesBrl).toBe(0)
+    expect(simples.diferencaVsSimplesPontosPct).toBe(0)
+    expect(simples.vantagens.length).toBeGreaterThanOrEqual(3)
+    expect(simples.desvantagens.length).toBeGreaterThanOrEqual(2)
+
+    const presumido = tabelaValoresPercentuais.find((t) => t.regimeId === 'lucro_presumido')!
+    // Lucro Presumido tem custo superior ao Simples (+R$ 90k+)
+    expect(presumido.diferencaVsSimplesBrl).toBeGreaterThan(80000)
+    expect(presumido.diferencaVsSimplesPontosPct).toBeGreaterThan(2)
+
+    const reforma = tabelaValoresPercentuais.find((t) => t.regimeId === 'reforma_2027')!
+    expect(reforma.melhorRegimeLongoPrazo).toBe(true)
+    // Reforma tem economia vs Simples
+    expect(reforma.diferencaVsSimplesBrl).toBeLessThan(0)
+    expect(reforma.aliquotaEfetivaPct).toBeLessThan(simples.aliquotaEfetivaPct)
+
+    // Todos os 5 regimes devem ter vantagens e desvantagens detalhadas
+    for (const item of tabelaValoresPercentuais) {
+      expect(item.cargaAnualEstimada).toBeGreaterThan(0)
+      expect(item.aliquotaEfetivaPct).toBeGreaterThan(0)
+      expect(item.vantagens.length).toBeGreaterThanOrEqual(2)
+      expect(item.desvantagens.length).toBeGreaterThanOrEqual(2)
+    }
+  })
+
+  it('detalha a linha do tempo da transição 2026 a 2033 (LC 214/2025) com impactos para a Pastore', async () => {
+    const diag = await carregarDiagnosticoClientePastore()
+    const { linhaDoTempoTransicao } = diag
+
+    expect(linhaDoTempoTransicao).toBeDefined()
+    expect(linhaDoTempoTransicao.length).toBeGreaterThanOrEqual(5)
+
+    const anos = linhaDoTempoTransicao.map((m) => String(m.ano))
+    expect(anos).toContain('2026')
+    expect(anos).toContain('2027')
+    expect(anos).toContain('2028')
+    expect(anos).toContain('2029–2032')
+    expect(anos).toContain('2033')
+
+    const marco2026 = linhaDoTempoTransicao.find((m) => String(m.ano) === '2026')!
+    expect(marco2026.fase).toContain('Ano-Teste')
+    expect(marco2026.simplesCabivel).toBe(true)
+
+    const marco2027 = linhaDoTempoTransicao.find((m) => String(m.ano) === '2027')!
+    expect(marco2027.titulo).toContain('CBS')
+    expect(marco2027.creditoComprasValendo).toBe(true)
+
+    const marco2033 = linhaDoTempoTransicao.find((m) => String(m.ano) === '2033')!
+    expect(marco2033.titulo).toContain('2033')
+    expect(marco3033Fim(marco2033)).toBe(true)
+  })
 })
+
+function marco3033Fim(marco: any) {
+  return marco.mecanicaLegislativa.includes('Extinção total') || marco.fase.includes('Pleno')
+}

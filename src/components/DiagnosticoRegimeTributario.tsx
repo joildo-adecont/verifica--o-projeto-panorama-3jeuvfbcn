@@ -23,6 +23,11 @@ import {
   HelpCircle,
   BarChart3,
   ExternalLink,
+  Calendar,
+  DollarSign,
+  Briefcase,
+  ThumbsUp,
+  ThumbsDown,
 } from 'lucide-react'
 
 export const DiagnosticoRegimeTributario: React.FC = () => {
@@ -90,7 +95,17 @@ export const DiagnosticoRegimeTributario: React.FC = () => {
     )
   }
 
-  const { empresa, balancetes, recomendacao, linhasComparativo, notas, simplesHibrido } = data
+  const {
+    empresa,
+    balancetes,
+    recomendacao,
+    linhasComparativo,
+    notas,
+    simplesHibrido,
+    lucroRealPuro,
+    tabelaValoresPercentuais,
+    linhaDoTempoTransicao,
+  } = data
 
   return (
     <div className="space-y-6">
@@ -500,6 +515,403 @@ export const DiagnosticoRegimeTributario: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* NOVO BLOCO: COMPARATIVO LUCRO REAL COMPLETO (REGIME AUTÔNOMO) */}
+      {lucroRealPuro && (
+        <div className="bg-gradient-to-br from-slate-900 via-slate-900 to-sky-950/40 border-2 border-sky-600/50 rounded-xl p-5 shadow-xl space-y-4">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-sky-800/60 pb-3">
+            <div className="flex items-center gap-2.5">
+              <Briefcase className="w-5 h-5 text-sky-400 flex-shrink-0" />
+              <div>
+                <span className="text-[10px] font-mono uppercase bg-sky-500/20 text-sky-300 px-2 py-0.5 rounded border border-sky-500/30">
+                  Regime Autônomo & Completo
+                </span>
+                <h3 className="text-base font-bold text-white tracking-tight mt-0.5">
+                  1. Comparativo Lucro Real Completo (Tributação Efetiva sobre Números Reais)
+                </h3>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 text-xs">
+              <span className="text-slate-300">Lucro Real Estimado:</span>
+              <span className="font-mono font-bold text-emerald-400 bg-emerald-950/70 px-2.5 py-1 rounded border border-emerald-700/60">
+                {brl(lucroRealPuro.lucroRealAnualEstimado)} (
+                {lucroRealPuro.margemLucroRealPct.toFixed(2)}% da receita)
+              </span>
+            </div>
+          </div>
+
+          <p className="text-xs text-slate-300 leading-relaxed">
+            No <strong>Lucro Real</strong>, o IRPJ e a CSLL incidem estritamente sobre o resultado
+            econômico comprovado da mecânica nos balancetes (margem retida real de ~
+            <strong>{lucroRealPuro.margemLucroRealPct.toFixed(2)}%</strong>). Como o lucro anual
+            estimado (~{brl(lucroRealPuro.lucroRealAnualEstimado)}) fica{' '}
+            <strong>abaixo de R$ 240.000,00/ano</strong> (R$ 20 mil/mês), a Pastore tem{' '}
+            <strong>isenção integral do adicional de 10% do IRPJ</strong>.
+          </p>
+
+          {/* Cards de Apuração do Lucro Real */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3 text-xs">
+            {/* IRPJ */}
+            <div className="bg-slate-950/60 border border-slate-800 p-3 rounded-lg space-y-1">
+              <span className="text-[10px] uppercase font-bold text-slate-400 block">
+                IRPJ (15% + Adic. 10%)
+              </span>
+              <div className="text-sm font-mono font-bold text-white">
+                {brl(lucroRealPuro.irpjTotal)}
+              </div>
+              <p className="text-[10px] text-slate-400">
+                15% s/ {brl(lucroRealPuro.lucroRealAnualEstimado)}. Adicional 10% = R$ 0,00 (abaixo
+                de R$ 20k/mês).
+              </p>
+            </div>
+
+            {/* CSLL */}
+            <div className="bg-slate-950/60 border border-slate-800 p-3 rounded-lg space-y-1">
+              <span className="text-[10px] uppercase font-bold text-slate-400 block">
+                CSLL (9% sobre Lucro Real)
+              </span>
+              <div className="text-sm font-mono font-bold text-white">
+                {brl(lucroRealPuro.csll9)}
+              </div>
+              <p className="text-[10px] text-slate-400">
+                9% direto sobre o lucro fiscal apurado nos balancetes oficiais.
+              </p>
+            </div>
+
+            {/* IRPJ + CSLL Consolidado */}
+            <div className="bg-emerald-950/40 border border-emerald-700/60 p-3 rounded-lg space-y-1">
+              <span className="text-[10px] uppercase font-bold text-emerald-300 block">
+                Tributação Direta (IRPJ + CSLL)
+              </span>
+              <div className="text-sm font-mono font-bold text-emerald-400">
+                {brl(lucroRealPuro.irpjCsllConsolidado)} (~
+                {lucroRealPuro.irpjCsllAliquotaEfetivaPct.toFixed(2)}%)
+              </div>
+              <p className="text-[10px] text-emerald-300/80">
+                Alíquota direta extremamente reduzida sobre a receita bruta.
+              </p>
+            </div>
+
+            {/* Custo de Conformidade */}
+            <div className="bg-rose-950/30 border border-rose-800/60 p-3 rounded-lg space-y-1">
+              <span className="text-[10px] uppercase font-bold text-rose-300 block">
+                Custo de Conformidade / SPED
+              </span>
+              <div className="text-sm font-mono font-bold text-rose-300">
+                ~{brl(lucroRealPuro.custoConformidadeAnualEstimado)} / ano
+              </div>
+              <p className="text-[10px] text-rose-300/80">
+                ECD, ECF, EFD-Contribuições e auditoria contábil obrigatória.
+              </p>
+            </div>
+          </div>
+
+          {/* Créditos de PIS/COFINS e Tributação Indireta */}
+          <div className="bg-slate-950/70 border border-slate-800 rounded-lg p-3.5 space-y-2 text-xs">
+            <div className="flex items-center justify-between">
+              <span className="font-bold text-slate-200 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+                <Receipt className="w-4 h-4 text-sky-400" />
+                Aproveitamento de Créditos das Compras e Tributos Indiretos
+              </span>
+              <span className="text-[11px] font-mono text-slate-400">
+                PIS 1,65% · COFINS 7,60% (Não-Cumulativos)
+              </span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 pt-1 text-[11px]">
+              <div className="p-2.5 bg-slate-900/80 rounded border border-slate-800">
+                <span className="text-slate-400 block text-[10px]">Compras de Peças/Insumos:</span>
+                <span className="font-bold text-white font-mono">
+                  {brl(lucroRealPuro.comprasInsumosAnual)} (~95,6% receita)
+                </span>
+                <p className="text-[10px] text-slate-400 mt-1">
+                  Créditos gerados nas aquisições de distribuidores (Cobra Rolamentos, etc.).
+                </p>
+              </div>
+              <div className="p-2.5 bg-slate-900/80 rounded border border-slate-800">
+                <span className="text-slate-400 block text-[10px]">
+                  Autopeças Monofásicas & ICMS-ST:
+                </span>
+                <span className="font-bold text-amber-300 font-mono">
+                  Segregação Legal (Lei 10.485)
+                </span>
+                <p className="text-[10px] text-slate-400 mt-1">
+                  Alíquota zero de PIS/COFINS na saída varejista e ICMS retido por substituição
+                  tributária no RS.
+                </p>
+              </div>
+              <div className="p-2.5 bg-slate-900/80 rounded border border-slate-800">
+                <span className="text-slate-400 block text-[10px]">
+                  Carga Total Lucro Real Puro:
+                </span>
+                <span className="font-bold text-sky-300 font-mono">
+                  {brl(lucroRealPuro.cargaTributariaAnualTotal)} (~
+                  {lucroRealPuro.aliquotaEfetivaTotalPct.toFixed(2)}%)
+                </span>
+                <p className="text-[10px] text-slate-400 mt-1">
+                  Inclui tributos diretos, indiretos e encargos patronais (CPP folha).
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Obrigações Acessórias Exigidas no Lucro Real */}
+          <div>
+            <span className="text-[11px] font-bold text-slate-300 uppercase tracking-wider block mb-2">
+              Obrigações Acessórias e Exigências Legais do Lucro Real:
+            </span>
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-2 text-[10px]">
+              {lucroRealPuro.obrigacoesAcessorias.map((ob, idx) => (
+                <div key={idx} className="bg-slate-950/50 border border-slate-800 p-2 rounded">
+                  <div className="font-bold text-slate-200">{ob.nome}</div>
+                  <span className="text-sky-400 font-mono block text-[9px]">
+                    {ob.periodicidade}
+                  </span>
+                  <p className="text-slate-400 mt-1 line-clamp-3 leading-tight">{ob.descricao}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Parecer do Lucro Real */}
+          <div className="bg-sky-950/30 border border-sky-800/60 rounded-lg p-3 text-xs text-sky-200/90 leading-relaxed">
+            <strong>Veredito Técnico ADECONT sobre Lucro Real:</strong>{' '}
+            {lucroRealPuro.avaliacaoAdiantada}
+          </div>
+        </div>
+      )}
+
+      {/* NOVO BLOCO: TABELA CONSOLIDADA DE VALORES EM R$ E PERCENTUAIS (5 REGIMES) COM VANTAGENS E DESVANTAGENS */}
+      <div className="bg-slate-900 border border-slate-700 rounded-xl overflow-hidden shadow-xl space-y-0">
+        <div className="p-4 bg-slate-800/90 border-b border-slate-700 flex flex-col md:flex-row md:items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <DollarSign className="w-5 h-5 text-amber-400 flex-shrink-0" />
+            <h3 className="font-bold text-white text-base">
+              2. Tabela de Valores em R$ e Percentuais — Comparativo Consolidado de 5 Regimes
+            </h3>
+          </div>
+          <span className="text-xs text-slate-300 bg-slate-900 px-2.5 py-1 rounded border border-slate-700">
+            Regime de Referência: <strong className="text-emerald-400">Simples Nacional</strong>
+          </span>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr className="bg-slate-950 text-slate-300 border-b border-slate-700 uppercase tracking-wider text-[11px]">
+                <th className="p-3 w-[28%]">Regime Tributário</th>
+                <th className="p-3 text-right w-[18%]">Carga Anual Estimada (R$)</th>
+                <th className="p-3 text-right w-[16%]">Alíquota Efetiva (%)</th>
+                <th className="p-3 text-right w-[19%]">Economia / Custo vs Simples</th>
+                <th className="p-3 text-right w-[19%]">Diferença em Pontos (p.p.)</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-800">
+              {tabelaValoresPercentuais.map((item) => {
+                const ehReferencia = item.ehRegimeReferencia
+                const ehMaisCaro = item.diferencaVsSimplesBrl > 0
+                const ehEconomia = item.diferencaVsSimplesBrl < 0
+
+                return (
+                  <tr
+                    key={item.regimeId}
+                    className={`transition-colors ${
+                      ehReferencia
+                        ? 'bg-emerald-950/20 hover:bg-emerald-950/30'
+                        : item.melhorRegimeLongoPrazo
+                          ? 'bg-amber-950/20 hover:bg-amber-950/30'
+                          : 'bg-slate-900/60 hover:bg-slate-800/40'
+                    }`}
+                  >
+                    <td className="p-3 border-r border-slate-800 font-semibold text-white">
+                      <div className="flex items-center gap-2">
+                        <span>{item.nomeRegime}</span>
+                        {ehReferencia && (
+                          <span className="text-[10px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded font-mono font-normal">
+                            Referência
+                          </span>
+                        )}
+                        {item.melhorRegimeLongoPrazo && (
+                          <span className="text-[10px] bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded font-mono font-normal">
+                            Menor Carga 2027+
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="p-3 text-right font-mono font-bold text-white border-r border-slate-800">
+                      {brl(item.cargaAnualEstimada)}
+                    </td>
+                    <td className="p-3 text-right font-mono font-bold text-slate-200 border-r border-slate-800">
+                      {item.aliquotaEfetivaPct.toFixed(2)}%
+                    </td>
+                    <td className="p-3 text-right font-mono border-r border-slate-800">
+                      {ehReferencia ? (
+                        <span className="text-slate-400 font-normal">R$ 0,00 (base)</span>
+                      ) : ehEconomia ? (
+                        <span className="text-emerald-400 font-bold">
+                          -{brl(Math.abs(item.diferencaVsSimplesBrl))} (economia)
+                        </span>
+                      ) : (
+                        <span className="text-rose-400 font-bold">
+                          +{brl(item.diferencaVsSimplesBrl)} (sobretaxa)
+                        </span>
+                      )}
+                    </td>
+                    <td className="p-3 text-right font-mono">
+                      {ehReferencia ? (
+                        <span className="text-slate-400 font-normal">0,00 p.p.</span>
+                      ) : ehEconomia ? (
+                        <span className="text-emerald-400 font-bold">
+                          {item.diferencaVsSimplesPontosPct.toFixed(2)} p.p.
+                        </span>
+                      ) : (
+                        <span className="text-rose-400 font-bold">
+                          +{item.diferencaVsSimplesPontosPct.toFixed(2)} p.p.
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {/* VANTAGENS E DESVANTAGENS POR REGIME (CARDS EM GRADE) */}
+        <div className="p-4 bg-slate-950/60 border-t border-slate-800 space-y-3">
+          <div className="flex items-center gap-2">
+            <Scale className="w-4 h-4 text-amber-400" />
+            <h4 className="text-xs font-bold text-slate-200 uppercase tracking-wider">
+              Análise Qualitativa: Vantagens e Desvantagens de Cada Regime
+            </h4>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {tabelaValoresPercentuais.map((item) => (
+              <div
+                key={item.regimeId}
+                className="bg-slate-900/90 border border-slate-800 rounded-lg p-3 space-y-2 text-xs flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-center justify-between border-b border-slate-800 pb-1.5 mb-2">
+                    <span className="font-bold text-white text-xs">{item.rotuloCurto}</span>
+                    <span className="font-mono text-[11px] text-amber-400 font-bold">
+                      {item.aliquotaEfetivaPct.toFixed(2)}%
+                    </span>
+                  </div>
+
+                  {/* Vantagens */}
+                  <div className="space-y-1 mb-2">
+                    <div className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1">
+                      <ThumbsUp className="w-3 h-3" /> Vantagens:
+                    </div>
+                    {item.vantagens.map((v, i) => (
+                      <div key={i} className="flex items-start gap-1.5 text-[11px] text-slate-300">
+                        <span className="text-emerald-400 font-bold flex-shrink-0">•</span>
+                        <span className="leading-tight">{v}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Desvantagens */}
+                  <div className="space-y-1">
+                    <div className="text-[10px] font-bold text-rose-400 uppercase tracking-wider flex items-center gap-1">
+                      <ThumbsDown className="w-3 h-3" /> Desvantagens:
+                    </div>
+                    {item.desvantagens.map((d, i) => (
+                      <div key={i} className="flex items-start gap-1.5 text-[11px] text-slate-400">
+                        <span className="text-rose-400 font-bold flex-shrink-0">•</span>
+                        <span className="leading-tight">{d}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="pt-2 mt-2 border-t border-slate-800/80 text-[10px] flex justify-between items-center text-slate-400">
+                  <span>Carga Anual:</span>
+                  <span className="font-mono font-bold text-slate-200">
+                    {brl(item.cargaAnualEstimada)}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* NOVO BLOCO: LINHA DO TEMPO DA TRANSIÇÃO TRIBUTÁRIA ATÉ 2033 (LC 214/2025) */}
+      <div className="bg-slate-900 border border-slate-700 rounded-xl p-5 shadow-xl space-y-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+          <div className="flex items-center gap-2.5">
+            <Calendar className="w-5 h-5 text-amber-400 flex-shrink-0" />
+            <div>
+              <span className="text-[10px] font-mono uppercase bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded border border-amber-500/30">
+                Lei Complementar nº 214/2025
+              </span>
+              <h3 className="text-base font-bold text-white tracking-tight mt-0.5">
+                3. Linha do Tempo da Transição Tributária (2026 a 2033) e Impactos para a Pastore
+              </h3>
+            </div>
+          </div>
+          <span className="text-xs text-slate-400 bg-slate-950 px-2.5 py-1 rounded border border-slate-800">
+            Fases Oficiais da Reforma Tributária (IVA Dual)
+          </span>
+        </div>
+
+        <div className="space-y-3">
+          {linhaDoTempoTransicao.map((marco, idx) => (
+            <div
+              key={idx}
+              className="bg-slate-950/70 border border-slate-800 hover:border-slate-700 rounded-lg p-3.5 transition-all space-y-2 text-xs"
+            >
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 border-b border-slate-800/80 pb-2">
+                <div className="flex items-center gap-2">
+                  <span className="font-mono font-black text-sm text-amber-400 bg-amber-950/50 px-2.5 py-0.5 rounded border border-amber-800/50">
+                    {marco.ano}
+                  </span>
+                  <h4 className="font-bold text-white text-xs">{marco.titulo}</h4>
+                </div>
+                <div className="flex items-center gap-2 text-[10px]">
+                  <span className="bg-slate-800 text-slate-300 px-2 py-0.5 rounded border border-slate-700">
+                    {marco.statusOficial}
+                  </span>
+                  {marco.creditoComprasValendo ? (
+                    <span className="bg-emerald-950 text-emerald-300 border border-emerald-800 px-2 py-0.5 rounded font-semibold">
+                      Crédito Pleno Ativo
+                    </span>
+                  ) : (
+                    <span className="bg-slate-800 text-slate-400 border border-slate-700 px-2 py-0.5 rounded">
+                      Crédito em Teste
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 text-[11px] pt-1">
+                <div className="space-y-0.5 bg-slate-900/60 p-2.5 rounded border border-slate-800/80">
+                  <span className="text-[10px] uppercase font-bold text-slate-400 block">
+                    Mecânica Legislativa (LC 214/2025):
+                  </span>
+                  <p className="text-slate-300 leading-relaxed">{marco.mecanicaLegislativa}</p>
+                </div>
+                <div className="space-y-0.5 bg-slate-900/60 p-2.5 rounded border border-slate-800/80">
+                  <span className="text-[10px] uppercase font-bold text-indigo-300 block">
+                    O Que Muda para a Pastore:
+                  </span>
+                  <p className="text-slate-200 leading-relaxed">{marco.impactoPastore}</p>
+                </div>
+                <div className="space-y-0.5 bg-amber-950/20 p-2.5 rounded border border-amber-800/40">
+                  <span className="text-[10px] uppercase font-bold text-amber-400 block">
+                    Recomendação Estratégica ADECONT:
+                  </span>
+                  <p className="text-amber-200/90 leading-relaxed font-medium">
+                    {marco.acaoRecomendadaAdecont}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
 
       {/* 3. TABELA COMPARATIVA (4 REGIMES LADO A LADO: SIMPLES x SIMPLES HÍBRIDO x PRESUMIDO x REGIME REGULAR) */}
       <div className="bg-slate-900 border border-slate-700 rounded-xl overflow-hidden shadow-xl">

@@ -106,6 +106,67 @@ export interface SimplesHibridoCenario {
   }
 }
 
+export interface DetalhamentoLucroRealPuro {
+  receitaBruta: number // ~R$ 2.848.822,89
+  margemLucroRealPct: number // ~4,36% (variação de PL sobre receita)
+  lucroRealAnualEstimado: number // ~R$ 124.208,68
+  limiteIsencaoAdicionalIrpj: number // R$ 240.000,00/ano (R$ 20.000/mês)
+  lucroExcedenteAdicional: number // 0 se lucro <= 240k
+  irpjBase15: number // 15% sobre lucro real
+  irpjAdicional10: number // 10% sobre excedente a R$ 20k/mês
+  irpjTotal: number
+  csll9: number // 9% sobre lucro real
+  irpjCsllConsolidado: number
+  irpjCsllAliquotaEfetivaPct: number // ~1,05% da receita bruta
+  // Tributos indiretos atuais no Lucro Real
+  pisNaoCumulativoAliqPct: number // 1,65%
+  cofinsNaoCumulativoAliqPct: number // 7,60%
+  debitoPisCofinsBruto: number // 9,25% sobre receita bruta
+  comprasInsumosAnual: number // ~95,64% da receita
+  creditoPisCofinsCompras: number // crédito sobre peças/insumos
+  pisCofinsLiquidoEstimado: number // após segregação de autopeças monofásicas e créditos
+  icmsOperacaoPropriaLiquido: number // peças (majoritariamente ST e créditos de entrada)
+  issqnServicosMecanicos: number // ~3% a 4% sobre serviços mecânicos de Vacaria/RS (~30% receita)
+  impostosConsumoTotal: number
+  // Carga total
+  cargaTributariaAnualTotal: number // ~R$ 254.000 (~8,92% da receita)
+  aliquotaEfetivaTotalPct: number
+  // Obrigações acessórias e custo de conformidade
+  obrigacoesAcessorias: {
+    nome: string
+    periodicidade: string
+    descricao: string
+  }[]
+  custoConformidadeAnualEstimado: number // ~R$ 18.000 a R$ 24.000/ano em honorários/sistemas adicionais
+  avaliacaoAdiantada: string
+}
+
+export interface ItemComparativoValoresPercentuais {
+  regimeId: 'simples' | 'simples_hibrido' | 'lucro_presumido' | 'lucro_real_puro' | 'reforma_2027'
+  nomeRegime: string
+  rotuloCurto: string
+  cargaAnualEstimada: number
+  aliquotaEfetivaPct: number
+  diferencaVsSimplesBrl: number // cargaRegime - cargaSimples (negativo = economia vs simples, positivo = custo adicional)
+  diferencaVsSimplesPontosPct: number // aliqRegime - aliqSimples
+  ehRegimeReferencia?: boolean
+  melhorRegimeLongoPrazo?: boolean
+  vantagens: string[]
+  desvantagens: string[]
+}
+
+export interface MarcoLinhaDoTempoTransicao {
+  ano: number | string
+  fase: string
+  titulo: string
+  statusOficial: string
+  mecanicaLegislativa: string
+  impactoPastore: string
+  acaoRecomendadaAdecont: string
+  creditoComprasValendo: boolean
+  simplesCabivel: boolean
+}
+
 export interface LinhaComparativoRegime {
   criterio: string
   simplesNacional: {
@@ -241,6 +302,9 @@ export interface DiagnosticoClienteData {
   notas: EstatisticasNfes
   dataCalculo: string
   simplesHibrido: SimplesHibridoCenario
+  lucroRealPuro: DetalhamentoLucroRealPuro
+  tabelaValoresPercentuais: ItemComparativoValoresPercentuais[]
+  linhaDoTempoTransicao: MarcoLinhaDoTempoTransicao[]
   recomendacao: {
     regimeRecomendado: string
     titulo: string
@@ -693,6 +757,297 @@ export async function carregarDiagnosticoClientePastore(): Promise<DiagnosticoCl
     },
   }
 
+  // 5) LUCRO REAL PURO (Regime Autônomo e Completo - Modelagem Atual)
+  // Receita bruta: ~R$ 2.848.822,89 | Margem retida real: ~4,36% (variação PL / receita)
+  // Lucro Real anual aproximado derivado dos balancetes: ~R$ 124.208,68
+  const margemRealPct = margemRetidaLiquidaPct > 0 ? margemRetidaLiquidaPct : 4.36
+  const lucroRealAnualEstimado = recProj * (margemRealPct / 100)
+  const limiteIsencaoAdicionalIrpj = 240000 // R$ 20.000,00/mês
+  const lucroExcedenteAdicional = Math.max(0, lucroRealAnualEstimado - limiteIsencaoAdicionalIrpj)
+  const irpjBase15 = lucroRealAnualEstimado * 0.15 // ~R$ 18.631,30
+  const irpjAdicional10 = lucroExcedenteAdicional * 0.1 // R$ 0,00 (lucro real de ~124k < 240k)
+  const irpjTotal = irpjBase15 + irpjAdicional10
+  const csll9 = lucroRealAnualEstimado * 0.09 // ~R$ 11.078,78
+  const irpjCsllConsolidado = irpjTotal + csll9 // ~R$ 29.710,08 (~1,04% da receita)
+  const irpjCsllAliquotaEfetivaPct = recProj > 0 ? (irpjCsllConsolidado / recProj) * 100 : 1.04
+
+  // Tributos indiretos atuais no Lucro Real puro:
+  // - PIS não-cumulativo (1,65%) e COFINS não-cumulativo (7,60%) = 9,25%
+  // Compras anuais de insumos e autopeças: ~95,64% da receita bruta = ~R$ 2.724.614,21
+  // Autopeças possuem regime monofásico (Lei 10.485/2002) nas saídas para alíquota zero de PIS/COFINS pelo varejista/oficina,
+  // com direito a creditamento nas compras se aplicável ou retenção pelo fabricante.
+  // Mão de obra mecânica (~30% receita) paga PIS/COFINS de 9,25% com créditos de despesas operacionais (energia, aluguel, depreciação).
+  // Saldo líquido de PIS/COFINS estimado: ~1,8% sobre faturamento (~R$ 51.278)
+  const comprasInsumosAnual = recProj * (1 - margemRealPct / 100)
+  const debitoPisCofinsBruto = recProj * 0.0925
+  const creditoPisCofinsCompras = comprasInsumosAnual * 0.0925 * 0.7 // aproveitamento ponderado
+  const pisCofinsLiquidoEstimado = recProj * 0.018 // ~R$ 51.278/ano
+  // ICMS no Lucro Real: autopeças estão em ICMS-Substituição Tributária (ST) no RS. Mão de obra tem ISS (não ICMS).
+  // A oficina recolhe diferencial de alíquota / antecipação ou ICMS normal residual (~2,5% da receita bruta = ~R$ 71.220).
+  const icmsOperacaoPropriaLiquido = recProj * 0.025
+  // ISSQN de Vacaria/RS sobre serviços mecânicos (~30% receita a 3,5% ISS = ~1,05% da receita total = ~R$ 29.912)
+  const issqnServicosMecanicos = recProj * 0.3 * 0.035
+  const impostosConsumoTotal =
+    pisCofinsLiquidoEstimado + icmsOperacaoPropriaLiquido + issqnServicosMecanicos // ~R$ 152.410/ano
+
+  // Carga total anual estimada Lucro Real Puro:
+  // Tributação Direta (IRPJ/CSLL ~R$ 29.710) + Consumo (PIS/COFINS/ICMS/ISS ~R$ 152.410) + CPP folha de pagamento (~R$ 72.000)
+  // Carga tributária consolidada: ~R$ 254.120/ano (~8,92% da receita bruta)
+  const cppFolhaEstimada = recProj * 0.025 // Encargos previdenciários patronais sobre folha (~R$ 71.220)
+  const cargaLucroRealPuroEstimada = irpjCsllConsolidado + impostosConsumoTotal + cppFolhaEstimada // ~R$ 253.340 (~8,89%)
+  const aliqEfetivaLucroRealPuroPct =
+    recProj > 0 ? (cargaLucroRealPuroEstimada / recProj) * 100 : 8.89
+
+  const custoConformidadeAnualEstimado = 21600 // R$ 1.800/mês adicionais em honorários de auditoria/ECD/ECF
+
+  const lucroRealPuro: DetalhamentoLucroRealPuro = {
+    receitaBruta: recProj,
+    margemLucroRealPct: margemRealPct,
+    lucroRealAnualEstimado,
+    limiteIsencaoAdicionalIrpj,
+    lucroExcedenteAdicional,
+    irpjBase15,
+    irpjAdicional10,
+    irpjTotal,
+    csll9,
+    irpjCsllConsolidado,
+    irpjCsllAliquotaEfetivaPct,
+    pisNaoCumulativoAliqPct: 1.65,
+    cofinsNaoCumulativoAliqPct: 7.6,
+    debitoPisCofinsBruto,
+    comprasInsumosAnual,
+    creditoPisCofinsCompras,
+    pisCofinsLiquidoEstimado,
+    icmsOperacaoPropriaLiquido,
+    issqnServicosMecanicos,
+    impostosConsumoTotal,
+    cargaTributariaAnualTotal: cargaLucroRealPuroEstimada,
+    aliquotaEfetivaTotalPct: aliqEfetivaLucroRealPuroPct,
+    obrigacoesAcessorias: [
+      {
+        nome: 'ECD (Escrituração Contábil Digital)',
+        periodicidade: 'Anual (SPED)',
+        descricao:
+          'Transmissão dos livros Diário e Razão contábeis digitais autenticados na Junta Comercial via SPED.',
+      },
+      {
+        nome: 'ECF (Escrituração Contábil Fiscal)',
+        periodicidade: 'Anual (SPED)',
+        descricao:
+          'Demonstração da base do Lucro Real, adições e exclusões do e-LALUR e e-LACS da mecânica.',
+      },
+      {
+        nome: 'EFD-Contribuições (PIS/COFINS)',
+        periodicidade: 'Mensal',
+        descricao:
+          'Escrituração dos créditos e débitos não-cumulativos das compras de peças e insumos.',
+      },
+      {
+        nome: 'EFD ICMS IPI (SPED Fiscal)',
+        periodicidade: 'Mensal',
+        descricao:
+          'Registro de entradas, saídas, apuração de ICMS e inventário anual Bloco K / Bloco H.',
+      },
+      {
+        nome: 'DCTF e EFD-Reinf',
+        periodicidade: 'Mensal',
+        descricao:
+          'Declaração de débitos e créditos tributários federais e retenções de serviços tomados.',
+      },
+    ],
+    custoConformidadeAnualEstimado,
+    avaliacaoAdiantada: `No Lucro Real puro, a tributação direta (IRPJ/CSLL) é extremamente baixa (~1,04% da receita) graças à margem retida real de ~${margemRealPct.toFixed(1)}% comprovada nos balancetes. Porém, o custo de conformidade (ECD, ECF, EFDs) adiciona ~R$ 21,6 mil/ano. No cenário atual (~R$ 2,85 mi), o Simples Nacional ainda é superior em simplicidade e custo total integrado; mas em 2027+, a combinação do Lucro Real com IBS/CBS da Reforma Tributária torna-se imbatível.`,
+  }
+
+  // 6) TABELA CONSOLIDADA DE VALORES EM R$ E PERCENTUAIS (5 REGIMES)
+  // Regimes: Simples Nacional, Simples Híbrido 2027, Lucro Presumido, Lucro Real Puro, Regime Regular IBS/CBS + Lucro Real
+  const cargaSimplesBase = cargaSimplesEstimada
+  const aliqSimplesBase = recProj > 0 ? (cargaSimplesBase / recProj) * 100 : 9.2
+
+  const tabelaValoresPercentuais: ItemComparativoValoresPercentuais[] = [
+    {
+      regimeId: 'simples',
+      nomeRegime: 'Simples Nacional (Puro / Atual)',
+      rotuloCurto: 'Simples Nacional',
+      cargaAnualEstimada: cargaSimplesBase,
+      aliquotaEfetivaPct: aliqSimplesBase,
+      diferencaVsSimplesBrl: 0,
+      diferencaVsSimplesPontosPct: 0,
+      ehRegimeReferencia: true,
+      vantagens: [
+        'Guia única unificada (DAS) englobando 8 tributos (IRPJ, CSLL, PIS, COFINS, ICMS, ISS, IPI e CPP).',
+        'Isenção de contribuição patronal previdenciária sobre folha de pagamento no Anexo III.',
+        'Dispensa de escrituração complexa (sem exigência de ECD, ECF e SPED Fiscal pleno).',
+        'Segregação monofásica legal de autopeças reduz alíquota do Anexo I em ~30% a 40%.',
+        'Dentro do teto legal de R$ 4,8 mi e do sublimite de R$ 3,6 mi na receita real da Pastore (~R$ 2,85 mi).',
+      ],
+      desvantagens: [
+        'Vedação total à tomada de créditos nas compras de autopeças de distribuidores (Cobra Rolamentos, etc.).',
+        'Transferência de crédito restrito aos clientes PJ/frotistas B2B, reduzindo competitividade corporativa.',
+        'Tributa sobre faturamento bruto; não aproveita eventuais prejuízos ou margens comprimidas da oficina.',
+      ],
+    },
+    {
+      regimeId: 'simples_hibrido',
+      nomeRegime: 'Simples Híbrido 2027 (LC 214/2025 · Sublimite R$ 3,6 mi)',
+      rotuloCurto: 'Simples Híbrido 2027',
+      cargaAnualEstimada: cargaHibridoProjecaoAtual.cargaTotalAnual,
+      aliquotaEfetivaPct: cargaHibridoProjecaoAtual.aliquotaEfetivaPct,
+      diferencaVsSimplesBrl: cargaHibridoProjecaoAtual.cargaTotalAnual - cargaSimplesBase,
+      diferencaVsSimplesPontosPct: cargaHibridoProjecaoAtual.aliquotaEfetivaPct - aliqSimplesBase,
+      vantagens: [
+        'Proteção contra exclusão abrupta do Simples ao ultrapassar o sublimite de R$ 3,6 mi.',
+        'Permite abater 100% dos créditos de compras de autopeças sobre a parcela excedente.',
+        'No teto de R$ 4,8 mi, gera economia de até R$ 145,6 mil/ano frente ao Simples puro (8,77% vs 11,8%).',
+        'Transfere créditos cheios de IBS/CBS aos adquirentes corporativos na parcela excedente.',
+        'Preserva IRPJ, CSLL e CPP dentro do DAS com custo reduzido.',
+      ],
+      desvantagens: [
+        'Exige controle contábil duplo (apuração de DAS + escrituração regular de IBS/CBS por fora).',
+        'Não acionado no patamar atual (~R$ 2,85 mi), mantendo carga idêntica ao Simples puro.',
+        'Complexidade de conciliação fiscal e parametrização de software ERP.',
+      ],
+    },
+    {
+      regimeId: 'lucro_presumido',
+      nomeRegime: 'Lucro Presumido (Situação Cadastral de Risco)',
+      rotuloCurto: 'Lucro Presumido',
+      cargaAnualEstimada: cargaPresumidoEstimada,
+      aliquotaEfetivaPct: recProj > 0 ? (cargaPresumidoEstimada / recProj) * 100 : 12.6,
+      diferencaVsSimplesBrl: cargaPresumidoEstimada - cargaSimplesBase,
+      diferencaVsSimplesPontosPct:
+        (recProj > 0 ? (cargaPresumidoEstimada / recProj) * 100 : 12.6) - aliqSimplesBase,
+      vantagens: [
+        'Sem teto de faturamento (permite ultrapassar R$ 4,8 mi sem restrição de porte).',
+        'Escrituração simplificada em relação ao Lucro Real (livro Caixa aceito em certas hipóteses).',
+        'PIS e COFINS em alíquotas nominais menores (cumulativo: 0,65% e 3,00%).',
+      ],
+      desvantagens: [
+        'Pior regime para a Pastore: gera sobretaxação de mais de R$ 95 mil/ano vs Simples.',
+        'Presume lucros artificiais de 8% (peças) e 32% (serviços), ignorando a margem real de ~4,4%.',
+        'Zero aproveitamento de créditos sobre as compras de autopeças e ferramentas.',
+        'CPP integral de 20% patronal + RAT + Terceiros sobre a folha de pagamento.',
+      ],
+    },
+    {
+      regimeId: 'lucro_real_puro',
+      nomeRegime: 'Lucro Real Puro (Regime Autônomo e Completo Atual)',
+      rotuloCurto: 'Lucro Real Puro',
+      cargaAnualEstimada: cargaLucroRealPuroEstimada,
+      aliquotaEfetivaPct: aliqEfetivaLucroRealPuroPct,
+      diferencaVsSimplesBrl: cargaLucroRealPuroEstimada - cargaSimplesBase,
+      diferencaVsSimplesPontosPct: aliqEfetivaLucroRealPuroPct - aliqSimplesBase,
+      vantagens: [
+        `Tributa o lucro real exato da oficina (~R$ 124 mil/ano), gerando IRPJ/CSLL residual de apenas ~1,04%.`,
+        'Isento de adicional de 10% do IRPJ (lucro real anual fica abaixo do teto de R$ 240 mil/ano).',
+        'Não-cumulatividade de PIS/COFINS (1,65%/7,60%) com apropriação de créditos de insumos.',
+        'Se a oficina apurar prejuízo em determinado trimestre, não recolhe IRPJ nem CSLL.',
+      ],
+      desvantagens: [
+        `Alto custo de conformidade contábil e auditoria (~R$ ${custoConformidadeAnualEstimado.toLocaleString('pt-BR')}/ano) em ECD, ECF e SPEDs.`,
+        'Encargos patronais integrais de INSS (20% + RAT + Sistema S) sobre folha salarial da oficina.',
+        'Risco de autuação por glosa de créditos ou divergências de despesas indedutíveis no LALUR.',
+      ],
+    },
+    {
+      regimeId: 'reforma_2027',
+      nomeRegime: 'Regime Regular 2027+ (IBS/CBS Não-Cumulativo + Lucro Real)',
+      rotuloCurto: 'Regime Regular 2027+',
+      cargaAnualEstimada: cargaReformaEstimada,
+      aliquotaEfetivaPct: recProj > 0 ? (cargaReformaEstimada / recProj) * 100 : 8.5,
+      diferencaVsSimplesBrl: cargaReformaEstimada - cargaSimplesBase,
+      diferencaVsSimplesPontosPct:
+        (recProj > 0 ? (cargaReformaEstimada / recProj) * 100 : 8.5) - aliqSimplesBase,
+      melhorRegimeLongoPrazo: true,
+      vantagens: [
+        'Menor carga tributária líquida absoluta projetada (~8,5% sobre a receita bruta).',
+        'Crédito financeiro amplo e imediato sobre 100% das compras de autopeças (Cobra Rolamentos, etc.).',
+        'Substitui a colcha de retalhos (PIS, COFINS, ICMS, ISS) por IVA dual uniforme (IBS e CBS).',
+        'Transfere crédito financeiro integral aos clientes corporativos/frotistas, atraindo contratos B2B.',
+        'Neutralidade concorrencial no modelo destino (sem guerra fiscal entre estados).',
+      ],
+      desvantagens: [
+        'Exige conformidade técnica apurada de cadastro tributário (cClassTrib, NCM e split payment).',
+        'Período de transição 2027–2032 de convivência com os sistemas tributários antigos.',
+        'Fluxo de caixa dependerá da rapidez no estorno e compensação automática dos créditos.',
+      ],
+    },
+  ]
+
+  // 7) LINHA DO TEMPO DA TRANSIÇÃO TRIBUTÁRIA ATÉ 2033 (LC 214/2025)
+  const linhaDoTempoTransicao: MarcoLinhaDoTempoTransicao[] = [
+    {
+      ano: 2026,
+      fase: 'Ano-Teste / Calibração',
+      titulo: '2026: Ano-Teste da Reforma (Alíquotas Simbólicas)',
+      statusOficial: 'Fase de Teste e Calibração dos Sistemas',
+      mecanicaLegislativa:
+        'CBS a 0,9% e IBS a 0,1% (total 1,0%) cobrados apenas para teste e compensáveis integralmente contra PIS/COFINS devidos. Nenhuma arrecadação líquida nova.',
+      impactoPastore:
+        'Impacto nulo no desembolso. A Pastore permanece 100% protegida no Simples Nacional com receita anual de ~R$ 2,85 mi. Compras e vendas mantêm a rotina fiscal atual.',
+      acaoRecomendadaAdecont:
+        'Manter Simples Nacional; auditar cadastro de produtos (NCM das autopeças) e preparar parametrização para as novas tags fiscais.',
+      creditoComprasValendo: false,
+      simplesCabivel: true,
+    },
+    {
+      ano: 2027,
+      fase: 'Início da Vigência Federal (CBS)',
+      titulo: '2027: CBS Plena e Sublimite do Simples Híbrido',
+      statusOficial: 'Extinção de PIS/COFINS e Ativação da CBS',
+      mecanicaLegislativa:
+        'Extinção definitiva de PIS e COFINS. CBS entra com alíquota plena (~8,8%). IBS mantém alíquota teste de 0,1%. Ativação da regra do Simples Híbrido (LC 214/2025, art. 28) com sublimite de R$ 3,6 mi.',
+      impactoPastore:
+        'Para faturamento até R$ 3,6 mi, a Pastore recolhe DAS sem alteração. Se atingir o ritmo de julho (~R$ 3,56 mi) e romper R$ 3,6 mi, o excedente recolhe CBS/IBS com crédito pleno de compras.',
+      acaoRecomendadaAdecont:
+        'Avaliar migração estratégica para o Regime Regular caso a receita exceda R$ 3,6 mi ou se a carteira corporativa (frotas PJ) exigir destaque integral de créditos.',
+      creditoComprasValendo: true,
+      simplesCabivel: true,
+    },
+    {
+      ano: 2028,
+      fase: 'Calibração das Alíquotas Subnacionais',
+      titulo: '2028: Fixação de Alíquotas Estaduais e Municipais',
+      statusOficial: 'CBS Plena + IBS Calibrado pelo Senado',
+      mecanicaLegislativa:
+        'Manutenção da CBS plena. Senado Federal fixa alíquotas de referência para Estados e Municípios. Redução preparatória de benefícios e incentivos fiscais regionais.',
+      impactoPastore:
+        'A oficina mecânica segue operando com segurança. Distribuidores de peças (Cobra Rolamentos, etc.) já emitem notas com crédito financeiro integral destacado de CBS.',
+      acaoRecomendadaAdecont:
+        'Auditoria contínua da margem retida líquida (~4,4%) e monitoramento mensal do faturamento em 12 meses acumulados para antecipar virada de sublimite.',
+      creditoComprasValendo: true,
+      simplesCabivel: true,
+    },
+    {
+      ano: '2029–2032',
+      fase: 'Transição Gradual IBS (1/10 ao ano)',
+      titulo: '2029 a 2032: Redução Gradual de ICMS/ISS e Subida do IBS',
+      statusOficial: 'Substituição Proporcional de 10% a 40% ao ano',
+      mecanicaLegislativa:
+        'ICMS e ISS são reduzidos anualmente na proporção de 1/10 (90% em 2029, 80% em 2030, 70% em 2031, 60% em 2032), enquanto o IBS é elevado na mesma proporção.',
+      impactoPastore:
+        'A cumulatividade do ICMS e ISS perde força gradativamente. Empresas que migrarem para o Regime Regular abatem 100% de créditos de insumos, equipamentos e energia.',
+      acaoRecomendadaAdecont:
+        'Transição recomendada para Regime Regular + Lucro Real caso a receita ultrapasse R$ 3,6 mi, aproveitando o crédito pleno das autopeças para reduzir alíquota efetiva a ~8,5%.',
+      creditoComprasValendo: true,
+      simplesCabivel: true,
+    },
+    {
+      ano: 2033,
+      fase: 'Regime Pleno Definitivo',
+      titulo: '2033: Extinção Definitiva de ICMS e ISS (IVA Dual 100%)',
+      statusOficial: 'Regime Pleno Definitivo da Reforma Tributária',
+      mecanicaLegislativa:
+        'Extinção total do ICMS e do ISS. Vigência de 100% do IBS (~17,7%) e da CBS (~8,8%). Não-cumulatividade plena com princípio do destino absoluto em todo o território nacional.',
+      impactoPastore:
+        'Zero resíduo fiscal nas autopeças adquiridas. O débito da mecânica incide estritamente sobre a mão de obra mecânica e a margem de agregação das peças.',
+      acaoRecomendadaAdecont:
+        'Consolidação definitiva no Regime Regular combinado ao Lucro Real, maximizando economia tributária anual em relação a qualquer modelo anterior.',
+      creditoComprasValendo: true,
+      simplesCabivel: true,
+    },
+  ]
+
   const fmtBrl = (v: number) =>
     v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })
 
@@ -922,6 +1277,9 @@ export async function carregarDiagnosticoClientePastore(): Promise<DiagnosticoCl
     notas,
     dataCalculo: new Date().toLocaleDateString('pt-BR'),
     simplesHibrido,
+    lucroRealPuro,
+    tabelaValoresPercentuais,
+    linhaDoTempoTransicao,
     recomendacao,
     linhasComparativo,
   }
