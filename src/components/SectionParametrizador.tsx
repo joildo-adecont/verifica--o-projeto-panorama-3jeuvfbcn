@@ -39,6 +39,7 @@ import { ParametrizadorLevantamento } from '@/components/ParametrizadorLevantame
 import { ParametrizadorComparador } from '@/components/ParametrizadorComparador'
 import { ParametrizadorContabil } from '@/components/ParametrizadorContabil'
 import { ParametrizadorPastasDados } from '@/components/ParametrizadorPastasDados'
+import { DiagnosticoRegimeTributario } from '@/components/DiagnosticoRegimeTributario'
 
 /**
  * PARAMETRIZADOR DE DOCUMENTOS FISCAIS DA REFORMA — Seção 31
@@ -258,6 +259,7 @@ export function SectionParametrizador() {
   const [garantindoPastas, setGarantindoPastas] = useState(false)
   const [avisoPastas, setAvisoPastas] = useState<string | null>(null)
   const [aba, setAba] = useState<
+    | 'diagnostico-cliente'
     | 'catalogo'
     | 'importar'
     | 'documentos'
@@ -274,7 +276,7 @@ export function SectionParametrizador() {
     | 'comparador'
     | 'contabil'
     | 'pastas-dados'
-  >('catalogo')
+  >('diagnostico-cliente')
   const [xml, setXml] = useState('')
   const [nomeArquivo, setNomeArquivo] = useState('documento.xml')
   const [resultado, setResultado] = useState<any>(null)
@@ -450,6 +452,12 @@ export function SectionParametrizador() {
           {/* abas */}
           <div className="flex flex-wrap gap-1.5 mt-3">
             {[
+              {
+                id: 'diagnostico-cliente' as const,
+                nome: 'Diagnóstico Tributário — Cliente',
+                Icon: Scale,
+                destaque: true,
+              },
               { id: 'catalogo' as const, nome: 'Catálogo de documentos', Icon: FileText },
               { id: 'importar' as const, nome: 'Importar e quebrar', Icon: Upload },
               { id: 'documentos' as const, nome: 'Documentos processados', Icon: Database },
@@ -499,8 +507,10 @@ export function SectionParametrizador() {
                 onClick={() => setAba(t.id)}
                 className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-bold transition-colors cursor-pointer ${
                   aba === t.id
-                    ? 'bg-panorama-gold text-panorama-navy'
-                    : 'bg-white/10 text-slate-200 hover:bg-white/20'
+                    ? 'bg-panorama-gold text-panorama-navy shadow-sm'
+                    : (t as any).destaque
+                      ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30'
+                      : 'bg-white/10 text-slate-200 hover:bg-white/20'
                 }`}
               >
                 <t.Icon className="w-3.5 h-3.5" />
@@ -511,6 +521,9 @@ export function SectionParametrizador() {
         </header>
 
         <div className="p-3 sm:p-4 space-y-3">
+          {/* ══════════ DIAGNÓSTICO TRIBUTÁRIO — CLIENTE (PASTORE) ══════════ */}
+          {aba === 'diagnostico-cliente' && <DiagnosticoRegimeTributario />}
+
           {/* ══════════ CATÁLOGO ══════════ */}
           {aba === 'catalogo' && (
             <>
