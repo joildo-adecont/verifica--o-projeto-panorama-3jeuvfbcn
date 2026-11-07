@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
+import { Card, CardHeader, CardContent } from '@/components/ui/card'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -73,8 +73,12 @@ export const SectionNfesPipeline: React.FC = () => {
 
   // Totais rápidos
   const totalNotas = nfes.length
-  const totalCompras = nfes.filter((n) => n.tipo_operacao === 'compra').length
-  const totalVendas = nfes.filter((n) => n.tipo_operacao === 'venda').length
+  const totalCompras = nfes.filter(
+    (n) => (n.tipo_compra_venda || n.tipo_operacao) === 'compra',
+  ).length
+  const totalVendas = nfes.filter(
+    (n) => (n.tipo_compra_venda || n.tipo_operacao) === 'venda',
+  ).length
   const valorTotalGeral = nfes.reduce((acc, cur) => acc + (cur.valor_total_nfe || 0), 0)
 
   return (
@@ -98,9 +102,9 @@ export const SectionNfesPipeline: React.FC = () => {
                 </div>
                 <p className="text-xs text-muted-foreground mt-1 max-w-2xl">
                   ADECONT Assessoria Contábil e Administrativa — Ingestão em lote de XMLs modelo 55,
-                  extração completa de produtos, cruzamento com o cadastro de clientes e análise por
-                  3 Agentes Especialistas nativos Skip Cloud (Legislação Atual vs Reforma
-                  Tributária).
+                  diferenciação automática de Compras × Vendas, tratamento de B2C/marketplace,
+                  extração do bloco IBSCBS da Reforma Tributária e análise com 3 Agentes
+                  Especialistas nativos Skip Cloud.
                 </p>
               </div>
             </div>
@@ -145,7 +149,7 @@ export const SectionNfesPipeline: React.FC = () => {
                 <TrendingUp className="w-4 h-4 text-emerald-500" />
               </div>
               <div className="text-xl font-bold mt-1 text-emerald-600">{totalVendas}</div>
-              <span className="text-[10px] text-muted-foreground">Faturamento emitido</span>
+              <span className="text-[10px] text-muted-foreground">Faturamento emitido / B2C</span>
             </div>
 
             <div className="p-3 rounded-lg bg-background border border-border/50">
@@ -257,8 +261,8 @@ export const SectionNfesPipeline: React.FC = () => {
                     Nenhuma Nota Fiscal encontrada com os filtros atuais
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Utilize a aba <strong>Upload em Lote</strong> para processar novos XMLs ou
-                    carregue o exemplo real da mecânica Pastore.
+                    Utilize a aba <strong>Upload em Lote</strong> para processar novos XMLs de
+                    compra ou venda.
                   </p>
                 </div>
               </CardContent>

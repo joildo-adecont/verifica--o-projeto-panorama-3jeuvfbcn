@@ -6,12 +6,20 @@
  * Rota POST /backend/v1/nfe-processar-lote
  *
  * Recebe lote de XMLs (JSON com array `arquivos`: [{ nome, xml }]),
- * parseia estrutura nacional da NF-e (infNFe, ide, emit, dest, det, total, cobr/dup),
- * identifica tipo de operação (compra = dest é cliente cadastrado; venda = emit é cliente cadastrado),
- * vincula ao cadastro de clientes (cadastro_empresas) por CNPJ formatado ou limpo,
- * grava nfes_lote, nfes e nfes_itens,
- * deduplica por chave_acesso de 44 dígitos (não cria duplicidade, atualiza/reporta como repetido),
- * e SEMPRE responde 200 com resumo individual e agregado por arquivo.
+ * parseia estrutura nacional da NF-e (infNFe, ide, emit, dest, det, total, transp, pag, infIntermed, cobr/dup),
+ * identifica tipo de operação (compra x venda) combinando:
+ *   - tpNF (0=entrada/compra, 1=saída/venda)
+ *   - Prefixo dos CFOPs dos itens (1/2/3=entrada; 5/6/7=saída)
+ *   - Vínculo com cadastro de empresas (se emitente é cliente => venda; se destinatário PJ é cliente => compra)
+ * Destinatário Pessoa Física (CPF):
+ *   - Se dest é CPF (venda B2C / consumidor final), não tenta vínculo PJ em cadastro_empresas
+ *   - Marca destinatario_tipo = 'PF', ind_final = 1, vinculo_cliente_status = 'nao_localizado' (ou 'consumidor_final')
+ * Intermediador / Marketplace:
+ *   - Extrai infIntermed (CNPJ, idCadIntTran), transporte (transporta/CNPJ/xNome) e verProc (ex: mercadolivre.invoice)
+ * Bloco IBSCBS (Reforma Tributária):
+ *   - Extrai do total (IBSCBSTot: vBCIBSCBS, vIBS, vCBS, vCredPres, vCredPresCondSus)
+ *   - Extrai de cada item (IBSCBS: CST, cClassTrib, vBC, pIBSUF, vIBSUF, pIBSMun, vIBSMun, vIBS, pCBS, vCBS, etc.)
+ * Deduplica por chave_acesso de 44 dígitos (atualiza itens e dados sem duplicar registro).
  */
 
 routerAdd('OPTIONS', '/backend/v1/nfe-processar-lote', (e) => {
@@ -103,10 +111,11 @@ routerAdd('POST', '/backend/v1/nfe-processar-lote', (e) => {
       return out
     }
 
-    // Busca cliente por CNPJ (com ou sem pontuação) na coleção cadastro_empresas
+    // Busca cliente por CNPJ na coleção cadastro_empresas (somente para CNPJ de PJ com 14 dígitos ou raiz >= 8)
     function buscarClientePorCnpj(cnpjOuCpf) {
       var limpo = digitsOnly(cnpjOuCpf)
-      if (!limpo || limpo.length < 8) return null
+      // Se tiver 11 dígitos, é CPF de pessoa física — NÃO busca no cadastro de empresas PJ
+      if (!limpo || limpo.length === 11 || limpo.length < 8) return null
       try {
         var filtro =
           'documento_limpo = "' + limpo + '" || numero_documento ~ "' + limpo.slice(0, 8) + '"'
@@ -171,7 +180,6 @@ routerAdd('POST', '/backend/v1/nfe-processar-lote', (e) => {
         // 1. Chave de acesso (44 dígitos)
         var chave = attrDe(xml, 'infNFe', 'Id').replace(/^NFe/, '').trim()
         if (!chave) {
-          // Tenta via tag chNFe caso seja protocolo de autorização
           chave = digitsOnly(tagDe(xml, 'chNFe'))
         }
 
@@ -180,6 +188,10 @@ routerAdd('POST', '/backend/v1/nfe-processar-lote', (e) => {
         var dest = tagDe(xml, 'dest')
         var total = tagDe(xml, 'total')
         var icmsTot = tagDe(total, 'ICMSTot')
+        var ibscbsTot = tagDe(total, 'IBSCBSTot')
+        var transp = tagDe(xml, 'transp')
+        var pag = tagDe(xml, 'pag')
+        var infIntermed = tagDe(xml, 'infIntermed')
         var cobr = tagDe(xml, 'cobr')
 
         var numero = limpar(tagDe(ide, 'nNF'))
@@ -187,11 +199,13 @@ routerAdd('POST', '/backend/v1/nfe-processar-lote', (e) => {
         var natOp = limpar(tagDe(ide, 'natOp'))
         var dhEmi = limpar(tagDe(ide, 'dhEmi') || tagDe(ide, 'dEmi'))
         var dhSaiEnt = limpar(tagDe(ide, 'dhSaiEnt') || tagDe(ide, 'dSaiEnt'))
+        var tpNF = limpar(tagDe(ide, 'tpNF')) // 0=entrada, 1=saida
+        var indFinal = numDe(tagDe(ide, 'indFinal')) // 0=normal, 1=consumidor final
+        var verProc = limpar(tagDe(ide, 'verProc'))
 
-        // Se ainda não achou a chave de 44 dígitos, deduz do padrão ou gera identificador seguro
         if (!chave || chave.length !== 44) {
           if (chave && chave.length > 20) {
-            // chave já presente mas com formato atípico
+            // chave presente
           } else {
             chave =
               'NFE' +
@@ -213,42 +227,72 @@ routerAdd('POST', '/backend/v1/nfe-processar-lote', (e) => {
         var emitIe = limpar(tagDe(emit, 'IE'))
         var emitCrt = limpar(tagDe(emit, 'CRT'))
 
-        // Dados Destinatário
-        var destCnpjCpf = digitsOnly(tagDe(dest, 'CNPJ') || tagDe(dest, 'CPF'))
+        // Dados Destinatário (pode ser CNPJ ou CPF)
+        var destCnpj = digitsOnly(tagDe(dest, 'CNPJ'))
+        var destCpf = digitsOnly(tagDe(dest, 'CPF'))
+        var destCnpjCpf = destCnpj || destCpf
+        var destinatarioTipo = destCpf ? 'PF' : 'PJ'
         var destNome = limpar(tagDe(dest, 'xNome'))
         var destEnder = tagDe(dest, 'enderDest')
         var destUf = limpar(tagDe(destEnder, 'UF'))
         var destMun = limpar(tagDe(destEnder, 'xMun'))
         var destIe = limpar(tagDe(dest, 'IE'))
+        var indIEDest = limpar(tagDe(dest, 'indIEDest'))
 
-        // Identificação de cliente cadastrado e direção da operação
-        // Compra para o cliente = cliente é destinatário (ele comprou da fábrica/distribuidora)
-        // Venda para o cliente = cliente é emitente (ele emitiu a nota de saída para seu cliente)
-        var cliDest = buscarClientePorCnpj(destCnpjCpf)
+        // Identificação preliminar de CFOP dos itens para apoiar classificação
+        var dets = todasDe(xml, 'det')
+        var primeiroCfop = ''
+        if (dets.length > 0) {
+          var prod0 = tagDe(dets[0], 'prod')
+          primeiroCfop = digitsOnly(tagDe(prod0, 'CFOP'))
+        }
+
+        // Determinação de tipo_compra_venda:
+        // Regra tributária nacional:
+        // 1. tpNF = 1 (saída) e CFOP iniciando em 5, 6 ou 7 => VENDA (operação de saída)
+        // 2. tpNF = 0 (entrada) e CFOP iniciando em 1, 2 ou 3 => COMPRA (operação de entrada)
+        // 3. Se destinatário é cliente cadastrado da ADECONT e emitente é fornecedor terceiro => COMPRA do cliente
+        // 4. Se emitente é cliente cadastrado da ADECONT e dest é comprador/PF/terceiro => VENDA do cliente
+        var cliDest = destinatarioTipo === 'PJ' ? buscarClientePorCnpj(destCnpjCpf) : null
         var cliEmit = buscarClientePorCnpj(emitCnpjCpf)
 
         var clienteVinculado = null
         var tipoOperacao = 'compra'
         var vinculoStatus = 'nao_localizado'
 
-        if (cliDest && !cliEmit) {
-          clienteVinculado = cliDest
-          tipoOperacao = 'compra'
-          vinculoStatus = 'vinculado'
-        } else if (cliEmit && !cliDest) {
+        var cfopDigito = primeiroCfop ? primeiroCfop.charAt(0) : ''
+        var ehSaidaFiscal =
+          tpNF === '1' || cfopDigito === '5' || cfopDigito === '6' || cfopDigito === '7'
+        var ehEntradaFiscal =
+          tpNF === '0' || cfopDigito === '1' || cfopDigito === '2' || cfopDigito === '3'
+
+        if (cliEmit && !cliDest) {
+          // Cliente ADECONT emitiu a nota (venda/saída)
           clienteVinculado = cliEmit
           tipoOperacao = 'venda'
           vinculoStatus = 'vinculado'
-        } else if (cliDest && cliEmit) {
+        } else if (cliDest && !cliEmit) {
+          // Cliente ADECONT comprou a mercadoria de terceiro
           clienteVinculado = cliDest
           tipoOperacao = 'compra'
           vinculoStatus = 'vinculado'
+        } else if (cliEmit && cliDest) {
+          clienteVinculado = cliDest
+          tipoOperacao = ehSaidaFiscal ? 'venda' : 'compra'
+          vinculoStatus = 'vinculado'
         } else {
-          // Sem cliente encontrado no cadastro direto: deduz pelo primeiro dígito do CFOP
-          var tpNF = tagDe(ide, 'tpNF') // 0=entrada, 1=saida
-          if (tpNF === '0') tipoOperacao = 'compra'
-          else tipoOperacao = 'venda'
-          vinculoStatus = 'nao_localizado'
+          // Nenhum dos dois está no cadastro PJ:
+          // Se dest é PF (CPF) e tpNF=1 ou CFOP 5/6/7, é inequivocamente VENDA (saída para consumidor final)
+          if (destinatarioTipo === 'PF' || ehSaidaFiscal) {
+            tipoOperacao = 'venda'
+            vinculoStatus = destinatarioTipo === 'PF' ? 'nao_localizado' : 'nao_localizado'
+          } else if (ehEntradaFiscal) {
+            tipoOperacao = 'compra'
+            vinculoStatus = 'nao_localizado'
+          } else {
+            tipoOperacao = tpNF === '0' ? 'compra' : 'venda'
+            vinculoStatus = 'nao_localizado'
+          }
         }
 
         if (clienteVinculado && !clienteDetectado) {
@@ -256,7 +300,26 @@ routerAdd('POST', '/backend/v1/nfe-processar-lote', (e) => {
         }
         tiposDetectados[tipoOperacao] = (tiposDetectados[tipoOperacao] || 0) + 1
 
-        // Totais e tributos
+        // Dados de Intermediador / Marketplace e Transporte
+        var intermedCnpj = digitsOnly(tagDe(infIntermed, 'CNPJ'))
+        var intermedId = limpar(tagDe(infIntermed, 'idCadIntTran'))
+        var transporta = tagDe(transp, 'transporta')
+        var transpCnpj = digitsOnly(tagDe(transporta, 'CNPJ'))
+        var transpNome = limpar(tagDe(transporta, 'xNome'))
+
+        // Nome do intermediador inferido ou extraído
+        var intermedNome = ''
+        if (
+          intermedCnpj === '03007331000141' ||
+          /mercadolivre/i.test(verProc) ||
+          /ebazar/i.test(transpNome)
+        ) {
+          intermedNome = 'Mercado Livre (Ebazar.com.br LTDA)'
+        } else if (intermedCnpj) {
+          intermedNome = transpNome || 'Intermediador CNPJ ' + intermedCnpj
+        }
+
+        // Totais e tributos gerais (ICMSTot)
         var vProd = numDe(tagDe(icmsTot, 'vProd'))
         var vFrete = numDe(tagDe(icmsTot, 'vFrete'))
         var vSeg = numDe(tagDe(icmsTot, 'vSeg'))
@@ -271,6 +334,34 @@ routerAdd('POST', '/backend/v1/nfe-processar-lote', (e) => {
         var vPIS = numDe(tagDe(icmsTot, 'vPIS'))
         var vCOFINS = numDe(tagDe(icmsTot, 'vCOFINS'))
         var vIPI = numDe(tagDe(icmsTot, 'vIPI'))
+        var vICMSUFDest = numDe(tagDe(icmsTot, 'vICMSUFDest')) // DIFAL da UF Destino
+
+        // Totais do Bloco IBSCBS (IBSCBSTot — Reforma Tributária)
+        var ibscbsTotVbc = 0
+        var ibscbsTotVibs = 0
+        var ibscbsTotVcbs = 0
+        var ibscbsTotVcredpres = 0
+        var blocoIbscbsTotalObj = null
+
+        if (ibscbsTot && ibscbsTot !== TAG_MALFORMADA) {
+          ibscbsTotVbc = numDe(tagDe(ibscbsTot, 'vBCIBSCBS'))
+          var gIbs = tagDe(ibscbsTot, 'gIBS')
+          var gCbs = tagDe(ibscbsTot, 'gCBS')
+          ibscbsTotVibs = numDe(tagDe(gIbs, 'vIBS') || tagDe(ibscbsTot, 'vIBS'))
+          ibscbsTotVcbs = numDe(tagDe(gCbs, 'vCBS') || tagDe(ibscbsTot, 'vCBS'))
+          ibscbsTotVcredpres = numDe(
+            tagDe(gIbs, 'vCredPres') || tagDe(gCbs, 'vCredPres') || tagDe(ibscbsTot, 'vCredPres'),
+          )
+          blocoIbscbsTotalObj = {
+            vBCIBSCBS: ibscbsTotVbc,
+            vIBS: ibscbsTotVibs,
+            vCBS: ibscbsTotVcbs,
+            vCredPres: ibscbsTotVcredpres,
+            vCredPresCondSus: numDe(
+              tagDe(gIbs, 'vCredPresCondSus') || tagDe(gCbs, 'vCredPresCondSus'),
+            ),
+          }
+        }
 
         // Duplicatas e cobrança
         var dups = todasDe(cobr, 'dup')
@@ -285,16 +376,17 @@ routerAdd('POST', '/backend/v1/nfe-processar-lote', (e) => {
         }
 
         // Formas de pagamento
-        var pag = tagDe(xml, 'pag')
         var tPag = limpar(tagDe(pag, 'tPag'))
+        var card = tagDe(pag, 'card')
+        var cardCnpj = digitsOnly(tagDe(card, 'CNPJ'))
 
         // Parse de Itens (<det>)
-        var dets = todasDe(xml, 'det')
         var listaItens = []
 
         for (var j = 0; j < dets.length; j++) {
           var detXml = dets[j]
-          var nItem = Number(limpar(attrDe(detXml, 'det', 'n'))) || j + 1
+          var nItem =
+            Number(limpar(attrDe(detXml, 'det', 'nItem') || attrDe(detXml, 'det', 'n'))) || j + 1
           var prod = tagDe(detXml, 'prod')
           var imposto = tagDe(detXml, 'imposto')
 
@@ -322,7 +414,6 @@ routerAdd('POST', '/backend/v1/nfe-processar-lote', (e) => {
           var aliqIcmsStItem = 0
           var valIcmsStItem = 0
 
-          // Varre tags comuns de ICMS: ICMS00, ICMS10, ICMS20, ICMS40, ICMS60, ICMS70, ICMS90, ICMSSN101, etc.
           var gruposIcms = [
             'ICMS00',
             'ICMS10',
@@ -397,26 +488,94 @@ routerAdd('POST', '/backend/v1/nfe-processar-lote', (e) => {
           // IPI
           var ipiBlock = tagDe(imposto, 'IPI')
           var ipiTrib = tagDe(ipiBlock, 'IPITrib')
-          var cstIpi = limpar(tagDe(ipiTrib, 'CST'))
+          var ipiNt = tagDe(ipiBlock, 'IPINT')
+          var cstIpi = limpar(tagDe(ipiTrib, 'CST') || tagDe(ipiNt, 'CST'))
           var aliqIpi = numDe(tagDe(ipiTrib, 'pIPI'))
           var valIpi = numDe(tagDe(ipiTrib, 'vIPI'))
 
-          // Projeção preliminar de cClassTrib com base na NCM (especialista RT)
-          var cClassTribSugerido = '000000'
+          // ICMSUFDest (DIFAL Interestadual consumidor final EC 87/2015)
+          var icmsUfDestBlock = tagDe(imposto, 'ICMSUFDest')
+          var valDifalItem = numDe(tagDe(icmsUfDestBlock, 'vICMSUFDest'))
+
+          // Bloco IBSCBS no item (<IBSCBS>)
+          var ibscbsItemBlock = tagDe(imposto, 'IBSCBS')
+          var ibscbsCst = ''
+          var ibscbsCclassTrib = ''
+          var ibscbsVbc = 0
+          var ibscbsPibsUf = 0
+          var ibscbsVibsUf = 0
+          var ibscbsPibsMun = 0
+          var ibscbsVibsMun = 0
+          var ibscbsVibs = 0
+          var ibscbsPcbs = 0
+          var ibscbsVcbs = 0
+          var ibscbsVcredpres = 0
+          var dadosIbscbsItem = null
+
+          if (ibscbsItemBlock && ibscbsItemBlock !== TAG_MALFORMADA) {
+            ibscbsCst = limpar(tagDe(ibscbsItemBlock, 'CST'))
+            ibscbsCclassTrib = limpar(tagDe(ibscbsItemBlock, 'cClassTrib'))
+            var gIbscbs = tagDe(ibscbsItemBlock, 'gIBSCBS')
+            var escopo = gIbscbs && gIbscbs !== TAG_MALFORMADA ? gIbscbs : ibscbsItemBlock
+
+            ibscbsVbc = numDe(tagDe(escopo, 'vBC'))
+
+            var gIbsUf = tagDe(escopo, 'gIBSUF')
+            ibscbsPibsUf = numDe(tagDe(gIbsUf, 'pIBSUF') || tagDe(escopo, 'pIBSUF'))
+            ibscbsVibsUf = numDe(tagDe(gIbsUf, 'vIBSUF') || tagDe(escopo, 'vIBSUF'))
+
+            var gIbsMun = tagDe(escopo, 'gIBSMun')
+            ibscbsPibsMun = numDe(tagDe(gIbsMun, 'pIBSMun') || tagDe(escopo, 'pIBSMun'))
+            ibscbsVibsMun = numDe(tagDe(gIbsMun, 'vIBSMun') || tagDe(escopo, 'vIBSMun'))
+
+            ibscbsVibs = numDe(tagDe(escopo, 'vIBS')) || ibscbsVibsUf + ibscbsVibsMun
+
+            var gCbs = tagDe(escopo, 'gCBS')
+            ibscbsPcbs = numDe(tagDe(gCbs, 'pCBS') || tagDe(escopo, 'pCBS'))
+            ibscbsVcbs = numDe(tagDe(gCbs, 'vCBS') || tagDe(escopo, 'vCBS'))
+
+            ibscbsVcredpres = numDe(tagDe(escopo, 'vCredPres'))
+
+            dadosIbscbsItem = {
+              cst: ibscbsCst,
+              cClassTrib: ibscbsCclassTrib,
+              vBC: ibscbsVbc,
+              pIBSUF: ibscbsPibsUf,
+              vIBSUF: ibscbsVibsUf,
+              pIBSMun: ibscbsPibsMun,
+              vIBSMun: ibscbsVibsMun,
+              vIBS: ibscbsVibs,
+              pCBS: ibscbsPcbs,
+              vCBS: ibscbsVcbs,
+              vCredPres: ibscbsVcredpres,
+            }
+          }
+
+          // Projeção de cClassTrib: prioriza o bloco IBSCBS real quando presente no XML
+          var cClassTribSugerido = ibscbsCclassTrib || '000000'
           var regimeReformaSugerido = 'Regime Geral (IBS ~17,7% + CBS ~8,8%) com Crédito Pleno'
           var creditoPresumidoReforma = 'Não aplicável (apuração ampla standard)'
 
-          // Classificação de autopeças / monofásicos / cesta básica conforme NCM
-          if (
+          if (ibscbsCclassTrib === '000001') {
+            cClassTribSugerido = '000001'
+            regimeReformaSugerido =
+              'Regime Geral — Operação padrão com tributação integral na CBS (0,90%) e IBS UF (0,10%) em 2026'
+            creditoPresumidoReforma =
+              ibscbsVcredpres > 0
+                ? 'Crédito presumido de R$ ' + ibscbsVcredpres.toFixed(2)
+                : 'Sem crédito presumido destacado (vCredPres = 0.00)'
+          } else if (
             ncm.indexOf('8708') === 0 ||
             ncm.indexOf('8409') === 0 ||
             ncm.indexOf('8483') === 0 ||
-            ncm.indexOf('8511') === 0
+            ncm.indexOf('8511') === 0 ||
+            ncm.indexOf('8301') === 0
           ) {
             cClassTribSugerido = '000001'
             regimeReformaSugerido =
-              'Regime Geral — Peças e Componentes Automotivos (extinção do regime monofásico na CBS/IBS)'
-            creditoPresumidoReforma = 'Crédito amplo na aquisição para manutenção de frota/veículos'
+              'Regime Geral — Peças, ferragens e componentes automotivos (tributação no destino)'
+            creditoPresumidoReforma =
+              'Tributação pelo princípio do destino; crédito amplo na apuração do adquirente PJ'
           }
 
           listaItens.push({
@@ -455,6 +614,18 @@ routerAdd('POST', '/backend/v1/nfe-processar-lote', (e) => {
             cclass_trib_sugerido: cClassTribSugerido,
             regime_reforma_sugerido: regimeReformaSugerido,
             credito_presumido_reforma: creditoPresumidoReforma,
+            // Campos IBSCBS
+            ibscbs_cst: ibscbsCst,
+            ibscbs_cclass_trib: ibscbsCclassTrib,
+            ibscbs_vbc: ibscbsVbc,
+            ibscbs_pibs_uf: ibscbsPibsUf,
+            ibscbs_pibs_mun: ibscbsPibsMun,
+            ibscbs_vibs: ibscbsVibs,
+            ibscbs_pcbs: ibscbsPcbs,
+            ibscbs_vcbs: ibscbsVcbs,
+            ibscbs_vcredpres: ibscbsVcredpres,
+            dados_ibscbs: dadosIbscbsItem,
+            valor_difal_uf_dest: valDifalItem,
           })
         }
 
@@ -477,6 +648,9 @@ routerAdd('POST', '/backend/v1/nfe-processar-lote', (e) => {
         nfeRecord.set('data_emissao', dhEmi)
         nfeRecord.set('data_saida_entrada', dhSaiEnt)
         nfeRecord.set('tipo_operacao', tipoOperacao)
+        nfeRecord.set('tipo_compra_venda', tipoOperacao)
+        nfeRecord.set('destinatario_tipo', destinatarioTipo)
+        nfeRecord.set('ind_final', indFinal)
 
         if (clienteVinculado) {
           nfeRecord.set('cliente_id', clienteVinculado.id)
@@ -504,6 +678,14 @@ routerAdd('POST', '/backend/v1/nfe-processar-lote', (e) => {
         nfeRecord.set('dest_municipio', destMun)
         nfeRecord.set('dest_ie', destIe)
 
+        // Intermediador / Marketplace / Transporte
+        nfeRecord.set('intermediador_cnpj', intermedCnpj)
+        nfeRecord.set('intermediador_nome', intermedNome)
+        nfeRecord.set('intermediador_id', intermedId)
+        nfeRecord.set('transportadora_nome', transpNome)
+        nfeRecord.set('transportadora_cnpj', transpCnpj)
+
+        // Totais
         nfeRecord.set('valor_produtos', vProd)
         nfeRecord.set('valor_frete', vFrete)
         nfeRecord.set('valor_seguro', vSeg)
@@ -518,6 +700,14 @@ routerAdd('POST', '/backend/v1/nfe-processar-lote', (e) => {
         nfeRecord.set('valor_pis', vPIS)
         nfeRecord.set('valor_cofins', vCOFINS)
         nfeRecord.set('valor_ipi', vIPI)
+        nfeRecord.set('valor_difal_uf_dest', vICMSUFDest)
+
+        // Bloco IBSCBS totais
+        nfeRecord.set('ibscbs_tot_vbc', ibscbsTotVbc)
+        nfeRecord.set('ibscbs_tot_vibs', ibscbsTotVibs)
+        nfeRecord.set('ibscbs_tot_vcbs', ibscbsTotVcbs)
+        nfeRecord.set('ibscbs_tot_vcredpres', ibscbsTotVcredpres)
+        nfeRecord.set('bloco_ibscbs', blocoIbscbsTotalObj)
 
         nfeRecord.set('forma_pagamento', tPag)
         nfeRecord.set('duplicatas', listaDuplicatas)
@@ -529,7 +719,7 @@ routerAdd('POST', '/backend/v1/nfe-processar-lote', (e) => {
 
         $app.save(nfeRecord)
 
-        // Se era duplicada, limpa os itens anteriores para recadastrar com integridade
+        // Se era duplicada, remove itens anteriores para evitar duplicidade de itens
         if (eraDuplicada) {
           try {
             var itensAntigos = $app.findRecordsByFilter(
@@ -591,13 +781,30 @@ routerAdd('POST', '/backend/v1/nfe-processar-lote', (e) => {
           itemRec.set('cclass_trib_sugerido', itemObj.cclass_trib_sugerido)
           itemRec.set('regime_reforma_sugerido', itemObj.regime_reforma_sugerido)
           itemRec.set('credito_presumido_reforma', itemObj.credito_presumido_reforma)
+
+          // IBSCBS por item
+          itemRec.set('ibscbs_cst', itemObj.ibscbs_cst)
+          itemRec.set('ibscbs_cclass_trib', itemObj.ibscbs_cclass_trib)
+          itemRec.set('ibscbs_vbc', itemObj.ibscbs_vbc)
+          itemRec.set('ibscbs_pibs_uf', itemObj.ibscbs_pibs_uf)
+          itemRec.set('ibscbs_pibs_mun', itemObj.ibscbs_pibs_mun)
+          itemRec.set('ibscbs_vibs', itemObj.ibscbs_vibs)
+          itemRec.set('ibscbs_pcbs', itemObj.ibscbs_pcbs)
+          itemRec.set('ibscbs_vcbs', itemObj.ibscbs_vcbs)
+          itemRec.set('ibscbs_vcredpres', itemObj.ibscbs_vcredpres)
+          itemRec.set('dados_ibscbs', itemObj.dados_ibscbs)
+          itemRec.set('valor_difal_uf_dest', itemObj.valor_difal_uf_dest)
+
           itemRec.set('parecer_item', {
             ncm: itemObj.ncm,
             cfop: itemObj.cfop,
             cest: itemObj.cest,
             cst_icms: itemObj.cst_icms,
             aliq_icms: itemObj.aliquota_icms,
+            cst_pis: itemObj.cst_pis,
+            cst_cofins: itemObj.cst_cofins,
             cclass_trib: itemObj.cclass_trib_sugerido,
+            ibscbs: itemObj.dados_ibscbs,
           })
 
           $app.save(itemRec)
@@ -615,7 +822,9 @@ routerAdd('POST', '/backend/v1/nfe-processar-lote', (e) => {
             chave: chave,
             numero: numero,
             nfe_id: nfeRecord.id,
-            cliente_vinculado: clienteVinculado ? clienteVinculado.nome : 'Não localizado',
+            cliente_vinculado: clienteVinculado
+              ? clienteVinculado.nome
+              : 'Consumidor final / Manual',
             cliente_cnpj: clienteVinculado
               ? clienteVinculado.cnpj
               : tipoOperacao === 'compra'
@@ -635,7 +844,9 @@ routerAdd('POST', '/backend/v1/nfe-processar-lote', (e) => {
             chave: chave,
             numero: numero,
             nfe_id: nfeRecord.id,
-            cliente_vinculado: clienteVinculado ? clienteVinculado.nome : 'Não localizado',
+            cliente_vinculado: clienteVinculado
+              ? clienteVinculado.nome
+              : 'Consumidor final / Manual',
             cliente_cnpj: clienteVinculado
               ? clienteVinculado.cnpj
               : tipoOperacao === 'compra'

@@ -9,11 +9,11 @@ import {
   Scale,
   DollarSign,
   Layers,
-  CheckCircle2,
   AlertCircle,
   FileCheck2,
   RefreshCw,
-  Info,
+  ShoppingCart,
+  UserCheck,
 } from 'lucide-react'
 import type { NfeRecord, NfeAnalise } from '@/types/nfes'
 import { analisarNfeComAgentes } from '@/services/nfeService'
@@ -96,8 +96,16 @@ export const PainelAnaliseAgentes: React.FC<PainelAnaliseAgentesProps> = ({
     )
   }
 
-  const { emit_razao_social, dest_razao_social, numero, tipo_operacao, valor_total_nfe } =
-    nfeSelecionada
+  const {
+    emit_razao_social,
+    dest_razao_social,
+    numero,
+    tipo_operacao,
+    tipo_compra_venda,
+    valor_total_nfe,
+  } = nfeSelecionada
+
+  const ehVenda = (tipo_compra_venda || tipo_operacao) === 'venda'
 
   return (
     <div className="space-y-6">
@@ -113,14 +121,28 @@ export const PainelAnaliseAgentes: React.FC<PainelAnaliseAgentesProps> = ({
                 </CardTitle>
                 <Badge
                   variant="outline"
-                  className="text-xs border-purple-500/30 bg-purple-500/10 text-purple-600"
+                  className={`text-xs ${
+                    ehVenda
+                      ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600'
+                      : 'border-blue-500/30 bg-blue-500/10 text-blue-600'
+                  }`}
                 >
-                  NF-e nº {numero} ({tipo_operacao === 'compra' ? 'Compra/Entrada' : 'Venda/Saída'})
+                  NF-e nº {numero} ({ehVenda ? 'Venda / Saída B2C' : 'Compra / Entrada'})
                 </Badge>
+                {nfeSelecionada.destinatario_tipo === 'PF' && (
+                  <Badge variant="secondary" className="bg-amber-500/10 text-amber-700 text-xs">
+                    <UserCheck className="w-3 h-3 mr-1" /> Consumidor Final
+                  </Badge>
+                )}
+                {nfeSelecionada.intermediador_nome && (
+                  <Badge variant="outline" className="bg-indigo-500/10 text-indigo-600 text-xs">
+                    <ShoppingCart className="w-3 h-3 mr-1" /> {nfeSelecionada.intermediador_nome}
+                  </Badge>
+                )}
               </div>
               <CardDescription className="mt-1">
                 3 Agentes dedicados com inteligência técnica ADECONT cruzando a tributação atual
-                (ICMS/PIS/COFINS) com a Reforma Tributária (IBS/CBS e cClassTrib).
+                (ICMS/DIFAL/PIS/COFINS) com a Reforma Tributária (IBS/CBS e bloco IBSCBS real).
               </CardDescription>
             </div>
 
@@ -150,13 +172,17 @@ export const PainelAnaliseAgentes: React.FC<PainelAnaliseAgentesProps> = ({
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-3 text-xs">
             <div className="p-2 rounded bg-muted/40">
-              <span className="text-muted-foreground block">Fornecedor (Emitente)</span>
+              <span className="text-muted-foreground block">
+                {ehVenda ? 'Vendedor (Emitente)' : 'Fornecedor (Emitente)'}
+              </span>
               <span className="font-semibold text-foreground truncate block">
                 {emit_razao_social}
               </span>
             </div>
             <div className="p-2 rounded bg-muted/40">
-              <span className="text-muted-foreground block">Destinatário (Adquirente)</span>
+              <span className="text-muted-foreground block">
+                {ehVenda ? 'Comprador (Destinatário)' : 'Destinatário (Adquirente)'}
+              </span>
               <span className="font-semibold text-foreground truncate block">
                 {dest_razao_social}
               </span>
@@ -165,7 +191,7 @@ export const PainelAnaliseAgentes: React.FC<PainelAnaliseAgentesProps> = ({
               <span className="text-muted-foreground block">Total da Operação</span>
               <span className="font-semibold text-foreground block">
                 R$ {Number(valor_total_nfe).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} (
-                {nfeSelecionada.quantidade_itens} itens)
+                {nfeSelecionada.quantidade_itens} item(ns))
               </span>
             </div>
           </div>
@@ -220,18 +246,18 @@ export const PainelAnaliseAgentes: React.FC<PainelAnaliseAgentesProps> = ({
                   </TabsTrigger>
                   <TabsTrigger value="icms" className="text-xs py-1.5 flex items-center gap-1.5">
                     <Scale className="w-3.5 h-3.5 text-blue-500" />
-                    ICMS / ST / CFOP
+                    {ehVenda ? 'ICMS / DIFAL / CFOP' : 'ICMS / ST / CFOP'}
                   </TabsTrigger>
                   <TabsTrigger
                     value="pis_cofins"
                     className="text-xs py-1.5 flex items-center gap-1.5"
                   >
                     <DollarSign className="w-3.5 h-3.5 text-emerald-500" />
-                    PIS / COFINS
+                    PIS / COFINS (Monofásico)
                   </TabsTrigger>
                   <TabsTrigger value="reforma" className="text-xs py-1.5 flex items-center gap-1.5">
                     <Sparkles className="w-3.5 h-3.5 text-purple-500" />
-                    Reforma (CBS/IBS)
+                    Reforma (Bloco IBSCBS)
                   </TabsTrigger>
                 </TabsList>
 
@@ -247,7 +273,10 @@ export const PainelAnaliseAgentes: React.FC<PainelAnaliseAgentesProps> = ({
                   <div className="flex items-center justify-between text-xs pb-1">
                     <span className="font-semibold text-foreground flex items-center gap-1.5">
                       <Scale className="w-4 h-4 text-blue-500" />
-                      Agente Especialista: ICMS, ICMS-ST, CEST e CFOP
+                      Agente Especialista:{' '}
+                      {ehVenda
+                        ? 'ICMS, DIFAL (EC 87/2015) e CFOP 6108'
+                        : 'ICMS, ICMS-ST, CEST e CFOP'}
                     </span>
                     <Badge
                       variant="outline"
@@ -267,7 +296,7 @@ export const PainelAnaliseAgentes: React.FC<PainelAnaliseAgentesProps> = ({
                   <div className="flex items-center justify-between text-xs pb-1">
                     <span className="font-semibold text-foreground flex items-center gap-1.5">
                       <DollarSign className="w-4 h-4 text-emerald-500" />
-                      Agente Especialista: PIS e COFINS (Monofásico e Créditos)
+                      Agente Especialista: PIS e COFINS (Monofásico Alíquota Zero CST 04)
                     </span>
                     <Badge
                       variant="outline"
@@ -289,7 +318,7 @@ export const PainelAnaliseAgentes: React.FC<PainelAnaliseAgentesProps> = ({
                   <div className="flex items-center justify-between text-xs pb-1">
                     <span className="font-semibold text-foreground flex items-center gap-1.5">
                       <Sparkles className="w-4 h-4 text-purple-500" />
-                      Agente Especialista: Reforma Tributária (CBS, IBS e cClassTrib)
+                      Agente Especialista: Reforma Tributária (Bloco IBSCBS Real no XML)
                     </span>
                     <Badge
                       variant="outline"
@@ -319,7 +348,7 @@ export const PainelAnaliseAgentes: React.FC<PainelAnaliseAgentesProps> = ({
               </p>
               <p className="text-xs text-muted-foreground mt-1 max-w-md mx-auto">
                 Clique no botão <strong>"Executar Análise com 3 Agentes"</strong> acima para acionar
-                os agentes nativos de ICMS/ST, PIS/COFINS e Reforma Tributária.
+                os agentes nativos de ICMS/DIFAL, PIS/COFINS e Reforma Tributária.
               </p>
             </div>
           </CardContent>

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-07T01:31:22.192Z",
+  "generatedAt": "2026-11-07T02:27:51.952Z",
   "collections": [
     {
       "name": "users",
@@ -5097,6 +5097,90 @@
           "required": false,
           "system": false,
           "selectValues": ["pendente", "analisado", "erro"]
+        },
+        {
+          "name": "tipo_compra_venda",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "destinatario_tipo",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "ind_final",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "intermediador_cnpj",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "intermediador_nome",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "intermediador_id",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "transportadora_nome",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "transportadora_cnpj",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "valor_difal_uf_dest",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "ibscbs_tot_vbc",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "ibscbs_tot_vibs",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "ibscbs_tot_vcbs",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "ibscbs_tot_vcredpres",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "bloco_ibscbs",
+          "type": "json",
+          "required": false,
+          "system": false
         }
       ],
       "indexes": [
@@ -5346,6 +5430,72 @@
         {
           "name": "parecer_item",
           "type": "json",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "ibscbs_cst",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "ibscbs_cclass_trib",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "ibscbs_vbc",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "ibscbs_pibs_uf",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "ibscbs_pibs_mun",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "ibscbs_vibs",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "ibscbs_pcbs",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "ibscbs_vcbs",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "ibscbs_vcredpres",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "dados_ibscbs",
+          "type": "json",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "valor_difal_uf_dest",
+          "type": "number",
           "required": false,
           "system": false
         }

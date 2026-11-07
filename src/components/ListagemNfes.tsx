@@ -12,6 +12,9 @@ import {
   Percent,
   Sparkles,
   Loader2,
+  ShoppingCart,
+  Truck,
+  UserCheck,
 } from 'lucide-react'
 import type { NfeRecord, NfeItem } from '@/types/nfes'
 import { listarNfes } from '@/services/nfeService'
@@ -53,9 +56,9 @@ export const TabelaNfeItens: React.FC<TabelaNfeItensProps> = ({ itens, loading }
               <th className="p-2.5 text-right">Qtd</th>
               <th className="p-2.5 text-right">V. Unit</th>
               <th className="p-2.5 text-right">Total</th>
-              <th className="p-2.5">ICMS (CST / %)</th>
-              <th className="p-2.5">PIS/COF (%)</th>
-              <th className="p-2.5">cClassTrib (Reforma)</th>
+              <th className="p-2.5">ICMS / DIFAL</th>
+              <th className="p-2.5">PIS/COF</th>
+              <th className="p-2.5">Bloco IBSCBS (Reforma)</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border/40">
@@ -74,7 +77,7 @@ export const TabelaNfeItens: React.FC<TabelaNfeItensProps> = ({ itens, loading }
                 </td>
                 <td className="p-2.5 font-mono">{it.ncm}</td>
                 <td className="p-2.5 font-mono">{it.cest || '—'}</td>
-                <td className="p-2.5 font-mono">{it.cfop}</td>
+                <td className="p-2.5 font-mono font-semibold">{it.cfop}</td>
                 <td className="p-2.5 text-right">
                   {it.quantidade}{' '}
                   <span className="text-[10px] text-muted-foreground">{it.unidade}</span>
@@ -92,17 +95,47 @@ export const TabelaNfeItens: React.FC<TabelaNfeItensProps> = ({ itens, loading }
                       {it.aliquota_icms}% (R$ {Number(it.valor_icms).toFixed(2)})
                     </span>
                   ) : null}
+                  {it.valor_difal_uf_dest ? (
+                    <div className="text-[10px] text-emerald-600 font-medium mt-0.5">
+                      DIFAL Dest: R$ {Number(it.valor_difal_uf_dest).toFixed(2)}
+                    </div>
+                  ) : null}
                 </td>
                 <td className="p-2.5 text-[11px] text-muted-foreground">
-                  PIS {it.aliquota_pis || 0}% / COF {it.aliquota_cofins || 0}%
+                  <div>
+                    PIS: CST {it.cst_pis || '01'} ({it.aliquota_pis || 0}%)
+                  </div>
+                  <div>
+                    COF: CST {it.cst_cofins || '01'} ({it.aliquota_cofins || 0}%)
+                  </div>
                 </td>
                 <td className="p-2.5">
-                  <Badge
-                    variant="secondary"
-                    className="text-[10px] font-mono bg-primary/10 text-primary"
-                  >
-                    {it.cclass_trib_sugerido || '000000'}
-                  </Badge>
+                  {it.ibscbs_cclass_trib ? (
+                    <div className="space-y-0.5">
+                      <div className="flex items-center gap-1">
+                        <Badge
+                          variant="secondary"
+                          className="text-[10px] font-mono bg-purple-500/10 text-purple-700 border-purple-500/20"
+                        >
+                          cClassTrib {it.ibscbs_cclass_trib}
+                        </Badge>
+                        <span className="text-[10px] text-muted-foreground">
+                          CST {it.ibscbs_cst || '000'}
+                        </span>
+                      </div>
+                      <div className="text-[10px] text-muted-foreground">
+                        CBS {it.ibscbs_pcbs}% (R$ {Number(it.ibscbs_vcbs).toFixed(2)}) | IBS{' '}
+                        {it.ibscbs_pibs_uf}% (R$ {Number(it.ibscbs_vibs).toFixed(2)})
+                      </div>
+                    </div>
+                  ) : (
+                    <Badge
+                      variant="secondary"
+                      className="text-[10px] font-mono bg-primary/10 text-primary"
+                    >
+                      {it.cclass_trib_sugerido || '000001'} (sugerido)
+                    </Badge>
+                  )}
                 </td>
               </tr>
             ))}
@@ -140,16 +173,20 @@ export const NfeCardItem: React.FC<NfeCardItemProps> = ({ nfe, onAnalisar }) => 
     setExpandido((prev) => !prev)
   }
 
-  const tipoBadge =
-    nfe.tipo_operacao === 'compra' ? (
-      <Badge variant="outline" className="bg-blue-500/10 text-blue-600 border-blue-500/30">
-        Compra (Entrada)
-      </Badge>
-    ) : (
-      <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/30">
-        Venda (Saída)
-      </Badge>
-    )
+  const ehVenda = (nfe.tipo_compra_venda || nfe.tipo_operacao) === 'venda'
+
+  const tipoBadge = ehVenda ? (
+    <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/30">
+      Venda (Saída)
+    </Badge>
+  ) : (
+    <Badge variant="outline" className="bg-blue-500/10 text-blue-600 border-blue-500/30">
+      Compra (Entrada)
+    </Badge>
+  )
+
+  const destEhPF =
+    nfe.destinatario_tipo === 'PF' || nfe.vinculo_cliente_status === 'consumidor_final'
 
   return (
     <Card className="border-border/70 hover:border-primary/40 transition-colors shadow-sm">
@@ -166,6 +203,22 @@ export const NfeCardItem: React.FC<NfeCardItemProps> = ({ nfe, onAnalisar }) => 
                   Série {nfe.serie || '1'}
                 </span>
                 {tipoBadge}
+                {destEhPF && (
+                  <Badge
+                    variant="secondary"
+                    className="bg-amber-500/10 text-amber-700 border-amber-500/30 text-[10px]"
+                  >
+                    <UserCheck className="w-3 h-3 mr-1" /> Consumidor Final (PF)
+                  </Badge>
+                )}
+                {nfe.intermediador_nome && (
+                  <Badge
+                    variant="outline"
+                    className="bg-indigo-500/10 text-indigo-600 border-indigo-500/30 text-[10px]"
+                  >
+                    <ShoppingCart className="w-3 h-3 mr-1" /> {nfe.intermediador_nome}
+                  </Badge>
+                )}
                 {nfe.analise_status === 'analisado' && (
                   <Badge
                     variant="secondary"
@@ -216,7 +269,7 @@ export const NfeCardItem: React.FC<NfeCardItemProps> = ({ nfe, onAnalisar }) => 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 pt-1 text-xs">
           <div className="p-2 rounded-lg bg-muted/30 border border-border/40">
             <span className="text-muted-foreground flex items-center gap-1">
-              <Building2 className="w-3.5 h-3.5" /> Emitente (Fornecedor)
+              <Building2 className="w-3.5 h-3.5" /> Emitente (Fornecedor/Vendedor)
             </span>
             <div
               className="font-semibold text-foreground truncate mt-0.5"
@@ -225,13 +278,15 @@ export const NfeCardItem: React.FC<NfeCardItemProps> = ({ nfe, onAnalisar }) => 
               {nfe.emit_razao_social}
             </div>
             <div className="text-[11px] text-muted-foreground">
-              CNPJ: {nfe.emit_cnpj_cpf} ({nfe.emit_uf || 'BR'})
+              {nfe.emit_cnpj_cpf.length === 11 ? 'CPF' : 'CNPJ'}: {nfe.emit_cnpj_cpf} (
+              {nfe.emit_uf || 'BR'})
             </div>
           </div>
 
           <div className="p-2 rounded-lg bg-muted/30 border border-border/40">
             <span className="text-muted-foreground flex items-center gap-1">
-              <Building2 className="w-3.5 h-3.5" /> Destinatário (Cliente)
+              <Building2 className="w-3.5 h-3.5" /> Destinatário (
+              {destEhPF ? 'Consumidor Final' : 'Cliente'})
             </span>
             <div
               className="font-semibold text-foreground truncate mt-0.5"
@@ -240,7 +295,7 @@ export const NfeCardItem: React.FC<NfeCardItemProps> = ({ nfe, onAnalisar }) => 
               {nfe.dest_razao_social}
             </div>
             <div className="text-[11px] text-muted-foreground">
-              CNPJ: {nfe.dest_cnpj_cpf} ({nfe.dest_uf || 'BR'})
+              {destEhPF ? 'CPF' : 'CNPJ'}: {nfe.dest_cnpj_cpf} ({nfe.dest_uf || 'BR'})
             </div>
           </div>
 
@@ -261,10 +316,13 @@ export const NfeCardItem: React.FC<NfeCardItemProps> = ({ nfe, onAnalisar }) => 
 
           <div className="p-2 rounded-lg bg-muted/30 border border-border/40">
             <span className="text-muted-foreground flex items-center gap-1">
-              <Percent className="w-3.5 h-3.5" /> Tributos Destacados
+              <Percent className="w-3.5 h-3.5" /> Tributos & DIFAL
             </span>
             <div className="font-semibold text-foreground mt-0.5">
               ICMS: R$ {Number(nfe.valor_icms || 0).toFixed(2)}
+              {nfe.valor_difal_uf_dest
+                ? ` | DIFAL R$ ${Number(nfe.valor_difal_uf_dest).toFixed(2)}`
+                : ''}
             </div>
             <div className="text-[11px] text-muted-foreground">
               PIS R$ {Number(nfe.valor_pis || 0).toFixed(2)} | COF R${' '}
@@ -272,6 +330,35 @@ export const NfeCardItem: React.FC<NfeCardItemProps> = ({ nfe, onAnalisar }) => 
             </div>
           </div>
         </div>
+
+        {/* Linha extra para Marketplace / Transportadora / Bloco IBSCBS se presentes */}
+        {(nfe.intermediador_nome ||
+          nfe.transportadora_nome ||
+          (nfe.ibscbs_tot_vbc && nfe.ibscbs_tot_vbc > 0)) && (
+          <div className="p-2 rounded-lg bg-muted/20 border border-border/30 text-xs flex flex-wrap items-center gap-x-4 gap-y-1">
+            {nfe.intermediador_nome && (
+              <span className="flex items-center gap-1 text-muted-foreground">
+                <ShoppingCart className="w-3.5 h-3.5 text-indigo-500" />
+                Intermediador: <strong className="text-foreground">{nfe.intermediador_nome}</strong>
+                {nfe.intermediador_cnpj ? ` (${nfe.intermediador_cnpj})` : ''}
+              </span>
+            )}
+            {nfe.transportadora_nome && (
+              <span className="flex items-center gap-1 text-muted-foreground">
+                <Truck className="w-3.5 h-3.5 text-blue-500" />
+                Transporte: <strong className="text-foreground">{nfe.transportadora_nome}</strong>
+              </span>
+            )}
+            {nfe.ibscbs_tot_vbc && nfe.ibscbs_tot_vbc > 0 && (
+              <span className="flex items-center gap-1 text-purple-700 font-medium">
+                <Sparkles className="w-3.5 h-3.5 text-purple-600" />
+                Bloco IBSCBS Real: Base R$ {Number(nfe.ibscbs_tot_vbc).toFixed(2)} | CBS R${' '}
+                {Number(nfe.ibscbs_tot_vcbs).toFixed(2)} | IBS R${' '}
+                {Number(nfe.ibscbs_tot_vibs).toFixed(2)}
+              </span>
+            )}
+          </div>
+        )}
 
         {/* Expansão com duplicatas e itens */}
         {expandido && (
@@ -312,7 +399,7 @@ export const NfeCardItem: React.FC<NfeCardItemProps> = ({ nfe, onAnalisar }) => 
                   Itens da Nota Fiscal ({nfe.quantidade_itens} mercadorias/produtos)
                 </span>
                 <span className="text-[11px] text-muted-foreground">
-                  Classificação tributária atual e correspondência cClassTrib (Reforma)
+                  Classificação tributária atual, DIFAL e bloco IBSCBS (Reforma)
                 </span>
               </div>
               <TabelaNfeItens itens={itens} loading={carregandoItens} />

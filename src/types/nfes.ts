@@ -40,6 +40,23 @@ export interface NfeItem {
   cst_ipi?: string
   aliquota_ipi?: number
   valor_ipi?: number
+  // DIFAL / Partilha interestadual
+  valor_bc_uf_dest?: number
+  aliquota_icms_uf_dest?: number
+  aliquota_icms_inter?: number
+  valor_difal_uf_dest?: number
+  // Bloco IBSCBS real (Reforma Tributária)
+  ibscbs_cst?: string
+  ibscbs_cclass_trib?: string
+  ibscbs_vbc?: number
+  ibscbs_pibs_uf?: number
+  ibscbs_vibs_uf?: number
+  ibscbs_pibs_mun?: number
+  ibscbs_vibs_mun?: number
+  ibscbs_vibs?: number
+  ibscbs_pcbs?: number
+  ibscbs_vcbs?: number
+  ibscbs_vcredpres?: number
   cclass_trib_sugerido?: string
   regime_reforma_sugerido?: string
   credito_presumido_reforma?: string
@@ -61,6 +78,13 @@ export interface NfeAnalise {
   tipo_operacao: 'compra' | 'venda'
   total_itens: number
   valor_total_nfe: number
+  intermediador?: string | null
+  ibscbs_real?: {
+    vBC: number
+    vCBS: number
+    vIBS: number
+    cClassTrib: string
+  } | null
   agentes: {
     icms: NfeAgenteResultado
     pis_cofins: NfeAgenteResultado
@@ -80,10 +104,18 @@ export interface NfeRecord {
   data_emissao?: string
   data_saida_entrada?: string
   tipo_operacao: 'compra' | 'venda'
+  tipo_compra_venda?: 'compra' | 'venda'
   cliente_id?: string
   cliente_cnpj?: string
   cliente_nome?: string
-  vinculo_cliente_status: 'vinculado' | 'nao_localizado'
+  vinculo_cliente_status: 'vinculado' | 'nao_localizado' | 'consumidor_final'
+  destinatario_tipo?: 'PJ' | 'PF'
+  ind_final?: number
+  ind_intermed?: number
+  intermediador_cnpj?: string
+  intermediador_nome?: string
+  transportadora_cnpj?: string
+  transportadora_nome?: string
   emit_cnpj_cpf: string
   emit_razao_social: string
   emit_nome_fantasia?: string
@@ -106,6 +138,7 @@ export interface NfeRecord {
   valor_icms?: number
   base_icms_st?: number
   valor_icms_st?: number
+  valor_difal_uf_dest?: number
   valor_pis?: number
   valor_cofins?: number
   valor_ipi?: number
@@ -115,6 +148,11 @@ export interface NfeRecord {
   arquivo_origem?: string
   analise_status: 'pendente' | 'processando' | 'analisado' | 'erro'
   analise?: NfeAnalise | null
+  // Totalizadores IBSCBS real
+  ibscbs_tot_vbc?: number
+  ibscbs_tot_vibs?: number
+  ibscbs_tot_vcbs?: number
+  ibscbs_tot_vcredpres?: number
   created?: string
 }
 
