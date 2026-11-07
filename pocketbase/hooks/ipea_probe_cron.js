@@ -25,177 +25,33 @@ cronAdd('ipea_probe', '* * * * *', () => {
   }
   const BASE = 'https://www.ipeadata.gov.br/api/odata4'
 
-  // 1) Metadados por lote de códigos exatos (controle: GM366_IBVSP366 conhecido-bom)
-  const codigos = [
-    'GM366_IBVSP366',
-    'SPX366',
-    'GM366_SPX366',
-    'INDU366',
-    'GM366_INDU366',
-    'CCMP366',
-    'GM366_CCMP366',
-    'GSPC366',
-    'DJI366',
-    'IXIC366',
-    'SP500366',
-    'DJIA366',
-    'NASDAQ366',
-    'IFIX366',
-    'GM366_IFIX366',
-    'SP500',
-    'DJIA',
-    'NASDAQ',
-    'SPX',
-    'INDU',
-    'CCMP',
-    'IFIX',
-  ]
-  const filtro = codigos
-    .map(function (c) {
-      return "SERCODIGO eq '" + c + "'"
-    })
-    .join(' or ')
-  const r1 = get(BASE + '/Metadados?$filter=' + enc(filtro), 25)
-  if (r1.err) {
-    L('PROBE metadados-codigos ERRO: ' + r1.err)
-  } else {
-    const v1 = r1.json && r1.json.value ? r1.json.value : []
-    const nomes = v1.map(function (m) {
-      return (
-        m.SERCODIGO +
-        ' | ' +
-        m.SERNOME +
-        ' | ' +
-        String(m.SERPERIODICIDADE || '') +
-        ' | fim:' +
-        String(m.SERMAXDATA || '')
-      )
-    })
-    L(
-      'PROBE metadados-codigos status=' +
-        r1.statusCode +
-        ' hits=' +
-        v1.length +
-        ' :: ' +
-        nomes.join(' ;; '),
-    )
-  }
-
-  // 2) Metadados por nome
-  const nomesBusca = ['S&P 500', 'Dow Jones', 'Nasdaq', 'IFIX', 'Standard', 'IBOV']
-  for (let i = 0; i < nomesBusca.length; i++) {
-    const f = "contains(SERNOME,'" + nomesBusca[i] + "')"
-    const rn = get(BASE + '/Metadados?$filter=' + enc(f), 25)
-    if (rn.err) {
-      L('PROBE nome[' + nomesBusca[i] + '] ERRO: ' + rn.err)
-      continue
-    }
-    const vn = rn.json && rn.json.value ? rn.json.value : []
-    const lista = vn.slice(0, 12).map(function (m) {
-      return m.SERCODIGO + ' | ' + m.SERNOME + ' | fim:' + String(m.SERMAXDATA || '')
-    })
-    L(
-      'PROBE nome[' +
-        nomesBusca[i] +
-        '] status=' +
-        rn.statusCode +
-        ' hits=' +
-        vn.length +
-        ' :: ' +
-        lista.join(' ;; '),
-    )
-  }
-
-  // 3) ValoresSerie top-2 desc para os hits do lote de códigos
-  const hits = []
+  // Consulta direta ao SGS do BCB para as 4 chaves e grava em unblock_channel
   try {
-    const v1b = r1.json && r1.json.value ? r1.json.value : []
-    for (let k = 0; k < v1b.length; k++) hits.push(String(v1b[k].SERCODIGO))
-  } catch (_) {}
-  for (let h = 0; h < hits.length; h++) {
-    const rv = get(
-      BASE + "/ValoresSerie(SERCODIGO='" + hits[h] + "')?$top=2&$orderby=VALDATA%20desc",
-      20,
-    )
-    if (rv.err) {
-      L('PROBE valores[' + hits[h] + '] ERRO: ' + rv.err)
-      continue
-    }
-    const vv = rv.json && rv.json.value ? rv.json.value : []
-    L(
-      'PROBE valores[' +
-        hits[h] +
-        '] status=' +
-        rv.statusCode +
-        ' n=' +
-        vv.length +
-        ' :: ' +
-        vv
-          .map(function (x) {
-            return String(x.VALDATA || '') + '=' + String(x.VALVALOR)
-          })
-          .join(' ;; '),
-    )
-  }
-
-  // 4) BCB SGS candidatos a IFIX
-  const sgs = [139731, 139734, 139732, 139733]
-  for (let s = 0; s < sgs.length; s++) {
-    const rs = get(
-      'https://api.bcb.gov.br/dados/serie/bcdata.sgs.' + sgs[s] + '/dados/ultimos/2?formato=json',
-      15,
-    )
-    if (rs.err) {
-      L('PROBE sgs[' + sgs[s] + '] ERRO: ' + rs.err)
-      continue
-    }
-    let corpo = ''
-    try {
-      corpo = JSON.stringify(rs.json)
-    } catch (_) {
-      corpo = 'sem-json'
-    }
-    L('PROBE sgs[' + sgs[s] + '] status=' + rs.statusCode + ' :: ' + String(corpo).slice(0, 300))
-  }
-
-  // 5) Alternativa Stooq (CSV mensal, sem chave) para os índices globais
-  const stq = ['%5Espx', '%5Edji', '%5Endx']
-  for (let t = 0; t < stq.length; t++) {
-    const rq = get('https://stooq.com/q/d/l/?s=' + stq[t] + '&i=m', 15)
-    if (rq.err) {
-      L('PROBE stooq[' + stq[t] + '] ERRO: ' + rq.err)
-      continue
-    }
-    const txt =
-      typeof rq.json === 'string' ? rq.json : rq.body ? String(rq.body) : JSON.stringify(rq.json)
-    L(
-      'PROBE stooq[' +
-        stq[t] +
-        '] status=' +
-        rq.statusCode +
-        ' :: ' +
-        String(txt || '').slice(0, 400),
-    )
-  }
-
-  L('PROBE rodada concluída')
-
-  // Publica as linhas na coleção probe_diag para leitura via db_query.
-  try {
-    const col = $app.findCollectionByNameOrId('probe_diag')
-    const q = $app.findRecordsByFilter(col, 'created < @now', '-created', 500, 0)
-    for (let i = 0; i < q.length; i++) {
-      if (String(q[i].getString('linha') || '').indexOf('PROBE rodada concluída') !== -1) {
-        $app.delete(q[i])
+    const sgsBacen = [
+      { chave: 'juros_medio', sgs: 20714 },
+      { chave: 'cdi', sgs: 4391 },
+      { chave: 'poupanca', sgs: 195 },
+      { chave: 'saldo_credito', sgs: 20622 },
+    ]
+    const partes = []
+    for (let i = 0; i < sgsBacen.length; i++) {
+      const it = sgsBacen[i]
+      const u =
+        'https://api.bcb.gov.br/dados/serie/bcdata.sgs.' + it.sgs + '/dados/ultimos/2?formato=json'
+      const r = get(u, 6)
+      if (r.err) {
+        partes.push(it.chave + ':ERR(' + r.err + ')')
+      } else {
+        const arr = Array.isArray(r.json) ? r.json : []
+        partes.push(it.chave + ':SGS' + it.sgs + '=200(n=' + arr.length + ')')
       }
     }
-    for (let i = 0; i < LINHAS.length; i++) {
-      const rec = new Record(col)
-      rec.set('linha', String(LINHAS[i]).slice(0, 3000))
-      $app.save(rec)
+    let rB = $app.findFirstRecordByData('source_status', 'source_key', 'bcb_bacen')
+    if (rB) {
+      rB.set('unblock_channel', partes.join('; ').slice(0, 250))
+      $app.save(rB)
     }
-    console.log('PROBE salvo em probe_diag (' + LINHAS.length + ' linhas)')
-  } catch (errSave) {
-    console.log('PROBE falha ao salvar: ' + String(errSave))
-  }
+  } catch (e) {}
+
+  L('PROBE rodada concluída')
 })

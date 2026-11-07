@@ -36,6 +36,7 @@ export type ChaveSerieHistorica =
   | 'juros_medio'
   | 'juros_pessoal'
   | 'inadimplencia'
+  | 'saldo_credito'
   | 'usd'
   | 'eur'
   | 'gbp'
@@ -300,6 +301,19 @@ export const CATALOGO_SERIES: CatalogoSerie[] = [
     fonteUrl: 'https://www.bcb.gov.br',
     ...SEL_PADRAO,
     termo: 'credito inadimplencia carteira banca default',
+    formatoValor: 'pct',
+  },
+  {
+    chave: 'saldo_credito',
+    nome: 'Saldo de crédito (% do PIB)',
+    descricao: 'Saldo total de crédito do sistema financeiro nacional — % do PIB — BCB SGS 20622',
+    categoria: 'Crédito e inadimplência',
+    unidade: '% do PIB',
+    modoAcumulado: 'nivel',
+    fonte: 'Banco Central do Brasil',
+    fonteUrl: 'https://www.bcb.gov.br',
+    ...SEL_PADRAO,
+    termo: 'credito saldo pib sistema financeiro volume operacoes',
     formatoValor: 'pct',
   },
   // — Câmbio —

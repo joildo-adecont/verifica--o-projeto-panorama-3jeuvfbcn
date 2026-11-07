@@ -95,6 +95,33 @@ routerAdd('GET', '/backend/v1/egress-ip', (e) => {
   }
 
   // Resposta padrão: texto simples com o endereço IP (conforme aceite 1)
+  // Gatilho opcional de validação BACEN se query contiver ?valida_bacen=1
+  if (e.request.url.query().get('valida_bacen') === '1') {
+    try {
+      const chaves = ['juros_medio', 'cdi', 'poupanca', 'saldo_credito']
+      const resVal = {}
+      for (let ci = 0; ci < chaves.length; ci++) {
+        const ck = chaves[ci]
+        const rB = $http.send({
+          url: 'http://127.0.0.1:8090/backend/v1/series-historicas?chave=' + ck + '&reteste=1',
+          method: 'GET',
+          timeout: 10,
+        })
+        resVal[ck] = {
+          status: rB ? rB.statusCode : 0,
+          body: rB ? rB.json : null,
+        }
+      }
+      let rStat = $app.findFirstRecordByData('source_status', 'source_key', 'bcb_bacen')
+      if (rStat) {
+        rStat.set('notes', JSON.stringify(resVal).slice(0, 1500))
+        $app.save(rStat)
+      }
+    } catch (errBacen) {
+      console.log('valida_bacen erro: ' + String(errBacen))
+    }
+  }
+
   e.response.header().set('Content-Type', 'text/plain; charset=utf-8')
   e.response.header().set('Cache-Control', 'no-store, no-cache, must-revalidate')
   e.response.writeHeader(200)
