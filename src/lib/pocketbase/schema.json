@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-07T21:19:37.123Z",
+  "generatedAt": "2026-11-07T21:35:28.253Z",
   "collections": [
     {
       "name": "users",
@@ -5641,6 +5641,340 @@
         "CREATE INDEX idx_regime_hist_origem ON regime_historico (origem)",
         "CREATE INDEX idx_regime_hist_created ON regime_historico (created DESC)"
       ]
+    },
+    {
+      "name": "analise_balancos",
+      "type": "base",
+      "apiRules": {
+        "list": "",
+        "view": "",
+        "create": "",
+        "update": "",
+        "delete": ""
+      },
+      "fields": [
+        {
+          "name": "cliente_cnpj",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "exercicio",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "ano_calendario",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "dados_balanco",
+          "type": "json",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "dados_dre",
+          "type": "json",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "dados_complementares",
+          "type": "json",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "atualizado_por",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": [
+        "CREATE INDEX idx_analise_bal_cnpj ON analise_balancos (cliente_cnpj)",
+        "CREATE UNIQUE INDEX idx_analise_bal_cnpj_ex ON analise_balancos (cliente_cnpj, exercicio)"
+      ]
+    },
+    {
+      "name": "analise_checklist",
+      "type": "base",
+      "apiRules": {
+        "list": "",
+        "view": "",
+        "create": "",
+        "update": "",
+        "delete": ""
+      },
+      "fields": [
+        {
+          "name": "cliente_cnpj",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "item_id",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "categoria",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "documento",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "obrigatorio",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "recebido",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "observacao",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "data_recebimento",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": [
+        "CREATE INDEX idx_analise_chk_cnpj ON analise_checklist (cliente_cnpj)",
+        "CREATE UNIQUE INDEX idx_analise_chk_cnpj_item ON analise_checklist (cliente_cnpj, item_id)"
+      ]
+    },
+    {
+      "name": "analise_achados",
+      "type": "base",
+      "apiRules": {
+        "list": "",
+        "view": "",
+        "create": "",
+        "update": "",
+        "delete": ""
+      },
+      "fields": [
+        {
+          "name": "cliente_cnpj",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "area",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "achado",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "evidencia",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "impacto",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "risco",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "recomendacao",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "responsavel",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "prazo",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "status",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": ["CREATE INDEX idx_analise_ach_cnpj ON analise_achados (cliente_cnpj)"]
+    },
+    {
+      "name": "analise_pareceres",
+      "type": "base",
+      "apiRules": {
+        "list": "",
+        "view": "",
+        "create": "",
+        "update": "",
+        "delete": ""
+      },
+      "fields": [
+        {
+          "name": "cliente_cnpj",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "periodo",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "escopo",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "pontos_fortes",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "pontos_atencao",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "achados_criticos",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "conclusao",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "nivel_opiniao",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "recomendacao_credito",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "responsavel_tecnico",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "notas_ajustadas",
+          "type": "json",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": ["CREATE UNIQUE INDEX idx_analise_par_cnpj ON analise_pareceres (cliente_cnpj)"]
     }
   ]
 }

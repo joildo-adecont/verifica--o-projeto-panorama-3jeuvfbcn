@@ -219,7 +219,7 @@ export const AnalisesEmpresariais: React.FC = () => {
                   <span>{erro}</span>
                 </div>
               ) : dossie ? (
-                <PainelAnalisesEmpresariais dossie={dossie} />
+                <PainelAnalisesEmpresariais dossie={dossie} todasEmpresas={empresas} />
               ) : (
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8 text-center text-xs text-slate-500">
                   Selecione um cliente para carregar a análise integrada.
