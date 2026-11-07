@@ -198,11 +198,25 @@ export const RelatorioDiagnosticoPastoreImprimivel: React.FC<
             </tbody>
           </table>
 
-          <p className="text-[10px] text-slate-600 italic">
-            * Dados de movimentação fiscal importados: {notas.saidasQtd} NFes de saída (CFOP 5102 -
-            autopeças) e {notas.entradasQtd} NFes de entrada de fornecedores do setor (ex.: Cobra
-            Rolamentos e Distribuidoras).
-          </p>
+          <div className="text-[10px] text-slate-600 space-y-0.5">
+            <p className="italic">
+              * Dados de movimentação fiscal consolidados: {notas.saidasQtd} NFes de saída (CFOP
+              5102 - autopeças) e {notas.entradasQtd} NFes de entrada de fornecedores do setor (ex.:
+              Cobra Rolamentos e Distribuidoras). Total de {notas.totalNotas} documento(s) únicos
+              auditados.
+            </p>
+            {notas.conciliacaoFontes?.avisoTransparencia && (
+              <p className="text-[9px] text-amber-900 bg-amber-50/90 border border-amber-200/80 rounded px-2 py-0.5 font-medium">
+                🛡️ {notas.conciliacaoFontes.avisoTransparencia}
+                {notas.conciliacaoFontes.duplicadasEvitadas > 0 && (
+                  <span className="font-bold ml-1">
+                    ({notas.conciliacaoFontes.duplicadasEvitadas} duplicata(s) de chave
+                    descartada(s) na conciliação).
+                  </span>
+                )}
+              </p>
+            )}
+          </div>
         </div>
 
         {/* TABELA COMPARATIVA DE REGIMES */}

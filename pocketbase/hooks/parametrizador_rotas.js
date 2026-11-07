@@ -793,10 +793,10 @@ routerAdd('POST', '/backend/v1/param-importar-lote', (e) => {
           repetidos++
           resultados.push({
             nome: nome,
-            status: 'repetido',
+            status: 'duplicada',
             chave: chave,
             documento_id: jaTem.id,
-            motivo: 'já importado — não foi duplicado',
+            motivo: 'Nota já cadastrada (chave de 44 dígitos duplicada): registro mantido intacto.',
           })
           continue
         }
@@ -943,8 +943,24 @@ routerAdd('POST', '/backend/v1/param-importar-lote', (e) => {
         motivo_sem_pasta: motivoSemPasta,
       })
     } catch (err) {
-      invalidos++
-      resultados.push({ nome: nome, status: 'erro', motivo: String(err).slice(0, 200) })
+      var msgErr = String(err || '')
+      // Se estourar erro de unicidade do banco (ex: UNIQUE constraint failed: param_documentos.chave)
+      if (
+        msgErr.indexOf('UNIQUE constraint failed') >= 0 ||
+        msgErr.indexOf('idx_param_documentos_chave') >= 0 ||
+        msgErr.indexOf('idx_param_itens_chave_num') >= 0
+      ) {
+        repetidos++
+        resultados.push({
+          nome: nome,
+          status: 'duplicada',
+          chave: chave,
+          motivo: 'Nota já cadastrada (chave de 44 dígitos duplicada): registro mantido intacto.',
+        })
+      } else {
+        invalidos++
+        resultados.push({ nome: nome, status: 'erro', motivo: msgErr.slice(0, 200) })
+      }
     }
   }
 

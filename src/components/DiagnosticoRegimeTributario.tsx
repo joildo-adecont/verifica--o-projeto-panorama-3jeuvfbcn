@@ -218,8 +218,9 @@ export const DiagnosticoRegimeTributario: React.FC = () => {
             <span className="font-semibold uppercase tracking-wider">Fluxo de Documentos</span>
             <Receipt className="w-4 h-4 text-indigo-400" />
           </div>
-          <div className="text-xl font-black text-white">
-            {notas.totalNotas} <span className="text-sm font-normal text-slate-400">notas</span>
+          <div className="text-xl font-black text-white flex items-baseline gap-2">
+            <span>{notas.totalNotas}</span>
+            <span className="text-xs font-normal text-slate-400">chaves únicas</span>
           </div>
           <div className="mt-2 text-xs text-slate-300 bg-slate-900/60 border border-slate-700 rounded p-1.5 flex justify-between items-center">
             <span>Saídas (CFOP 5102):</span>
@@ -228,6 +229,11 @@ export const DiagnosticoRegimeTributario: React.FC = () => {
           <p className="text-[11px] text-slate-400 mt-1">
             Entradas: {notas.entradasQtd} NFes (Cobra Rolamentos, baterias, autopeças).
           </p>
+          {notas.conciliacaoFontes?.avisoTransparencia && (
+            <div className="mt-2 pt-2 border-t border-slate-700/60 text-[10px] text-amber-300/90 leading-tight">
+              {notas.conciliacaoFontes.avisoTransparencia}
+            </div>
+          )}
         </div>
       </div>
 

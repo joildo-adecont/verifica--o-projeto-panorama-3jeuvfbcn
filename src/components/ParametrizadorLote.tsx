@@ -1169,7 +1169,7 @@ export function ParametrizadorLote() {
                         </span>
                         {r.status === 'importado' ? (
                           <CheckCircle2 className="mt-0.5 w-3.5 h-3.5 shrink-0 text-emerald-700" />
-                        ) : r.status === 'repetido' ? (
+                        ) : r.status === 'repetido' || r.status === 'duplicada' ? (
                           <Info className="mt-0.5 w-3.5 h-3.5 shrink-0 text-amber-600" />
                         ) : (
                           <XCircle className="mt-0.5 w-3.5 h-3.5 shrink-0 text-rose-600" />
@@ -1211,17 +1211,24 @@ export function ParametrizadorLote() {
                                 )}
                               </>
                             )}
-                            {r.status === 'repetido' && (
-                              <span className="text-amber-800 font-medium">
-                                {r.motivo ||
-                                  'Nota já cadastrada (chave de 44 dígitos duplicada): registro mantido intacto.'}
-                              </span>
+                            {(r.status === 'repetido' || r.status === 'duplicada') && (
+                              <div className="flex flex-col gap-0.5">
+                                <span className="inline-flex items-center gap-1 text-[9px] font-bold text-amber-900 bg-amber-100 rounded px-1.5 py-0.5 w-fit">
+                                  Duplicada (Rejeitada)
+                                </span>
+                                <span className="text-amber-800 font-medium">
+                                  {r.motivo ||
+                                    'Nota já cadastrada (chave de 44 dígitos duplicada): registro mantido intacto.'}
+                                </span>
+                              </div>
                             )}
-                            {r.status !== 'importado' && r.status !== 'repetido' && (
-                              <span className="text-rose-700 font-medium">
-                                {r.motivo || 'Falha na leitura ou XML inválido.'}
-                              </span>
-                            )}
+                            {r.status !== 'importado' &&
+                              r.status !== 'repetido' &&
+                              r.status !== 'duplicada' && (
+                                <span className="text-rose-700 font-medium">
+                                  {r.motivo || 'Falha na leitura ou XML inválido.'}
+                                </span>
+                              )}
                           </div>
                         </div>
                       </div>

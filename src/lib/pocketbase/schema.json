@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-07T15:31:45.887Z",
+  "generatedAt": "2026-11-07T15:56:10.187Z",
   "collections": [
     {
       "name": "users",
@@ -3327,7 +3327,9 @@
           "system": false
         }
       ],
-      "indexes": []
+      "indexes": [
+        "CREATE UNIQUE INDEX idx_param_documentos_chave ON param_documentos (chave) WHERE chave != \"\""
+      ]
     },
     {
       "name": "param_itens",
@@ -3491,7 +3493,9 @@
           "system": false
         }
       ],
-      "indexes": []
+      "indexes": [
+        "CREATE UNIQUE INDEX idx_param_itens_chave_num ON param_itens (chave_doc, numero_item) WHERE chave_doc != \"\""
+      ]
     },
     {
       "name": "param_classificacoes_rt",

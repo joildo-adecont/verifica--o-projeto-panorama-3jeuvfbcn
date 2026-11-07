@@ -60,6 +60,14 @@ export interface EstatisticasNfes {
   principaisFornecedores: { nome: string; valor: number; qtd: number }[]
   cfopsSaida: { cfop: string; qtd: number }[]
   consumidorFinalPfEstimadoPct: number
+  conciliacaoFontes?: {
+    totalChavesUnicas: number
+    presentesEmAmbas: number
+    somenteParam: number
+    somenteNfes: number
+    duplicadasEvitadas: number
+    avisoTransparencia?: string
+  }
 }
 
 export interface LinhaComparativoRegime {
@@ -179,7 +187,126 @@ export async function carregarDiagnosticoClientePastore(): Promise<DiagnosticoCl
   const ativoTotalMaisRecente =
     balancetes.length > 0 ? balancetes[balancetes.length - 1].totalAtivo : 0
 
-  // 3. Carregar dados de notas fiscais em param_documentos (entradas e saídas)
+  // 3. Carregar dados fiscais cruzando param_documentos e nfes COM DEDUPLICAÇÃO ESTRITA POR CHAVE DE ACESSO
+  // A mesma chave presente nas duas coleções entra exatamente UMA VEZ na soma dos totais e volumes,
+  // priorizando a fonte mais completa (nfes se analisado/com itens fiscais detalhados, ou param_documentos).
+  interface NotaNormalizada {
+    chave: string
+    fonte: 'param' | 'nfes'
+    direcao: 'entrada' | 'saida'
+    valor: number
+    fornecedorNome: string
+    cfop: string
+    temItensOuAnalise: boolean
+  }
+
+  const mapaDocumentosPorChave = new Map<string, NotaNormalizada>()
+  const chavesEmParam = new Set<string>()
+  const chavesEmNfes = new Set<string>()
+  let duplicadasEvitadasAoCruzar = 0
+
+  // 3.1 Busca em param_documentos
+  try {
+    const resParamDocs = await pb.collection('param_documentos').getList<any>(1, 500, {
+      filter: `emitente_cnpj='${CNPJ_PASTORE_LIMPO}' || destinatario_cnpj='${CNPJ_PASTORE_LIMPO}'`,
+      sort: '-data_emissao',
+    })
+
+    for (const doc of resParamDocs.items) {
+      const chave = String(doc.chave || '').trim() || `param_${doc.id}`
+      chavesEmParam.add(chave)
+
+      const emit = String(doc.emitente_cnpj || '').replace(/\D/g, '')
+      const v = Number(doc.valor_total || 0)
+      const direcao: 'entrada' | 'saida' =
+        doc.direcao === 'entrada'
+          ? 'entrada'
+          : doc.direcao === 'saida'
+            ? 'saida'
+            : emit === CNPJ_PASTORE_LIMPO
+              ? 'saida'
+              : 'entrada'
+
+      const fornecedorNome =
+        direcao === 'entrada' ? doc.emitente_nome || 'Fornecedor de Autopeças' : ''
+      const cfop = doc.cfop_predominante || '5102'
+
+      mapaDocumentosPorChave.set(chave, {
+        chave,
+        fonte: 'param',
+        direcao,
+        valor: v,
+        fornecedorNome,
+        cfop,
+        temItensOuAnalise: Number(doc.qtd_itens || 0) > 0,
+      })
+    }
+  } catch (err) {
+    console.warn('Erro ao carregar param_documentos no diagnóstico:', err)
+  }
+
+  // 3.2 Busca em nfes (pipeline de documentos fiscais)
+  try {
+    const resNfes = await pb.collection('nfes').getList<any>(1, 500, {
+      filter: `cliente_cnpj='${CNPJ_PASTORE_LIMPO}' || emit_cnpj_cpf='${CNPJ_PASTORE_LIMPO}' || dest_cnpj_cpf='${CNPJ_PASTORE_LIMPO}'`,
+      sort: '-data_emissao',
+    })
+
+    for (const nfe of resNfes.items) {
+      const chave = String(nfe.chave_acesso || '').trim() || `nfe_${nfe.id}`
+      chavesEmNfes.add(chave)
+
+      const emit = String(nfe.emit_cnpj_cpf || '').replace(/\D/g, '')
+      const v = Number(nfe.valor_total_nfe || nfe.valor_produtos || 0)
+      const tpOp = nfe.tipo_compra_venda || nfe.tipo_operacao
+      const direcao: 'entrada' | 'saida' =
+        tpOp === 'compra' || tpOp === 'entrada'
+          ? 'entrada'
+          : tpOp === 'venda' || tpOp === 'saida'
+            ? 'saida'
+            : emit === CNPJ_PASTORE_LIMPO
+              ? 'saida'
+              : 'entrada'
+
+      const fornecedorNome =
+        direcao === 'entrada'
+          ? nfe.emit_razao_social || nfe.emit_nome_fantasia || 'Fornecedor de Autopeças'
+          : ''
+      const cfop = '5102'
+      const temAnalise = Boolean(nfe.analise && nfe.analise_status === 'analisado')
+
+      if (mapaDocumentosPorChave.has(chave)) {
+        duplicadasEvitadasAoCruzar++
+        const jaExistente = mapaDocumentosPorChave.get(chave)!
+        // Se a versão de nfes tiver análise detalhada e a de param não tiver, substitui pela fonte mais completa
+        if (temAnalise && !jaExistente.temItensOuAnalise) {
+          mapaDocumentosPorChave.set(chave, {
+            chave,
+            fonte: 'nfes',
+            direcao,
+            valor: v > 0 ? v : jaExistente.valor,
+            fornecedorNome: fornecedorNome || jaExistente.fornecedorNome,
+            cfop: jaExistente.cfop || cfop,
+            temItensOuAnalise: true,
+          })
+        }
+      } else {
+        mapaDocumentosPorChave.set(chave, {
+          chave,
+          fonte: 'nfes',
+          direcao,
+          valor: v,
+          fornecedorNome,
+          cfop,
+          temItensOuAnalise: temAnalise,
+        })
+      }
+    }
+  } catch (err) {
+    console.warn('Erro ao carregar nfes no diagnóstico:', err)
+  }
+
+  // 3.3 Consolidação dos totais unificados (sem contaminação nem repetição de chave)
   let entradasQtd = 0
   let entradasValor = 0
   let saidasQtd = 0
@@ -187,36 +314,23 @@ export async function carregarDiagnosticoClientePastore(): Promise<DiagnosticoCl
   const mapaFornecedores: Record<string, { valor: number; qtd: number }> = {}
   const mapaCfopsSaida: Record<string, number> = {}
 
-  try {
-    const resParamDocs = await pb.collection('param_documentos').getList<any>(1, 100, {
-      filter: `emitente_cnpj='${CNPJ_PASTORE_LIMPO}' || destinatario_cnpj='${CNPJ_PASTORE_LIMPO}'`,
-      sort: '-data_emissao',
-    })
-
-    for (const doc of resParamDocs.items) {
-      const emit = String(doc.emitente_cnpj || '').replace(/\D/g, '')
-      const dest = String(doc.destinatario_cnpj || '').replace(/\D/g, '')
-      const v = Number(doc.valor_total || 0)
-      const direcao = doc.direcao || (emit === CNPJ_PASTORE_LIMPO ? 'saida' : 'entrada')
-
-      if (direcao === 'saida' || emit === CNPJ_PASTORE_LIMPO) {
-        saidasQtd++
-        saidasValor += v
-        const cfop = doc.cfop_predominante || '5102'
-        mapaCfopsSaida[cfop] = (mapaCfopsSaida[cfop] || 0) + 1
-      } else if (direcao === 'entrada' || dest === CNPJ_PASTORE_LIMPO) {
-        entradasQtd++
-        entradasValor += v
-        const nomeFornec = doc.emitente_nome || 'Fornecedor de Autopeças'
-        if (!mapaFornecedores[nomeFornec]) {
-          mapaFornecedores[nomeFornec] = { valor: 0, qtd: 0 }
+  for (const doc of mapaDocumentosPorChave.values()) {
+    if (doc.direcao === 'saida') {
+      saidasQtd++
+      saidasValor += doc.valor
+      const cfop = doc.cfop || '5102'
+      mapaCfopsSaida[cfop] = (mapaCfopsSaida[cfop] || 0) + 1
+    } else {
+      entradasQtd++
+      entradasValor += doc.valor
+      if (doc.fornecedorNome) {
+        if (!mapaFornecedores[doc.fornecedorNome]) {
+          mapaFornecedores[doc.fornecedorNome] = { valor: 0, qtd: 0 }
         }
-        mapaFornecedores[nomeFornec].valor += v
-        mapaFornecedores[nomeFornec].qtd += 1
+        mapaFornecedores[doc.fornecedorNome].valor += doc.valor
+        mapaFornecedores[doc.fornecedorNome].qtd += 1
       }
     }
-  } catch (err) {
-    console.warn('Erro ao carregar param_documentos:', err)
   }
 
   const principaisFornecedores = Object.entries(mapaFornecedores)
@@ -225,6 +339,25 @@ export async function carregarDiagnosticoClientePastore(): Promise<DiagnosticoCl
     .slice(0, 5)
 
   const cfopsSaida = Object.entries(mapaCfopsSaida).map(([cfop, qtd]) => ({ cfop, qtd }))
+
+  // Indicador de transparência de conciliação de fontes
+  let presentesEmAmbas = 0
+  let somenteParam = 0
+  let somenteNfes = 0
+  for (const ch of chavesEmParam) {
+    if (chavesEmNfes.has(ch)) presentesEmAmbas++
+    else somenteParam++
+  }
+  for (const ch of chavesEmNfes) {
+    if (!chavesEmParam.has(ch)) somenteNfes++
+  }
+
+  let avisoTransparencia: string | undefined = undefined
+  if (somenteParam > 0 && somenteNfes > 0) {
+    avisoTransparencia = `Conciliação multiplataforma: ${presentesEmAmbas} documento(s) presentes em ambas as fontes, ${somenteParam} em Parametrizador e ${somenteNfes} em Documentos Fiscais, deduplicados e consolidados sem duplicidade.`
+  } else if (somenteParam > 0 && chavesEmNfes.size === 0) {
+    avisoTransparencia = `Fonte ativa: Parametrizador (${somenteParam} documentos consolidados, sem notas duplicadas).`
+  }
 
   const notas: EstatisticasNfes = {
     totalNotas: entradasQtd + saidasQtd,
@@ -235,6 +368,14 @@ export async function carregarDiagnosticoClientePastore(): Promise<DiagnosticoCl
     principaisFornecedores,
     cfopsSaida,
     consumidorFinalPfEstimadoPct: 88, // Majoritariamente PF consumidor final (veículos particulares)
+    conciliacaoFontes: {
+      totalChavesUnicas: mapaDocumentosPorChave.size,
+      presentesEmAmbas,
+      somenteParam,
+      somenteNfes,
+      duplicadasEvitadas: duplicadasEvitadasAoCruzar,
+      avisoTransparencia,
+    },
   }
 
   // Cálculos tributários para a Tabela Comparativa (base: receitaAnualizada)
