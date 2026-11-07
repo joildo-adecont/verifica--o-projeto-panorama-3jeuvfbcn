@@ -1,207 +1,237 @@
-import React from 'react'
-import { Link } from 'react-router-dom'
+import React, { useState, useEffect } from 'react'
 import {
-  ArrowLeft,
   BarChart3,
-  TrendingUp,
-  LineChart,
-  FileSpreadsheet,
-  Clock,
-  Sparkles,
-  Users2,
-  Layers,
-  ChevronRight,
+  Building2,
+  Users,
+  Search,
+  Filter,
+  Loader2,
+  AlertCircle,
+  FileCheck,
 } from 'lucide-react'
-import { AdecontLogo } from '@/components/AdecontLogo'
+import { PanoramaHeader } from '@/components/PanoramaHeader'
+import { PanoramaFooter } from '@/components/PanoramaFooter'
+import { PanoramaSideMenu } from '@/components/PanoramaSideMenu'
+import {
+  carregarDossieCompletoCliente,
+  type SinteseAnaliseEmpresarial,
+} from '@/services/analisesEmpresariais'
+import { listarEmpresasParaRelatorio } from '@/services/cadastroEmpresas'
+import type { EmpresaRecord } from '@/types/cadastroEmpresas'
+import { ImportadorDocumentosEmpresariais } from '@/components/ImportadorDocumentosEmpresariais'
+import { PainelAnalisesEmpresariais } from '@/components/PainelAnalisesEmpresariais'
 
-/**
- * Página: Análises Empresariais
- *
- * Ponto de partida para o novo módulo administrativo da ADECONT (Projeto Panorama).
- * Conforme solicitação do usuário:
- * "Crie um icone que chamaremos de Análises Empresarial a qual enviarei um modelo para iniciarmos uma adequação."
- *
- * Estrutura profissional seguindo estritamente as diretrizes ADECONT:
- * - Sem dados falsos inventados.
- * - Identidade visual oficial: #0F294A (navy) e #D4AF37 (gold).
- * - Tagline oficial: "Assessoria Contábil e Administrativa".
- * - Logo AdecontLogo em destaque.
- * - Estado de espera elegante e informativo aguardando o modelo de referência do cliente.
- */
-export const AnalisesEmpresariaisPage: React.FC = () => {
+export const AnalisesEmpresariais: React.FC = () => {
+  const [searchTerm, setSearchTerm] = useState('')
+  const [empresas, setEmpresas] = useState<EmpresaRecord[]>([])
+  const [clienteSelecionado, setClienteSelecionado] = useState<EmpresaRecord | null>(null)
+  const [filtroTexto, setFiltroTexto] = useState('')
+  const [carregandoLista, setCarregandoLista] = useState(true)
+  const [carregandoAnalise, setCarregandoAnalise] = useState(false)
+  const [dossie, setDossie] = useState<SinteseAnaliseEmpresarial | null>(null)
+  const [erro, setErro] = useState<string | null>(null)
+
+  // Carrega a lista real de clientes
+  const carregarListaClientes = async () => {
+    setCarregandoLista(true)
+    setErro(null)
+    try {
+      const lista = await listarEmpresasParaRelatorio()
+      setEmpresas(lista || [])
+      if (lista && lista.length > 0 && !clienteSelecionado) {
+        setClienteSelecionado(lista[0])
+      }
+    } catch (err: any) {
+      console.error('[AnalisesEmpresariais] Erro ao carregar empresas:', err)
+      setErro('Não foi possível obter a lista de clientes cadastrados.')
+    } finally {
+      setCarregandoLista(false)
+    }
+  }
+
+  useEffect(() => {
+    carregarListaClientes()
+  }, [])
+
+  // Carrega a síntese de análise quando o cliente selecionado mudar
+  const carregarAnaliseDoCliente = async (cliente: EmpresaRecord) => {
+    setCarregandoAnalise(true)
+    setErro(null)
+    try {
+      const res = await carregarDossieCompletoCliente(cliente)
+      setDossie(res)
+    } catch (err: any) {
+      console.error('[AnalisesEmpresariais] Erro ao analisar cliente:', err)
+      setErro('Falha ao processar os dados integrados do cliente.')
+    } finally {
+      setCarregandoAnalise(false)
+    }
+  }
+
+  useEffect(() => {
+    if (clienteSelecionado) {
+      carregarAnaliseDoCliente(clienteSelecionado)
+    } else {
+      setDossie(null)
+    }
+  }, [clienteSelecionado])
+
+  const empresasFiltradas = empresas.filter((emp) => {
+    const termo = filtroTexto.toLowerCase().trim()
+    if (!termo) return true
+    const doc = (emp.documento_limpo || emp.numero_documento || emp.cpf_cnpj || '').toLowerCase()
+    const nome = (emp.razao_social || emp.nome || '').toLowerCase()
+    const fantasia = (emp.nome_fantasia || '').toLowerCase()
+    return doc.includes(termo) || nome.includes(termo) || fantasia.includes(termo)
+  })
+
   return (
-    <div className="min-h-screen bg-[#F4F6F9] text-slate-800 flex flex-col">
-      {/* Cabeçalho padrão ADECONT */}
-      <header className="bg-[#0F294A] border-b border-[#0A1D34] shadow-md sticky top-0 z-30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="flex items-center gap-3.5 text-center sm:text-left">
-            <AdecontLogo variant="white" showTagline={false} className="h-10 sm:h-12 w-auto" />
-            <div className="border-l border-white/20 pl-3">
-              <h1 className="text-base sm:text-lg font-serif font-bold tracking-wide text-white leading-tight">
-                Análises Empresariais
-              </h1>
-              <p className="text-[11px] sm:text-xs text-[#D4AF37] font-semibold tracking-wider uppercase">
-                Assessoria Contábil e Administrativa
+    <div className="min-h-screen bg-slate-100 flex flex-col font-sans">
+      <PanoramaHeader searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+
+      <div className="flex-1 flex flex-col md:flex-row max-w-7xl w-full mx-auto p-4 md:p-6 gap-6">
+        {/* Menu Lateral da Aplicação */}
+        <PanoramaSideMenu />
+
+        {/* Conteúdo Central */}
+        <main className="flex-1 space-y-6">
+          {/* Banner do Módulo */}
+          <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 text-white rounded-2xl p-6 shadow-md border border-slate-800 flex flex-wrap items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="p-2 bg-emerald-500/20 text-emerald-400 rounded-lg">
+                  <BarChart3 className="w-6 h-6" />
+                </span>
+                <span className="text-xs font-semibold uppercase tracking-wider text-emerald-400">
+                  Inteligência & Diagnóstico Integrado
+                </span>
+              </div>
+              <h1 className="text-xl md:text-2xl font-black text-white">Análises Empresariais</h1>
+              <p className="text-xs text-slate-300 max-w-2xl">
+                Centro de integração analítica ADECONT: cruzamento de balanços, DREs, NFe, fontes
+                estatísticas oficiais, repositório legislativo e parecer dos agentes especialistas,
+                com segregação por cliente e emissão de relatório técnico A4.
               </p>
             </div>
-          </div>
-
-          <div className="flex items-center gap-2 self-stretch sm:self-auto justify-end flex-wrap">
-            <Link
-              to="/cadastro-clientes"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-semibold text-slate-100 transition-colors border border-white/10"
-              title="Ir para o Cadastro Analítico de Clientes"
-            >
-              <Users2 className="w-3.5 h-3.5 text-[#D4AF37]" />
-              <span>Cadastro de Clientes</span>
-            </Link>
-            <Link
-              to="/nfes"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-semibold text-slate-100 transition-colors border border-white/10"
-              title="Ir para Documentos Fiscais (NF-e)"
-            >
-              <FileSpreadsheet className="w-3.5 h-3.5 text-purple-300" />
-              <span>Documentos Fiscais</span>
-            </Link>
-            <Link
-              to="/"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#D4AF37] hover:bg-[#c29f2f] text-xs font-bold text-[#0F294A] transition-colors shadow-sm"
-              title="Voltar ao portal Panorama RT"
-            >
-              <ArrowLeft className="w-3.5 h-3.5" />
-              <span>Portal Panorama RT</span>
-            </Link>
-          </div>
-        </div>
-      </header>
-
-      {/* Conteúdo principal */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 space-y-6">
-        {/* Trilha de navegação / Breadcrumb */}
-        <nav
-          aria-label="Trilha de navegação"
-          className="flex items-center gap-1.5 text-xs text-slate-500 bg-white p-2.5 rounded-lg border border-slate-200/80 shadow-xs"
-        >
-          <Link
-            to="/"
-            className="inline-flex items-center gap-1 text-slate-600 hover:text-[#0F294A] font-semibold transition-colors"
-          >
-            <span>Início</span>
-          </Link>
-          <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
-          <span className="text-slate-400 font-medium">Plataforma Administrativa</span>
-          <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
-          <span className="text-[#0F294A] font-bold">Análises Empresariais</span>
-        </nav>
-
-        {/* Card principal com estado vazio elegante */}
-        <div className="bg-white rounded-2xl border-2 border-slate-200/80 p-6 sm:p-10 shadow-xs">
-          <div className="max-w-3xl mx-auto text-center space-y-6">
-            {/* Ícone de destaque do módulo */}
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-emerald-600 to-[#0F294A] text-white shadow-md ring-8 ring-emerald-50">
-              <BarChart3 className="w-10 h-10 text-emerald-200" />
-            </div>
-
-            {/* Cabeçalho do módulo */}
-            <div className="space-y-2">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200">
-                <Clock className="w-3.5 h-3.5 text-amber-600" />
-                Módulo em estruturação
+            <div className="bg-slate-800/80 border border-slate-700 rounded-xl p-3 text-right">
+              <span className="text-[10px] text-slate-400 uppercase font-bold block">
+                Base Ativa
               </span>
-              <h2 className="text-2xl sm:text-3xl font-serif font-bold text-[#0F294A] tracking-tight">
-                Análises Empresariais
-              </h2>
-              <p className="text-xs sm:text-sm font-semibold text-[#D4AF37] tracking-wider uppercase">
-                Assessoria Contábil e Administrativa
-              </p>
-              <p className="text-sm text-slate-600 max-w-xl mx-auto pt-2 leading-relaxed">
-                Este módulo está em estruturação — aguardando modelo de referência para iniciarmos a
-                adequação completa das análises, relatórios e indicadores.
-              </p>
-            </div>
-
-            {/* Caixa informativa com padrão ADECONT */}
-            <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 sm:p-6 text-left space-y-4">
-              <div className="flex items-center gap-2.5 text-[#0F294A] font-bold text-sm">
-                <Sparkles className="w-4 h-4 text-[#D4AF37]" />
-                <span>Próxima etapa: Adequação com base no modelo corporativo</span>
-              </div>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                O módulo já está integrado ao menu da plataforma administrativa e pronto para
-                receber o layout analítico, gráficos de evolução patrimonial, índices de liquidez,
-                rentabilidade e diagnósticos de saúde financeira da carteira de clientes.
-              </p>
-
-              {/* Pilares previstos para o módulo */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-                <div className="bg-white p-3 rounded-lg border border-slate-200/80 flex items-start gap-2.5">
-                  <div className="p-1.5 rounded-md bg-emerald-50 text-emerald-700 shrink-0">
-                    <TrendingUp className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <h3 className="text-xs font-bold text-slate-800">Evolução Econômica</h3>
-                    <p className="text-[11px] text-slate-500">
-                      Indicadores de desempenho e faturamento
-                    </p>
-                  </div>
-                </div>
-
-                <div className="bg-white p-3 rounded-lg border border-slate-200/80 flex items-start gap-2.5">
-                  <div className="p-1.5 rounded-md bg-blue-50 text-blue-700 shrink-0">
-                    <LineChart className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <h3 className="text-xs font-bold text-slate-800">Diagnóstico Gerencial</h3>
-                    <p className="text-[11px] text-slate-500">Métricas analíticas personalizadas</p>
-                  </div>
-                </div>
-
-                <div className="bg-white p-3 rounded-lg border border-slate-200/80 flex items-start gap-2.5">
-                  <div className="p-1.5 rounded-md bg-purple-50 text-purple-700 shrink-0">
-                    <Layers className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <h3 className="text-xs font-bold text-slate-800">Visão por Empresa</h3>
-                    <p className="text-[11px] text-slate-500">
-                      Cruzamento com o cadastro de clientes
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Ações auxiliares */}
-            <div className="pt-2 flex items-center justify-center gap-3 flex-wrap">
-              <Link
-                to="/"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#0F294A] hover:bg-[#163b65] text-white text-xs font-bold transition-colors shadow-xs"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                <span>Voltar ao Portal</span>
-              </Link>
-              <Link
-                to="/cadastro-clientes"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold border border-slate-300 transition-colors"
-              >
-                <Users2 className="w-4 h-4 text-slate-500" />
-                <span>Acessar Cadastro de Clientes</span>
-              </Link>
+              <span className="text-lg font-black text-emerald-400">
+                {empresas.length} Empresas
+              </span>
+              <span className="text-[10px] text-slate-400 block mt-0.5">Segregação por CNPJ</span>
             </div>
           </div>
-        </div>
-      </main>
 
-      {/* Rodapé institucional */}
-      <footer className="bg-white border-t border-slate-200 py-4 mt-auto text-center text-xs text-slate-500">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span>ADECONT Assessoria Contábil e Administrativa • Análises Empresariais</span>
-          <span className="text-[11px] text-slate-400 font-mono">
-            Módulo em Estruturação • Versão Inicial
-          </span>
-        </div>
-      </footer>
+          {/* Área 1: Seletor de Cliente */}
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5 space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <Building2 className="w-5 h-5 text-emerald-600" />
+                <h2 className="text-sm font-bold text-slate-900">
+                  Seleção de Cliente (Segregação de Resultados)
+                </h2>
+              </div>
+              <div className="relative min-w-[260px]">
+                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  placeholder="Buscar por razão social ou CNPJ..."
+                  value={filtroTexto}
+                  onChange={(e) => setFiltroTexto(e.target.value)}
+                  className="w-full text-xs pl-8 pr-3 py-1.5 border border-slate-300 rounded-lg bg-slate-50 text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                />
+              </div>
+            </div>
+
+            {carregandoLista ? (
+              <div className="flex items-center gap-2 text-xs text-slate-500 py-3">
+                <Loader2 className="w-4 h-4 animate-spin text-emerald-600" />
+                Carregando carteira de clientes cadastrados...
+              </div>
+            ) : empresas.length === 0 ? (
+              <div className="p-4 bg-slate-50 border border-dashed border-slate-200 rounded-lg text-center text-xs text-slate-500">
+                Nenhuma empresa encontrada no cadastro. Cadastre um cliente para iniciar as
+                análises.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 max-h-48 overflow-y-auto pr-1">
+                {empresasFiltradas.map((emp) => {
+                  const selecionado = clienteSelecionado?.id === emp.id
+                  return (
+                    <button
+                      key={emp.id}
+                      onClick={() => setClienteSelecionado(emp)}
+                      className={`text-left p-2.5 rounded-lg border transition-all cursor-pointer ${
+                        selecionado
+                          ? 'border-emerald-600 bg-emerald-50/70 shadow-sm ring-1 ring-emerald-600'
+                          : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-xs text-slate-900 truncate max-w-[190px]">
+                          {emp.razao_social || emp.nome}
+                        </span>
+                        {selecionado && (
+                          <FileCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        )}
+                      </div>
+                      <div className="flex items-center justify-between mt-1 text-[11px] text-slate-500">
+                        <span className="font-mono">
+                          {emp.documento_limpo || emp.numero_documento}
+                        </span>
+                        <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-100/60 px-1.5 py-0.2 rounded">
+                          {emp.regime_tributario || emp.enquadramento_tributario || 'Regime N/D'}
+                        </span>
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Exibição condicional da Análise do Cliente Selecionado */}
+          {clienteSelecionado && (
+            <div className="space-y-6">
+              {/* Área 2: Importador de Balanços, DRE e Documentos Empresariais */}
+              <ImportadorDocumentosEmpresariais
+                cliente={clienteSelecionado}
+                onDocumentoImportado={() => carregarAnaliseDoCliente(clienteSelecionado)}
+              />
+
+              {/* Área 3: Painel Macro/Micro com Indicadores, Repositório e Agentes */}
+              {carregandoAnalise ? (
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-12 text-center space-y-3">
+                  <Loader2 className="w-8 h-8 text-emerald-600 animate-spin mx-auto" />
+                  <p className="text-xs font-bold text-slate-800">
+                    Sincronizando dados de balancetes, NFe, fontes estatísticas e pareceres dos
+                    agentes...
+                  </p>
+                  <p className="text-[11px] text-slate-500">
+                    Calculando valores líquidos mensais e cruzando com o repositório legislativo.
+                  </p>
+                </div>
+              ) : erro ? (
+                <div className="bg-rose-50 border border-rose-200 rounded-xl p-4 text-xs text-rose-800 flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                  <span>{erro}</span>
+                </div>
+              ) : dossie ? (
+                <PainelAnalisesEmpresariais dossie={dossie} />
+              ) : (
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8 text-center text-xs text-slate-500">
+                  Selecione um cliente para carregar a análise integrada.
+                </div>
+              )}
+            </div>
+          )}
+        </main>
+      </div>
+
+      <PanoramaFooter />
     </div>
   )
 }
-
-export default AnalisesEmpresariaisPage
+export default AnalisesEmpresariais
