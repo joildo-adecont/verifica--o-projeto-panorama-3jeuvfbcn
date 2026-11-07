@@ -22,6 +22,7 @@ import {
 import type { SinteseAnaliseEmpresarial } from '@/services/analisesEmpresariais'
 import type { EmpresaRecord } from '@/types/cadastroEmpresas'
 import { RelatorioAnaliseEmpresarialA4 } from './RelatorioAnaliseEmpresarialA4'
+import { BotaoExportacaoContabil } from './BotaoExportacaoContabil'
 import { FerramentaBalancoDRE } from './FerramentaBalancoDRE'
 import { FerramentaIndicadoresComparativos } from './FerramentaIndicadoresComparativos'
 import { FerramentaRelatorioComparativo } from './FerramentaRelatorioComparativo'
@@ -242,7 +243,19 @@ export const PainelAnalisesEmpresariais: React.FC<PainelAnalisesEmpresariaisProp
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <BotaoExportacaoContabil
+            indicadores={indicadoresApurados}
+            clienteNome={cliente.razao_social || cliente.nome}
+            clienteDoc={cliente.documento_limpo || cliente.numero_documento}
+            regimeTributario={cliente.regime_tributario || cliente.enquadramento_tributario}
+            balanco3Anos={balanco3Anos}
+            onAbrirRelatorioPdf={() => setModalRelatorioA4(true)}
+            disabled={indicadoresApurados.length === 0}
+            motivoDesabilitado="Cliente não possui indicadores contábeis apurados para exportar"
+            rotuloBotao="Exportar Relatório"
+          />
+
           <button
             onClick={() => setModalRelatorioA4(true)}
             className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white font-bold rounded-lg shadow-sm text-xs transition-all cursor-pointer"
@@ -322,8 +335,11 @@ export const PainelAnalisesEmpresariais: React.FC<PainelAnalisesEmpresariaisProp
         <FerramentaIndicadoresComparativos
           indicadores={indicadoresApurados}
           clienteNome={cliente.razao_social || cliente.nome}
+          clienteDoc={cliente.documento_limpo || cliente.numero_documento}
+          regimeTributario={cliente.regime_tributario || cliente.enquadramento_tributario}
           exercicioRotulo={balanco3Anos.anoAtual?.rotulo || 'Ano Atual'}
           balanco3Anos={balanco3Anos}
+          onAbrirRelatorioPdf={() => setModalRelatorioA4(true)}
         />
       )}
 
@@ -912,6 +928,7 @@ export const PainelAnalisesEmpresariais: React.FC<PainelAnalisesEmpresariaisProp
           achados={achados}
           parecerFinal={parecerFinal || undefined}
           balanco3Anos={balanco3Anos}
+          regimeTributario={cliente.regime_tributario || cliente.enquadramento_tributario}
           onClose={() => setModalRelatorioA4(false)}
         />
       )}

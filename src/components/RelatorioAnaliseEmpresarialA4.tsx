@@ -8,6 +8,7 @@ import type {
   AchadoDueDiligence,
   ParecerFinalAnalise,
 } from '@/types/analisesEmpresariaisModel'
+import { calcular25Indicadores } from '@/services/motorAnaliseEmpresarial'
 import {
   Printer,
   X,
@@ -29,6 +30,7 @@ interface RelatorioAnaliseEmpresarialA4Props {
   achados?: AchadoDueDiligence[]
   parecerFinal?: ParecerFinalAnalise
   balanco3Anos?: import('@/types/analisesEmpresariaisModel').AnaliseBalanco3Exercicios
+  regimeTributario?: string
   onClose: () => void
 }
 
@@ -40,6 +42,7 @@ export const RelatorioAnaliseEmpresarialA4: React.FC<RelatorioAnaliseEmpresarial
   achados,
   parecerFinal,
   balanco3Anos,
+  regimeTributario,
   onClose,
 }) => {
   const {
@@ -131,10 +134,9 @@ export const RelatorioAnaliseEmpresarialA4: React.FC<RelatorioAnaliseEmpresarial
             </div>
             <div>
               <p className="text-[10px] font-bold text-slate-500 uppercase">Regime Tributário</p>
-              <p className="text-xs font-bold text-emerald-800">
-                {cliente.regime_tributario || cliente.enquadramento_tributario || 'Não Definido'}
-              </p>
-            </div>
+              <p className="text-xs font-semibold text-slate-800">
+                {regimeTributario || cliente.enquadramento_tributario || cliente.regime_tributario || 'Não Definido'}
+              </p>            </div>
             <div>
               <p className="text-[10px] font-bold text-slate-500 uppercase">CNAE Principal</p>
               <p className="text-xs text-slate-800">
@@ -153,6 +155,54 @@ export const RelatorioAnaliseEmpresarialA4: React.FC<RelatorioAnaliseEmpresarial
                 {cliente.num_funcionarios || 0} colaborador(es) · Folha:{' '}
                 {brl(cliente.folha_salarial_mensal)}
               </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Quadro de Síntese Financeira Executiva */}
+        <div className="border border-slate-300 rounded p-2.5 bg-white">
+          <p className="text-[10px] font-black uppercase text-slate-600 tracking-wider mb-1.5">
+            Síntese Financeira & Patrimonial Consolidada
+          </p>
+          <div className="grid grid-cols-4 gap-2 text-center divide-x divide-slate-200">
+            <div className="p-1">
+              <span className="text-[9px] uppercase font-bold text-slate-500 block">
+                Receita Anualizada
+              </span>
+              <span className="text-xs font-mono font-black text-slate-900 block mt-0.5">
+                {brl(indicadores.receitaAnualizada)}
+              </span>
+              <span className="text-[8px] text-slate-400">Projeção anual de faturamento</span>
+            </div>
+            <div className="p-1">
+              <span className="text-[9px] uppercase font-bold text-slate-500 block">
+                Último Mês Faturado
+              </span>
+              <span className="text-xs font-mono font-black text-emerald-800 block mt-0.5">
+                {brl(indicadores.receitaUltimoMes)}
+              </span>
+              <span className="text-[8px] text-slate-400">Ref. contábil mais recente</span>
+            </div>
+            <div className="p-1">
+              <span className="text-[9px] uppercase font-bold text-slate-500 block">
+                Crescimento Médio
+              </span>
+              <span
+                className={`text-xs font-mono font-black block mt-0.5 ${indicadores.crescimentoMedioReceitaPct >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}
+              >
+                {indicadores.crescimentoMedioReceitaPct >= 0 ? '+' : ''}
+                {indicadores.crescimentoMedioReceitaPct.toFixed(1)}%
+              </span>
+              <span className="text-[8px] text-slate-400">Tendência de faturamento</span>
+            </div>
+            <div className="p-1">
+              <span className="text-[9px] uppercase font-bold text-slate-500 block">
+                Patrimônio Líquido
+              </span>
+              <span className="text-xs font-mono font-black text-blue-900 block mt-0.5">
+                {brl(indicadores.patrimonioLiquidoAtual)}
+              </span>
+              <span className="text-[8px] text-slate-400">Base patrimonial</span>
             </div>
           </div>
         </div>
@@ -365,12 +415,19 @@ export const RelatorioAnaliseEmpresarialA4: React.FC<RelatorioAnaliseEmpresarial
           </div>
         )}
 
-        {/* SEÇÃO 3: 25 INDICADORES COM SEMÁFORO (QUADRO SÍNTESE) */}
+        {/* SEÇÃO 3: 25 INDICADORES COM SEMÁFORO & COMPARATIVO DOS 3 EXERCÍCIOS */}
         {indicadoresModelo && indicadoresModelo.length > 0 && (
           <div>
-            <h2 className="text-xs font-black uppercase text-slate-800 border-b border-slate-300 pb-1 mb-2 flex items-center gap-1.5">
-              <TrendingUp className="w-3.5 h-3.5 text-emerald-700" />
-              3. Matriz dos 25 Indicadores Comparativos com Semáforo
+            <h2 className="text-xs font-black uppercase text-slate-800 border-b border-slate-300 pb-1 mb-2 flex items-center justify-between">
+              <span className="flex items-center gap-1.5">
+                <TrendingUp className="w-3.5 h-3.5 text-emerald-700" />
+                3. Matriz dos Indicadores Contábeis com Semáforo & Comparativo Trienal
+              </span>
+              <span className="text-[10px] text-slate-500 font-normal">
+                Exercícios: {balanco3Anos?.anoMenos2?.rotulo || 'Ano -2'} •{' '}
+                {balanco3Anos?.anoMenos1?.rotulo || 'Ano -1'} •{' '}
+                {balanco3Anos?.anoAtual?.rotulo || 'Ano Atual'}
+              </span>
             </h2>
             <div className="border border-slate-200 rounded overflow-hidden">
               <table className="w-full text-[9px] text-left">
@@ -378,45 +435,81 @@ export const RelatorioAnaliseEmpresarialA4: React.FC<RelatorioAnaliseEmpresarial
                   <tr>
                     <th className="p-1">Indicador</th>
                     <th className="p-1 text-center">Referência</th>
-                    <th className="p-1 text-right">Valor Apurado</th>
+                    <th className="p-1 text-right">
+                      {balanco3Anos?.anoMenos2?.rotulo || 'Ano -2'}
+                    </th>
+                    <th className="p-1 text-right">
+                      {balanco3Anos?.anoMenos1?.rotulo || 'Ano -1'}
+                    </th>
+                    <th className="p-1 text-right">
+                      {balanco3Anos?.anoAtual?.rotulo || 'Ano Atual'}
+                    </th>
                     <th className="p-1 text-center">Semáforo</th>
                     <th className="p-1">Diagnóstico Executivo</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {indicadoresModelo.map((ind) => (
-                    <tr key={ind.id} className="hover:bg-slate-50">
-                      <td className="p-1 font-semibold text-slate-900">{ind.nome}</td>
-                      <td className="p-1 text-center text-slate-500 font-medium">
-                        {ind.referencia}
-                      </td>
-                      <td className="p-1 text-right font-mono font-bold text-slate-900">
-                        {ind.unidade === 'moeda'
-                          ? brl(ind.valor)
-                          : ind.unidade === 'percentual'
-                            ? `${ind.valor.toFixed(2)}%`
-                            : ind.unidade === 'dias'
-                              ? `${ind.valor.toFixed(0)}d`
-                              : `${ind.valor.toFixed(2)}x`}
-                      </td>
-                      <td className="p-1 text-center">
-                        <span
-                          className={`px-1.5 py-0.2 rounded font-bold text-[8px] ${
-                            ind.semaforo === 'saudavel'
-                              ? 'bg-emerald-100 text-emerald-800'
-                              : ind.semaforo === 'atencao'
-                                ? 'bg-amber-100 text-amber-800'
-                                : 'bg-red-100 text-red-800'
-                          }`}
-                        >
-                          {ind.semaforo.toUpperCase()}
-                        </span>
-                      </td>
-                      <td className="p-1 text-slate-600 truncate max-w-[200px]">
-                        {ind.explicacao}
-                      </td>
-                    </tr>
-                  ))}
+                  {(() => {
+                    const mapMenos1 = new Map<string, number>()
+                    const mapMenos2 = new Map<string, number>()
+                    if (balanco3Anos?.anoMenos1) {
+                      for (const m of calcular25Indicadores(balanco3Anos.anoMenos1)) {
+                        mapMenos1.set(m.id, m.valor)
+                      }
+                    }
+                    if (balanco3Anos?.anoMenos2) {
+                      for (const m of calcular25Indicadores(balanco3Anos.anoMenos2)) {
+                        mapMenos2.set(m.id, m.valor)
+                      }
+                    }
+
+                    const formatarItem = (val: number | undefined, unidade: string) => {
+                      if (val === undefined || isNaN(val)) return '—'
+                      if (unidade === 'moeda') return brl(val)
+                      if (unidade === 'percentual') return `${val.toFixed(2).replace('.', ',')}%`
+                      if (unidade === 'dias') return `${Math.round(val)}d`
+                      return `${val.toFixed(2).replace('.', ',')}x`
+                    }
+
+                    return indicadoresModelo.map((ind) => {
+                      const vMenos2 = mapMenos2.get(ind.id)
+                      const vMenos1 = mapMenos1.get(ind.id)
+
+                      return (
+                        <tr key={ind.id} className="hover:bg-slate-50">
+                          <td className="p-1 font-semibold text-slate-900">{ind.nome}</td>
+                          <td className="p-1 text-center text-slate-500 font-medium">
+                            {ind.referencia}
+                          </td>
+                          <td className="p-1 text-right font-mono text-slate-500">
+                            {formatarItem(vMenos2, ind.unidade)}
+                          </td>
+                          <td className="p-1 text-right font-mono text-slate-600">
+                            {formatarItem(vMenos1, ind.unidade)}
+                          </td>
+                          <td className="p-1 text-right font-mono font-bold text-slate-900">
+                            {formatarItem(ind.valor, ind.unidade)}
+                          </td>
+                          <td className="p-1 text-center">
+                            <span
+                              className={`px-1.5 py-0.2 rounded font-bold text-[8px] ${
+                                ind.semaforo === 'saudavel'
+                                  ? 'bg-emerald-100 text-emerald-800'
+                                  : ind.semaforo === 'atencao'
+                                    ? 'bg-amber-100 text-amber-800'
+                                    : 'bg-red-100 text-red-800'
+                              }`}
+                            >
+                              {ind.semaforo.toUpperCase()}
+                            </span>
+                          </td>
+                          <td className="p-1 text-slate-600 truncate max-w-[180px]">
+                            {ind.explicacao}
+                          </td>
+                        </tr>
+                      )
+                    })
+                  })()}
                 </tbody>
               </table>
             </div>

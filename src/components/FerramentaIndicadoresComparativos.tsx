@@ -19,6 +19,7 @@ import {
   ArrowUpDown,
   FileSpreadsheet,
 } from 'lucide-react'
+import { BotaoExportacaoContabil } from './BotaoExportacaoContabil'
 import type {
   ItemIndicador,
   StatusSemaforo,
@@ -29,8 +30,11 @@ import { calcular25Indicadores } from '@/services/motorAnaliseEmpresarial'
 interface Props {
   indicadores: ItemIndicador[]
   clienteNome: string
+  clienteDoc?: string
+  regimeTributario?: string
   exercicioRotulo?: string
   balanco3Anos?: AnaliseBalanco3Exercicios
+  onAbrirRelatorioPdf?: () => void
 }
 
 // Grupos estruturais ADECONT
@@ -83,8 +87,11 @@ const GRUPOS_DEFINICAO = [
 export const FerramentaIndicadoresComparativos: React.FC<Props> = ({
   indicadores,
   clienteNome,
+  clienteDoc,
+  regimeTributario,
   exercicioRotulo = 'Ano Atual',
   balanco3Anos,
+  onAbrirRelatorioPdf,
 }) => {
   const [grupoFiltro, setGrupoFiltro] = useState<string>('todos')
   const [semaforoFiltro, setSemaforoFiltro] = useState<string>('todos')
@@ -422,6 +429,23 @@ export const FerramentaIndicadoresComparativos: React.FC<Props> = ({
             </div>
 
             <div className="flex items-center gap-2 flex-wrap">
+              {/* Botão de Exportação com filtros ativos */}
+              <BotaoExportacaoContabil
+                indicadores={indicadoresFiltrados}
+                clienteNome={clienteNome}
+                clienteDoc={clienteDoc}
+                regimeTributario={regimeTributario}
+                balanco3Anos={balanco3Anos}
+                onAbrirRelatorioPdf={onAbrirRelatorioPdf}
+                disabled={indicadoresFiltrados.length === 0}
+                motivoDesabilitado={
+                  indicadores.length === 0
+                    ? 'Cliente não possui indicadores contábeis apurados'
+                    : 'Nenhum indicador corresponde aos filtros selecionados'
+                }
+                rotuloBotao="Exportar"
+              />
+
               {/* Ordenação */}
               <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg border border-slate-200 dark:border-slate-700">
                 <button
