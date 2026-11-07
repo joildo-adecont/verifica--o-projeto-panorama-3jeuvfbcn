@@ -22,6 +22,7 @@ export interface EmpresaCadastro {
   cnae: string
   cnae_divisao?: string
   cnaes_secundarios?: string
+  regime_tributario?: string
   enquadramento_tributario?: string
   porte?: string
   num_funcionarios?: number
@@ -364,6 +365,7 @@ export function converterBalancetesCumulativosParaLiquidosMensais(
 export interface DiagnosticoClienteData {
   empresa: EmpresaCadastro | null
   cnaesSecundariosLista: CnaeItemFormatado[]
+  regimeTributarioAtual: string
   enquadramentoTributarioAtual: string
   folhaPagamento: DadosFolhaPagamento
   comparativoCustoFolha: ComparativoCustoFolha
@@ -624,6 +626,7 @@ export function calcularComparativoCustoFolha(
 }
 
 export async function salvarDadosFolhaEEnquadramentoPastore(dados: {
+  regime_tributario?: string
   enquadramento_tributario?: string
   cnaes_secundarios?: string
   num_funcionarios?: number
@@ -661,8 +664,12 @@ export async function carregarDiagnosticoClientePastore(): Promise<DiagnosticoCl
   }
 
   // Identificação e enquadramento extraídos do cadastro
+  const regimeTributarioAtual =
+    empresa?.regime_tributario?.trim() ||
+    empresa?.enquadramento_tributario?.trim() ||
+    'Simples Nacional'
   const enquadramentoTributarioAtual =
-    empresa?.enquadramento_tributario?.trim() || 'Simples Nacional'
+    empresa?.enquadramento_tributario?.trim() || regimeTributarioAtual
   const cnaesSecundariosLista = parseCnaesSecundarios(empresa?.cnaes_secundarios)
 
   // Extrair contas contábeis de folha/pessoal para subsidiar valores se faltar no cadastro
@@ -2041,6 +2048,7 @@ export async function carregarDiagnosticoClientePastore(): Promise<DiagnosticoCl
   return {
     empresa,
     cnaesSecundariosLista,
+    regimeTributarioAtual,
     enquadramentoTributarioAtual,
     folhaPagamento,
     comparativoCustoFolha,

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-07T17:29:14.753Z",
+  "generatedAt": "2026-11-07T17:59:09.147Z",
   "collections": [
     {
       "name": "users",
@@ -4178,6 +4178,12 @@
         {
           "name": "encargos_mensais",
           "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "regime_tributario",
+          "type": "text",
           "required": false,
           "system": false
         }

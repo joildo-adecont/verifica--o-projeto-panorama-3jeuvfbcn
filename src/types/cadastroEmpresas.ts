@@ -40,6 +40,7 @@ export interface EmpresaRecord {
   foro_comarca?: string
   duracao_contrato?: string
   pagina?: number
+  regime_tributario?: string
   enquadramento_tributario?: string
   cnaes_secundarios?: string
   porte?: string

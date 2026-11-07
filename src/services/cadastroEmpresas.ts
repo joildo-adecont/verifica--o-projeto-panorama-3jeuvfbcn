@@ -60,6 +60,14 @@ function mapearRegistro(r: any): EmpresaRecord {
     foro_comarca: r.foro_comarca || '',
     duracao_contrato: r.duracao_contrato || '',
     pagina: r.pagina || 0,
+    regime_tributario: r.regime_tributario || '',
+    enquadramento_tributario: r.enquadramento_tributario || '',
+    cnaes_secundarios: r.cnaes_secundarios || '',
+    porte: r.porte || '',
+    num_funcionarios: r.num_funcionarios != null ? Number(r.num_funcionarios) : undefined,
+    folha_salarial_mensal:
+      r.folha_salarial_mensal != null ? Number(r.folha_salarial_mensal) : undefined,
+    encargos_mensais: r.encargos_mensais != null ? Number(r.encargos_mensais) : undefined,
     tipo_cadastro:
       r.tipo_cadastro || (r.tipo_documento === 'CPF' ? 'Pessoa Física' : 'Pessoa Jurídica'),
     cpf_cnpj: r.numero_documento || r.cpf_cnpj || '',
@@ -68,6 +76,53 @@ function mapearRegistro(r: any): EmpresaRecord {
     data_cadastro: r.data_inscricao || r.cliente_desde || r.data_cadastro || '',
     created: r.created,
     updated: r.updated,
+  }
+}
+
+/**
+ * Atualiza dados de uma empresa existente pelo ID ou código no PocketBase
+ */
+export async function atualizarEmpresa(
+  idOuCodigo: string | number,
+  dados: Partial<EmpresaRecord>,
+): Promise<{ sucesso: boolean; empresa?: EmpresaRecord; mensagem?: string }> {
+  try {
+    let id: string = ''
+    if (typeof idOuCodigo === 'string' && idOuCodigo.length > 5 && isNaN(Number(idOuCodigo))) {
+      id = idOuCodigo
+    } else {
+      const codigoNum = Number(idOuCodigo)
+      const res = await pb.collection('cadastro_empresas').getFirstListItem(`codigo = ${codigoNum}`)
+      id = res.id
+    }
+
+    const payload: Record<string, any> = {}
+    if (dados.regime_tributario !== undefined) payload.regime_tributario = dados.regime_tributario
+    if (dados.enquadramento_tributario !== undefined)
+      payload.enquadramento_tributario = dados.enquadramento_tributario
+    if (dados.cnaes_secundarios !== undefined) payload.cnaes_secundarios = dados.cnaes_secundarios
+    if (dados.porte !== undefined) payload.porte = dados.porte
+    if (dados.num_funcionarios !== undefined) payload.num_funcionarios = dados.num_funcionarios
+    if (dados.folha_salarial_mensal !== undefined)
+      payload.folha_salarial_mensal = dados.folha_salarial_mensal
+    if (dados.encargos_mensais !== undefined) payload.encargos_mensais = dados.encargos_mensais
+    if (dados.apelido !== undefined) payload.apelido = dados.apelido
+    if (dados.razao_social !== undefined) payload.razao_social = dados.razao_social
+    if (dados.ramo_atividade !== undefined) payload.ramo_atividade = dados.ramo_atividade
+    if (dados.cnae !== undefined) payload.cnae = dados.cnae
+
+    const atualizado = await pb.collection('cadastro_empresas').update(id, payload)
+    return {
+      sucesso: true,
+      empresa: mapearRegistro(atualizado),
+      mensagem: 'Empresa atualizada com sucesso.',
+    }
+  } catch (err: any) {
+    console.error('Erro ao atualizar empresa:', err)
+    return {
+      sucesso: false,
+      mensagem: err?.message || 'Falha ao atualizar dados da empresa.',
+    }
   }
 }
 
