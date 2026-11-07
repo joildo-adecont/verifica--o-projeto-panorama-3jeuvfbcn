@@ -506,43 +506,96 @@ export const RelatorioDiagnosticoPastoreImprimivel: React.FC<
 
         {/* NOVO BLOCO 5: LINHA DO TEMPO DA TRANSIÇÃO TRIBUTÁRIA ATÉ 2033 (LC 214/2025) */}
         <div className="mb-4 break-inside-avoid">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-slate-800 border-b border-slate-300 pb-1 mb-2">
-            5. Linha do Tempo da Transição Tributária (2026 a 2033) e Recomendações Estratégicas
-          </h2>
-          <div className="border border-slate-300 rounded overflow-hidden">
+          <div className="flex items-center justify-between border-b border-slate-300 pb-1 mb-2">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-800">
+              5. Linha do Tempo da Transição Tributária (2026 a 2033) e Recomendações Estratégicas
+            </h2>
+            <span className="text-[8px] font-bold uppercase px-2 py-0.5 rounded bg-amber-100 text-amber-900 border border-amber-300">
+              Recorte Estratégico: 2027–2029 Fase de Decisão
+            </span>
+          </div>
+
+          {/* Faixa explicativa sobre o recorte da fase de decisão */}
+          <div className="bg-amber-50/80 border-l-4 border-l-amber-600 border border-amber-200 rounded p-1.5 mb-2 text-[8px] text-amber-950 leading-tight">
+            <strong>Fase de Decisão Estratégica (Triênio 2027–2029):</strong> Intervalo crítico de
+            transição contábil da Pastore destacado abaixo em dourado, cobrindo a decisão de regime
+            e momento de migração (2027), ajuste operacional ao Regime Regular (2028) e consolidação
+            da convivência com revisão global de carga (2029).
+          </div>
+
+          <div className="border border-slate-300 rounded overflow-hidden shadow-sm">
             <table className="w-full border-collapse text-[8.5px]">
               <thead>
                 <tr className="bg-slate-900 text-white">
-                  <th className="p-1.5 text-left w-[12%]">Ano / Fase</th>
-                  <th className="p-1.5 text-left w-[28%]">Mecânica Legislativa (LC 214/2025)</th>
-                  <th className="p-1.5 text-left w-[30%]">Impacto Concreto para a Pastore</th>
+                  <th className="p-1.5 text-left w-[14%]">Ano / Fase</th>
+                  <th className="p-1.5 text-left w-[27%]">Mecânica Legislativa (LC 214/2025)</th>
+                  <th className="p-1.5 text-left w-[29%]">Impacto Concreto para a Pastore</th>
                   <th className="p-1.5 text-left w-[30%] bg-amber-900 text-amber-100">
                     Ação ADECONT Recomendada
                   </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
-                {linhaDoTempoTransicao.map((marco, idx) => (
-                  <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
-                    <td className="p-1.5 font-bold text-slate-900 align-top">
-                      <span className="block font-mono text-amber-900 font-black text-[9px]">
-                        {marco.ano}
-                      </span>
-                      <span className="text-[7.5px] text-slate-500 font-normal leading-tight block">
-                        {marco.fase}
-                      </span>
-                    </td>
-                    <td className="p-1.5 text-slate-700 align-top leading-tight">
-                      {marco.mecanicaLegislativa}
-                    </td>
-                    <td className="p-1.5 text-slate-800 align-top leading-tight font-medium">
-                      {marco.impactoPastore}
-                    </td>
-                    <td className="p-1.5 text-amber-950 bg-amber-50/40 align-top leading-tight font-medium">
-                      {marco.acaoRecomendadaAdecont}
-                    </td>
-                  </tr>
-                ))}
+                {linhaDoTempoTransicao.map((marco, idx) => {
+                  const isFaseDecisao = !!marco.faseDecisao
+                  return (
+                    <tr
+                      key={idx}
+                      className={
+                        isFaseDecisao
+                          ? 'bg-amber-50/60 font-medium border-l-4 border-l-amber-600'
+                          : idx % 2 === 0
+                            ? 'bg-white'
+                            : 'bg-slate-50'
+                      }
+                    >
+                      <td className="p-1.5 font-bold text-slate-900 align-top">
+                        <div className="flex items-center gap-1">
+                          <span
+                            className={`block font-mono font-black text-[9px] ${
+                              isFaseDecisao ? 'text-amber-800' : 'text-slate-900'
+                            }`}
+                          >
+                            {marco.ano}
+                          </span>
+                          {isFaseDecisao && (
+                            <span className="text-[6.5px] uppercase font-bold px-1 py-0.2 rounded bg-amber-200 text-amber-900 border border-amber-300">
+                              Decisão
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-[7.5px] text-slate-600 font-normal leading-tight block mt-0.5">
+                          {marco.fase}
+                        </span>
+                        {isFaseDecisao && (
+                          <span className="text-[6.5px] font-semibold text-amber-900 block mt-0.5">
+                            Fase de Decisão
+                          </span>
+                        )}
+                      </td>
+                      <td className="p-1.5 text-slate-700 align-top leading-tight">
+                        {marco.mecanicaLegislativa}
+                      </td>
+                      <td className="p-1.5 text-slate-800 align-top leading-tight font-medium">
+                        {marco.impactoPastore}
+                      </td>
+                      <td
+                        className={`p-1.5 align-top leading-tight font-medium ${
+                          isFaseDecisao
+                            ? 'text-amber-950 bg-amber-100/70 border-l border-amber-300'
+                            : 'text-amber-950 bg-amber-50/40'
+                        }`}
+                      >
+                        {isFaseDecisao && (
+                          <span className="block font-bold text-[7.5px] text-amber-900 uppercase mb-0.5">
+                            {marco.rotuloFaseDecisao || 'Fase de Decisão'}
+                          </span>
+                        )}
+                        {marco.acaoRecomendadaAdecont}
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>

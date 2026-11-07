@@ -288,19 +288,38 @@ describe('diagnosticoPastore - recálculo por balancetes cumulativos', () => {
     expect(anos).toContain('2026')
     expect(anos).toContain('2027')
     expect(anos).toContain('2028')
-    expect(anos).toContain('2029–2032')
+    expect(anos).toContain('2029')
+    expect(anos).toContain('2030–2032')
     expect(anos).toContain('2033')
 
     const marco2026 = linhaDoTempoTransicao.find((m) => String(m.ano) === '2026')!
     expect(marco2026.fase).toContain('Ano-Teste')
     expect(marco2026.simplesCabivel).toBe(true)
+    expect(marco2026.faseDecisao).toBe(false)
 
+    // Recorte 2027-2029: Fase de Decisão
     const marco2027 = linhaDoTempoTransicao.find((m) => String(m.ano) === '2027')!
     expect(marco2027.titulo).toContain('CBS')
     expect(marco2027.creditoComprasValendo).toBe(true)
+    expect(marco2027.faseDecisao).toBe(true)
+    expect(marco2027.acaoRecomendadaAdecont).toContain('FASE DE DECISÃO (MOMENTO DA MIGRAÇÃO)')
+
+    const marco2028 = linhaDoTempoTransicao.find((m) => String(m.ano) === '2028')!
+    expect(marco2028.faseDecisao).toBe(true)
+    expect(marco2028.acaoRecomendadaAdecont).toContain('FASE DE DECISÃO (AJUSTE AO REGIME REGULAR)')
+
+    const marco2029 = linhaDoTempoTransicao.find((m) => String(m.ano) === '2029')!
+    expect(marco2029.faseDecisao).toBe(true)
+    expect(marco2029.acaoRecomendadaAdecont).toContain(
+      'FASE DE DECISÃO (CONSOLIDAÇÃO E REVISÃO DA CARGA)',
+    )
+
+    const marco2030 = linhaDoTempoTransicao.find((m) => String(m.ano) === '2030–2032')!
+    expect(marco2030.faseDecisao).toBe(false)
 
     const marco2033 = linhaDoTempoTransicao.find((m) => String(m.ano) === '2033')!
     expect(marco2033.titulo).toContain('2033')
+    expect(marco2033.faseDecisao).toBe(false)
     expect(marco3033Fim(marco2033)).toBe(true)
   })
 })

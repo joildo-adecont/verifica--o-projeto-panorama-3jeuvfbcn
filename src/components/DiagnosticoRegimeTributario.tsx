@@ -844,72 +844,160 @@ export const DiagnosticoRegimeTributario: React.FC = () => {
           <div className="flex items-center gap-2.5">
             <Calendar className="w-5 h-5 text-amber-400 flex-shrink-0" />
             <div>
-              <span className="text-[10px] font-mono uppercase bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded border border-amber-500/30">
-                Lei Complementar nº 214/2025
-              </span>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-[10px] font-mono uppercase bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded border border-amber-500/30">
+                  Lei Complementar nº 214/2025
+                </span>
+                <span className="text-[10px] font-bold uppercase bg-gradient-to-r from-amber-500/30 to-yellow-500/20 text-amber-200 px-2 py-0.5 rounded border border-amber-400/50 flex items-center gap-1 shadow-sm">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                  Recorte Estratégico: 2027–2029 Fase de Decisão
+                </span>
+              </div>
               <h3 className="text-base font-bold text-white tracking-tight mt-0.5">
                 3. Linha do Tempo da Transição Tributária (2026 a 2033) e Impactos para a Pastore
               </h3>
             </div>
           </div>
-          <span className="text-xs text-slate-400 bg-slate-950 px-2.5 py-1 rounded border border-slate-800">
-            Fases Oficiais da Reforma Tributária (IVA Dual)
+          <div className="flex items-center gap-2 text-xs">
+            <span className="text-slate-400 bg-slate-950 px-2.5 py-1 rounded border border-slate-800">
+              Fases Oficiais (IVA Dual)
+            </span>
+            <span className="text-amber-300 bg-amber-950/60 px-2.5 py-1 rounded border border-amber-600/50 font-semibold text-[11px]">
+              Destaque: Triênio 2027–2029
+            </span>
+          </div>
+        </div>
+
+        {/* Banner Explicativo do Recorte 2027-2029 Fase de Decisão */}
+        <div className="bg-gradient-to-r from-amber-950/40 via-yellow-950/20 to-slate-900 border-l-4 border-l-amber-500 border border-amber-700/40 rounded-lg p-3 text-xs text-amber-100/90 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 shadow-md">
+          <div className="flex items-center gap-2.5">
+            <div className="p-1.5 rounded-md bg-amber-500/20 text-amber-400 border border-amber-500/30 shrink-0">
+              <Scale className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="font-bold text-amber-200 text-xs">
+                Fase de Decisão Estratégica da Pastore: Triênio 2027, 2028 e 2029
+              </p>
+              <p className="text-[11px] text-slate-300 leading-snug">
+                Os anos de <strong>2027 (momento da migração/decisão de regime)</strong>,{' '}
+                <strong>2028 (ajuste ao Regime Regular)</strong> e{' '}
+                <strong>2029 (consolidação da convivência e revisão da carga)</strong> constituem a
+                janela crítica de decisão contábil e societária.
+              </p>
+            </div>
+          </div>
+          <span className="shrink-0 text-[10px] uppercase font-mono font-bold bg-amber-500/20 text-amber-300 px-2.5 py-1 rounded border border-amber-500/40">
+            Janela Crítica ADECONT
           </span>
         </div>
 
         <div className="space-y-3">
-          {linhaDoTempoTransicao.map((marco, idx) => (
-            <div
-              key={idx}
-              className="bg-slate-950/70 border border-slate-800 hover:border-slate-700 rounded-lg p-3.5 transition-all space-y-2 text-xs"
-            >
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 border-b border-slate-800/80 pb-2">
-                <div className="flex items-center gap-2">
-                  <span className="font-mono font-black text-sm text-amber-400 bg-amber-950/50 px-2.5 py-0.5 rounded border border-amber-800/50">
-                    {marco.ano}
-                  </span>
-                  <h4 className="font-bold text-white text-xs">{marco.titulo}</h4>
-                </div>
-                <div className="flex items-center gap-2 text-[10px]">
-                  <span className="bg-slate-800 text-slate-300 px-2 py-0.5 rounded border border-slate-700">
-                    {marco.statusOficial}
-                  </span>
-                  {marco.creditoComprasValendo ? (
-                    <span className="bg-emerald-950 text-emerald-300 border border-emerald-800 px-2 py-0.5 rounded font-semibold">
-                      Crédito Pleno Ativo
+          {linhaDoTempoTransicao.map((marco, idx) => {
+            const isFaseDecisao = !!marco.faseDecisao
+            return (
+              <div
+                key={idx}
+                className={`rounded-lg p-3.5 transition-all space-y-2 text-xs relative ${
+                  isFaseDecisao
+                    ? 'bg-gradient-to-b from-amber-950/30 via-slate-950 to-slate-950 border-2 border-amber-500/60 shadow-[0_0_20px_rgba(245,158,11,0.08)]'
+                    : 'bg-slate-950/70 border border-slate-800 hover:border-slate-700 opacity-90'
+                }`}
+              >
+                {/* Faixa / Badge de Fase de Decisão */}
+                {isFaseDecisao && (
+                  <div className="flex items-center justify-between gap-2 pb-1.5 mb-1 border-b border-amber-500/30">
+                    <span className="inline-flex items-center gap-1.5 font-bold uppercase tracking-wider text-[10px] text-amber-300 bg-amber-500/20 border border-amber-500/40 px-2 py-0.5 rounded shadow-sm">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
+                      Fase de Decisão · Triênio 2027–2029
                     </span>
-                  ) : (
-                    <span className="bg-slate-800 text-slate-400 border border-slate-700 px-2 py-0.5 rounded">
-                      Crédito em Teste
-                    </span>
-                  )}
-                </div>
-              </div>
+                    {marco.rotuloFaseDecisao && (
+                      <span className="text-[10px] font-medium text-amber-200/90 hidden md:inline">
+                        {marco.rotuloFaseDecisao}
+                      </span>
+                    )}
+                  </div>
+                )}
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 text-[11px] pt-1">
-                <div className="space-y-0.5 bg-slate-900/60 p-2.5 rounded border border-slate-800/80">
-                  <span className="text-[10px] uppercase font-bold text-slate-400 block">
-                    Mecânica Legislativa (LC 214/2025):
-                  </span>
-                  <p className="text-slate-300 leading-relaxed">{marco.mecanicaLegislativa}</p>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 border-b border-slate-800/80 pb-2">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`font-mono font-black text-sm px-2.5 py-0.5 rounded border ${
+                        isFaseDecisao
+                          ? 'text-amber-300 bg-amber-500/20 border-amber-400/60 shadow-sm'
+                          : 'text-amber-400 bg-amber-950/50 border-amber-800/50'
+                      }`}
+                    >
+                      {marco.ano}
+                    </span>
+                    <h4
+                      className={`font-bold text-xs ${
+                        isFaseDecisao ? 'text-amber-100 font-extrabold' : 'text-white'
+                      }`}
+                    >
+                      {marco.titulo}
+                    </h4>
+                  </div>
+                  <div className="flex items-center gap-2 text-[10px] flex-wrap">
+                    <span
+                      className={`px-2 py-0.5 rounded border ${
+                        isFaseDecisao
+                          ? 'bg-amber-950/80 text-amber-200 border-amber-600/60 font-semibold'
+                          : 'bg-slate-800 text-slate-300 border-slate-700'
+                      }`}
+                    >
+                      {marco.statusOficial}
+                    </span>
+                    {marco.creditoComprasValendo ? (
+                      <span className="bg-emerald-950 text-emerald-300 border border-emerald-800 px-2 py-0.5 rounded font-semibold">
+                        Crédito Pleno Ativo
+                      </span>
+                    ) : (
+                      <span className="bg-slate-800 text-slate-400 border border-slate-700 px-2 py-0.5 rounded">
+                        Crédito em Teste
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <div className="space-y-0.5 bg-slate-900/60 p-2.5 rounded border border-slate-800/80">
-                  <span className="text-[10px] uppercase font-bold text-indigo-300 block">
-                    O Que Muda para a Pastore:
-                  </span>
-                  <p className="text-slate-200 leading-relaxed">{marco.impactoPastore}</p>
-                </div>
-                <div className="space-y-0.5 bg-amber-950/20 p-2.5 rounded border border-amber-800/40">
-                  <span className="text-[10px] uppercase font-bold text-amber-400 block">
-                    Recomendação Estratégica ADECONT:
-                  </span>
-                  <p className="text-amber-200/90 leading-relaxed font-medium">
-                    {marco.acaoRecomendadaAdecont}
-                  </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 text-[11px] pt-1">
+                  <div className="space-y-0.5 bg-slate-900/60 p-2.5 rounded border border-slate-800/80">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block">
+                      Mecânica Legislativa (LC 214/2025):
+                    </span>
+                    <p className="text-slate-300 leading-relaxed">{marco.mecanicaLegislativa}</p>
+                  </div>
+                  <div className="space-y-0.5 bg-slate-900/60 p-2.5 rounded border border-slate-800/80">
+                    <span className="text-[10px] uppercase font-bold text-indigo-300 block">
+                      O Que Muda para a Pastore:
+                    </span>
+                    <p className="text-slate-200 leading-relaxed">{marco.impactoPastore}</p>
+                  </div>
+                  <div
+                    className={`space-y-0.5 p-2.5 rounded border ${
+                      isFaseDecisao
+                        ? 'bg-amber-950/40 border-amber-500/60 ring-1 ring-amber-500/20'
+                        : 'bg-amber-950/20 border-amber-800/40'
+                    }`}
+                  >
+                    <span
+                      className={`text-[10px] uppercase font-bold block ${
+                        isFaseDecisao ? 'text-amber-300' : 'text-amber-400'
+                      }`}
+                    >
+                      Recomendação Estratégica ADECONT{isFaseDecisao ? ' (Fase de Decisão):' : ':'}
+                    </span>
+                    <p
+                      className={`leading-relaxed font-medium ${
+                        isFaseDecisao ? 'text-amber-100 font-semibold' : 'text-amber-200/90'
+                      }`}
+                    >
+                      {marco.acaoRecomendadaAdecont}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </div>
 

@@ -165,6 +165,8 @@ export interface MarcoLinhaDoTempoTransicao {
   acaoRecomendadaAdecont: string
   creditoComprasValendo: boolean
   simplesCabivel: boolean
+  faseDecisao?: boolean
+  rotuloFaseDecisao?: string
 }
 
 export interface LinhaComparativoRegime {
@@ -975,6 +977,7 @@ export async function carregarDiagnosticoClientePastore(): Promise<DiagnosticoCl
   ]
 
   // 7) LINHA DO TEMPO DA TRANSIÇÃO TRIBUTÁRIA ATÉ 2033 (LC 214/2025)
+  // Destaca explicitamente o triênio 2027–2029 como FASE DE DECISÃO estratégica para a Pastore
   const linhaDoTempoTransicao: MarcoLinhaDoTempoTransicao[] = [
     {
       ano: 2026,
@@ -989,48 +992,70 @@ export async function carregarDiagnosticoClientePastore(): Promise<DiagnosticoCl
         'Manter Simples Nacional; auditar cadastro de produtos (NCM das autopeças) e preparar parametrização para as novas tags fiscais.',
       creditoComprasValendo: false,
       simplesCabivel: true,
+      faseDecisao: false,
     },
     {
       ano: 2027,
-      fase: 'Início da Vigência Federal (CBS)',
-      titulo: '2027: CBS Plena e Sublimite do Simples Híbrido',
-      statusOficial: 'Extinção de PIS/COFINS e Ativação da CBS',
+      fase: 'Início da Vigência Federal (CBS) — Decisão de Regime',
+      titulo: '2027: CBS Plena, Sublimite do Simples Híbrido e Extinção PIS/COFINS',
+      statusOficial: 'FASE DE DECISÃO: Extinção de PIS/COFINS e Ativação da CBS Integral',
       mecanicaLegislativa:
         'Extinção definitiva de PIS e COFINS. CBS entra com alíquota plena (~8,8%). IBS mantém alíquota teste de 0,1%. Ativação da regra do Simples Híbrido (LC 214/2025, art. 28) com sublimite de R$ 3,6 mi.',
       impactoPastore:
         'Para faturamento até R$ 3,6 mi, a Pastore recolhe DAS sem alteração. Se atingir o ritmo de julho (~R$ 3,56 mi) e romper R$ 3,6 mi, o excedente recolhe CBS/IBS com crédito pleno de compras.',
       acaoRecomendadaAdecont:
-        'Avaliar migração estratégica para o Regime Regular caso a receita exceda R$ 3,6 mi ou se a carteira corporativa (frotas PJ) exigir destaque integral de créditos.',
+        'FASE DE DECISÃO (MOMENTO DA MIGRAÇÃO): Decisão formal de regime entre Simples Nacional puro, Simples Híbrido (caso faturamento passe de R$ 3,6 mi) ou migração antecipada para o Regime Regular + Lucro Real caso clientes de frotas e pessoas jurídicas passem a exigir destaque integral dos créditos de CBS.',
       creditoComprasValendo: true,
       simplesCabivel: true,
+      faseDecisao: true,
+      rotuloFaseDecisao: 'Fase de Decisão · Momento da Migração e Decisão de Regime',
     },
     {
       ano: 2028,
-      fase: 'Calibração das Alíquotas Subnacionais',
-      titulo: '2028: Fixação de Alíquotas Estaduais e Municipais',
-      statusOficial: 'CBS Plena + IBS Calibrado pelo Senado',
+      fase: 'Calibração das Alíquotas Subnacionais — Ajuste ao Regime Regular',
+      titulo: '2028: Fixação de Alíquotas Estaduais/Municipais e Início da Redução do ICMS',
+      statusOficial: 'FASE DE DECISÃO: CBS Plena + IBS Calibrado pelo Senado',
       mecanicaLegislativa:
-        'Manutenção da CBS plena. Senado Federal fixa alíquotas de referência para Estados e Municípios. Redução preparatória de benefícios e incentivos fiscais regionais.',
+        'Manutenção da CBS plena. Senado Federal fixa alíquotas de referência para Estados e Municípios. Início da redução gradual e preparatória de benefícios e incentivos fiscais regionais do ICMS.',
       impactoPastore:
-        'A oficina mecânica segue operando com segurança. Distribuidores de peças (Cobra Rolamentos, etc.) já emitem notas com crédito financeiro integral destacado de CBS.',
+        'A oficina mecânica segue operando com segurança. Fornecedores de autopeças (distribuidores e fabricantes) já emitem 100% de suas notas fiscais com crédito financeiro integral destacado de CBS.',
       acaoRecomendadaAdecont:
-        'Auditoria contínua da margem retida líquida (~4,4%) e monitoramento mensal do faturamento em 12 meses acumulados para antecipar virada de sublimite.',
+        'FASE DE DECISÃO (AJUSTE AO REGIME REGULAR): Monitoramento mensal rigoroso do faturamento acumulado em 12 meses para antecipar virada de sublimite; calibração dos créditos de compras de autopeças e adaptação da precificação dos serviços mecânicos ao modelo de crédito/débito não-cumulativo.',
       creditoComprasValendo: true,
       simplesCabivel: true,
+      faseDecisao: true,
+      rotuloFaseDecisao: 'Fase de Decisão · Ajuste Operacional ao Regime Regular',
     },
     {
-      ano: '2029–2032',
-      fase: 'Transição Gradual IBS (1/10 ao ano)',
-      titulo: '2029 a 2032: Redução Gradual de ICMS/ISS e Subida do IBS',
-      statusOficial: 'Substituição Proporcional de 10% a 40% ao ano',
+      ano: 2029,
+      fase: 'Início da Convivência Gradual IBS/ICMS — Consolidação de Carga',
+      titulo: '2029: Início da Convivência Gradual de Alíquotas (90% ICMS/ISS + 10% IBS)',
+      statusOficial: 'FASE DE DECISÃO: Redução de 1/10 de ICMS/ISS e Subida do IBS',
       mecanicaLegislativa:
-        'ICMS e ISS são reduzidos anualmente na proporção de 1/10 (90% em 2029, 80% em 2030, 70% em 2031, 60% em 2032), enquanto o IBS é elevado na mesma proporção.',
+        'Primeiro ano da substituição gradual do ICMS e ISS: redução de 1/10 (ICMS e ISS recolhidos a 90%), e IBS elevado proporcionalmente a 1/10 da alíquota de referência estadual e municipal.',
       impactoPastore:
-        'A cumulatividade do ICMS e ISS perde força gradativamente. Empresas que migrarem para o Regime Regular abatem 100% de créditos de insumos, equipamentos e energia.',
+        'Início formal do esvaziamento da cumulatividade do ICMS/ISS. Quem já opera no Regime Regular abate créditos imediatos de autopeças, ferramentas, energia e insumos da oficina mecânica.',
       acaoRecomendadaAdecont:
-        'Transição recomendada para Regime Regular + Lucro Real caso a receita ultrapasse R$ 3,6 mi, aproveitando o crédito pleno das autopeças para reduzir alíquota efetiva a ~8,5%.',
+        'FASE DE DECISÃO (CONSOLIDAÇÃO E REVISÃO DA CARGA): Consolidação da convivência de alíquotas e revisão definitiva da carga tributária global da Pastore; se o faturamento superar R$ 3,6 mi, fixar transição para Regime Regular + Lucro Real capturando alíquota líquida efetiva de ~8,5% sobre o valor agregado.',
       creditoComprasValendo: true,
       simplesCabivel: true,
+      faseDecisao: true,
+      rotuloFaseDecisao: 'Fase de Decisão · Consolidação da Convivência e Revisão de Carga',
+    },
+    {
+      ano: '2030–2032',
+      fase: 'Evolução da Transição Gradual IBS (20% a 40%)',
+      titulo: '2030 a 2032: Redução Acentuada de ICMS/ISS e Maturação do IBS',
+      statusOficial: 'Substituição Proporcional de 20% a 40% (2/10 a 4/10)',
+      mecanicaLegislativa:
+        'ICMS e ISS continuam caindo anualmente (80% em 2030, 70% em 2031, 60% em 2032), com IBS preenchendo a diferença de forma progressiva.',
+      impactoPastore:
+        'Mercado de autopeças plenamente adaptado à não-cumulatividade ampla. Regime Regular consolida vantagem competitiva clara em relação ao Simples para faturamentos no topo da faixa.',
+      acaoRecomendadaAdecont:
+        'Manutenção e refinamento contínuo da apuração no Regime Regular com Lucro Real, garantindo conformidade digital no split payment e restituição célere de saldos credores.',
+      creditoComprasValendo: true,
+      simplesCabivel: true,
+      faseDecisao: false,
     },
     {
       ano: 2033,
@@ -1045,6 +1070,7 @@ export async function carregarDiagnosticoClientePastore(): Promise<DiagnosticoCl
         'Consolidação definitiva no Regime Regular combinado ao Lucro Real, maximizando economia tributária anual em relação a qualquer modelo anterior.',
       creditoComprasValendo: true,
       simplesCabivel: true,
+      faseDecisao: false,
     },
   ]
 
