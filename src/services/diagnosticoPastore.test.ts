@@ -4,6 +4,8 @@ import {
   converterBalancetesCumulativosParaLiquidosMensais,
   calcularComparativoCustoFolha,
   parseCnaesSecundarios,
+  avaliarDivergenciaRegime,
+  normalizarNomeRegime,
 } from './diagnosticoPastore'
 
 describe('diagnosticoPastore - recálculo por balancetes cumulativos', () => {
@@ -504,3 +506,131 @@ describe('diagnosticoPastore - recálculo por balancetes cumulativos', () => {
 function marco3033Fim(marco: any) {
   return marco.mecanicaLegislativa.includes('Extinção total') || marco.fase.includes('Pleno')
 }
+
+describe('diagnosticoPastore - Alertas de divergência entre cadastro e recomendação técnica', () => {
+  it('cenário 1: Cadastro Simples Nacional com receita dentro do teto emite selo de conformidade verde', () => {
+    const alerta = avaliarDivergenciaRegime({
+      regimeCadastrado: 'Simples Nacional',
+      receitaAnualizada: 2848822.88,
+      regimeRecomendadoTecnico: 'Simples Nacional',
+    })
+
+    expect(alerta.tipo).toBe('conformidade')
+    expect(alerta.divergente).toBe(false)
+    expect(alerta.titulo).toContain('Conformidade')
+    expect(alerta.mensagem).toContain('coincide com a recomendação técnica')
+    expect(alerta.estourouTetoSimples).toBe(false)
+  })
+
+  it('cenário 2: Cadastro Simples Nacional com receita acima de R$ 4,8 mi emite alerta vermelho grave de teto estourado', () => {
+    const alerta = avaliarDivergenciaRegime({
+      regimeCadastrado: 'Simples Nacional',
+      receitaAnualizada: 5200000.0, // R$ 5,2 mi
+      regimeRecomendadoTecnico: 'Simples Nacional',
+    })
+
+    expect(alerta.tipo).toBe('grave')
+    expect(alerta.divergente).toBe(true)
+    expect(alerta.estourouTetoSimples).toBe(true)
+    expect(alerta.titulo).toContain('Teto Legal')
+    expect(alerta.mensagem).toContain('ultrapassou o teto legal de R$ 4,8 milhões')
+    expect(alerta.justificativaTecnica).toContain('obrigatoriedade legal de desenquadramento')
+  })
+
+  it('cenário 3: Cadastro Simples Nacional com receita entre R$ 3,6 mi e R$ 4,8 mi emite alerta âmbar de sublimite/híbrido', () => {
+    const alerta = avaliarDivergenciaRegime({
+      regimeCadastrado: 'Simples Nacional',
+      receitaAnualizada: 4100000.0, // R$ 4,1 mi
+      regimeRecomendadoTecnico: 'Simples Nacional',
+    })
+
+    expect(alerta.tipo).toBe('atencao')
+    expect(alerta.divergente).toBe(true)
+    expect(alerta.ultrapassouSublimiteHibrido).toBe(true)
+    expect(alerta.titulo).toContain('Sublimite')
+    expect(alerta.mensagem).toContain('superou o sublimite de R$ 3,6 mi')
+    expect(alerta.regimeRecomendado).toBe('Simples Híbrido')
+  })
+
+  it('cenário 4: Cadastro Lucro Presumido quando a recomendação é Simples emite alerta âmbar com economia anual estimada', () => {
+    const alerta = avaliarDivergenciaRegime({
+      regimeCadastrado: 'Lucro Presumido',
+      receitaAnualizada: 2848822.88,
+      regimeRecomendadoTecnico: 'Simples Nacional',
+      tabelaValoresPercentuais: [
+        {
+          regimeId: 'simples',
+          nomeRegime: 'Simples Nacional',
+          rotuloCurto: 'Simples',
+          aliquotaEfetivaPct: 9.2,
+          cargaAnualEstimada: 262091.7,
+          diferencaVsSimplesBrl: 0,
+          diferencaVsSimplesPontosPct: 0,
+          vantagens: [],
+          desvantagens: [],
+        },
+        {
+          regimeId: 'lucro_presumido',
+          nomeRegime: 'Lucro Presumido',
+          rotuloCurto: 'Presumido',
+          aliquotaEfetivaPct: 12.6,
+          cargaAnualEstimada: 358951.68,
+          diferencaVsSimplesBrl: 96859.98,
+          diferencaVsSimplesPontosPct: 3.4,
+          vantagens: [],
+          desvantagens: [],
+        },
+      ],
+      margemRetidaLiquidaPct: 4.36,
+    })
+
+    expect(alerta.tipo).toBe('atencao')
+    expect(alerta.divergente).toBe(true)
+    expect(alerta.titulo).toContain('Sobretaxação no Lucro Presumido')
+    expect(alerta.economiaEstimadaAnualBrl).toBeGreaterThan(50000)
+    expect(alerta.economiaEstimadaAnualTexto).toBeDefined()
+    expect(alerta.justificativaTecnica).toContain('4.4%')
+  })
+
+  it('cenário 5: Cadastro não informado ou vazio emite alerta neutro sugerindo preenchimento sem quebrar', () => {
+    const alerta1 = avaliarDivergenciaRegime({
+      regimeCadastrado: '',
+      receitaAnualizada: 2848822.88,
+    })
+    expect(alerta1.tipo).toBe('neutro')
+    expect(alerta1.regimeCadastrado).toBe('Não informado')
+    expect(alerta1.mensagem).toContain('não possui regime tributário formalmente definido')
+
+    const alerta2 = avaliarDivergenciaRegime({
+      regimeCadastrado: undefined,
+      receitaAnualizada: 2848822.88,
+    })
+    expect(alerta2.tipo).toBe('neutro')
+    expect(alerta2.divergente).toBe(true)
+
+    const alerta3 = avaliarDivergenciaRegime({
+      regimeCadastrado: 'Não informado',
+      receitaAnualizada: 2848822.88,
+    })
+    expect(alerta3.tipo).toBe('neutro')
+  })
+
+  it('normalizarNomeRegime lida com variações e maiúsculas/minúsculas', () => {
+    expect(normalizarNomeRegime('simples nacional')).toBe('Simples Nacional')
+    expect(normalizarNomeRegime('Simples Híbrido 2027')).toBe('Simples Híbrido')
+    expect(normalizarNomeRegime('lucro presumido')).toBe('Lucro Presumido')
+    expect(normalizarNomeRegime('Lucro Real Puro')).toBe('Lucro Real')
+    expect(normalizarNomeRegime('Regime Regular IBS/CBS')).toBe('Regime Regular IBS/CBS')
+    expect(normalizarNomeRegime('')).toBe('')
+    expect(normalizarNomeRegime(null)).toBe('')
+  })
+
+  it('carregarDiagnosticoClientePastore embute alerta de divergência no objeto retornado', async () => {
+    const diag = await carregarDiagnosticoClientePastore()
+    expect(diag.alertaDivergencia).toBeDefined()
+    expect(diag.alertaDivergencia.regimeCadastrado).toBeDefined()
+    expect(diag.alertaDivergencia.regimeRecomendado).toBeDefined()
+    // Como a Pastore tem cadastro em Simples Nacional e receita ~2,85 mi, deve ser conformidade
+    expect(['conformidade', 'atencao', 'neutro']).toContain(diag.alertaDivergencia.tipo)
+  })
+})

@@ -88,6 +88,72 @@ export const RelatorioDiagnosticoPastoreImprimivel: React.FC<
           </div>
         </div>
 
+        {/* Banner de Alerta de Divergência Cadastral vs Recomendação Técnica (Destaque A4) */}
+        {data.alertaDivergencia && (
+          <div
+            className={`border-2 rounded p-3 mb-4 break-inside-avoid ${
+              data.alertaDivergencia.tipo === 'grave'
+                ? 'bg-red-50 border-red-600 text-red-950'
+                : data.alertaDivergencia.tipo === 'atencao'
+                  ? 'bg-amber-50 border-amber-600 text-amber-950'
+                  : data.alertaDivergencia.tipo === 'conformidade'
+                    ? 'bg-emerald-50 border-emerald-600 text-emerald-950'
+                    : 'bg-slate-100 border-slate-400 text-slate-900'
+            }`}
+          >
+            <div className="flex items-start justify-between gap-3 mb-1.5">
+              <div className="flex items-center gap-2">
+                <span
+                  className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded text-white ${
+                    data.alertaDivergencia.tipo === 'grave'
+                      ? 'bg-red-700'
+                      : data.alertaDivergencia.tipo === 'atencao'
+                        ? 'bg-amber-700'
+                        : data.alertaDivergencia.tipo === 'conformidade'
+                          ? 'bg-emerald-700'
+                          : 'bg-slate-700'
+                  }`}
+                >
+                  {data.alertaDivergencia.tipo === 'grave'
+                    ? '⚠️ Alerta Crítico de Teto Legal'
+                    : data.alertaDivergencia.tipo === 'atencao'
+                      ? '⚠️ Divergência Cadastral'
+                      : data.alertaDivergencia.tipo === 'conformidade'
+                        ? '✔️ Conformidade Cadastral'
+                        : 'ℹ️ Cadastro Pendente'}
+                </span>
+                <span className="font-black text-xs uppercase tracking-tight">
+                  {data.alertaDivergencia.titulo}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2 text-[10px] font-mono">
+                <span className="bg-white/80 border px-1.5 py-0.5 rounded">
+                  Cadastrado: <strong>{data.alertaDivergencia.regimeCadastrado}</strong>
+                </span>
+                <span className="bg-white/80 border px-1.5 py-0.5 rounded text-amber-900">
+                  Técnico: <strong>{data.alertaDivergencia.regimeRecomendado}</strong>
+                </span>
+              </div>
+            </div>
+
+            <p className="text-[11px] font-bold leading-tight mb-1">
+              {data.alertaDivergencia.mensagem}
+            </p>
+
+            <p className="text-[10px] leading-relaxed text-slate-800 pt-1 border-t border-slate-300/70">
+              <strong>Parecer Técnico ADECONT: </strong>
+              {data.alertaDivergencia.justificativaTecnica}
+              {data.alertaDivergencia.economiaEstimadaAnualTexto && (
+                <span className="font-bold text-emerald-900 ml-1.5">
+                  (Impacto fiscal estimado: economia de{' '}
+                  {data.alertaDivergencia.economiaEstimadaAnualTexto}/ano).
+                </span>
+              )}
+            </p>
+          </div>
+        )}
+
         {/* Identificação do Cliente & Enquadramento Cadastral */}
         <div className="bg-slate-50 border border-slate-300 rounded p-3 mb-4 space-y-2.5">
           <div className="grid grid-cols-3 gap-2">
@@ -107,10 +173,10 @@ export const RelatorioDiagnosticoPastoreImprimivel: React.FC<
             </div>
             <div>
               <span className="text-[10px] text-slate-500 block uppercase font-bold">
-                Enquadramento Tributário Atual:
+                Regime Tributário (Cadastro):
               </span>
-              <span className="font-bold text-emerald-800 text-xs bg-emerald-100/70 border border-emerald-300 px-1.5 py-0.5 rounded inline-block">
-                {data.enquadramentoTributarioAtual || 'Simples Nacional (EPP)'}
+              <span className="font-bold text-cyan-900 text-xs bg-cyan-100/80 border border-cyan-300 px-1.5 py-0.5 rounded inline-block">
+                {data.regimeTributarioAtual || empresa?.regime_tributario || 'Não informado'}
               </span>
             </div>
             <div>

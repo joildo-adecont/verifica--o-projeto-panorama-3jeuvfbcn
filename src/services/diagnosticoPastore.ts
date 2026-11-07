@@ -362,6 +362,24 @@ export function converterBalancetesCumulativosParaLiquidosMensais(
   }
 }
 
+export type TipoAlertaDivergencia = 'conformidade' | 'atencao' | 'grave' | 'neutro'
+
+export interface AlertaDivergenciaRegime {
+  tipo: TipoAlertaDivergencia // 'conformidade' (verde) | 'atencao' (âmbar) | 'grave' (vermelho) | 'neutro' (cinza/azul)
+  divergente: boolean
+  titulo: string
+  mensagem: string
+  justificativaTecnica: string
+  regimeCadastrado: string
+  regimeRecomendado: string
+  economiaEstimadaAnualBrl?: number
+  economiaEstimadaAnualTexto?: string
+  diferencaAliquotaPp?: number
+  receitaAnualizada: number
+  estourouTetoSimples: boolean
+  ultrapassouSublimiteHibrido: boolean
+}
+
 export interface DiagnosticoClienteData {
   empresa: EmpresaCadastro | null
   cnaesSecundariosLista: CnaeItemFormatado[]
@@ -396,6 +414,7 @@ export interface DiagnosticoClienteData {
     resumoCargaEstimada: string
   }
   linhasComparativo: LinhaComparativoRegime[]
+  alertaDivergencia: AlertaDivergenciaRegime
 }
 
 const MESES_ABREV: Record<string, string> = {
@@ -490,6 +509,254 @@ export function parseCnaesSecundarios(
           descricao: CNAES_CATALOGO_DESCRICOES['4530-7/03'],
         },
       ]
+}
+
+/**
+ * Normaliza o nome do regime para fins de comparação padronizada
+ */
+export function normalizarNomeRegime(regime: string | undefined | null): string {
+  if (!regime) return ''
+  const r = regime.toLowerCase().trim()
+  if (r.includes('híbrido') || r.includes('hibrido')) return 'Simples Híbrido'
+  if (r.includes('simples')) return 'Simples Nacional'
+  if (r.includes('presumido')) return 'Lucro Presumido'
+  if (r.includes('real')) return 'Lucro Real'
+  if (r.includes('regular') || r.includes('reforma') || r.includes('ibs') || r.includes('cbs')) {
+    return 'Regime Regular IBS/CBS'
+  }
+  return regime.trim()
+}
+
+/**
+ * Avalia divergência entre o regime tributário cadastrado e a recomendação técnica
+ */
+export function avaliarDivergenciaRegime(params: {
+  regimeCadastrado: string | undefined | null
+  receitaAnualizada: number
+  regimeRecomendadoTecnico?: string
+  tabelaValoresPercentuais?: ItemComparativoValoresPercentuais[]
+  margemRetidaLiquidaPct?: number
+}): AlertaDivergenciaRegime {
+  const {
+    regimeCadastrado: rawCadastrado,
+    receitaAnualizada,
+    regimeRecomendadoTecnico = 'Simples Nacional',
+    tabelaValoresPercentuais = [],
+    margemRetidaLiquidaPct = 4.36,
+  } = params
+
+  const regimeCadNorm = normalizarNomeRegime(rawCadastrado)
+  const TETO_SIMPLES = 4800000 // R$ 4,8 milhões
+  const SUBLIMITE_SIMPLES = 3600000 // R$ 3,6 milhões
+
+  const estourouTetoSimples = receitaAnualizada > TETO_SIMPLES
+  const ultrapassouSublimiteHibrido =
+    receitaAnualizada > SUBLIMITE_SIMPLES && receitaAnualizada <= TETO_SIMPLES
+
+  // Regime recomendado técnico principal (baseado na receita ou veredito)
+  let recTecnica = normalizarNomeRegime(regimeRecomendadoTecnico)
+  if (!recTecnica) {
+    if (estourouTetoSimples) {
+      recTecnica = 'Regime Regular IBS/CBS' // ou Lucro Real
+    } else if (ultrapassouSublimiteHibrido) {
+      recTecnica = 'Simples Híbrido'
+    } else {
+      recTecnica = 'Simples Nacional'
+    }
+  }
+
+  // 1) Caso Não informado / Vazio / Não cadastrado
+  if (
+    !rawCadastrado ||
+    !rawCadastrado.trim() ||
+    regimeCadNorm === 'não informado' ||
+    regimeCadNorm === ''
+  ) {
+    return {
+      tipo: 'neutro',
+      divergente: true,
+      titulo: 'Regime Tributário Não Informado na Ficha Cadastral',
+      mensagem:
+        'A empresa não possui regime tributário formalmente definido no cadastro (cadastro_empresas). A recomendação técnica apurada para a receita atual é ' +
+        recTecnica +
+        '.',
+      justificativaTecnica:
+        'Recomenda-se preencher o campo Regime Tributário na Ficha do Cliente para habilitar o monitoramento e conformidade automatizada contínua da ADECONT.',
+      regimeCadastrado: 'Não informado',
+      regimeRecomendado: recTecnica,
+      receitaAnualizada,
+      estourouTetoSimples,
+      ultrapassouSublimiteHibrido,
+    }
+  }
+
+  // Se o cadastro diz Simples Nacional ou Simples Híbrido, mas estourou o teto de R$ 4,8 mi
+  if (
+    (regimeCadNorm === 'Simples Nacional' || regimeCadNorm === 'Simples Híbrido') &&
+    estourouTetoSimples
+  ) {
+    const recDestino = 'Regime Regular IBS/CBS / Lucro Real'
+    const recFormatada = receitaAnualizada.toLocaleString('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    })
+    return {
+      tipo: 'grave',
+      divergente: true,
+      titulo: 'Descumprimento de Teto Legal do Simples Nacional',
+      mensagem: `Divergência Crítica: regime cadastrado (${rawCadastrado}) é incompatível com a receita projetada (${recFormatada}), que ultrapassou o teto legal de R$ 4,8 milhões (LC 123/2006).`,
+      justificativaTecnica: `Com receita anualizada em ${recFormatada}, a empresa ultrapassa o limite federal de R$ 4.800.000,00, gerando obrigatoriedade legal de desenquadramento e transição imediata para o Regime Regular / Lucro Real para evitar autuações fiscais e cobrança retroativa com penalidades.`,
+      regimeCadastrado: rawCadastrado,
+      regimeRecomendado: recDestino,
+      receitaAnualizada,
+      estourouTetoSimples: true,
+      ultrapassouSublimiteHibrido: false,
+    }
+  }
+
+  // Se o cadastro diz Simples Nacional mas ultrapassou o sublimite de R$ 3,6 mi
+  if (regimeCadNorm === 'Simples Nacional' && ultrapassouSublimiteHibrido) {
+    const recFormatada = receitaAnualizada.toLocaleString('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    })
+    return {
+      tipo: 'atencao',
+      divergente: true,
+      titulo: 'Sublimite do Simples Ultrapassado — Modelo Híbrido Acionável',
+      mensagem: `Divergência Cadastral: regime cadastrado é Simples Nacional puro, mas a receita projetada (${recFormatada}) superou o sublimite de R$ 3,6 mi, acionando o Simples Híbrido da LC 214/2025.`,
+      justificativaTecnica: `A receita entre R$ 3,6 mi e R$ 4,8 mi aciona a regra híbrida da Reforma Tributária: o ICMS/ISS é recolhido no regime regular com direito a créditos de autopeças sobre a parcela excedente, preservando os tributos federais e CPP no DAS.`,
+      regimeCadastrado: rawCadastrado,
+      regimeRecomendado: 'Simples Híbrido',
+      receitaAnualizada,
+      estourouTetoSimples: false,
+      ultrapassouSublimiteHibrido: true,
+    }
+  }
+
+  // Comparar custos da tabela de regimes para apurar economia estimada se cadastrado != recomendado
+  const itemCadastrado = tabelaValoresPercentuais.find(
+    (t) =>
+      normalizarNomeRegime(t.nomeRegime) === regimeCadNorm ||
+      normalizarNomeRegime(t.rotuloCurto) === regimeCadNorm,
+  )
+  const itemSimples = tabelaValoresPercentuais.find((t) => t.regimeId === 'simples')
+  const itemReforma = tabelaValoresPercentuais.find((t) => t.regimeId === 'reforma_2027')
+  const itemLucroReal = tabelaValoresPercentuais.find((t) => t.regimeId === 'lucro_real_puro')
+
+  // Se o cadastro é Lucro Presumido
+  if (regimeCadNorm === 'Lucro Presumido') {
+    const custoPresumido = itemCadastrado?.cargaAnualEstimada || receitaAnualizada * 0.126
+    const custoSimples = itemSimples?.cargaAnualEstimada || receitaAnualizada * 0.092
+    const economiaBrl = Math.max(0, custoPresumido - custoSimples)
+    const aliqPresumido = itemCadastrado?.aliquotaEfetivaPct || 12.6
+    const aliqSimples = itemSimples?.aliquotaEfetivaPct || 9.2
+    const difPp = aliqPresumido - aliqSimples
+
+    const economiaFmt = economiaBrl.toLocaleString('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    })
+
+    return {
+      tipo: 'atencao',
+      divergente: true,
+      titulo: 'Divergência Cadastral: Sobretaxação no Lucro Presumido',
+      mensagem: `Divergência detectada: regime cadastrado (${rawCadastrado}) difere da recomendação técnica (${recTecnica}), gerando sobrecusto anual estimado de ${economiaFmt}.`,
+      justificativaTecnica: `A Pastore apurou margem real líquida de ~${margemRetidaLiquidaPct.toFixed(1)}%. O Lucro Presumido presume margens artificiais de 8% em peças e 32% em serviços com CPP patronal integral de 28,8% sobre folha a fundo perdido. A migração para ${recTecnica} proporciona economia de ~${difPp.toFixed(1)} p.p. na carga fiscal efetiva.`,
+      regimeCadastrado: rawCadastrado,
+      regimeRecomendado: recTecnica,
+      economiaEstimadaAnualBrl: economiaBrl,
+      economiaEstimadaAnualTexto: economiaFmt,
+      diferencaAliquotaPp: difPp,
+      receitaAnualizada,
+      estourouTetoSimples: false,
+      ultrapassouSublimiteHibrido: false,
+    }
+  }
+
+  // Se o cadastro é Lucro Real mas a recomendação imediata é Simples
+  if (
+    regimeCadNorm === 'Lucro Real' &&
+    (recTecnica === 'Simples Nacional' || recTecnica === 'Simples Híbrido')
+  ) {
+    const custoReal = itemLucroReal?.cargaAnualEstimada || receitaAnualizada * 0.0889
+    const custoSimples = itemSimples?.cargaAnualEstimada || receitaAnualizada * 0.092
+    const economiaBrl = Math.abs(custoReal - custoSimples)
+    const economiaFmt = economiaBrl.toLocaleString('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    })
+
+    return {
+      tipo: 'atencao',
+      divergente: true,
+      titulo: 'Divergência Cadastral: Lucro Real vs Simples Nacional',
+      mensagem: `Divergência detectada: regime cadastrado (${rawCadastrado}) difere da recomendação técnica imediata (${recTecnica}).`,
+      justificativaTecnica: `O Lucro Real exige alto custo de conformidade (ECD/ECF/LALUR) e recolhimento patronal de INSS sobre a folha. Para a receita projetada de ~R$ 2,85 mi, o Simples Nacional oferece menor complexidade operacional, enquanto o Lucro Real combinado ao IBS/CBS desponta como rota preferencial para 2027+.`,
+      regimeCadastrado: rawCadastrado,
+      regimeRecomendado: recTecnica,
+      economiaEstimadaAnualBrl: economiaBrl,
+      economiaEstimadaAnualTexto: economiaFmt,
+      receitaAnualizada,
+      estourouTetoSimples: false,
+      ultrapassouSublimiteHibrido: false,
+    }
+  }
+
+  // Se cadastrado é Simples Nacional e recomendação técnica é outro regime por créditos/margem
+  if (
+    regimeCadNorm === 'Simples Nacional' &&
+    recTecnica !== 'Simples Nacional' &&
+    recTecnica !== 'Simples Híbrido'
+  ) {
+    return {
+      tipo: 'atencao',
+      divergente: true,
+      titulo: 'Divergência Cadastral vs Rota Estratégica Recomendada',
+      mensagem: `Divergência detectada: regime cadastrado (${rawCadastrado}) difere da recomendação técnica (${recTecnica}).`,
+      justificativaTecnica: `Embora elegível ao Simples, a mecânica aufere créditos substanciais nas compras de autopeças de distribuidoras, tornando o regime ${recTecnica} financeiramente mais vantajoso no horizonte 2027+.`,
+      regimeCadastrado: rawCadastrado,
+      regimeRecomendado: recTecnica,
+      receitaAnualizada,
+      estourouTetoSimples: false,
+      ultrapassouSublimiteHibrido: false,
+    }
+  }
+
+  // Se o regime cadastrado é compatível/igual ao recomendado
+  if (
+    regimeCadNorm === recTecnica ||
+    (regimeCadNorm === 'Simples Nacional' && recTecnica.includes('Simples Nacional')) ||
+    (regimeCadNorm === 'Simples Híbrido' && recTecnica.includes('Simples Híbrido'))
+  ) {
+    return {
+      tipo: 'conformidade',
+      divergente: false,
+      titulo: 'Regime Cadastrado em Conformidade com a Recomendação Técnica',
+      mensagem: `O regime tributário registrado no cadastro (${rawCadastrado}) coincide com a recomendação técnica emitida pelo diagnóstico ADECONT (${recTecnica}).`,
+      justificativaTecnica: `Com receita anualizada em R$ ${receitaAnualizada.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}, a empresa opera confortavelmente dentro dos limites legais de R$ 4,8 milhões da LC 123/2006 e sublimite estadual de R$ 3,6 milhões, garantindo desoneração de CPP e tributação unificada pelo Anexo III.`,
+      regimeCadastrado: rawCadastrado,
+      regimeRecomendado: recTecnica,
+      receitaAnualizada,
+      estourouTetoSimples: false,
+      ultrapassouSublimiteHibrido: false,
+    }
+  }
+
+  // Fallback seguro caso haja outra divergência não mapeada
+  return {
+    tipo: 'atencao',
+    divergente: true,
+    titulo: 'Divergência entre Cadastro e Recomendação Técnica',
+    mensagem: `Atenção: regime cadastrado (${rawCadastrado}) difere da recomendação técnica calculada (${recTecnica}).`,
+    justificativaTecnica: `Recomenda-se avaliar com o departamento contábil da ADECONT a adequação do enquadramento frente às projeções da LC 214/2025.`,
+    regimeCadastrado: rawCadastrado,
+    regimeRecomendado: recTecnica,
+    receitaAnualizada,
+    estourouTetoSimples: false,
+    ultrapassouSublimiteHibrido: false,
+  }
 }
 
 export function calcularComparativoCustoFolha(
@@ -2073,6 +2340,13 @@ export async function carregarDiagnosticoClientePastore(): Promise<DiagnosticoCl
     evolucaoLegislativaRecente,
     recomendacao,
     linhasComparativo,
+    alertaDivergencia: avaliarDivergenciaRegime({
+      regimeCadastrado: regimeTributarioAtual,
+      receitaAnualizada,
+      regimeRecomendadoTecnico: 'Simples Nacional',
+      tabelaValoresPercentuais,
+      margemRetidaLiquidaPct,
+    }),
   }
 }
 

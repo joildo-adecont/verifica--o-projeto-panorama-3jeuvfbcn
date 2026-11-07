@@ -4,7 +4,9 @@ import {
   salvarDadosFolhaEEnquadramentoPastore,
   calcularComparativoCustoFolha,
   parseCnaesSecundarios,
+  avaliarDivergenciaRegime,
   type DiagnosticoClienteData,
+  type AlertaDivergenciaRegime,
   CNPJ_PASTORE_FORMATADO,
 } from '@/services/diagnosticoPastore'
 import RelatorioDiagnosticoPastoreImprimivel from './RelatorioDiagnosticoPastoreImprimivel'
@@ -50,6 +52,7 @@ export const DiagnosticoRegimeTributario: React.FC = () => {
   const [mensagemSalvo, setMensagemSalvo] = useState<string | null>(null)
 
   // Form states
+  const [editRegimeTributario, setEditRegimeTributario] = useState<string>('Simples Nacional')
   const [editEnquadramento, setEditEnquadramento] = useState<string>('Simples Nacional')
   const [editCnaesSecundarios, setEditCnaesSecundarios] = useState<string>('')
   const [editNumFuncionarios, setEditNumFuncionarios] = useState<number>(9)
@@ -62,6 +65,9 @@ export const DiagnosticoRegimeTributario: React.FC = () => {
     try {
       const res = await carregarDiagnosticoClientePastore()
       setData(res)
+      setEditRegimeTributario(
+        res.regimeTributarioAtual || res.empresa?.regime_tributario || 'Simples Nacional',
+      )
       setEditEnquadramento(res.enquadramentoTributarioAtual || 'Simples Nacional')
       setEditCnaesSecundarios(
         res.empresa?.cnaes_secundarios ||
@@ -82,6 +88,7 @@ export const DiagnosticoRegimeTributario: React.FC = () => {
     setMensagemSalvo(null)
     try {
       const resp = await salvarDadosFolhaEEnquadramentoPastore({
+        regime_tributario: editRegimeTributario,
         enquadramento_tributario: editEnquadramento,
         cnaes_secundarios: editCnaesSecundarios,
         num_funcionarios: Number(editNumFuncionarios) || 0,
@@ -112,16 +119,26 @@ export const DiagnosticoRegimeTributario: React.FC = () => {
             detalheOrigem: 'Atualizado pelo usuário no cadastro de clientes.',
           }
           const novoComparativo = calcularComparativoCustoFolha(novaFolha)
+          const novoAlerta = avaliarDivergenciaRegime({
+            regimeCadastrado: editRegimeTributario,
+            receitaAnualizada: data.receitaAnualizada,
+            regimeRecomendadoTecnico: 'Simples Nacional',
+            tabelaValoresPercentuais: data.tabelaValoresPercentuais,
+            margemRetidaLiquidaPct: data.margemRetidaLiquidaPct,
+          })
 
           setData({
             ...data,
+            regimeTributarioAtual: editRegimeTributario,
             enquadramentoTributarioAtual: editEnquadramento,
             cnaesSecundariosLista: cnaesParsed,
             folhaPagamento: novaFolha,
             comparativoCustoFolha: novoComparativo,
+            alertaDivergencia: novoAlerta,
             empresa: data.empresa
               ? {
                   ...data.empresa,
+                  regime_tributario: editRegimeTributario,
                   enquadramento_tributario: editEnquadramento,
                   cnaes_secundarios: editCnaesSecundarios,
                   num_funcionarios: Number(editNumFuncionarios),
@@ -240,6 +257,11 @@ export const DiagnosticoRegimeTributario: React.FC = () => {
                 CNPJ {empresa?.numero_documento || CNPJ_PASTORE_FORMATADO}
               </span>
               <span>·</span>
+              <span className="text-cyan-400 font-semibold">
+                Regime:{' '}
+                {data.regimeTributarioAtual || empresa?.regime_tributario || 'Não informado'}
+              </span>
+              <span>·</span>
               <span className="text-amber-400 font-semibold">
                 Enquadramento: {enquadramentoTributarioAtual || 'Simples Nacional (EPP)'}
               </span>
@@ -306,7 +328,27 @@ export const DiagnosticoRegimeTributario: React.FC = () => {
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs">
+            <div>
+              <label className="block text-slate-300 font-semibold mb-1">
+                Regime Tributário (Oficial Cadastro)
+              </label>
+              <select
+                value={editRegimeTributario}
+                onChange={(e) => setEditRegimeTributario(e.target.value)}
+                className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white font-medium focus:border-amber-500 outline-none"
+              >
+                <option value="Simples Nacional">Simples Nacional</option>
+                <option value="Simples Híbrido">Simples Híbrido</option>
+                <option value="Lucro Presumido">Lucro Presumido</option>
+                <option value="Lucro Real">Lucro Real</option>
+                <option value="Regime Regular IBS/CBS">Regime Regular IBS/CBS</option>
+              </select>
+              <span className="text-[10px] text-slate-400 mt-1 block">
+                Campo regime_tributario oficial
+              </span>
+            </div>
+
             <div>
               <label className="block text-slate-300 font-semibold mb-1">
                 Enquadramento Tributário Atual
@@ -409,6 +451,109 @@ export const DiagnosticoRegimeTributario: React.FC = () => {
               )}
               {salvandoEdicao ? 'Gravando no Banco...' : 'Gravar Alterações no Cadastro'}
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* BANNER DE ALERTA DE DIVERGÊNCIA CADASTRAL VS RECOMENDAÇÃO TÉCNICA */}
+      {data.alertaDivergencia && (
+        <div
+          className={`rounded-xl p-5 border-2 shadow-xl transition-all ${
+            data.alertaDivergencia.tipo === 'grave'
+              ? 'bg-gradient-to-r from-rose-950/90 via-red-950/80 to-slate-900 border-rose-500/80 text-rose-100 shadow-rose-950/50'
+              : data.alertaDivergencia.tipo === 'atencao'
+                ? 'bg-gradient-to-r from-amber-950/90 via-yellow-950/80 to-slate-900 border-amber-500/80 text-amber-100 shadow-amber-950/50'
+                : data.alertaDivergencia.tipo === 'conformidade'
+                  ? 'bg-gradient-to-r from-emerald-950/80 via-teal-950/70 to-slate-900 border-emerald-500/80 text-emerald-100 shadow-emerald-950/40'
+                  : 'bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-cyan-500/60 text-slate-200'
+          }`}
+        >
+          <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+            <div className="flex items-start gap-3.5">
+              <div
+                className={`p-2.5 rounded-lg flex-shrink-0 mt-0.5 ${
+                  data.alertaDivergencia.tipo === 'grave'
+                    ? 'bg-rose-500 text-white animate-pulse'
+                    : data.alertaDivergencia.tipo === 'atencao'
+                      ? 'bg-amber-500 text-slate-950'
+                      : data.alertaDivergencia.tipo === 'conformidade'
+                        ? 'bg-emerald-500 text-slate-950'
+                        : 'bg-cyan-600 text-white'
+                }`}
+              >
+                {data.alertaDivergencia.tipo === 'grave' ? (
+                  <AlertTriangle className="w-6 h-6" />
+                ) : data.alertaDivergencia.tipo === 'atencao' ? (
+                  <AlertTriangle className="w-6 h-6" />
+                ) : data.alertaDivergencia.tipo === 'conformidade' ? (
+                  <CheckCircle2 className="w-6 h-6" />
+                ) : (
+                  <Info className="w-6 h-6" />
+                )}
+              </div>
+
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span
+                    className={`text-[11px] font-black uppercase tracking-wider px-2 py-0.5 rounded border ${
+                      data.alertaDivergencia.tipo === 'grave'
+                        ? 'bg-rose-900/80 border-rose-400 text-rose-200'
+                        : data.alertaDivergencia.tipo === 'atencao'
+                          ? 'bg-amber-900/80 border-amber-400 text-amber-200'
+                          : data.alertaDivergencia.tipo === 'conformidade'
+                            ? 'bg-emerald-900/80 border-emerald-400 text-emerald-200'
+                            : 'bg-cyan-900/80 border-cyan-400 text-cyan-200'
+                    }`}
+                  >
+                    {data.alertaDivergencia.tipo === 'grave'
+                      ? 'Divergência Crítica / Teto Legal'
+                      : data.alertaDivergencia.tipo === 'atencao'
+                        ? 'Divergência Cadastral Detectada'
+                        : data.alertaDivergencia.tipo === 'conformidade'
+                          ? 'Conformidade Cadastral Plena'
+                          : 'Informação Cadastral Pendente'}
+                  </span>
+                  <h3 className="text-base md:text-lg font-black text-white">
+                    {data.alertaDivergencia.titulo}
+                  </h3>
+                </div>
+
+                <p className="text-sm font-semibold leading-relaxed">
+                  {data.alertaDivergencia.mensagem}
+                </p>
+
+                <p className="text-xs text-slate-300/90 leading-relaxed pt-1 border-t border-white/10">
+                  <span className="font-bold text-white">Fundamentação Técnica ADECONT: </span>
+                  {data.alertaDivergencia.justificativaTecnica}
+                </p>
+              </div>
+            </div>
+
+            {/* Badges de Comparação Rápida */}
+            <div className="flex md:flex-col items-end justify-between md:justify-start gap-2 flex-shrink-0 bg-slate-950/60 p-3 rounded-lg border border-white/10 text-xs min-w-[220px]">
+              <div className="w-full flex items-center justify-between gap-3">
+                <span className="text-slate-400 text-[11px]">Regime Cadastrado:</span>
+                <span className="font-bold font-mono text-cyan-300 bg-slate-900 px-2 py-0.5 rounded border border-cyan-900/60">
+                  {data.alertaDivergencia.regimeCadastrado || 'Não informado'}
+                </span>
+              </div>
+              <div className="w-full flex items-center justify-between gap-3">
+                <span className="text-slate-400 text-[11px]">Recomendação Técnica:</span>
+                <span className="font-bold font-mono text-amber-300 bg-slate-900 px-2 py-0.5 rounded border border-amber-900/60">
+                  {data.alertaDivergencia.regimeRecomendado}
+                </span>
+              </div>
+              {data.alertaDivergencia.economiaEstimadaAnualTexto && (
+                <div className="w-full pt-1.5 mt-1 border-t border-slate-800 flex items-center justify-between gap-2">
+                  <span className="text-[11px] text-emerald-400 font-semibold">
+                    Economia Estimada:
+                  </span>
+                  <span className="font-black text-emerald-300 text-xs">
+                    {data.alertaDivergencia.economiaEstimadaAnualTexto}/ano
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
