@@ -225,6 +225,23 @@ export function MenuNavegacaoPortal({ hashAtivo }: MenuNavegacaoPortalProps) {
             </span>
           </Link>
         </li>
+        <li className="shrink-0">
+          <Link
+            to="/analises-empresariais"
+            className="group inline-flex items-center gap-2 pl-1.5 pr-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap border-2 bg-white text-slate-700 border-transparent hover:border-emerald-500/60 hover:bg-emerald-50/50 cursor-pointer shrink-0"
+            title="Análises Empresariais — Indicadores corporativos e diagnósticos de gestão ADECONT"
+          >
+            <span className="inline-flex items-center justify-center w-6 h-6 rounded-md bg-emerald-800 border border-emerald-700 text-emerald-200 shrink-0 group-hover:scale-105 transition-transform">
+              <BarChart3 className="w-3.5 h-3.5" />
+            </span>
+            <span className="whitespace-nowrap leading-tight text-emerald-950 font-bold">
+              Análises Empresariais
+            </span>
+            <span className="hidden xl:inline text-[10.5px] font-medium text-emerald-700 truncate max-w-[180px]">
+              Gestão & Indicadores
+            </span>
+          </Link>
+        </li>
       </ul>
     </nav>
   )

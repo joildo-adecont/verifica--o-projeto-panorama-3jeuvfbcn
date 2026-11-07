@@ -66,6 +66,7 @@ import {
   BrainCircuit,
   Ban,
   Coins,
+  BarChart3,
 } from 'lucide-react'
 
 export interface LinkNavegacao {
@@ -982,6 +983,32 @@ const SISTEMA: LinkNavegacao[] = [
       'tributos',
     ],
   },
+  {
+    href: '/analises-empresariais',
+    label: 'Análises Empresariais',
+    curto: 'Análises',
+    tecla: 'shift+a',
+    numero: '9E',
+    dominio: 'sistema',
+    setor: 'gestao',
+    Icon: BarChart3,
+    cor: 'text-emerald-700',
+    bg: 'bg-emerald-50',
+    borda: 'border-emerald-300',
+    descricao: 'Indicadores corporativos, evolução econômica e diagnósticos empresariais',
+    tags: [
+      'analise',
+      'analises',
+      'empresarial',
+      'empresariais',
+      'indicadores',
+      'gestao',
+      'diagnostico',
+      'patrimonio',
+      'graficos',
+      'desempenho',
+    ],
+  },
   /* 9B — portal do Banco Central: inflação, correção, juros e câmbio.
      Fonte oficial institucional (BCB) com selo próprio, nunca o genérico. */
   {
@@ -1195,6 +1222,7 @@ const SECOES_ADMINISTRATIVA = [
   '#indicadores',
   '#indicadores-economicos',
   '#cadastro-envios',
+  '/analises-empresariais',
   '#central-entrega',
   '#assistentes-seguranca',
   '#controle-acesso',

@@ -5,6 +5,7 @@ import { AdecontLogo } from '@/components/AdecontLogo'
 import { BotaoSegmentoOficial } from '@/components/ItensSegmentoMenu'
 import { BlocoMenuIndicadores } from '@/components/BlocoMenuIndicadores'
 import { BotaoCadastroClientes } from '@/components/BotaoCadastroClientes'
+import { BotaoAnalisesEmpresariais } from '@/components/BotaoAnalisesEmpresariais'
 import {
   obterUsuarioAtivoLocal,
   assinarMudancaUsuarioAtivo,
@@ -226,9 +227,10 @@ export function PanoramaSideMenu({
 
         {/* Lista de seções / hierarquia */}
         <div className="flex-1 overflow-y-auto p-3 space-y-4">
-          {/* Acesso ao Cadastro Analítico de Clientes ADECONT */}
-          <div className="bg-slate-50 p-1.5 rounded-xl border border-slate-200/80">
+          {/* Acesso aos Módulos Administrativos dedicados ADECONT */}
+          <div className="bg-slate-50 p-1.5 rounded-xl border border-slate-200/80 space-y-1">
             <BotaoCadastroClientes variante="menu" aoClicar={handleClose} />
+            <BotaoAnalisesEmpresariais variante="menu" aoClicar={handleClose} />
           </div>
 
           {/* Item Página Inicial da Plataforma */}
@@ -544,9 +546,10 @@ export function PanoramaSideMenu({
 
             {/* Lista de seções / hierarquia */}
             <div className="flex-1 overflow-y-auto p-3 space-y-4">
-              {/* Acesso ao Cadastro Analítico de Clientes ADECONT */}
-              <div className="bg-slate-50 p-1.5 rounded-xl border border-slate-200/80">
+              {/* Acesso aos Módulos Administrativos dedicados ADECONT */}
+              <div className="bg-slate-50 p-1.5 rounded-xl border border-slate-200/80 space-y-1">
                 <BotaoCadastroClientes variante="menu" aoClicar={handleClose} />
+                <BotaoAnalisesEmpresariais variante="menu" aoClicar={handleClose} />
               </div>
 
               {/* Item Página Inicial da Plataforma */}

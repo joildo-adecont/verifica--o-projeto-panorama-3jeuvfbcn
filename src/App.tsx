@@ -8,6 +8,7 @@ import Index from './pages/Index'
 import CadastroClientes from './pages/CadastroClientes'
 import CadastroClientesInativos from './pages/CadastroClientesInativos'
 import DocumentosFiscaisNfePage from './pages/DocumentosFiscaisNfe'
+import AnalisesEmpresariaisPage from './pages/AnalisesEmpresariais'
 import NotFound from './pages/NotFound'
 import Layout from './components/Layout'
 
@@ -35,6 +36,7 @@ const App = () => (
           <Route path="/cadastro-clientes-inativos" element={<CadastroClientesInativos />} />
           <Route path="/nfes" element={<DocumentosFiscaisNfePage />} />
           <Route path="/documentos-fiscais" element={<DocumentosFiscaisNfePage />} />
+          <Route path="/analises-empresariais" element={<AnalisesEmpresariaisPage />} />
           {/* ADD ALL CUSTOM ROUTES MUST BE ADDED HERE */}
         </Route>
         {/* Simulador e Cadastro/Envios: qualquer variacao de URL cai no arquivo estatico correto */}
