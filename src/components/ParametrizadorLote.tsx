@@ -81,7 +81,7 @@ export function ParametrizadorLote() {
   const [ocupado, setOcupado] = useState(false)
 
   // lote
-  const LIMITE_ARQUIVOS_LOTE = 1000
+  const LIMITE_ARQUIVOS_LOTE = 10000
   const [arquivos, setArquivos] = useState<{ nome: string; xml: string }[]>([])
   const [avisoLimite, setAvisoLimite] = useState<string | null>(null)
   const [resultadoLote, setResultadoLote] = useState<any>(null)
@@ -186,7 +186,7 @@ export function ParametrizadorLote() {
       arquivosParaLer = xmlFiles.slice(0, LIMITE_ARQUIVOS_LOTE)
       const excedente = xmlFiles.length - LIMITE_ARQUIVOS_LOTE
       setAvisoLimite(
-        `Limite de 1.000 arquivos por lote excedido. Foram carregados os primeiros 1.000 arquivos; ${excedente} arquivo(s) foram ignorados. Divida o período em lotes menores se necessário.`,
+        `Limite de 10.000 arquivos por lote excedido. Foram carregados os primeiros 10.000 arquivos; ${excedente} arquivo(s) foram ignorados. Divida o período em lotes menores se necessário.`,
       )
     }
 
@@ -468,7 +468,7 @@ export function ParametrizadorLote() {
                   {arquivos.length} arquivo(s) na fila
                   {arquivos.length >= LIMITE_ARQUIVOS_LOTE && (
                     <span className="ml-1 text-[9.5px] text-amber-800">
-                      (limite de 1.000 atingido)
+                      (limite de 10.000 atingido)
                     </span>
                   )}
                 </span>

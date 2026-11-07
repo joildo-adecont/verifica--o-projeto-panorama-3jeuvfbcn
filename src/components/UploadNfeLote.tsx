@@ -37,7 +37,7 @@ export const UploadNfeLote: React.FC<UploadNfeLoteProps> = ({
   onProcessamentoConcluido,
   onIrParaNotas,
 }) => {
-  const LIMITE_ARQUIVOS_LOTE = 1000
+  const LIMITE_ARQUIVOS_LOTE = 10000
   const [arquivos, setArquivos] = useState<ArquivoSelecionado[]>([])
   const [processando, setProcessando] = useState(false)
   const [progresso, setProgresso] = useState(0)
@@ -66,7 +66,7 @@ export const UploadNfeLote: React.FC<UploadNfeLoteProps> = ({
 
     if (espacoDisponivel === 0) {
       setAvisoLimite(
-        `Limite de ${LIMITE_ARQUIVOS_LOTE} arquivos por lote atingido. Não é possível adicionar novos arquivos.`,
+        `Limite de 10.000 arquivos por lote atingido. Não é possível adicionar novos arquivos.`,
       )
       return
     }
@@ -76,7 +76,7 @@ export const UploadNfeLote: React.FC<UploadNfeLoteProps> = ({
       arquivosParaLer = xmlFiles.slice(0, espacoDisponivel)
       const excedente = xmlFiles.length - espacoDisponivel
       setAvisoLimite(
-        `Limite de ${LIMITE_ARQUIVOS_LOTE} arquivos por lote excedido. Foram importados os primeiros ${arquivosParaLer.length} arquivos; ${excedente} arquivo(s) foram ignorados para respeitar o limite máximo de ${LIMITE_ARQUIVOS_LOTE} arquivos por lote.`,
+        `Limite de 10.000 arquivos por lote excedido. Foram importados os primeiros ${arquivosParaLer.length} arquivos; ${excedente} arquivo(s) foram ignorados para respeitar o limite máximo de 10.000 arquivos por lote.`,
       )
     }
 
@@ -486,7 +486,7 @@ export const UploadNfeLote: React.FC<UploadNfeLoteProps> = ({
 
     if (arquivos.length >= LIMITE_ARQUIVOS_LOTE) {
       setAvisoLimite(
-        `Limite de ${LIMITE_ARQUIVOS_LOTE} arquivos por lote atingido. Remova arquivos antes de adicionar o exemplo.`,
+        `Limite de 10.000 arquivos por lote atingido. Remova arquivos antes de adicionar o exemplo.`,
       )
       return
     }
@@ -621,7 +621,7 @@ export const UploadNfeLote: React.FC<UploadNfeLoteProps> = ({
                   Clique para selecionar ou arraste arquivos XML aqui
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Suporta grandes lotes de até 1.000 NF-e modelo 55 (nacional padrão SEFAZ)
+                  Suporta grandes lotes de até 10.000 NF-e modelo 55 (nacional padrão SEFAZ)
                 </p>
               </div>
             </div>

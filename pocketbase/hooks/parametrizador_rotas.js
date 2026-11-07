@@ -644,11 +644,11 @@ routerAdd('POST', '/backend/v1/param-importar-lote', (e) => {
   if (!arquivos || !arquivos.length) {
     return e.json(400, { success: false, error: 'Envie uma lista de arquivos.' })
   }
-  // Trava de tamanho: lote ampliado para até 1.000 arquivos (alinhado ao módulo Documentos Fiscais).
-  if (arquivos.length > 1000) {
+  // Trava de tamanho: lote ampliado para até 10.000 arquivos (alinhado ao módulo Documentos Fiscais).
+  if (arquivos.length > 10000) {
     return e.json(400, {
       success: false,
-      error: 'Máximo de 1.000 arquivos por lote. Divida o período em lotes menores.',
+      error: 'Máximo de 10.000 arquivos por lote. Divida o período em lotes menores.',
     })
   }
 

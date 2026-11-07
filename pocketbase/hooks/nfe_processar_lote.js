@@ -56,14 +56,14 @@ routerAdd('POST', '/backend/v1/nfe-processar-lote', (e) => {
       })
     }
 
-    var LIMITE_ARQUIVOS_LOTE = 1000
+    var LIMITE_ARQUIVOS_LOTE = 10000
     if (arquivos.length > LIMITE_ARQUIVOS_LOTE) {
       return e.json(400, {
         success: false,
         error:
-          'Limite de 1000 arquivos por lote excedido. Foram enviados ' +
+          'Limite de 10.000 arquivos por lote excedido. Foram enviados ' +
           arquivos.length +
-          ' arquivos. O limite máximo permitido é de 1000 arquivos XML por lote.',
+          ' arquivos. O limite máximo permitido é de 10.000 arquivos XML por lote.',
         total_arquivos: arquivos.length,
         processadas_sucesso: 0,
         duplicadas: 0,
