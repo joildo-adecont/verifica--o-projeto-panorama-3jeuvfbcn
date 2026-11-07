@@ -18,6 +18,7 @@ import {
   Award,
   Layers,
   Sparkles,
+  LineChart,
 } from 'lucide-react'
 import type { SinteseAnaliseEmpresarial } from '@/services/analisesEmpresariais'
 import type { EmpresaRecord } from '@/types/cadastroEmpresas'
@@ -31,6 +32,8 @@ import { FerramentaScoreInovacao } from './FerramentaScoreInovacao'
 import { FerramentaChecklistDocumental } from './FerramentaChecklistDocumental'
 import { FerramentaMatrizAchados } from './FerramentaMatrizAchados'
 import { FerramentaParecerFinal } from './FerramentaParecerFinal'
+import { PainelDadosMercado } from './PainelDadosMercado'
+import { type ItemIndiceMercado, formatarValorIndice } from '@/services/dadosMercadoAnalises'
 
 import {
   carregarBalancoEmpresarial,
@@ -66,6 +69,10 @@ import { criarExercicioVazio } from '@/services/motorAnaliseEmpresarial'
 interface PainelAnalisesEmpresariaisProps {
   dossie: SinteseAnaliseEmpresarial
   todasEmpresas?: EmpresaRecord[]
+  indicesMercado?: ItemIndiceMercado[]
+  carregandoMercado?: boolean
+  atualizadoMercadoEm?: string
+  onRecarregarMercado?: () => void
 }
 
 type AbaFerramenta =
@@ -77,11 +84,16 @@ type AbaFerramenta =
   | 'checklist'
   | 'achados'
   | 'parecer'
+  | 'mercado'
   | 'visao_geral'
 
 export const PainelAnalisesEmpresariais: React.FC<PainelAnalisesEmpresariaisProps> = ({
   dossie,
   todasEmpresas = [],
+  indicesMercado = [],
+  carregandoMercado = false,
+  atualizadoMercadoEm = '',
+  onRecarregarMercado,
 }) => {
   const [abaAtiva, setAbaAtiva] = useState<AbaFerramenta>('balanco')
   const [modalRelatorioA4, setModalRelatorioA4] = useState(false)
@@ -212,8 +224,13 @@ export const PainelAnalisesEmpresariais: React.FC<PainelAnalisesEmpresariaisProp
       icon: <ShieldCheck className="w-4 h-4" />,
     },
     {
+      id: 'mercado',
+      label: '9. Dados de Mercado',
+      icon: <LineChart className="w-4 h-4" />,
+    },
+    {
       id: 'visao_geral',
-      label: '9. Visão Geral & Agentes',
+      label: '10. Visão Geral & Agentes',
       icon: <Sparkles className="w-4 h-4" />,
     },
   ]
@@ -462,6 +479,15 @@ export const PainelAnalisesEmpresariais: React.FC<PainelAnalisesEmpresariaisProp
           onImprimir={() => {
             window.print()
           }}
+        />
+      )}
+
+      {abaAtiva === 'mercado' && (
+        <PainelDadosMercado
+          indices={indicesMercado}
+          carregando={carregandoMercado}
+          atualizadoEm={atualizadoMercadoEm}
+          onRecarregar={onRecarregarMercado}
         />
       )}
 
@@ -838,14 +864,108 @@ export const PainelAnalisesEmpresariais: React.FC<PainelAnalisesEmpresariaisProp
                   <div className="p-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400">
                     <TrendingUp className="w-4 h-4" />
                   </div>
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                    Índices Econômicos Oficiais (Fontes Estatísticas)
-                  </h3>
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                      Índices Econômicos Oficiais & Mercado
+                    </h3>
+                    <p className="text-[11px] text-slate-400">
+                      Séries históricas e cotações reais da ADECONT
+                    </p>
+                  </div>
                 </div>
-                <span className="text-[10.5px] text-slate-400">BCB • IBGE • IPEA</span>
+                <button
+                  onClick={() => setAbaAtiva('mercado')}
+                  className="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1 cursor-pointer"
+                >
+                  Ver painel completo →
+                </button>
               </div>
 
-              {indicesMacro.indicadores.length === 0 ? (
+              {/* Se temos os índices de mercado do backend carregados, exibimos eles com dados reais */}
+              {indicesMercado && indicesMercado.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {indicesMercado.slice(0, 6).map((ind) => {
+                    const valorFormatado = formatarValorIndice(
+                      ind.valorAtual,
+                      ind.formato,
+                      ind.casasDecimais,
+                    )
+                    const temVariacao =
+                      typeof ind.variacao === 'number' && Number.isFinite(ind.variacao)
+                    const sobe = temVariacao && ind.variacao > 0
+                    const desce = temVariacao && ind.variacao < 0
+
+                    // Semáforo semântico
+                    let positivo = sobe
+                    if (ind.interpretacao === 'baixa_boa') {
+                      positivo = desce
+                    }
+
+                    return (
+                      <div
+                        key={ind.chave}
+                        className="p-3.5 rounded-xl bg-slate-50/80 dark:bg-slate-800/40 hover:bg-slate-100/90 dark:hover:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 transition-all flex flex-col justify-between gap-2.5 hover:shadow-xs"
+                      >
+                        <div className="flex items-start justify-between gap-1.5">
+                          <div className="min-w-0">
+                            <span className="text-[10px] font-black font-mono text-slate-500 uppercase mr-1.5">
+                              {ind.codigoCurto}
+                            </span>
+                            <span className="text-xs text-slate-700 dark:text-slate-300 font-bold tracking-tight">
+                              {ind.nome}
+                            </span>
+                          </div>
+                          <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 shrink-0 uppercase font-mono">
+                            {ind.unidade}
+                          </span>
+                        </div>
+
+                        <div className="flex items-baseline justify-between gap-2">
+                          <span className="text-lg font-black text-slate-900 dark:text-white font-mono tabular-nums tracking-tight">
+                            {valorFormatado}
+                          </span>
+
+                          {temVariacao && (
+                            <span
+                              className={`inline-flex items-center gap-0.5 text-xs font-bold font-mono px-1.5 py-0.5 rounded-md ${
+                                ind.interpretacao === 'neutro'
+                                  ? 'text-blue-700 dark:text-blue-300 bg-blue-100/80 dark:bg-blue-950/40 border border-blue-200/60 dark:border-blue-800/60'
+                                  : positivo
+                                    ? 'text-emerald-700 dark:text-emerald-300 bg-emerald-100/80 dark:bg-emerald-950/40 border border-emerald-200/60 dark:border-emerald-800/60'
+                                    : 'text-rose-700 dark:text-rose-300 bg-rose-100/80 dark:bg-rose-950/40 border border-rose-200/60 dark:border-rose-800/60'
+                              }`}
+                            >
+                              {sobe ? (
+                                <ArrowUpRight className="w-3.5 h-3.5" />
+                              ) : desce ? (
+                                <ArrowDownRight className="w-3.5 h-3.5" />
+                              ) : null}
+                              {sobe ? '+' : ''}
+                              {ind.variacao.toLocaleString('pt-BR', { maximumFractionDigits: 2 })}
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="pt-2 border-t border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between text-[10.5px] text-slate-400">
+                          <span className="truncate">Ref: {ind.periodoFormatado}</span>
+                          <span
+                            className="font-medium truncate max-w-[120px] text-slate-500"
+                            title={ind.fonte}
+                          >
+                            {ind.fonte}
+                          </span>
+                        </div>
+
+                        {ind.baseInterna && (
+                          <div className="text-[10px] text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 p-1 rounded border border-amber-200/50 dark:border-amber-800/40">
+                            {ind.aviso || 'dados da base interna'}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              ) : indicesMacro.indicadores.length === 0 ? (
                 <div className="p-6 text-center text-slate-400 text-xs">
                   Carregando cotações e índices oficiais do Banco Central e IBGE...
                 </div>

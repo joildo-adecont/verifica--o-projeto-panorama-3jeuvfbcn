@@ -16,6 +16,10 @@ import {
   carregarDossieCompletoCliente,
   type SinteseAnaliseEmpresarial,
 } from '@/services/analisesEmpresariais'
+import {
+  buscarIndicesMercadoAnalises,
+  type ItemIndiceMercado,
+} from '@/services/dadosMercadoAnalises'
 import { listarEmpresasParaRelatorio } from '@/services/cadastroEmpresas'
 import type { EmpresaRecord } from '@/types/cadastroEmpresas'
 import { ImportadorDocumentosEmpresariais } from '@/components/ImportadorDocumentosEmpresariais'
@@ -31,6 +35,9 @@ export const AnalisesEmpresariais: React.FC = () => {
   const [carregandoAnalise, setCarregandoAnalise] = useState(false)
   const [dossie, setDossie] = useState<SinteseAnaliseEmpresarial | null>(null)
   const [erro, setErro] = useState<string | null>(null)
+  const [indicesMercado, setIndicesMercado] = useState<ItemIndiceMercado[]>([])
+  const [carregandoMercado, setCarregandoMercado] = useState(false)
+  const [atualizadoMercadoEm, setAtualizadoMercadoEm] = useState<string>('')
 
   // Carrega a lista real de clientes
   const carregarListaClientes = async () => {
@@ -50,8 +57,23 @@ export const AnalisesEmpresariais: React.FC = () => {
     }
   }
 
+  // Carrega os índices de mercado do backend (SELIC, IPCA, Ibovespa, IFIX, USD, Juros, Inadimplência)
+  const carregarMercado = async () => {
+    setCarregandoMercado(true)
+    try {
+      const res = await buscarIndicesMercadoAnalises()
+      setIndicesMercado(res.itens)
+      setAtualizadoMercadoEm(res.atualizadoEm)
+    } catch (err) {
+      console.error('[AnalisesEmpresariais] Erro ao carregar dados de mercado:', err)
+    } finally {
+      setCarregandoMercado(false)
+    }
+  }
+
   useEffect(() => {
     carregarListaClientes()
+    carregarMercado()
   }, [])
 
   // Carrega a síntese de análise quando o cliente selecionado mudar
@@ -224,7 +246,14 @@ export const AnalisesEmpresariais: React.FC = () => {
                   <span>{erro}</span>
                 </div>
               ) : dossie ? (
-                <PainelAnalisesEmpresariais dossie={dossie} todasEmpresas={empresas} />
+                <PainelAnalisesEmpresariais
+                  dossie={dossie}
+                  todasEmpresas={empresas}
+                  indicesMercado={indicesMercado}
+                  carregandoMercado={carregandoMercado}
+                  atualizadoMercadoEm={atualizadoMercadoEm}
+                  onRecarregarMercado={carregarMercado}
+                />
               ) : (
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8 text-center text-xs text-slate-500">
                   Selecione um cliente para carregar a análise integrada.
