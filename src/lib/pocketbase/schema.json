@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-07T21:56:05.993Z",
+  "generatedAt": "2026-11-07T22:15:29.157Z",
   "collections": [
     {
       "name": "users",
@@ -4186,6 +4186,42 @@
           "type": "text",
           "required": false,
           "system": false
+        },
+        {
+          "name": "arquivado",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "arquivado_em",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "arquivado_por",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "motivo_arquivamento",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "substituido_por_id",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "substituido_por_codigo",
+          "type": "number",
+          "required": false,
+          "system": false
         }
       ],
       "indexes": [
@@ -4197,7 +4233,9 @@
         "CREATE INDEX idx_cadastro_empresas_cnae ON cadastro_empresas (cnae)",
         "CREATE INDEX idx_cadastro_empresas_cnae_div ON cadastro_empresas (cnae_divisao)",
         "CREATE INDEX idx_cadastro_empresas_uf_mun ON cadastro_empresas (uf, municipio)",
-        "CREATE INDEX idx_cadastro_empresas_situacao ON cadastro_empresas (situacao)"
+        "CREATE INDEX idx_cadastro_empresas_situacao ON cadastro_empresas (situacao)",
+        "CREATE INDEX idx_cadastro_empresas_arquivado ON cadastro_empresas (arquivado)",
+        "CREATE INDEX idx_cadastro_empresas_subst ON cadastro_empresas (substituido_por_id)"
       ]
     },
     {

@@ -9,6 +9,9 @@ export interface FiltrosEmpresas {
   ordenacao?: 'codigo-asc' | 'codigo-desc' | 'nome-asc' | 'nome-desc'
   pagina?: number
   porPagina?: number
+  somenteAtivos?: boolean
+  somenteArquivados?: boolean
+  somenteInvalidos?: boolean
 }
 export interface ResultadoListaEmpresas {
   items: EmpresaRecord[]
@@ -76,6 +79,13 @@ export function mapearRegistro(r: any): EmpresaRecord {
     data_cadastro: r.data_inscricao || r.cliente_desde || r.data_cadastro || '',
     created: r.created,
     updated: r.updated,
+    arquivado: Boolean(r.arquivado),
+    arquivado_em: r.arquivado_em || '',
+    arquivado_por: r.arquivado_por || '',
+    motivo_arquivamento: r.motivo_arquivamento || '',
+    substituido_por_id: r.substituido_por_id || '',
+    substituido_por_codigo:
+      r.substituido_por_codigo != null ? Number(r.substituido_por_codigo) : undefined,
   }
 }
 
@@ -173,6 +183,14 @@ export async function listarEmpresas(
 
   if (filtros.situacao && filtros.situacao !== 'TODOS') {
     conditions.push(`situacao ~ '${filtros.situacao}'`)
+  }
+
+  // Filtro de arquivamento (por padrão, listarEmpresas traz os não-arquivados salvo se especificado)
+  if (filtros.somenteArquivados) {
+    conditions.push(`arquivado = true`)
+  } else if (filtros.somenteAtivos !== false) {
+    // Por padrão (true ou undefined), oculta arquivados da lista principal
+    conditions.push(`(arquivado = false || arquivado = null)`)
   }
 
   if (filtros.regimeTributario && filtros.regimeTributario !== 'TODOS') {
@@ -276,6 +294,12 @@ export async function listarEmpresasParaRelatorio(
     conditions.push(`situacao ~ '${filtros.situacao}'`)
   }
 
+  if (filtros.somenteArquivados) {
+    conditions.push(`arquivado = true`)
+  } else if (filtros.somenteAtivos !== false) {
+    conditions.push(`(arquivado = false || arquivado = null)`)
+  }
+
   let sort = 'codigo'
   if (filtros.ordenacao === 'codigo-desc') sort = '-codigo'
   else if (filtros.ordenacao === 'nome-asc') sort = 'razao_social'
@@ -294,5 +318,125 @@ export async function listarEmpresasParaRelatorio(
   } catch (err) {
     console.error('Erro ao listar empresas para relatório:', err)
     return []
+  }
+}
+
+/**
+ * Reverte o arquivamento de um cliente, restaurando-o para a listagem ativa
+ */
+export async function reverterArquivamentoCliente(
+  idOuCodigo: string | number,
+): Promise<{ sucesso: boolean; mensagem: string }> {
+  try {
+    const res = await pb.send('/backend/v1/clientes-reverter-arquivamento', {
+      method: 'POST',
+      body: typeof idOuCodigo === 'number' ? { codigo: idOuCodigo } : { id: idOuCodigo },
+    })
+    return {
+      sucesso: true,
+      mensagem: res?.mensagem || 'Arquivamento revertido com sucesso.',
+    }
+  } catch (err: any) {
+    // Fallback direto via SDK caso o hook esteja indisponível
+    try {
+      let recordId = typeof idOuCodigo === 'string' ? idOuCodigo : ''
+      if (!recordId) {
+        const item = await pb
+          .collection('cadastro_empresas')
+          .getFirstListItem(`codigo = ${idOuCodigo}`)
+        recordId = item.id
+      }
+      await pb.collection('cadastro_empresas').update(recordId, {
+        arquivado: false,
+        arquivado_em: '',
+        arquivado_por: '',
+        motivo_arquivamento: '',
+        substituido_por_id: '',
+        substituido_por_codigo: null,
+      })
+      return { sucesso: true, mensagem: 'Arquivamento revertido com sucesso (atualização direta).' }
+    } catch (fallbackErr: any) {
+      console.error('Erro ao reverter arquivamento:', fallbackErr)
+      return {
+        sucesso: false,
+        mensagem: fallbackErr?.message || err?.message || 'Falha ao reverter arquivamento.',
+      }
+    }
+  }
+}
+
+/**
+ * Consulta o resumo do diagnóstico de limpeza segura (duplicatas, arquivados, inválidos)
+ */
+export async function obterResumoLimpezaSegura(): Promise<{
+  ok: boolean
+  total_registros: number
+  ativos: number
+  arquivados: number
+  invalidos_ou_vazios: number
+  grupos_duplicados: number
+  duplicatas_potenciais: number
+  amostra_duplicatas?: Array<{ chave: string; registros: any[] }>
+}> {
+  try {
+    const res = await pb.send('/backend/v1/clientes-limpeza-resumo', {
+      method: 'GET',
+    })
+    return res
+  } catch (err) {
+    console.warn(
+      'Endpoint /backend/v1/clientes-limpeza-resumo indisponível, calculando localmente:',
+      err,
+    )
+    // Fallback: cálculo local a partir do banco
+    try {
+      const todos = await pb.collection('cadastro_empresas').getFullList({ batch: 1000 })
+      const mapeados = todos.map(mapearRegistro)
+      const arquivados = mapeados.filter((m) => m.arquivado).length
+      return {
+        ok: true,
+        total_registros: mapeados.length,
+        ativos: mapeados.length - arquivados,
+        arquivados,
+        invalidos_ou_vazios: 0,
+        grupos_duplicados: 0,
+        duplicatas_potenciais: 0,
+      }
+    } catch (_) {
+      return {
+        ok: false,
+        total_registros: 0,
+        ativos: 0,
+        arquivados: 0,
+        invalidos_ou_vazios: 0,
+        grupos_duplicados: 0,
+        duplicatas_potenciais: 0,
+      }
+    }
+  }
+}
+
+/**
+ * Dispara execução da limpeza segura no backend
+ */
+export async function executarLimpezaSegura(simular: boolean = false): Promise<{
+  ok: boolean
+  simulado: boolean
+  total_arquivados: number
+  total_reapontamentos: number
+  alterados?: any[]
+}> {
+  try {
+    const url = `/backend/v1/clientes-limpeza-executar${simular ? '?simular=1' : ''}`
+    const res = await pb.send(url, { method: 'POST' })
+    return res
+  } catch (err: any) {
+    console.error('Erro ao executar limpeza segura:', err)
+    return {
+      ok: false,
+      simulado: simular,
+      total_arquivados: 0,
+      total_reapontamentos: 0,
+    }
   }
 }

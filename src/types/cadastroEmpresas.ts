@@ -70,4 +70,10 @@ export interface EmpresaRecord {
   transferido_em?: string
   created?: string
   updated?: string
+  arquivado?: boolean
+  arquivado_em?: string
+  arquivado_por?: string
+  motivo_arquivamento?: string
+  substituido_por_id?: string
+  substituido_por_codigo?: number
 }

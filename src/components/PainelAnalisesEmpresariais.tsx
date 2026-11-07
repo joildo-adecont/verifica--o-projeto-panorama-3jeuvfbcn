@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { BadgeDocumentoCliente } from '@/components/BadgeDocumentoCliente'
 import {
   TrendingUp,
   BarChart3,
@@ -225,9 +226,10 @@ export const PainelAnalisesEmpresariais: React.FC<PainelAnalisesEmpresariaisProp
             <span className="text-xs px-2.5 py-0.5 rounded-full font-bold bg-emerald-100 text-emerald-800">
               {cliente.regime_tributario || cliente.enquadramento_tributario || 'Regime a Definir'}
             </span>
-            <span className="text-xs text-slate-500 font-mono">
-              CNPJ: {cliente.documento_limpo || cliente.numero_documento}
-            </span>
+            <BadgeDocumentoCliente
+              documento={cliente.documento_limpo || cliente.numero_documento || cliente.cpf_cnpj}
+              tipoDocumento={cliente.tipo_documento}
+            />
           </div>
           <h2 className="text-lg font-black text-slate-900 mt-1">
             {cliente.razao_social || cliente.nome}

@@ -19,6 +19,7 @@ import {
 import { listarEmpresasParaRelatorio } from '@/services/cadastroEmpresas'
 import type { EmpresaRecord } from '@/types/cadastroEmpresas'
 import { ImportadorDocumentosEmpresariais } from '@/components/ImportadorDocumentosEmpresariais'
+import { BadgeDocumentoCliente } from '@/components/BadgeDocumentoCliente'
 import { PainelAnalisesEmpresariais } from '@/components/PainelAnalisesEmpresariais'
 
 export const AnalisesEmpresariais: React.FC = () => {
@@ -177,13 +178,16 @@ export const AnalisesEmpresariais: React.FC = () => {
                           <FileCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                         )}
                       </div>
-                      <div className="flex items-center justify-between mt-1 text-[11px] text-slate-500">
-                        <span className="font-mono">
-                          {emp.documento_limpo || emp.numero_documento}
-                        </span>
-                        <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-100/60 px-1.5 py-0.2 rounded">
-                          {emp.regime_tributario || emp.enquadramento_tributario || 'Regime N/D'}
-                        </span>
+                      <div className="flex flex-col gap-1 mt-1 text-[11px] text-slate-500">
+                        <div className="flex items-center justify-between">
+                          <BadgeDocumentoCliente
+                            documento={emp.documento_limpo || emp.numero_documento || emp.cpf_cnpj}
+                            tipoDocumento={emp.tipo_documento}
+                          />
+                          <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-100/60 px-1.5 py-0.2 rounded">
+                            {emp.regime_tributario || emp.enquadramento_tributario || 'Regime N/D'}
+                          </span>
+                        </div>
                       </div>
                     </button>
                   )
