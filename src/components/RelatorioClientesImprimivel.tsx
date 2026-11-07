@@ -19,6 +19,7 @@ export interface RelatorioClientesImprimivelProps {
   termoBusca: string
   filtroTipoDoc: string
   filtroSituacao: string
+  filtroRegime?: string
   ordenacao: string
   totalBanco?: number
   aoFechar: () => void
@@ -110,6 +111,7 @@ export const RelatorioClientesImprimivel: React.FC<RelatorioClientesImprimivelPr
   termoBusca,
   filtroTipoDoc,
   filtroSituacao,
+  filtroRegime,
   ordenacao,
   totalBanco,
   aoFechar,
@@ -161,6 +163,11 @@ export const RelatorioClientesImprimivel: React.FC<RelatorioClientesImprimivelPr
   }
   if (filtroSituacao !== 'TODOS') {
     filtrosDescricao.push(`Situação: ${filtroSituacao}`)
+  }
+  if (filtroRegime && filtroRegime !== 'TODOS') {
+    filtrosDescricao.push(
+      `Regime: ${filtroRegime === 'SEM_REGIME' ? 'Não informado' : filtroRegime}`,
+    )
   }
   if (ordenacao.startsWith('codigo')) {
     filtrosDescricao.push(
@@ -301,15 +308,16 @@ export const RelatorioClientesImprimivel: React.FC<RelatorioClientesImprimivelPr
                   <th className="py-2 px-2 w-12 text-center">Cód.</th>
                   <th className="py-2 px-2.5 w-32">Documento</th>
                   <th className="py-2 px-3">Razão Social / Nome</th>
-                  <th className="py-2 px-2.5 w-36">Apelido / Fantasia</th>
-                  <th className="py-2 px-2.5 w-32">Município / UF</th>
+                  <th className="py-2 px-2.5 w-32">Apelido / Fantasia</th>
+                  <th className="py-2 px-2.5 w-28">Regime Trib.</th>
+                  <th className="py-2 px-2.5 w-28">Município / UF</th>
                   <th className="py-2 px-2 w-20 text-center">Situação</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
                 {empresas.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="py-8 text-center text-slate-500 italic text-xs">
+                    <td colSpan={7} className="py-8 text-center text-slate-500 italic text-xs">
                       Nenhum cliente atende aos critérios da consulta atual.
                     </td>
                   </tr>
@@ -358,6 +366,19 @@ export const RelatorioClientesImprimivel: React.FC<RelatorioClientesImprimivelPr
                           <div className="font-medium text-slate-800 leading-tight">
                             {empresa.apelido || empresa.nome_fantasia || '—'}
                           </div>
+                        </td>
+
+                        {/* Regime Tributário */}
+                        <td className="py-1.5 px-2.5 text-slate-700">
+                          <span
+                            className={`inline-block px-1.5 py-0.2 rounded text-[8px] font-bold ${
+                              empresa.regime_tributario
+                                ? 'bg-slate-100 text-slate-800 border border-slate-300'
+                                : 'text-slate-400 italic'
+                            }`}
+                          >
+                            {empresa.regime_tributario || 'Não informado'}
+                          </span>
                         </td>
 
                         {/* Município / UF */}

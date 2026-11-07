@@ -3,13 +3,13 @@ import { EmpresaRecord } from '@/types/cadastroEmpresas'
 
 export interface FiltrosEmpresas {
   busca?: string
-  tipoDocumento?: string // 'TODOS' | 'CNPJ' | 'CPF' | 'CEI' | 'CAEPF' | 'SEM_DOC'
-  situacao?: string // 'TODOS' | 'Ativa' | 'Inativa'
+  tipoDocumento?: string
+  situacao?: string
+  regimeTributario?: string
   ordenacao?: 'codigo-asc' | 'codigo-desc' | 'nome-asc' | 'nome-desc'
   pagina?: number
   porPagina?: number
 }
-
 export interface ResultadoListaEmpresas {
   items: EmpresaRecord[]
   totalItems: number
@@ -18,7 +18,7 @@ export interface ResultadoListaEmpresas {
   perPage: number
 }
 
-function mapearRegistro(r: any): EmpresaRecord {
+export function mapearRegistro(r: any): EmpresaRecord {
   return {
     id: r.id,
     codigo: Number(r.codigo) || 0,
@@ -173,6 +173,15 @@ export async function listarEmpresas(
 
   if (filtros.situacao && filtros.situacao !== 'TODOS') {
     conditions.push(`situacao ~ '${filtros.situacao}'`)
+  }
+
+  if (filtros.regimeTributario && filtros.regimeTributario !== 'TODOS') {
+    if (filtros.regimeTributario === 'SEM_REGIME') {
+      conditions.push(`(regime_tributario = '' || regime_tributario = null)`)
+    } else {
+      const reg = filtros.regimeTributario.replace(/['"\\]/g, '')
+      conditions.push(`regime_tributario = '${reg}'`)
+    }
   }
 
   let sort = 'codigo'

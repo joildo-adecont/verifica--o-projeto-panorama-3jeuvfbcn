@@ -26,9 +26,24 @@ import {
 import { Printer, FileSpreadsheet } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { AdecontLogo } from '@/components/AdecontLogo'
-import { listarEmpresas, listarEmpresasParaRelatorio } from '@/services/cadastroEmpresas'
+import { Check, Loader2, Save } from 'lucide-react'
+import {
+  listarEmpresas,
+  listarEmpresasParaRelatorio,
+  atualizarEmpresa,
+} from '@/services/cadastroEmpresas'
 import { RelatorioClientesImprimivel } from '@/components/RelatorioClientesImprimivel'
 import type { EmpresaRecord } from '@/types/cadastroEmpresas'
+
+export const OPCOES_REGIME_TRIBUTARIO = [
+  'Simples Nacional',
+  'Simples Híbrido',
+  'Lucro Presumido',
+  'Lucro Real',
+  'Regime Regular IBS/CBS',
+] as const
+
+export type RegimeTributarioTipo = (typeof OPCOES_REGIME_TRIBUTARIO)[number]
 
 export default function CadastroClientes() {
   const [empresas, setEmpresas] = useState<EmpresaRecord[]>([])
@@ -43,6 +58,7 @@ export default function CadastroClientes() {
   const [termoBusca, setTermoBusca] = useState<string>('')
   const [filtroTipoDoc, setFiltroTipoDoc] = useState<string>('TODOS')
   const [filtroSituacao, setFiltroSituacao] = useState<string>('TODOS')
+  const [filtroRegime, setFiltroRegime] = useState<string>('TODOS')
   const [ordenacao, setOrdenacao] = useState<
     'codigo-asc' | 'codigo-desc' | 'nome-asc' | 'nome-desc'
   >('codigo-asc')
@@ -50,6 +66,58 @@ export default function CadastroClientes() {
   // Item selecionado para expansão / detalhes
   const [empresaExpandidaId, setEmpresaExpandidaId] = useState<number | null>(null)
   const [modalEmpresa, setModalEmpresa] = useState<EmpresaRecord | null>(null)
+
+  // Edição do regime tributário na ficha do cliente
+  const [regimeSelecionado, setRegimeSelecionado] = useState<string>('')
+  const [salvandoRegime, setSalvandoRegime] = useState<boolean>(false)
+  const [sucessoSalvarRegime, setSucessoSalvarRegime] = useState<string | null>(null)
+  const [erroSalvarRegime, setErroSalvarRegime] = useState<string | null>(null)
+
+  // Ao abrir o modal da ficha do cliente, sincroniza o regime atual
+  const abrirFichaCliente = (emp: EmpresaRecord) => {
+    setModalEmpresa(emp)
+    setRegimeSelecionado(emp.regime_tributario || '')
+    setSucessoSalvarRegime(null)
+    setErroSalvarRegime(null)
+  }
+
+  const salvarRegimeCliente = async () => {
+    if (!modalEmpresa) return
+    setSalvandoRegime(true)
+    setSucessoSalvarRegime(null)
+    setErroSalvarRegime(null)
+
+    try {
+      const idOuCodigo = modalEmpresa.id || modalEmpresa.codigo
+      const res = await atualizarEmpresa(idOuCodigo, {
+        regime_tributario: regimeSelecionado,
+      })
+
+      if (res.sucesso) {
+        setSucessoSalvarRegime('Regime tributário atualizado com sucesso!')
+        // Atualiza o estado da empresa no modal e na listagem
+        const empresaAtualizada: EmpresaRecord = {
+          ...modalEmpresa,
+          regime_tributario: regimeSelecionado,
+        }
+        setModalEmpresa(empresaAtualizada)
+        setEmpresas((prev) =>
+          prev.map((item) =>
+            item.codigo === modalEmpresa.codigo
+              ? { ...item, regime_tributario: regimeSelecionado }
+              : item,
+          ),
+        )
+      } else {
+        setErroSalvarRegime(res.mensagem || 'Falha ao salvar o regime tributário.')
+      }
+    } catch (e: any) {
+      console.error('Erro ao salvar regime:', e)
+      setErroSalvarRegime(e?.message || 'Erro inesperado ao salvar regime tributário.')
+    } finally {
+      setSalvandoRegime(false)
+    }
+  }
 
   // Estado do Relatório A4 impresso/PDF
   const [modalRelatorioAberto, setModalRelatorioAberto] = useState<boolean>(false)
@@ -65,6 +133,7 @@ export default function CadastroClientes() {
         busca: termoBusca,
         tipoDocumento: filtroTipoDoc,
         situacao: filtroSituacao,
+        regimeTributario: filtroRegime,
         ordenacao,
         pagina: paginaAtual,
         porPagina,
@@ -79,12 +148,12 @@ export default function CadastroClientes() {
     } finally {
       setCarregando(false)
     }
-  }, [termoBusca, filtroTipoDoc, filtroSituacao, ordenacao, paginaAtual, porPagina])
+  }, [termoBusca, filtroTipoDoc, filtroSituacao, filtroRegime, ordenacao, paginaAtual, porPagina])
 
   // Debounce na busca textual e reset de página quando filtro muda
   useEffect(() => {
     setPaginaAtual(1)
-  }, [termoBusca, filtroTipoDoc, filtroSituacao, ordenacao, porPagina])
+  }, [termoBusca, filtroTipoDoc, filtroSituacao, filtroRegime, ordenacao, porPagina])
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -121,6 +190,7 @@ export default function CadastroClientes() {
         busca: termoBusca,
         tipoDocumento: filtroTipoDoc,
         situacao: filtroSituacao,
+        regimeTributario: filtroRegime,
         ordenacao,
       })
       setEmpresasRelatorio(listaCompleta)
@@ -244,6 +314,23 @@ export default function CadastroClientes() {
               </div>
 
               <div className="flex items-center gap-1.5 text-xs text-slate-600 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5">
+                <span className="font-medium hidden sm:inline">Regime:</span>
+                <select
+                  value={filtroRegime}
+                  onChange={(e) => setFiltroRegime(e.target.value)}
+                  className="bg-transparent text-xs font-semibold text-slate-700 focus:outline-none cursor-pointer"
+                >
+                  <option value="TODOS">Todos os regimes</option>
+                  <option value="SEM_REGIME">Não informado</option>
+                  {OPCOES_REGIME_TRIBUTARIO.map((opcao) => (
+                    <option key={opcao} value={opcao}>
+                      {opcao}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex items-center gap-1.5 text-xs text-slate-600 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5">
                 <span className="font-medium hidden sm:inline">Situação:</span>
                 <select
                   value={filtroSituacao}
@@ -341,6 +428,7 @@ export default function CadastroClientes() {
                   </th>
                   <th className="py-3 px-3 min-w-[170px]">Apelido / Fantasia</th>
                   <th className="py-3 px-3 min-w-[150px]">CNPJ / CPF</th>
+                  <th className="py-3 px-3 min-w-[150px]">Regime Tributário</th>
                   <th className="py-3 px-3 min-w-[140px]">Município / UF</th>
                   <th className="py-3 px-3 min-w-[130px]">Contato</th>
                   <th className="py-3 px-3 w-24 text-center">Situação</th>
@@ -370,6 +458,9 @@ export default function CadastroClientes() {
                       <td className="py-3.5 px-3">
                         <div className="h-4 w-24 bg-slate-200 rounded" />
                       </td>
+                      <td className="py-3.5 px-3">
+                        <div className="h-4 w-24 bg-slate-200 rounded" />
+                      </td>
                       <td className="py-3.5 px-3 text-center">
                         <div className="h-4 w-12 bg-slate-200 rounded mx-auto" />
                       </td>
@@ -380,7 +471,7 @@ export default function CadastroClientes() {
                   ))
                 ) : empresas.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="py-12 text-center text-slate-500">
+                    <td colSpan={9} className="py-12 text-center text-slate-500">
                       <div className="max-w-xs mx-auto flex flex-col items-center gap-2">
                         <Building2 className="w-8 h-8 text-slate-300" />
                         <span className="font-semibold text-slate-700">
@@ -440,6 +531,29 @@ export default function CadastroClientes() {
                           )}
                         </td>
 
+                        {/* Regime Tributário */}
+                        <td className="py-3 px-3">
+                          {emp.regime_tributario ? (
+                            <span
+                              className={`inline-block px-2 py-0.5 rounded-md text-[10px] font-bold tracking-tight whitespace-nowrap border ${
+                                emp.regime_tributario === 'Simples Nacional'
+                                  ? 'bg-blue-50 text-blue-700 border-blue-200'
+                                  : emp.regime_tributario === 'Simples Híbrido'
+                                    ? 'bg-cyan-50 text-cyan-700 border-cyan-200'
+                                    : emp.regime_tributario === 'Lucro Presumido'
+                                      ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                      : emp.regime_tributario === 'Lucro Real'
+                                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                        : 'bg-purple-50 text-purple-700 border-purple-200'
+                              }`}
+                            >
+                              {emp.regime_tributario}
+                            </span>
+                          ) : (
+                            <span className="text-slate-400 italic text-[11px]">Não informado</span>
+                          )}
+                        </td>
+
                         {/* Município / UF */}
                         <td className="py-3 px-3 text-slate-600">
                           {emp.municipio ? (
@@ -495,7 +609,7 @@ export default function CadastroClientes() {
                         {/* Ficha completa / Detalhes */}
                         <td className="py-3 px-3 text-center">
                           <button
-                            onClick={() => setModalEmpresa(emp)}
+                            onClick={() => abrirFichaCliente(emp)}
                             className="inline-flex items-center justify-center p-1.5 text-[#0F294A] hover:bg-[#0F294A]/10 rounded-lg transition-colors"
                             title="Abrir ficha cadastral completa"
                           >
@@ -655,6 +769,91 @@ export default function CadastroClientes() {
                 </div>
               </div>
 
+              {/* Bloco de Enquadramento e Regime Tributário */}
+              <div className="p-4 bg-amber-50/40 border border-amber-200/80 rounded-xl space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                  <div>
+                    <label
+                      htmlFor="select-regime-tributario"
+                      className="text-[11px] font-bold text-[#0F294A] uppercase tracking-wider flex items-center gap-1.5"
+                    >
+                      <Briefcase className="w-3.5 h-3.5 text-[#D4AF37]" />
+                      <span>Regime Tributário</span>
+                    </label>
+                    <p className="text-[10px] text-slate-500">
+                      Regime tributário formal para fins de diagnóstico e parametrização ADECONT
+                    </p>
+                  </div>
+                  {modalEmpresa.regime_tributario ? (
+                    <span className="self-start sm:self-auto text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300">
+                      Atual: {modalEmpresa.regime_tributario}
+                    </span>
+                  ) : (
+                    <span className="self-start sm:self-auto text-[10px] font-medium px-2 py-0.5 rounded bg-slate-100 text-slate-500 border border-slate-200 italic">
+                      Não informado
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                  <div className="flex-1">
+                    <select
+                      id="select-regime-tributario"
+                      value={regimeSelecionado}
+                      onChange={(e) => {
+                        setRegimeSelecionado(e.target.value)
+                        setSucessoSalvarRegime(null)
+                        setErroSalvarRegime(null)
+                      }}
+                      className="w-full px-3 py-2 text-xs font-semibold bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0F294A]/20 focus:border-[#0F294A] text-slate-800"
+                    >
+                      <option value="">Não informado / Em definição</option>
+                      {OPCOES_REGIME_TRIBUTARIO.map((opcao) => (
+                        <option key={opcao} value={opcao}>
+                          {opcao}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={salvarRegimeCliente}
+                    disabled={
+                      salvandoRegime || regimeSelecionado === (modalEmpresa.regime_tributario || '')
+                    }
+                    className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#0F294A] hover:bg-[#1a3d68] text-white text-xs font-bold transition-colors disabled:opacity-50 disabled:pointer-events-none cursor-pointer shrink-0"
+                    title="Gravar alteração do Regime Tributário no cadastro do cliente"
+                  >
+                    {salvandoRegime ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Salvando...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        <span>Salvar Regime</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {sucessoSalvarRegime && (
+                  <div className="flex items-center gap-1.5 text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-lg">
+                    <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <span>{sucessoSalvarRegime}</span>
+                  </div>
+                )}
+
+                {erroSalvarRegime && (
+                  <div className="flex items-center gap-1.5 text-[11px] font-semibold text-rose-700 bg-rose-50 border border-rose-200 px-3 py-1.5 rounded-lg">
+                    <AlertCircle className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+                    <span>{erroSalvarRegime}</span>
+                  </div>
+                )}
+              </div>
+
               {/* Endereço */}
               <div className="p-4 bg-white border border-slate-200 rounded-xl space-y-2">
                 <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">
@@ -758,6 +957,7 @@ export default function CadastroClientes() {
           termoBusca={termoBusca}
           filtroTipoDoc={filtroTipoDoc}
           filtroSituacao={filtroSituacao}
+          filtroRegime={filtroRegime}
           ordenacao={ordenacao}
           totalBanco={totalItens}
         />
