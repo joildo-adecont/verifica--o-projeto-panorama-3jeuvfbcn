@@ -56,6 +56,22 @@ routerAdd('POST', '/backend/v1/nfe-processar-lote', (e) => {
       })
     }
 
+    var LIMITE_ARQUIVOS_LOTE = 1000
+    if (arquivos.length > LIMITE_ARQUIVOS_LOTE) {
+      return e.json(400, {
+        success: false,
+        error:
+          'Limite de 1000 arquivos por lote excedido. Foram enviados ' +
+          arquivos.length +
+          ' arquivos. O limite máximo permitido é de 1000 arquivos XML por lote.',
+        total_arquivos: arquivos.length,
+        processadas_sucesso: 0,
+        duplicadas: 0,
+        erros: arquivos.length,
+        resultados: [],
+      })
+    }
+
     // Funções utilitárias de parseamento XML inline (padrão JSVM do PocketBase)
     var TAG_MALFORMADA = '__TAG_SEM_FECHAMENTO__'
 

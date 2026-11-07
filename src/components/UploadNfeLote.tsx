@@ -36,22 +36,54 @@ export const UploadNfeLote: React.FC<UploadNfeLoteProps> = ({
   onProcessamentoConcluido,
   onIrParaNotas,
 }) => {
+  const LIMITE_ARQUIVOS_LOTE = 1000
   const [arquivos, setArquivos] = useState<ArquivoSelecionado[]>([])
   const [processando, setProcessando] = useState(false)
   const [progresso, setProgresso] = useState(0)
+  const [avisoLimite, setAvisoLimite] = useState<string | null>(null)
   const [resultadoLote, setResultadoLote] = useState<ProcessamentoLoteResponse | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
 
   const handleFiles = async (fileList: FileList | null) => {
     if (!fileList || fileList.length === 0) return
 
+    setAvisoLimite(null)
+
+    // Filtra apenas arquivos XML
+    const xmlFiles: File[] = []
+    for (let i = 0; i < fileList.length; i++) {
+      const file = fileList[i]
+      if (file.name.toLowerCase().endsWith('.xml')) {
+        xmlFiles.push(file)
+      }
+    }
+
+    if (xmlFiles.length === 0) return
+
+    const totalAtual = arquivos.length
+    const espacoDisponivel = Math.max(0, LIMITE_ARQUIVOS_LOTE - totalAtual)
+
+    if (espacoDisponivel === 0) {
+      setAvisoLimite(
+        `Limite de ${LIMITE_ARQUIVOS_LOTE} arquivos por lote atingido. Não é possível adicionar novos arquivos.`,
+      )
+      return
+    }
+
+    let arquivosParaLer = xmlFiles
+    if (xmlFiles.length > espacoDisponivel) {
+      arquivosParaLer = xmlFiles.slice(0, espacoDisponivel)
+      const excedente = xmlFiles.length - espacoDisponivel
+      setAvisoLimite(
+        `Limite de ${LIMITE_ARQUIVOS_LOTE} arquivos por lote excedido. Foram importados os primeiros ${arquivosParaLer.length} arquivos; ${excedente} arquivo(s) foram ignorados para respeitar o limite máximo de ${LIMITE_ARQUIVOS_LOTE} arquivos por lote.`,
+      )
+    }
+
     const novos: ArquivoSelecionado[] = []
     const promises: Promise<void>[] = []
 
-    for (let i = 0; i < fileList.length; i++) {
-      const file = fileList[i]
-      if (!file.name.toLowerCase().endsWith('.xml')) continue
-
+    for (let i = 0; i < arquivosParaLer.length; i++) {
+      const file = arquivosParaLer[i]
       const p = new Promise<void>((resolve) => {
         const reader = new FileReader()
         reader.onload = (e) => {
@@ -451,6 +483,15 @@ export const UploadNfeLote: React.FC<UploadNfeLoteProps> = ({
   </NFe>
 </nfeProc>`
 
+    if (arquivos.length >= LIMITE_ARQUIVOS_LOTE) {
+      setAvisoLimite(
+        `Limite de ${LIMITE_ARQUIVOS_LOTE} arquivos por lote atingido. Remova arquivos antes de adicionar o exemplo.`,
+      )
+      return
+    }
+
+    setAvisoLimite(null)
+
     const novo: ArquivoSelecionado = {
       id: `exemplo-pastore-${Date.now()}`,
       nome: 'NFe_41560_Patral_Pastore_Real.xml',
@@ -464,6 +505,7 @@ export const UploadNfeLote: React.FC<UploadNfeLoteProps> = ({
 
   const limparLista = () => {
     setArquivos([])
+    setAvisoLimite(null)
     setResultadoLote(null)
   }
 
@@ -573,11 +615,27 @@ export const UploadNfeLote: React.FC<UploadNfeLoteProps> = ({
                   Clique para selecionar ou arraste arquivos XML aqui
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Suporta grandes lotes de NF-e modelo 55 (nacional padrão SEFAZ)
+                  Suporta grandes lotes de até 1.000 NF-e modelo 55 (nacional padrão SEFAZ)
                 </p>
               </div>
             </div>
           </div>
+
+          {/* Alerta de Limite de Lote Excedido */}
+          {avisoLimite && (
+            <div className="flex items-start gap-2 p-3 rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-800 dark:text-amber-300 text-xs">
+              <AlertTriangle className="w-4 h-4 shrink-0 text-amber-600 mt-0.5" />
+              <div className="flex-1 font-medium">{avisoLimite}</div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setAvisoLimite(null)}
+                className="h-5 px-1.5 text-xs hover:bg-amber-500/20"
+              >
+                ✕
+              </Button>
+            </div>
+          )}
 
           {/* Lista de Arquivos Selecionados */}
           {arquivos.length > 0 && (
