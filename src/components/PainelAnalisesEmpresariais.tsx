@@ -322,6 +322,8 @@ export const PainelAnalisesEmpresariais: React.FC<PainelAnalisesEmpresariaisProp
         <FerramentaIndicadoresComparativos
           indicadores={indicadoresApurados}
           clienteNome={cliente.razao_social || cliente.nome}
+          exercicioRotulo={balanco3Anos.anoAtual?.rotulo || 'Ano Atual'}
+          balanco3Anos={balanco3Anos}
         />
       )}
 
@@ -449,56 +451,116 @@ export const PainelAnalisesEmpresariais: React.FC<PainelAnalisesEmpresariaisProp
 
       {abaAtiva === 'visao_geral' && (
         <div className="space-y-6">
-          {/* Grid de Métricas Chave (Microeconômicas) */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-500 uppercase">
-                  Receita Anualizada
-                </span>
-                <div className="p-2 bg-emerald-100/70 text-emerald-700 rounded-lg">
+          {/* Grid de Métricas Chave (Microeconômicas) com Apresentação Visual Refinada */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Card 1: Receita Anualizada */}
+            <div className="group bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs hover:shadow-md hover:border-emerald-500/50 transition-all p-4 flex flex-col justify-between gap-3 relative overflow-hidden">
+              <div className="h-1 bg-gradient-to-r from-emerald-500 to-teal-400 -mx-4 -mt-4 mb-1" />
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <span className="text-[10.5px] font-bold text-slate-500 uppercase tracking-wider block truncate">
+                    Receita Anualizada
+                  </span>
+                  <span className="text-[10px] text-slate-400 font-medium">
+                    Projeção anual de faturamento
+                  </span>
+                </div>
+                <div className="p-2 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 rounded-xl border border-emerald-100 dark:border-emerald-800 group-hover:scale-105 transition-transform shrink-0">
                   <DollarSign className="w-4 h-4" />
                 </div>
               </div>
-              <div className="mt-2">
-                <span className="text-xl font-black text-slate-900">
-                  {brl(indicadores.receitaAnualizada)}
-                </span>
-                <span className="block text-[11px] text-slate-500 mt-0.5">
-                  Base: {indicadores.mesesDisponiveis} mês(es) escriturado(s)
+
+              <div>
+                <div className="flex items-baseline gap-1.5 flex-wrap">
+                  <span className="text-2xl font-black text-slate-900 dark:text-white font-mono tracking-tight tabular-nums">
+                    {brl(indicadores.receitaAnualizada)}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5 mt-1 text-[11px] text-slate-500 font-medium">
+                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                  <span>
+                    Base:{' '}
+                    <strong className="text-slate-700 dark:text-slate-300 font-semibold">
+                      {indicadores.mesesDisponiveis}
+                    </strong>{' '}
+                    {indicadores.mesesDisponiveis === 1 ? 'mês escriturado' : 'meses escriturados'}
+                  </span>
+                </div>
+              </div>
+
+              <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[10.5px] text-slate-400">
+                <span>Origem: Balancetes DRE</span>
+                <span className="text-emerald-700 dark:text-emerald-300 font-semibold bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.5 rounded border border-emerald-200/50 dark:border-emerald-800/50">
+                  {indicadores.mesesDisponiveis > 0 ? 'Ativo' : 'Sem escrituração'}
                 </span>
               </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-500 uppercase">
-                  Último Mês Faturado
-                </span>
-                <div className="p-2 bg-blue-100/70 text-blue-700 rounded-lg">
+            {/* Card 2: Último Mês Faturado */}
+            <div className="group bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs hover:shadow-md hover:border-blue-500/50 transition-all p-4 flex flex-col justify-between gap-3 relative overflow-hidden">
+              <div className="h-1 bg-gradient-to-r from-blue-500 to-indigo-400 -mx-4 -mt-4 mb-1" />
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <span className="text-[10.5px] font-bold text-slate-500 uppercase tracking-wider block truncate">
+                    Último Mês Faturado
+                  </span>
+                  <span className="text-[10px] text-slate-400 font-medium">
+                    Receita líquida mensal recente
+                  </span>
+                </div>
+                <div className="p-2 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 rounded-xl border border-blue-100 dark:border-blue-800 group-hover:scale-105 transition-transform shrink-0">
                   <BarChart3 className="w-4 h-4" />
                 </div>
               </div>
-              <div className="mt-2">
-                <span className="text-xl font-black text-blue-800">
-                  {brl(indicadores.receitaUltimoMes)}
-                </span>
-                <span className="block text-[11px] text-slate-500 mt-0.5">
-                  Competência mais recente: {indicadores.mesMaisRecente || 'N/A'}
+
+              <div>
+                <div className="flex items-baseline gap-1.5 flex-wrap">
+                  <span className="text-2xl font-black text-slate-900 dark:text-white font-mono tracking-tight tabular-nums">
+                    {brl(indicadores.receitaUltimoMes)}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5 mt-1 text-[11px] text-slate-500 font-medium">
+                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                  <span>
+                    Competência:{' '}
+                    <strong className="text-slate-700 dark:text-slate-300 font-semibold">
+                      {indicadores.mesMaisRecente || 'Nenhum lançamento'}
+                    </strong>
+                  </span>
+                </div>
+              </div>
+
+              <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[10.5px] text-slate-400">
+                <span>Faturamento decupado</span>
+                <span className="text-blue-700 dark:text-blue-300 font-semibold bg-blue-50 dark:bg-blue-950/40 px-1.5 py-0.5 rounded border border-blue-200/50 dark:border-blue-800/50">
+                  {indicadores.mesMaisRecente ? 'Competência Vigente' : 'Pendente'}
                 </span>
               </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-500 uppercase">
-                  Crescimento Médio
-                </span>
+            {/* Card 3: Crescimento Médio */}
+            <div className="group bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs hover:shadow-md hover:border-amber-500/50 transition-all p-4 flex flex-col justify-between gap-3 relative overflow-hidden">
+              <div
+                className={`h-1 -mx-4 -mt-4 mb-1 ${
+                  indicadores.crescimentoMedioReceitaPct >= 0
+                    ? 'bg-gradient-to-r from-emerald-500 to-teal-400'
+                    : 'bg-gradient-to-r from-rose-500 to-amber-500'
+                }`}
+              />
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <span className="text-[10.5px] font-bold text-slate-500 uppercase tracking-wider block truncate">
+                    Crescimento Médio
+                  </span>
+                  <span className="text-[10px] text-slate-400 font-medium">
+                    Variação média a.m.
+                  </span>
+                </div>
                 <div
-                  className={`p-2 rounded-lg ${
+                  className={`p-2 rounded-xl border group-hover:scale-105 transition-transform shrink-0 ${
                     indicadores.crescimentoMedioReceitaPct >= 0
-                      ? 'bg-emerald-100/70 text-emerald-700'
-                      : 'bg-rose-100/70 text-rose-700'
+                      ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-100 dark:border-emerald-800'
+                      : 'bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border-rose-100 dark:border-rose-800'
                   }`}
                 >
                   {indicadores.crescimentoMedioReceitaPct >= 0 ? (
@@ -508,39 +570,82 @@ export const PainelAnalisesEmpresariais: React.FC<PainelAnalisesEmpresariaisProp
                   )}
                 </div>
               </div>
-              <div className="mt-2">
+
+              <div>
+                <div className="flex items-baseline gap-1.5 flex-wrap">
+                  <span
+                    className={`text-2xl font-black font-mono tracking-tight tabular-nums ${
+                      indicadores.crescimentoMedioReceitaPct >= 0
+                        ? 'text-emerald-600 dark:text-emerald-400'
+                        : 'text-rose-600 dark:text-rose-400'
+                    }`}
+                  >
+                    {indicadores.crescimentoMedioReceitaPct >= 0 ? '+' : ''}
+                    {Number(indicadores.crescimentoMedioReceitaPct || 0).toLocaleString('pt-BR', {
+                      minimumFractionDigits: 1,
+                      maximumFractionDigits: 1,
+                    })}
+                    %
+                  </span>
+                  <span className="text-xs font-semibold text-slate-400">a.m.</span>
+                </div>
+                <div className="flex items-center gap-1.5 mt-1 text-[11px] text-slate-500 font-medium">
+                  <span
+                    className={`inline-block w-1.5 h-1.5 rounded-full ${
+                      indicadores.crescimentoMedioReceitaPct >= 0 ? 'bg-emerald-500' : 'bg-rose-500'
+                    }`}
+                  ></span>
+                  <span>Tendência de faturamento entre períodos</span>
+                </div>
+              </div>
+
+              <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[10.5px] text-slate-400">
+                <span>Variação encadeada</span>
                 <span
-                  className={`text-xl font-black ${
+                  className={`font-semibold px-1.5 py-0.5 rounded text-[10px] border ${
                     indicadores.crescimentoMedioReceitaPct >= 0
-                      ? 'text-emerald-700'
-                      : 'text-rose-700'
+                      ? 'text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200/50 dark:border-emerald-800/50'
+                      : 'text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/40 border-rose-200/50 dark:border-rose-800/50'
                   }`}
                 >
-                  {indicadores.crescimentoMedioReceitaPct >= 0 ? '+' : ''}
-                  {indicadores.crescimentoMedioReceitaPct.toFixed(1)}%
-                </span>
-                <span className="block text-[11px] text-slate-500 mt-0.5">
-                  Variação média de faturamento a.m.
+                  {indicadores.crescimentoMedioReceitaPct >= 0 ? 'Expansão' : 'Contração'}
                 </span>
               </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-500 uppercase">
-                  Patrimônio Líquido
-                </span>
-                <div className="p-2 bg-purple-100/70 text-purple-700 rounded-lg">
+            {/* Card 4: Patrimônio Líquido */}
+            <div className="group bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs hover:shadow-md hover:border-purple-500/50 transition-all p-4 flex flex-col justify-between gap-3 relative overflow-hidden">
+              <div className="h-1 bg-gradient-to-r from-purple-500 to-pink-400 -mx-4 -mt-4 mb-1" />
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <span className="text-[10.5px] font-bold text-slate-500 uppercase tracking-wider block truncate">
+                    Patrimônio Líquido
+                  </span>
+                  <span className="text-[10px] text-slate-400 font-medium">
+                    Ativo Total subtraído do Passivo
+                  </span>
+                </div>
+                <div className="p-2 bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 rounded-xl border border-purple-100 dark:border-purple-800 group-hover:scale-105 transition-transform shrink-0">
                   <PieChart className="w-4 h-4" />
                 </div>
               </div>
-              <div className="mt-2">
-                <span className="text-xl font-black text-purple-900">
-                  {brl(indicadores.patrimonioLiquidoAtual)}
-                </span>
-                <span className="block text-[11px] text-slate-500 mt-0.5">
-                  Ativo: {brl(indicadores.ativoTotalAtual)} · Passivo:{' '}
-                  {brl(indicadores.passivoTotalAtual)}
+
+              <div>
+                <div className="flex items-baseline gap-1.5 flex-wrap">
+                  <span className="text-2xl font-black text-slate-900 dark:text-white font-mono tracking-tight tabular-nums">
+                    {brl(indicadores.patrimonioLiquidoAtual)}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5 mt-1 text-[11px] text-slate-500 font-medium truncate">
+                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-purple-500 shrink-0"></span>
+                  <span className="truncate">Ativo: {brl(indicadores.ativoTotalAtual)}</span>
+                </div>
+              </div>
+
+              <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[10.5px] text-slate-400">
+                <span className="truncate">Passivo: {brl(indicadores.passivoTotalAtual)}</span>
+                <span className="text-purple-700 dark:text-purple-300 font-semibold bg-purple-50 dark:bg-purple-950/40 px-1.5 py-0.5 rounded text-[10px] shrink-0 border border-purple-200/50 dark:border-purple-800/50">
+                  {indicadores.patrimonioLiquidoAtual >= 0 ? 'PL Positivo' : 'Passivo a Descoberto'}
                 </span>
               </div>
             </div>
@@ -711,32 +816,87 @@ export const PainelAnalisesEmpresariais: React.FC<PainelAnalisesEmpresariaisProp
               )}
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
-              <div className="flex items-center gap-2 mb-3 border-b border-slate-100 pb-2.5">
-                <TrendingUp className="w-4 h-4 text-emerald-600" />
-                <h3 className="text-sm font-bold text-slate-900">
-                  Índices Econômicos Oficiais (Fontes Estatísticas)
-                </h3>
+            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xs border border-slate-200 dark:border-slate-800 p-5">
+              <div className="flex items-center justify-between mb-3 border-b border-slate-100 dark:border-slate-800 pb-2.5">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400">
+                    <TrendingUp className="w-4 h-4" />
+                  </div>
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                    Índices Econômicos Oficiais (Fontes Estatísticas)
+                  </h3>
+                </div>
+                <span className="text-[10.5px] text-slate-400">BCB • IBGE • IPEA</span>
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
-                {indicesMacro.indicadores.slice(0, 6).map((ind) => (
-                  <div
-                    key={ind.chave}
-                    className="p-2.5 rounded-lg bg-slate-50 border border-slate-100"
-                  >
-                    <span className="text-[10px] text-slate-500 uppercase font-semibold block truncate">
-                      {ind.nome}
-                    </span>
-                    <span className="text-sm font-black text-slate-900 mt-0.5 block">
-                      {ind.valorAtual} {ind.unidade}
-                    </span>
-                    <span className="text-[9px] text-slate-400 block truncate">
-                      Ref: {ind.dataReferencia || 'Atual'}
-                    </span>
-                  </div>
-                ))}
-              </div>
+              {indicesMacro.indicadores.length === 0 ? (
+                <div className="p-6 text-center text-slate-400 text-xs">
+                  Carregando cotações e índices oficiais do Banco Central e IBGE...
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {indicesMacro.indicadores.slice(0, 6).map((ind) => {
+                    const valorFormatado =
+                      typeof ind.valorAtual === 'number'
+                        ? ind.valorAtual.toLocaleString('pt-BR', {
+                            maximumFractionDigits: 4,
+                          })
+                        : ind.valorAtual || '—'
+
+                    const temVariacao =
+                      typeof ind.variacao === 'number' && Number.isFinite(ind.variacao)
+                    const sobe = temVariacao && ind.variacao > 0
+                    const desce = temVariacao && ind.variacao < 0
+
+                    return (
+                      <div
+                        key={ind.chave || ind.nome}
+                        className="p-3.5 rounded-xl bg-slate-50/80 dark:bg-slate-800/40 hover:bg-slate-100/90 dark:hover:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 transition-all flex flex-col justify-between gap-2.5 hover:shadow-xs"
+                      >
+                        <div className="flex items-start justify-between gap-1.5">
+                          <span className="text-xs text-slate-700 dark:text-slate-300 font-bold tracking-tight line-clamp-1">
+                            {ind.nome}
+                          </span>
+                          <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 shrink-0 uppercase font-mono">
+                            {ind.unidade}
+                          </span>
+                        </div>
+
+                        <div className="flex items-baseline justify-between gap-2">
+                          <span className="text-lg font-black text-slate-900 dark:text-white font-mono tabular-nums tracking-tight">
+                            {valorFormatado}
+                          </span>
+
+                          {temVariacao && (
+                            <span
+                              className={`inline-flex items-center gap-0.5 text-xs font-bold font-mono px-1.5 py-0.5 rounded-md ${
+                                sobe
+                                  ? 'text-emerald-700 dark:text-emerald-300 bg-emerald-100/80 dark:bg-emerald-950/40 border border-emerald-200/60 dark:border-emerald-800/60'
+                                  : desce
+                                    ? 'text-rose-700 dark:text-rose-300 bg-rose-100/80 dark:bg-rose-950/40 border border-rose-200/60 dark:border-rose-800/60'
+                                    : 'text-slate-500 bg-slate-100 dark:bg-slate-800'
+                              }`}
+                            >
+                              {sobe ? (
+                                <ArrowUpRight className="w-3.5 h-3.5" />
+                              ) : desce ? (
+                                <ArrowDownRight className="w-3.5 h-3.5" />
+                              ) : null}
+                              {sobe ? '+' : ''}
+                              {ind.variacao.toLocaleString('pt-BR', { maximumFractionDigits: 2 })}
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="pt-2 border-t border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between text-[10.5px] text-slate-400">
+                          <span className="truncate">Ref: {ind.dataReferencia || 'Atual'}</span>
+                          <span className="text-primary font-medium truncate">Fonte Oficial</span>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
             </div>
           </div>
         </div>
