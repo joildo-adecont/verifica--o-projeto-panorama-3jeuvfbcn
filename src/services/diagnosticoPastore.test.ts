@@ -322,6 +322,85 @@ describe('diagnosticoPastore - recálculo por balancetes cumulativos', () => {
     expect(marco2033.faseDecisao).toBe(false)
     expect(marco3033Fim(marco2033)).toBe(true)
   })
+
+  it('inclui pontos de atenção positivos e negativos por ano na linha do tempo com fundamento legal', async () => {
+    const diag = await carregarDiagnosticoClientePastore()
+    const { linhaDoTempoTransicao } = diag
+
+    expect(linhaDoTempoTransicao).toBeDefined()
+
+    for (const marco of linhaDoTempoTransicao) {
+      expect(marco.pontosPositivos).toBeDefined()
+      expect(marco.pontosPositivos!.length).toBeGreaterThanOrEqual(2)
+      expect(marco.pontosPositivos!.length).toBeLessThanOrEqual(4)
+
+      expect(marco.pontosNegativos).toBeDefined()
+      expect(marco.pontosNegativos!.length).toBeGreaterThanOrEqual(2)
+      expect(marco.pontosNegativos!.length).toBeLessThanOrEqual(4)
+
+      // Verificar que cada ponto positivo e negativo possui título, descrição e dispositivo legal
+      for (const pos of marco.pontosPositivos!) {
+        expect(pos.titulo.length).toBeGreaterThan(5)
+        expect(pos.descricao.length).toBeGreaterThan(10)
+        expect(pos.dispositivoLegal.length).toBeGreaterThan(3)
+      }
+
+      for (const neg of marco.pontosNegativos!) {
+        expect(neg.titulo.length).toBeGreaterThan(5)
+        expect(neg.descricao.length).toBeGreaterThan(10)
+        expect(neg.dispositivoLegal.length).toBeGreaterThan(3)
+      }
+    }
+
+    // Conferir especificidades do cliente Pastore em 2026 e 2027
+    const marco2026 = linhaDoTempoTransicao.find((m) => String(m.ano) === '2026')!
+    expect(
+      marco2026.pontosPositivos!.some(
+        (p) => p.dispositivoLegal.includes('549') || p.dispositivoLegal.includes('336'),
+      ),
+    ).toBe(true)
+    expect(
+      marco2026.pontosNegativos!.some(
+        (p) => p.dispositivoLegal.includes('CGIBS') || p.dispositivoLegal.includes('2.215'),
+      ),
+    ).toBe(true)
+
+    const marco2027 = linhaDoTempoTransicao.find((m) => String(m.ano) === '2027')!
+    expect(
+      marco2027.pontosPositivos!.some(
+        (p) => p.dispositivoLegal.includes('COSIT') || p.dispositivoLegal.includes('28'),
+      ),
+    ).toBe(true)
+    expect(
+      marco2027.pontosNegativos!.some(
+        (p) =>
+          p.dispositivoLegal.includes('14/2026') ||
+          p.dispositivoLegal.includes('Split Payment') ||
+          p.dispositivoLegal.includes('49'),
+      ),
+    ).toBe(true)
+  })
+
+  it('alimenta bloco de evolução recente da legislação a partir do agente atualizador com badges e alertas', async () => {
+    const diag = await carregarDiagnosticoClientePastore()
+    const { evolucaoLegislativaRecente } = diag
+
+    expect(evolucaoLegislativaRecente).toBeDefined()
+    expect(evolucaoLegislativaRecente!.length).toBeGreaterThanOrEqual(5)
+
+    const tipos = evolucaoLegislativaRecente!.map((e) => e.tipo)
+    // Contém inclusões, alterações e exclusões
+    expect(tipos).toContain('inclusao')
+    expect(tipos).toContain('alteracao')
+
+    for (const item of evolucaoLegislativaRecente!) {
+      expect(item.id).toBeDefined()
+      expect(item.codigoNorma.length).toBeGreaterThan(2)
+      expect(item.tituloNorma.length).toBeGreaterThan(3)
+      expect(item.resumo.length).toBeGreaterThan(5)
+      expect(['inclusao', 'alteracao', 'exclusao']).toContain(item.tipo)
+    }
+  })
 })
 
 function marco3033Fim(marco: any) {

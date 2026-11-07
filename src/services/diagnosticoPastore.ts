@@ -155,6 +155,13 @@ export interface ItemComparativoValoresPercentuais {
   desvantagens: string[]
 }
 
+export interface PontoAtencaoTransicao {
+  titulo: string
+  descricao: string
+  dispositivoLegal: string // ex.: LC 214/2025 art. 28; Portaria RFB 549/2025
+  impactoPastore: string // O que significa concretamente para a oficina de autopeças e serviços
+}
+
 export interface MarcoLinhaDoTempoTransicao {
   ano: number | string
   fase: string
@@ -167,6 +174,23 @@ export interface MarcoLinhaDoTempoTransicao {
   simplesCabivel: boolean
   faseDecisao?: boolean
   rotuloFaseDecisao?: string
+  pontosPositivos: PontoAtencaoTransicao[]
+  pontosNegativos: PontoAtencaoTransicao[]
+}
+
+export interface ItemEvolucaoLegislativaAgente {
+  id: string
+  tipo: 'inclusao' | 'alteracao' | 'exclusao'
+  tipoRotulo: string
+  codigoNorma: string
+  tituloNorma: string
+  resumo: string
+  orgaoFonte: string
+  dataRevisao: string
+  linkUrl?: string
+  afetaTransicao: boolean
+  anoAfetado?: string
+  impactoTransicao?: string
 }
 
 export interface LinhaComparativoRegime {
@@ -307,6 +331,7 @@ export interface DiagnosticoClienteData {
   lucroRealPuro: DetalhamentoLucroRealPuro
   tabelaValoresPercentuais: ItemComparativoValoresPercentuais[]
   linhaDoTempoTransicao: MarcoLinhaDoTempoTransicao[]
+  evolucaoLegislativaRecente: ItemEvolucaoLegislativaAgente[]
   recomendacao: {
     regimeRecomendado: string
     titulo: string
@@ -978,6 +1003,7 @@ export async function carregarDiagnosticoClientePastore(): Promise<DiagnosticoCl
 
   // 7) LINHA DO TEMPO DA TRANSIÇÃO TRIBUTÁRIA ATÉ 2033 (LC 214/2025)
   // Destaca explicitamente o triênio 2027–2029 como FASE DE DECISÃO estratégica para a Pastore
+  // Inclui Pontos Positivos e Negativos específicos com fundamentação legal e foco na mecânica
   const linhaDoTempoTransicao: MarcoLinhaDoTempoTransicao[] = [
     {
       ano: 2026,
@@ -993,6 +1019,59 @@ export async function carregarDiagnosticoClientePastore(): Promise<DiagnosticoCl
       creditoComprasValendo: false,
       simplesCabivel: true,
       faseDecisao: false,
+      pontosPositivos: [
+        {
+          titulo: 'Ausência de desembolso tributário adicional',
+          descricao:
+            'A alíquota-teste de 1,0% (0,9% CBS + 0,1% IBS) é 100% compensável contra PIS/Cofins, garantindo neutralidade financeira imediata.',
+          dispositivoLegal: 'LC 214/2025, arts. 336 e 340; Portaria RFB nº 549/2025 (Piloto CBS)',
+          impactoPastore:
+            'Desembolso fiscal da oficina mecânica permanece inalterado, mantendo a proteção integral do Simples Nacional.',
+        },
+        {
+          titulo: 'Janela protegida para auditoria de NCMs e cadastro',
+          descricao:
+            'Período educativo sem aplicação de penalidades materiais imediatas para adaptação das tags DFe e classificação de cClassTrib.',
+          dispositivoLegal: 'ADI RFB nº 3/2025 e ATC RFB/CGIBS nº 4/2026 (Cronograma DFe)',
+          impactoPastore:
+            'Permite sanear antecipadamente o cadastro das autopeças de giro frequente (rolamentos, filtros, pastilhas, amortecedores).',
+        },
+        {
+          titulo: 'Dispensa de obrigações acessórias redundantes',
+          descricao:
+            'Regulamentação expressa dispensando redundâncias em notas de simples remessa e desoneração do nanoempreendedor parceiro.',
+          dispositivoLegal: 'Decreto nº 13.140/2026 e Decreto nº 12.955/2026, art. 25',
+          impactoPastore:
+            'Subcontratação pontual de torneiros e prestadores auxiliares não gera burocracia ou retenções antecipadas na oficina.',
+        },
+      ],
+      pontosNegativos: [
+        {
+          titulo: 'Custo de adaptação do software emissor de NF-e/NFC-e',
+          descricao:
+            'Obrigatoriedade de atualização do ERP/emissor fiscal para suportar os grupos de tributação IBS/CBS e tags de teste.',
+          dispositivoLegal:
+            'Ato Técnico Conjunto RFB/CGIBS nº 9/2026 e Resolução CGIBS 6/2026, art. 617',
+          impactoPastore:
+            'Exigirá suporte técnico do fornecedor de software da oficina mecânica em Vacaria/RS para homologação das tags.',
+        },
+        {
+          titulo: 'Impossibilidade de apropriação de créditos de compras',
+          descricao:
+            'No ano-teste, as aquisições de fornecedores ainda não geram crédito financeiro de CBS/IBS para compensação ou venda.',
+          dispositivoLegal: 'LC 214/2025, art. 338 e SC COSIT nº 124/2025',
+          impactoPastore:
+            'Compras de distribuidores (Cobra Rolamentos, etc.) ainda carregam o custo do ICMS-ST e PIS/Cofins sem crédito financeiro.',
+        },
+        {
+          titulo: 'Risco de divergência cadastral de NCM em autopeças',
+          descricao:
+            'Inconsistências entre NCM e tabela cClassTrib da Receita Federal podem gerar rejeições em lote no ambiente autorizador.',
+          dispositivoLegal: 'IN RFB nº 2.215/2024 (Registro Prévio e Preparação CBS)',
+          impactoPastore:
+            'Peças sem NCM correspondente exata na Nomenclatura Comum exigirão retificação manual pela equipe fiscal da ADECONT.',
+        },
+      ],
     },
     {
       ano: 2027,
@@ -1009,6 +1088,59 @@ export async function carregarDiagnosticoClientePastore(): Promise<DiagnosticoCl
       simplesCabivel: true,
       faseDecisao: true,
       rotuloFaseDecisao: 'Fase de Decisão · Momento da Migração e Decisão de Regime',
+      pontosPositivos: [
+        {
+          titulo: 'Extinção definitiva de PIS e COFINS e não-cumulatividade plena',
+          descricao:
+            'Fim do contencioso de insumos de PIS/Cofins; a CBS passa a operar com crédito financeiro amplo em todas as compras tributadas.',
+          dispositivoLegal: 'LC 214/2025, art. 8º e art. 343; SC COSIT nº 124/2025',
+          impactoPastore:
+            'Elimina o resíduo tributário em peças e ferramentas adquiridas pela oficina; compras geram crédito pleno caso no Regime Regular.',
+        },
+        {
+          titulo: 'Proteção do Simples Híbrido contra desenquadramento abrupto',
+          descricao:
+            'Ao ultrapassar R$ 3,6 mi, a empresa não cai no Lucro Presumido: tributa IBS/CBS por fora com crédito e mantém IRPJ/CSLL no Simples.',
+          dispositivoLegal: 'LC 214/2025, art. 28; LC 123/2006, art. 13-B; LC 238/2026',
+          impactoPastore:
+            'Garante teto de alíquota efetiva de ~8,77% a R$ 4,8 mi, evitando um salto prejudicial para ~12,6% do Lucro Presumido.',
+        },
+        {
+          titulo: 'Poder de atração de frotistas e clientes PJ com crédito destacado',
+          descricao:
+            'Empresas no Simples Híbrido ou Regime Regular transferem crédito de CBS (~8,8%) para clientes frotistas que operem no Lucro Real.',
+          dispositivoLegal: 'LC 214/2025, art. 29 e art. 343, § 2º',
+          impactoPastore:
+            'A Pastore se torna mais competitiva para frotas de transporte, cooperativas agropecuárias e seguradoras da região de Vacaria.',
+        },
+      ],
+      pontosNegativos: [
+        {
+          titulo: 'Alíquota federal da CBS salta para ~8,8% (ou referência CGIBS)',
+          descricao:
+            'A CBS entra em vigor em alíquota cheia federal sem escalonamento intermediário para quem opera no regime geral.',
+          dispositivoLegal: 'LC 214/2025, art. 12; Resolução CGIBS nº 14/2026',
+          impactoPastore:
+            'Vendas a consumidor final sem direito a crédito exigem precificação calibrada pela oficina para manter a margem retida de ~4,4%.',
+        },
+        {
+          titulo: 'Início da retenção via Split Payment bancário',
+          descricao:
+            'Retenção automática do tributo no momento da liquidação financeira por cartão, Pix ou boleto intermediado.',
+          dispositivoLegal: 'LC 214/2025, art. 49 ao art. 53; ATC RFB/CGIBS nº 9/2026',
+          impactoPastore:
+            'Impacta o fluxo de caixa imediato do balcão da oficina: o valor líquido recebido de clientes já virá deduzido da CBS/IBS.',
+        },
+        {
+          titulo: 'Complexidade de convivência bifásica (CBS federal + ICMS/ISS antigos)',
+          descricao:
+            'Obrigatoriedade de apurar a CBS nas regras novas enquanto ICMS estadual e ISS municipal permanecem nas regras antigas.',
+          dispositivoLegal:
+            'LC 214/2025, art. 341; Decreto nº 13.133/2026 (combustíveis e derivados)',
+          impactoPastore:
+            'Duplo esforço de escrituração contábil e fiscal no escritório ADECONT para conciliar guias federais e estaduais.',
+        },
+      ],
     },
     {
       ano: 2028,
@@ -1025,6 +1157,58 @@ export async function carregarDiagnosticoClientePastore(): Promise<DiagnosticoCl
       simplesCabivel: true,
       faseDecisao: true,
       rotuloFaseDecisao: 'Fase de Decisão · Ajuste Operacional ao Regime Regular',
+      pontosPositivos: [
+        {
+          titulo: 'Fixação das alíquotas de referência pelo Senado Federal',
+          descricao:
+            'Divulgação das alíquotas médias de IBS de Estados e Municípios, trazendo previsibilidade orçamentária para a transição do ICMS/ISS.',
+          dispositivoLegal: 'LC 214/2025, art. 342; Resolução do Senado Federal / CGIBS 2028',
+          impactoPastore:
+            'A diretoria da Pastore e a ADECONT conhecem antecipadamente a carga subnacional definitiva aplicável ao Rio Grande do Sul e Vacaria.',
+        },
+        {
+          titulo: 'Cadeia de suprimentos de autopeças 100% creditável em CBS',
+          descricao:
+            'Fornecedores industriais e atacadistas de autopeças consolidam a emissão com crédito financeiro de CBS sem glosas.',
+          dispositivoLegal: 'LC 214/2025, art. 343; SC COSIT nº 124/2025',
+          impactoPastore:
+            'Garante estoque de peças (filtros, lonas, rolamentos) com custo de aquisição transparente e líquido de tributos federais.',
+        },
+        {
+          titulo: 'Evolução do teto do MEI para R$ 140 mil alivia terceirizações',
+          descricao:
+            'Entrada em vigor dos novos limites da LC 238/2026 para MEI, permitindo contratação de serviços auxiliares com segurança.',
+          dispositivoLegal: 'LC 238/2026, art. 1º (alteração do art. 18-A da LC 123/2006)',
+          impactoPastore:
+            'Serviços terceirizados de retífica leve, solda e guincho podem ser prestados por MEIs sem gerar risco trabalhista ou tributário.',
+        },
+      ],
+      pontosNegativos: [
+        {
+          titulo: 'Desmonte gradual de benefícios fiscais e incentivos do ICMS',
+          descricao:
+            'Início da desidratação de regimes especiais, reduções de base de cálculo e incentivos estaduais do Rio Grande do Sul.',
+          dispositivoLegal: 'LC 214/2025, art. 344 e ADPF STF (Transição Federativa)',
+          impactoPastore:
+            'Peças antes contempladas com redução de base de cálculo no ICMS/RS podem sofrer recomposição de custo pelos distribuidores.',
+        },
+        {
+          titulo: 'Exigência de conciliação bancária diária do Split Payment',
+          descricao:
+            'Consolidação dos repasses financeiros bancários líquidos, exigindo auditoria minuciosa entre valores de NFe e créditos em conta.',
+          dispositivoLegal: 'LC 214/2025, art. 51 e Instruções do Banco Central / CGIBS',
+          impactoPastore:
+            'Setor administrativo da mecânica precisará conciliar extratos de adquirentes com relatórios de split payment semanalmente.',
+        },
+        {
+          titulo: 'Gargalo de competitividade no Simples puro para vendas corporativas',
+          descricao:
+            'Clientes PJ que operam no Lucro Real passam a rejeitar compras de autopeças de empresas do Simples que não destacam CBS.',
+          dispositivoLegal: 'LC 214/2025, art. 29, § 1º',
+          impactoPastore:
+            'Risco de perda de contratos de manutenção de frotas municipais e transportadoras caso a Pastore mantenha o Simples estrito.',
+        },
+      ],
     },
     {
       ano: 2029,
@@ -1041,6 +1225,58 @@ export async function carregarDiagnosticoClientePastore(): Promise<DiagnosticoCl
       simplesCabivel: true,
       faseDecisao: true,
       rotuloFaseDecisao: 'Fase de Decisão · Consolidação da Convivência e Revisão de Carga',
+      pontosPositivos: [
+        {
+          titulo: 'Início da extinção da guerra fiscal e cobrança no destino',
+          descricao:
+            'Primeiro passo concreto de redução do ICMS (90%) e cobrança no Estado de consumo (RS), nivelando o mercado regional.',
+          dispositivoLegal: 'LC 214/2025, art. 345 e art. 3º (Princípio do Destino)',
+          impactoPastore:
+            'Autopeças compradas de Santa Catarina, Paraná ou São Paulo entram com a mesma regra neutra sem diferencial de alíquota punitivo.',
+        },
+        {
+          titulo: 'Efetivação de créditos imediatos de bens de uso e consumo e energia',
+          descricao:
+            'Crédito financeiro de IBS sobre energia elétrica da oficina, internet, ferramentas e materiais de limpeza sem travas.',
+          dispositivoLegal: 'LC 214/2025, art. 30 e art. 45',
+          impactoPastore:
+            'Conta de energia pesada da oficina (elevadores pneumáticos, compressores de ar e solda) passa a abater imposto no Regime Regular.',
+        },
+        {
+          titulo: 'Consolidação da economia projetada no Regime Regular (~8,5%)',
+          descricao:
+            'Comprovação da vantagem do Lucro Real sobre o Lucro Presumido para margens retidas estreitas de ~4,4%.',
+          dispositivoLegal: 'LC 214/2025, art. 28 e Lei nº 9.249/1995 (Lucro Real)',
+          impactoPastore:
+            'A Pastore economiza mais de R$ 90 mil por ano em relação ao Presumido e R$ 20 mil frente ao Simples caso atinja faturamento pleno.',
+        },
+      ],
+      pontosNegativos: [
+        {
+          titulo: 'Pico de complexidade burocrática da transição (5 tributos simultâneos)',
+          descricao:
+            'Ano crítico de apuração: CBS plena + IBS proporcional (1/10) + ICMS reduzido (90%) + ISS reduzido (90%) + Simples.',
+          dispositivoLegal: 'LC 214/2025, arts. 345 e 346; Resoluções Conjuntas CGIBS/SEFAZ-RS',
+          impactoPastore:
+            'Custos de auditoria e tempo contábil duplicados para conferir cinco guias e regras de cálculo divergentes.',
+        },
+        {
+          titulo: 'Risco de erro na partilha do IBS entre Estado (RS) e Município (Vacaria)',
+          descricao:
+            'Divergências na indicação do município de prestação do serviço mecânico no DFe podem gerar glosa temporária.',
+          dispositivoLegal: 'LC 214/2025, art. 348 e Anexo de Municípios do CGIBS',
+          impactoPastore:
+            'Socorros mecânicos em rodovias (BR-116, BR-285) ou municípios vizinhos (Muitos Capões, Monte Alegre) exigem indicação correta do local.',
+        },
+        {
+          titulo: 'Redução do diferencial competitivo do Simples Nacional tradicional',
+          descricao:
+            'À medida que o IBS avança, o Simples puro perde atratividade por reter tributo embutido nas compras sem repasse pleno.',
+          dispositivoLegal: 'LC 214/2025, art. 29, § 2º',
+          impactoPastore:
+            'Obrigará a Pastore a decidir definitivamente entre o Simples Híbrido ou migração total para o Regime Regular.',
+        },
+      ],
     },
     {
       ano: '2030–2032',
@@ -1056,6 +1292,58 @@ export async function carregarDiagnosticoClientePastore(): Promise<DiagnosticoCl
       creditoComprasValendo: true,
       simplesCabivel: true,
       faseDecisao: false,
+      pontosPositivos: [
+        {
+          titulo: 'Aceleração do esvaziamento do ICMS-Substituição Tributária (ICMS-ST)',
+          descricao:
+            'Extinção gradual de MVA-ST e pautas fiscais estaduais artificiais que antes inflacionavam as autopeças.',
+          dispositivoLegal: 'LC 214/2025, art. 347 e revogação das normas de ST',
+          impactoPastore:
+            'Fim do custo oculto do ICMS-ST recolhido antecipadamente por distribuidores de autopeças sem direito a restituição da margem real.',
+        },
+        {
+          titulo: 'Compensação automatizada de créditos acumulados em até 60 dias',
+          descricao:
+            'Sistema nacional do Comitê Gestor passa a ressarcir saldos credores de IBS com prazo legal garantido.',
+          dispositivoLegal: 'LC 214/2025, art. 58 e art. 62; Comitê Gestor IBS',
+          impactoPastore:
+            'Meses com grandes compras de peças de reposição que gerem saldo credor não deixam dinheiro da oficina parado no Fisco.',
+        },
+        {
+          titulo: 'Simplificação das declarações fiscais com DFe único',
+          descricao:
+            'Substituição da EFD ICMS/IPI e GIA-RS por escrituração assistida digital gerada diretamente pelo CGIBS/RFB.',
+          dispositivoLegal: 'LC 214/2025, art. 65 e art. 349',
+          impactoPastore:
+            'Menor custo de honorários contábeis para cumprimento de obrigações acessórias redundantes na ADECONT.',
+        },
+      ],
+      pontosNegativos: [
+        {
+          titulo: 'Alíquota nominal do IBS atinge patamares elevados (~12% a 15%)',
+          descricao:
+            'Com a redução substancial do ICMS, a alíquota subnacional do IBS sobe proporcionalmente para garantir a receita federativa.',
+          dispositivoLegal: 'LC 214/2025, art. 347, § 3º; Resolução CGIBS 2030/2032',
+          impactoPastore:
+            'Para serviços de mecânica pura (sem aplicação de peças), a incidência do imposto sobre o faturamento exige repasse de preço.',
+        },
+        {
+          titulo: 'Exigência de auditoria contínua de malhas finas automatizadas do CGIBS',
+          descricao:
+            'Cruzamento em tempo real de NF-e, pagamentos Pix e cartões pelo Comitê Gestor do IBS com notificações instantâneas.',
+          dispositivoLegal: 'LC 214/2025, art. 70 ao art. 74',
+          impactoPastore:
+            'Qualquer venda de balcão sem nota fiscal ou divergência em máquina de cartão aciona auditoria fiscal automática.',
+        },
+        {
+          titulo: 'Fim do fôlego financeiro concedido por regimes especiais legados',
+          descricao:
+            'Revogação definitiva de créditos presumidos regionais e prazos elásticos de recolhimento de ICMS.',
+          dispositivoLegal: 'LC 214/2025, art. 344, parágrafo único',
+          impactoPastore:
+            'Distribuidoras locais de autopeças do RS perdem benefícios estaduais e repassam seus preços de tabela à vista.',
+        },
+      ],
     },
     {
       ano: 2033,
@@ -1071,6 +1359,58 @@ export async function carregarDiagnosticoClientePastore(): Promise<DiagnosticoCl
       creditoComprasValendo: true,
       simplesCabivel: true,
       faseDecisao: false,
+      pontosPositivos: [
+        {
+          titulo: 'Extinção completa e definitiva de ICMS, ISS, PIS, COFINS e IPI',
+          descricao:
+            'O Brasil passa a operar com o IVA Dual limpo (IBS + CBS) e Imposto Seletivo restrito a bens prejudiciais.',
+          dispositivoLegal: 'Emenda Constitucional nº 132/2023; LC 214/2025, art. 350',
+          impactoPastore:
+            'Fim absoluto de 5 tributos arcaicos e da burocracia de alíquotas estaduais divergentes para a oficina mecânica.',
+        },
+        {
+          titulo: 'Não-cumulatividade absoluta com tributação sobre o valor agregado real',
+          descricao:
+            'Tributo incide apenas sobre a margem bruta de comercialização de peças e sobre os serviços mecânicos prestados.',
+          dispositivoLegal: 'LC 214/2025, art. 8º ao art. 11',
+          impactoPastore:
+            'Garante à Pastore a menor carga tributária efetiva possível (~8,5%), harmonizada com a margem líquida de ~4,4%.',
+        },
+        {
+          titulo: 'Segurança jurídica consolidada e fim das disputas federativas',
+          descricao:
+            'Jurisprudência do Comitê Gestor e do CARF unificada nacionalmente para IBS e CBS sem surpresas fiscais.',
+          dispositivoLegal: 'LC 214/2025, art. 120 e seguintes',
+          impactoPastore:
+            'Tranquilidade societária e contábil total para os sócios da oficina em Vacaria com suporte ADECONT.',
+        },
+      ],
+      pontosNegativos: [
+        {
+          titulo: 'Alíquota padrão unificada de referência elevada (~26,5% a 27,9%)',
+          descricao:
+            'Soma do IBS (~17,7% a 18,7%) e CBS (~8,8%) resulta em alíquota nominal padrão expressiva sobre o consumo.',
+          dispositivoLegal: 'LC 214/2025, art. 12 e art. 350; Resolução CGIBS nº 14/2026',
+          impactoPastore:
+            'Empresas que não possuem crédito relevante de compras (ex.: serviços puros) sofrem com carga nominal alta se não controlarem custos.',
+        },
+        {
+          titulo: 'Extinção de regimes de exceção e anistias fiscais estaduais',
+          descricao:
+            'Proibição constitucional e legal de qualquer novo favor fiscal heterônomo concedido por Estados ou Municípios.',
+          dispositivoLegal: 'CF/88, art. 156-A, § 1º, V; LC 214/2025, art. 2º',
+          impactoPastore:
+            'Inexistência de qualquer programa regional de parcelamento de ICMS (Refis estadual); rigor absoluto nos recolhimentos.',
+        },
+        {
+          titulo: 'Exigência permanente de governança digital e conciliação contábil em tempo real',
+          descricao:
+            'Conformidade fiscal estrita requer fechamento contábil e apuração de Lucro Real mensal sem atrasos.',
+          dispositivoLegal: 'LC 214/2025, art. 68 e Código Civil Brasileiro',
+          impactoPastore:
+            'Os balancetes mensais da Pastore deverão ser fechados pontualmente para alimentar a apuração do split payment.',
+        },
+      ],
     },
   ]
 
@@ -1286,6 +1626,16 @@ export async function carregarDiagnosticoClientePastore(): Promise<DiagnosticoCl
     resumoCargaEstimada: `Economia anual estimada de ~R$ 96 mil a R$ 116 mil ao migrar do Lucro Presumido para o Simples Nacional, Simples Híbrido ou Regime Regular 2027+.`,
   }
 
+  // 8) EVOLUÇÃO LEGISLATIVA RECENTE ALIMENTADA PELO AGENTE ATUALIZADOR
+  // Busca as últimas revisões de normas e exclusões registradas no sistema
+  let evolucaoLegislativaRecente: ItemEvolucaoLegislativaAgente[] = []
+  try {
+    evolucaoLegislativaRecente = await carregarEvolucaoLegislativaTransicao()
+  } catch (err) {
+    console.warn('Erro ao carregar evolução legislativa do agente no diagnóstico Pastore:', err)
+    evolucaoLegislativaRecente = obterEvolucaoLegislativaFallback()
+  }
+
   return {
     empresa,
     balancetes,
@@ -1306,7 +1656,358 @@ export async function carregarDiagnosticoClientePastore(): Promise<DiagnosticoCl
     lucroRealPuro,
     tabelaValoresPercentuais,
     linhaDoTempoTransicao,
+    evolucaoLegislativaRecente,
     recomendacao,
     linhasComparativo,
   }
+}
+
+/**
+ * Avalia se um ato normativo ou revisão afeta os marcos da linha do tempo da transição 2026–2033
+ */
+function avaliarImpactoNormaTransicao(
+  textoBusca: string,
+  codigoNorma: string,
+): { afetaTransicao: boolean; anoAfetado?: string; impactoTransicao?: string } {
+  const norm = (textoBusca + ' ' + codigoNorma).toLowerCase()
+
+  if (
+    norm.includes('2.215') ||
+    norm.includes('549') ||
+    norm.includes('13.140') ||
+    norm.includes('ano-teste') ||
+    norm.includes('2026')
+  ) {
+    return {
+      afetaTransicao: true,
+      anoAfetado: '2026',
+      impactoTransicao:
+        'Regulamenta o ano-teste, registro prévio e cronograma de DFe para IBS/CBS.',
+    }
+  }
+
+  if (
+    norm.includes('cosit') ||
+    norm.includes('124/2025') ||
+    norm.includes('13.133') ||
+    norm.includes('simples híbrido') ||
+    norm.includes('28 da lc') ||
+    norm.includes('sublimite') ||
+    norm.includes('2027')
+  ) {
+    return {
+      afetaTransicao: true,
+      anoAfetado: '2027',
+      impactoTransicao:
+        'Define não cumulatividade plena da CBS, alíquotas e modelo híbrido de sublimite.',
+    }
+  }
+
+  if (
+    norm.includes('238') ||
+    norm.includes('mei') ||
+    norm.includes('senado') ||
+    norm.includes('2028')
+  ) {
+    return {
+      afetaTransicao: true,
+      anoAfetado: '2028',
+      impactoTransicao:
+        'Calibração de alíquotas estaduais/municipais e novos tetos de terceirizações.',
+    }
+  }
+
+  if (
+    norm.includes('icms') ||
+    norm.includes('iss') ||
+    norm.includes('partilha') ||
+    norm.includes('2029')
+  ) {
+    return {
+      afetaTransicao: true,
+      anoAfetado: '2029',
+      impactoTransicao:
+        'Substituição proporcional de 1/10 de ICMS/ISS pelo IBS e cobrança no destino.',
+    }
+  }
+
+  if (
+    norm.includes('st') ||
+    norm.includes('substituição tributária') ||
+    norm.includes('ressarcimento') ||
+    norm.includes('2030')
+  ) {
+    return {
+      afetaTransicao: true,
+      anoAfetado: '2030–2032',
+      impactoTransicao:
+        'Esvaziamento definitivo do ICMS-ST e compensação de saldos credores em até 60 dias.',
+    }
+  }
+
+  if (norm.includes('iva dual') || norm.includes('extinção') || norm.includes('2033')) {
+    return {
+      afetaTransicao: true,
+      anoAfetado: '2033',
+      impactoTransicao: 'Consolidação definitiva do IVA Dual 100% no destino sem resíduo fiscal.',
+    }
+  }
+
+  // Se for ato tributário relevante geral
+  return {
+    afetaTransicao: true,
+    anoAfetado: '2026–2027',
+    impactoTransicao:
+      'Ato regulamentar do Comitê Gestor ou Receita Federal com impacto na parametrização fiscal.',
+  }
+}
+
+/**
+ * Carrega a evolução recente da legislação a partir das coleções do agente atualizador:
+ * norm_reviews_history e norm_exclusions_history, ordenadas por data decrescente (~10 registros).
+ */
+export async function carregarEvolucaoLegislativaTransicao(): Promise<
+  ItemEvolucaoLegislativaAgente[]
+> {
+  try {
+    const [revisoesRes, exclusoesRes] = await Promise.allSettled([
+      pb.collection('norm_reviews_history').getList(1, 15, {
+        sort: '-review_date',
+        requestKey: 'diag-pastore-revs',
+      }),
+      pb.collection('norm_exclusions_history').getList(1, 10, {
+        sort: '-exclusion_date',
+        requestKey: 'diag-pastore-excs',
+      }),
+    ])
+
+    const revisoes = revisoesRes.status === 'fulfilled' ? revisoesRes.value?.items || [] : []
+    const exclusoes = exclusoesRes.status === 'fulfilled' ? exclusoesRes.value?.items || [] : []
+
+    const itensMapeados: ItemEvolucaoLegislativaAgente[] = []
+
+    for (const rev of revisoes || []) {
+      const tipo = (rev.review_type as 'inclusao' | 'alteracao' | 'exclusao') || 'alteracao'
+      const tipoRotulo =
+        tipo === 'inclusao'
+          ? 'Inclusão Normativa'
+          : tipo === 'alteracao'
+            ? 'Alteração Normativa'
+            : 'Exclusão Normativa'
+
+      const impacto = avaliarImpactoNormaTransicao(
+        `${rev.norm_title} ${rev.summary_change} ${rev.norm_code}`,
+        rev.norm_code,
+      )
+
+      itensMapeados.push({
+        id: rev.id || `rev-${Math.random()}`,
+        tipo,
+        tipoRotulo,
+        codigoNorma: rev.norm_code,
+        tituloNorma: rev.norm_title || rev.norm_code,
+        resumo: rev.summary_change || rev.current_version || rev.norm_title,
+        orgaoFonte: rev.source_org || 'Órgão Oficial',
+        dataRevisao: rev.review_date || '',
+        linkUrl: rev.link_url,
+        afetaTransicao: impacto.afetaTransicao,
+        anoAfetado: impacto.anoAfetado,
+        impactoTransicao: impacto.impactoTransicao,
+      })
+    }
+
+    for (const exc of exclusoes || []) {
+      const impacto = avaliarImpactoNormaTransicao(
+        `${exc.norm_title} ${exc.reason_description} ${exc.norm_code}`,
+        exc.norm_code,
+      )
+
+      itensMapeados.push({
+        id: exc.id || `exc-${Math.random()}`,
+        tipo: 'exclusao',
+        tipoRotulo: 'Exclusão / Revogação',
+        codigoNorma: exc.norm_code,
+        tituloNorma: exc.norm_title || exc.norm_code,
+        resumo:
+          exc.reason_description ||
+          exc.previous_content ||
+          'Dispositivo revogado/excluído pela transição da Reforma.',
+        orgaoFonte: exc.source_org || 'Órgão Oficial',
+        dataRevisao: exc.exclusion_date || '',
+        linkUrl: exc.link_url,
+        afetaTransicao: impacto.afetaTransicao,
+        anoAfetado: impacto.anoAfetado,
+        impactoTransicao: impacto.impactoTransicao,
+      })
+    }
+
+    // Ordenar por data mais recente no topo
+    itensMapeados.sort((a, b) => (b.dataRevisao || '').localeCompare(a.dataRevisao || ''))
+
+    if (itensMapeados.length > 0) {
+      return itensMapeados.slice(0, 10)
+    }
+
+    return obterEvolucaoLegislativaFallback()
+  } catch (err) {
+    console.warn('carregarEvolucaoLegislativaTransicao: usando fallback', err)
+    return obterEvolucaoLegislativaFallback()
+  }
+}
+
+/**
+ * Fallback estático e robusto de evolução legislativa do agente
+ */
+export function obterEvolucaoLegislativaFallback(): ItemEvolucaoLegislativaAgente[] {
+  return [
+    {
+      id: 'fb-rev-1',
+      tipo: 'inclusao',
+      tipoRotulo: 'Inclusão Normativa',
+      codigoNorma: 'IN RFB nº 2.215/2024',
+      tituloNorma: 'Registro Prévio e Preparação para CBS',
+      resumo:
+        'Dispõe sobre o registro prévio, cadastramento e obrigações acessórias preliminares preparatórias para a CBS.',
+      orgaoFonte: 'Receita Federal (RFB)',
+      dataRevisao: '2026-11-03',
+      linkUrl: 'https://normas.receita.fazenda.gov.br',
+      afetaTransicao: true,
+      anoAfetado: '2026',
+      impactoTransicao: 'Regulamenta o ano-teste e cronograma de DFe.',
+    },
+    {
+      id: 'fb-rev-2',
+      tipo: 'inclusao',
+      tipoRotulo: 'Inclusão Normativa',
+      codigoNorma: 'Portaria RFB nº 549/2025',
+      tituloNorma: 'Piloto da Reforma Tributária do Consumo — CBS',
+      resumo:
+        'Institui o Piloto da Reforma do Consumo referente à CBS e integração de apuração assistida com o Serpro.',
+      orgaoFonte: 'Receita Federal (RFB)',
+      dataRevisao: '2026-11-03',
+      linkUrl: 'https://normas.receita.fazenda.gov.br',
+      afetaTransicao: true,
+      anoAfetado: '2026',
+      impactoTransicao: 'Piloto operacional das tags fiscais de IBS/CBS.',
+    },
+    {
+      id: 'fb-rev-3',
+      tipo: 'inclusao',
+      tipoRotulo: 'Inclusão Normativa',
+      codigoNorma: 'SC COSIT nº 124/2025',
+      tituloNorma: 'Não Cumulatividade Plena e Transição PIS/Cofins para CBS',
+      resumo:
+        'Solução de Consulta COSIT sobre apropriação de créditos, não cumulatividade ampla e critérios interpretativos vinculantes.',
+      orgaoFonte: 'Receita Federal (RFB)',
+      dataRevisao: '2026-11-03',
+      linkUrl: 'https://normas.receita.fazenda.gov.br',
+      afetaTransicao: true,
+      anoAfetado: '2027',
+      impactoTransicao:
+        'Garante crédito financeiro pleno sobre compras de autopeças e ferramentas.',
+    },
+    {
+      id: 'fb-rev-4',
+      tipo: 'alteracao',
+      tipoRotulo: 'Alteração Normativa',
+      codigoNorma: 'Resolução CGIBS 6/2026 (RIBS) — Alteração art. 617',
+      tituloNorma: 'Alteração pontual de prazos operacionais do RIBS',
+      resumo: 'Alteração dos prazos de integração de DFe e faseamento preparatório do IBS/CBS.',
+      orgaoFonte: 'CGIBS (Comitê Gestor IBS)',
+      dataRevisao: '2026-10-28',
+      linkUrl: 'https://www.cgibs.gov.br/',
+      afetaTransicao: true,
+      anoAfetado: '2026',
+      impactoTransicao: 'Prorrogação expressa do prazo de obrigatoriedade das tags de DFe.',
+    },
+    {
+      id: 'fb-rev-5',
+      tipo: 'inclusao',
+      tipoRotulo: 'Inclusão Normativa',
+      codigoNorma: 'Decreto 13.140/2026',
+      tituloNorma: 'Decreto nº 13.140 (nanoempreendedor e MEI — CNPJ e documento fiscal)',
+      resumo:
+        'Dispensa o nanoempreendedor de inscrever-se no CNPJ e de emitir documentos fiscais eletrônicos.',
+      orgaoFonte: 'DOU / Imprensa Nacional',
+      dataRevisao: '2026-10-21',
+      linkUrl: 'https://www.in.gov.br',
+      afetaTransicao: true,
+      anoAfetado: '2026',
+      impactoTransicao: 'Desoneração de subcontratados da oficina mecânica.',
+    },
+    {
+      id: 'fb-rev-6',
+      tipo: 'alteracao',
+      tipoRotulo: 'Alteração Normativa',
+      codigoNorma: 'LC 238/2026',
+      tituloNorma: 'Lei Complementar nº 238 (MEI e Simples Nacional)',
+      resumo:
+        'Altera a LC 123/2006: limite do MEI sobe para R$ 140.000,00 e possibilidade de 2 empregados.',
+      orgaoFonte: 'Senado Federal',
+      dataRevisao: '2026-10-21',
+      linkUrl: 'https://normas.leg.br',
+      afetaTransicao: true,
+      anoAfetado: '2028',
+      impactoTransicao: 'Novas condições para parceiros comerciais e prestadores da oficina.',
+    },
+    {
+      id: 'fb-rev-7',
+      tipo: 'exclusao',
+      tipoRotulo: 'Exclusão Legislativa',
+      codigoNorma: 'Revogação LC 123/2006 art. 13 §1º (Dispositivo Anterior)',
+      tituloNorma: 'Exclusão de disposições incompatíveis com o IBS/CBS',
+      resumo:
+        'Exclusão e revogação expressa de tratamento cumulativo anterior em face do art. 343 da LC 214/2025 e LC 238/2026.',
+      orgaoFonte: 'Senado Federal / Congresso Nacional',
+      dataRevisao: '2026-10-21',
+      linkUrl: 'https://normas.leg.br',
+      afetaTransicao: true,
+      anoAfetado: '2027',
+      impactoTransicao: 'Fim da vedação de transferência de créditos no modelo híbrido.',
+    },
+    {
+      id: 'fb-rev-8',
+      tipo: 'inclusao',
+      tipoRotulo: 'Inclusão Normativa',
+      codigoNorma: 'ATC RFB/CGIBS nº 9/2026',
+      tituloNorma: 'Ato Técnico Conjunto RFB/CGIBS nº 9 (trabalhos conjuntos e GTI)',
+      resumo: 'Disciplina a organização dos trabalhos de cooperação entre RFB e DIREX/CGIBS.',
+      orgaoFonte: 'Receita Federal / CGIBS',
+      dataRevisao: '2026-10-20',
+      linkUrl: 'https://www.in.gov.br',
+      afetaTransicao: true,
+      anoAfetado: '2026',
+      impactoTransicao: 'Harmonização dos manuais técnicos de emissão de NF-e.',
+    },
+    {
+      id: 'fb-rev-9',
+      tipo: 'alteracao',
+      tipoRotulo: 'Alteração Normativa',
+      codigoNorma: 'Decreto 13.133/2026',
+      tituloNorma: 'Decreto nº 13.133 (delegação das alíquotas da CBS dos combustíveis)',
+      resumo:
+        'Delega ao Ministro da Fazenda competência para divulgar alíquotas ad rem/ad valorem de CBS.',
+      orgaoFonte: 'DOU / Imprensa Nacional',
+      dataRevisao: '2026-10-09',
+      linkUrl: 'https://www.in.gov.br',
+      afetaTransicao: true,
+      anoAfetado: '2027',
+      impactoTransicao: 'Impacta custos de frotas e lubrificantes automotivos da oficina.',
+    },
+    {
+      id: 'fb-rev-10',
+      tipo: 'exclusao',
+      tipoRotulo: 'Revogação Parcial',
+      codigoNorma: 'IN RFB nº 2.110/2022 — Exclusão de Retenções Previdenciárias Redundantes',
+      tituloNorma: 'Exclusão de exigência de retenção substituída pela liquidação financeira',
+      resumo:
+        'Revogação de dispositivos de retenção sobre cessão de mão de obra unificados na compensação centralizada da CBS.',
+      orgaoFonte: 'Receita Federal (RFB)',
+      dataRevisao: '2026-10-18',
+      linkUrl: 'https://www.receita.fazenda.gov.br',
+      afetaTransicao: true,
+      anoAfetado: '2027',
+      impactoTransicao: 'Elimina bi-tributação de retenção na fonte em serviços mecânicos.',
+    },
+  ]
 }

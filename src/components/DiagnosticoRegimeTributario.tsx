@@ -995,10 +995,163 @@ export const DiagnosticoRegimeTributario: React.FC = () => {
                     </p>
                   </div>
                 </div>
+
+                {/* Pontos de Atenção Positivos e Negativos do Ano */}
+                {((marco.pontosPositivos && marco.pontosPositivos.length > 0) ||
+                  (marco.pontosNegativos && marco.pontosNegativos.length > 0)) && (
+                  <div className="mt-2.5 pt-2.5 border-t border-slate-800/90 grid grid-cols-1 lg:grid-cols-2 gap-2.5">
+                    {/* Pontos Positivos */}
+                    <div className="bg-emerald-950/30 border border-emerald-900/60 rounded-md p-2.5 space-y-1.5">
+                      <div className="flex items-center gap-1.5 text-emerald-300 font-bold text-[11px]">
+                        <ThumbsUp className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                        <span>Pontos Positivos & Oportunidades ({marco.ano})</span>
+                      </div>
+                      <div className="space-y-1.5">
+                        {marco.pontosPositivos?.map((pos, pIdx) => (
+                          <div
+                            key={pIdx}
+                            className="bg-slate-900/70 p-2 rounded border border-emerald-900/40 text-[11px] space-y-0.5"
+                          >
+                            <div className="flex items-center justify-between gap-1 flex-wrap">
+                              <span className="font-semibold text-emerald-200">{pos.titulo}</span>
+                              <span className="text-[9px] font-mono text-emerald-400 bg-emerald-950/80 px-1.5 py-0.2 rounded border border-emerald-800/60">
+                                {pos.dispositivoLegal}
+                              </span>
+                            </div>
+                            <p className="text-slate-300 text-[10.5px] leading-tight">
+                              {pos.descricao}
+                            </p>
+                            {pos.impactoPastore && (
+                              <p className="text-emerald-300/90 text-[10px] italic">
+                                <strong>Impacto Pastore:</strong> {pos.impactoPastore}
+                              </p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Pontos Negativos */}
+                    <div className="bg-rose-950/30 border border-rose-900/60 rounded-md p-2.5 space-y-1.5">
+                      <div className="flex items-center gap-1.5 text-rose-300 font-bold text-[11px]">
+                        <ThumbsDown className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+                        <span>Pontos Negativos, Riscos & Conformidade ({marco.ano})</span>
+                      </div>
+                      <div className="space-y-1.5">
+                        {marco.pontosNegativos?.map((neg, nIdx) => (
+                          <div
+                            key={nIdx}
+                            className="bg-slate-900/70 p-2 rounded border border-rose-900/40 text-[11px] space-y-0.5"
+                          >
+                            <div className="flex items-center justify-between gap-1 flex-wrap">
+                              <span className="font-semibold text-rose-200">{neg.titulo}</span>
+                              <span className="text-[9px] font-mono text-rose-400 bg-rose-950/80 px-1.5 py-0.2 rounded border border-rose-800/60">
+                                {neg.dispositivoLegal}
+                              </span>
+                            </div>
+                            <p className="text-slate-300 text-[10.5px] leading-tight">
+                              {neg.descricao}
+                            </p>
+                            {neg.impactoPastore && (
+                              <p className="text-rose-300/90 text-[10px] italic">
+                                <strong>Risco Pastore:</strong> {neg.impactoPastore}
+                              </p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )
           })}
         </div>
+
+        {/* Bloco: Evolução Recente da Legislação alimentado pelo Agente Atualizador */}
+        {data.evolucaoLegislativaRecente && data.evolucaoLegislativaRecente.length > 0 && (
+          <div className="mt-4 pt-4 border-t border-slate-800 space-y-2.5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <RefreshCw className="w-4 h-4 text-cyan-400" />
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-200">
+                  Evolução Recente da Legislação — Agente Atualizador Contínuo
+                </h4>
+              </div>
+              <span className="text-[10px] text-slate-400 bg-slate-950 px-2 py-0.5 rounded border border-slate-800">
+                Rotina semanal ativa (segundas-feiras) · {data.evolucaoLegislativaRecente.length}{' '}
+                atos monitorados
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-400 leading-snug">
+              Atos normativos e revisões catalogadas pelo robô de inteligência regulatória da
+              ADECONT (Receita Federal, CGIBS e DOU) que impactam a mecânica de transição e os
+              prazos da oficina mecânica.
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pt-1">
+              {data.evolucaoLegislativaRecente.map((item) => {
+                const isInc = item.tipo === 'inclusao'
+                const isAlt = item.tipo === 'alteracao'
+                const badgeColor = isInc
+                  ? 'bg-emerald-950/80 text-emerald-300 border-emerald-700/70'
+                  : isAlt
+                    ? 'bg-amber-950/80 text-amber-300 border-amber-700/70'
+                    : 'bg-rose-950/80 text-rose-300 border-rose-700/70'
+
+                const borderItem = isInc
+                  ? 'border-emerald-900/40 hover:border-emerald-700/60'
+                  : isAlt
+                    ? 'border-amber-900/40 hover:border-amber-700/60'
+                    : 'border-rose-900/40 hover:border-rose-700/60'
+
+                return (
+                  <div
+                    key={item.id}
+                    className={`bg-slate-950/80 p-2.5 rounded-lg border ${borderItem} transition-colors space-y-1.5 text-xs`}
+                  >
+                    <div className="flex items-center justify-between gap-1.5 flex-wrap">
+                      <div className="flex items-center gap-1.5">
+                        <span
+                          className={`text-[9.5px] uppercase font-bold px-2 py-0.5 rounded border ${badgeColor}`}
+                        >
+                          {item.tipoRotulo}
+                        </span>
+                        <span className="font-mono font-bold text-slate-200 text-[11px]">
+                          {item.codigoNorma}
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-slate-400 font-mono">
+                        {item.dataRevisao
+                          ? new Date(item.dataRevisao).toLocaleDateString('pt-BR')
+                          : 'Recente'}
+                      </span>
+                    </div>
+
+                    <h5 className="font-semibold text-white text-[11px] leading-snug">
+                      {item.tituloNorma}
+                    </h5>
+
+                    <p className="text-slate-300 text-[10.5px] leading-relaxed line-clamp-2">
+                      {item.resumo}
+                    </p>
+
+                    <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-800/80 text-[10px]">
+                      <span className="text-slate-400 truncate max-w-[55%]">
+                        Órgão: <strong className="text-slate-300">{item.orgaoFonte}</strong>
+                      </span>
+                      {item.anoAfetado && (
+                        <span className="text-cyan-300 bg-cyan-950/60 px-1.5 py-0.5 rounded border border-cyan-800/60 font-mono text-[9px]">
+                          Impacto: {item.anoAfetado}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 3. TABELA COMPARATIVA (4 REGIMES LADO A LADO: SIMPLES x SIMPLES HÍBRIDO x PRESUMIDO x REGIME REGULAR) */}

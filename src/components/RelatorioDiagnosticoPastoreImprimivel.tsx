@@ -599,6 +599,135 @@ export const RelatorioDiagnosticoPastoreImprimivel: React.FC<
               </tbody>
             </table>
           </div>
+
+          {/* Subseção: Pontos de Atenção Positivos e Negativos da Transição por Ano */}
+          <div className="mt-3 pt-2 border-t border-slate-300 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-900">
+                Pontos de Atenção Positivos e Negativos da Transição (LC 214/2025) por Ano
+              </span>
+              <span className="text-[8px] text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-300 font-mono">
+                Fundamentação Legal e Riscos Operacionais para Pastore
+              </span>
+            </div>
+
+            <div className="space-y-2">
+              {linhaDoTempoTransicao.map((marco, mIdx) => (
+                <div
+                  key={mIdx}
+                  className={`p-1.5 rounded border text-[8px] ${
+                    marco.faseDecisao
+                      ? 'bg-amber-50/50 border-amber-300'
+                      : 'bg-slate-50 border-slate-200'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-1 pb-0.5 border-b border-slate-200">
+                    <span className="font-bold text-slate-900 text-[8.5px]">
+                      Marco {marco.ano}: {marco.fase}
+                    </span>
+                    {marco.faseDecisao && (
+                      <span className="text-[7px] font-bold uppercase px-1 py-0.2 rounded bg-amber-200 text-amber-900 border border-amber-300">
+                        Janela Crítica de Decisão
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    {/* Positivos */}
+                    <div className="bg-emerald-50/60 p-1 rounded border border-emerald-200">
+                      <span className="block font-bold text-emerald-900 text-[8px] mb-0.5">
+                        Pontos Positivos & Oportunidades:
+                      </span>
+                      <ul className="space-y-0.5 list-disc list-inside text-slate-800">
+                        {marco.pontosPositivos?.map((p, pI) => (
+                          <li key={pI} className="leading-tight">
+                            <strong>{p.titulo}</strong> ({p.dispositivoLegal}): {p.descricao}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    {/* Negativos */}
+                    <div className="bg-rose-50/60 p-1 rounded border border-rose-200">
+                      <span className="block font-bold text-rose-900 text-[8px] mb-0.5">
+                        Pontos Negativos & Riscos de Conformidade:
+                      </span>
+                      <ul className="space-y-0.5 list-disc list-inside text-slate-800">
+                        {marco.pontosNegativos?.map((n, nI) => (
+                          <li key={nI} className="leading-tight">
+                            <strong>{n.titulo}</strong> ({n.dispositivoLegal}): {n.descricao}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Subseção: Evolução Recente da Legislação (Agente Atualizador) */}
+          {data.evolucaoLegislativaRecente && data.evolucaoLegislativaRecente.length > 0 && (
+            <div className="mt-3 pt-2 border-t border-slate-300 space-y-1.5">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-900">
+                  Evolução Recente da Legislação — Agente Atualizador Contínuo ADECONT
+                </span>
+                <span className="text-[8px] text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-300">
+                  Rotina semanal ativa (segundas-feiras) · Monitoramento RFB / CGIBS / DOU
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-1.5">
+                {data.evolucaoLegislativaRecente.slice(0, 6).map((item) => {
+                  const isInc = item.tipo === 'inclusao'
+                  const isAlt = item.tipo === 'alteracao'
+                  const badgeClass = isInc
+                    ? 'bg-emerald-100 text-emerald-900 border-emerald-300'
+                    : isAlt
+                      ? 'bg-amber-100 text-amber-900 border-amber-300'
+                      : 'bg-rose-100 text-rose-900 border-rose-300'
+
+                  return (
+                    <div
+                      key={item.id}
+                      className="p-1 rounded border border-slate-200 bg-white text-[8px] space-y-0.5"
+                    >
+                      <div className="flex items-center justify-between gap-1">
+                        <span
+                          className={`text-[7px] uppercase font-bold px-1 py-0.2 rounded border ${badgeClass}`}
+                        >
+                          {item.tipoRotulo}
+                        </span>
+                        <span className="font-mono font-bold text-slate-900 text-[8px]">
+                          {item.codigoNorma}
+                        </span>
+                        <span className="text-[7.5px] text-slate-500 font-mono">
+                          {item.dataRevisao
+                            ? new Date(item.dataRevisao).toLocaleDateString('pt-BR')
+                            : 'Recente'}
+                        </span>
+                      </div>
+                      <p className="font-semibold text-slate-800 text-[8px] leading-tight truncate">
+                        {item.tituloNorma}
+                      </p>
+                      <p className="text-slate-600 text-[7.5px] leading-tight line-clamp-2">
+                        {item.resumo}
+                      </p>
+                      <div className="flex items-center justify-between text-[7px] text-slate-500 pt-0.5 border-t border-slate-100">
+                        <span>Fonte: {item.orgaoFonte}</span>
+                        {item.anoAfetado && (
+                          <span className="font-mono font-semibold text-slate-700">
+                            Impacto: {item.anoAfetado}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* TABELA COMPARATIVA DE 4 REGIMES */}
