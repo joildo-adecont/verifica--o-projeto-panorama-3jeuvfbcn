@@ -81,7 +81,9 @@ export function ParametrizadorLote() {
   const [ocupado, setOcupado] = useState(false)
 
   // lote
+  const LIMITE_ARQUIVOS_LOTE = 1000
   const [arquivos, setArquivos] = useState<{ nome: string; xml: string }[]>([])
+  const [avisoLimite, setAvisoLimite] = useState<string | null>(null)
   const [resultadoLote, setResultadoLote] = useState<any>(null)
   const inputRef = useRef<HTMLInputElement | null>(null)
 
@@ -166,11 +168,33 @@ export function ParametrizadorLote() {
   /** Lê vários arquivos de uma vez no navegador. */
   const escolherArquivos = (lista: FileList | null) => {
     if (!lista || !lista.length) return
+    setAvisoLimite(null)
+
+    // Filtra apenas arquivos XML
+    const xmlFiles: File[] = []
+    for (let i = 0; i < lista.length; i++) {
+      const f = lista[i]
+      if (f.name.toLowerCase().endsWith('.xml')) {
+        xmlFiles.push(f)
+      }
+    }
+
+    if (xmlFiles.length === 0) return
+
+    let arquivosParaLer = xmlFiles
+    if (xmlFiles.length > LIMITE_ARQUIVOS_LOTE) {
+      arquivosParaLer = xmlFiles.slice(0, LIMITE_ARQUIVOS_LOTE)
+      const excedente = xmlFiles.length - LIMITE_ARQUIVOS_LOTE
+      setAvisoLimite(
+        `Limite de 1.000 arquivos por lote excedido. Foram carregados os primeiros 1.000 arquivos; ${excedente} arquivo(s) foram ignorados. Divida o período em lotes menores se necessário.`,
+      )
+    }
+
     const arr: { nome: string; xml: string }[] = []
     let lidos = 0
-    const total = lista.length
+    const total = arquivosParaLer.length
     for (let i = 0; i < total; i++) {
-      const f = lista[i]
+      const f = arquivosParaLer[i]
       const leitor = new FileReader()
       leitor.onload = () => {
         arr.push({ nome: f.name, xml: String(leitor.result || '') })
@@ -184,7 +208,10 @@ export function ParametrizadorLote() {
       }
       leitor.onerror = () => {
         lidos++
-        if (lidos === total) setArquivos(arr)
+        if (lidos === total) {
+          arr.sort((a, b) => a.nome.localeCompare(b.nome))
+          setArquivos(arr)
+        }
       }
       leitor.readAsText(f)
     }
@@ -439,9 +466,21 @@ export function ParametrizadorLote() {
               {arquivos.length > 0 && (
                 <span className="text-[10.5px] font-bold text-slate-700">
                   {arquivos.length} arquivo(s) na fila
+                  {arquivos.length >= LIMITE_ARQUIVOS_LOTE && (
+                    <span className="ml-1 text-[9.5px] text-amber-800">
+                      (limite de 1.000 atingido)
+                    </span>
+                  )}
                 </span>
               )}
             </div>
+
+            {avisoLimite && (
+              <p className="mt-2 flex items-start gap-1.5 rounded-lg border border-amber-300 bg-amber-50 p-2 text-[10.5px] text-amber-900">
+                <Info className="mt-0.5 w-3.5 h-3.5 shrink-0 text-amber-700" />
+                {avisoLimite}
+              </p>
+            )}
 
             <label className="mt-2 block max-w-[420px]">
               <span className="text-[10px] font-bold text-slate-600">
