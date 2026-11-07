@@ -41,6 +41,15 @@ import {
   type RegimeTributarioTipo,
   EVENTO_REGIME_TRIBUTARIO_ALTERADO,
 } from '@/types/cadastroEmpresas'
+import {
+  registrarAlteracaoRegime,
+  listarHistoricoPorEmpresa,
+  obterBadgeRegime,
+  obterBadgeOrigem,
+  formatarDataHoraAuditoria,
+} from '@/services/regimeHistoricoService'
+import type { RegimeHistoricoItem } from '@/types/regimeHistorico'
+import { History } from 'lucide-react'
 
 export { OPCOES_REGIME_TRIBUTARIO, type RegimeTributarioTipo }
 
@@ -77,16 +86,40 @@ export default function CadastroClientes() {
   const [feedbackFicha, setFeedbackFicha] = useState<{ tipo: 'ok' | 'erro'; texto: string } | null>(
     null,
   )
+  const [historicoRegimeFicha, setHistoricoRegimeFicha] = useState<RegimeHistoricoItem[]>([])
+  const [carregandoHistoricoFicha, setCarregandoHistoricoFicha] = useState<boolean>(false)
+
+  // Carrega histórico de auditoria da empresa selecionada
+  const carregarHistoricoFicha = useCallback(async (emp: EmpresaRecord) => {
+    setCarregandoHistoricoFicha(true)
+    try {
+      const lista = await listarHistoricoPorEmpresa({
+        empresaId: emp.id,
+        empresaCodigo: emp.codigo,
+        empresaCnpj: emp.cpf_cnpj || emp.documento_limpo,
+      })
+      setHistoricoRegimeFicha(lista)
+    } catch (e) {
+      console.warn('Falha ao carregar histórico de regime:', e)
+      setHistoricoRegimeFicha([])
+    } finally {
+      setCarregandoHistoricoFicha(false)
+    }
+  }, [])
 
   // Ao abrir o modal da ficha do cliente, sincroniza
   const abrirFichaCliente = (emp: EmpresaRecord) => {
     setModalEmpresa(emp)
     setFeedbackFicha(null)
+    carregarHistoricoFicha(emp)
   }
 
   // Alteração inline na tabela ou através do seletor da Ficha Cadastral (onChange com auto-save)
   const handleAlterarRegimeInline = async (emp: EmpresaRecord, novoRegime: string) => {
     const cod = emp.codigo
+    const regimeAnterior = emp.regime_tributario || ''
+    if (regimeAnterior.trim() === (novoRegime || '').trim()) return
+
     setSalvandoInlineCodigo(cod)
     setStatusInline((prev) => ({ ...prev, [cod]: { tipo: 'ok', texto: 'Salvando…' } }))
 
@@ -113,6 +146,17 @@ export default function CadastroClientes() {
           ...prev,
           [cod]: { tipo: 'ok', texto: novoRegime ? 'Regime atualizado!' : 'Regime removido' },
         }))
+
+        // Grava na trilha de auditoria
+        registrarAlteracaoRegime({
+          empresa_id: emp.id,
+          empresa_codigo: emp.codigo,
+          empresa_nome: emp.razao_social || emp.apelido || `Cliente #${emp.codigo}`,
+          empresa_cnpj: emp.cpf_cnpj || emp.documento_limpo,
+          regime_anterior: regimeAnterior,
+          regime_novo: novoRegime,
+          origem: 'listagem',
+        }).catch((err) => console.warn('Erro ao registrar auditoria de regime inline:', err))
 
         // Notifica outros componentes abertos (ex: banner do Diagnóstico Tributário)
         if (typeof window !== 'undefined') {
@@ -155,6 +199,9 @@ export default function CadastroClientes() {
   // Alteração integrada na Ficha Cadastral (onChange auto-save sem botão secundário separado)
   const handleAlterarRegimeFicha = async (novoRegime: string) => {
     if (!modalEmpresa) return
+    const regimeAnterior = modalEmpresa.regime_tributario || ''
+    if (regimeAnterior.trim() === (novoRegime || '').trim()) return
+
     setSalvandoFichaRegime(true)
     setFeedbackFicha(null)
 
@@ -179,6 +226,21 @@ export default function CadastroClientes() {
           tipo: 'ok',
           texto: 'Regime tributário atualizado e gravado na Ficha Cadastral!',
         })
+
+        // Grava na trilha de auditoria
+        await registrarAlteracaoRegime({
+          empresa_id: modalEmpresa.id,
+          empresa_codigo: modalEmpresa.codigo,
+          empresa_nome:
+            modalEmpresa.razao_social || modalEmpresa.apelido || `Cliente #${modalEmpresa.codigo}`,
+          empresa_cnpj: modalEmpresa.cpf_cnpj || modalEmpresa.documento_limpo,
+          regime_anterior: regimeAnterior,
+          regime_novo: novoRegime,
+          origem: 'ficha_cadastral',
+        })
+
+        // Recarrega histórico na ficha
+        carregarHistoricoFicha(modalEmpresa)
 
         if (typeof window !== 'undefined') {
           window.dispatchEvent(
@@ -1032,6 +1094,96 @@ export default function CadastroClientes() {
                       <AlertCircle className="w-3.5 h-3.5 text-rose-600 shrink-0" />
                     )}
                     <span>{feedbackFicha.texto}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Histórico de Alterações de Regime (Trilha de Auditoria ADECONT) */}
+              <div className="p-4 bg-white border border-slate-200 rounded-xl space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                  <div className="flex items-center gap-1.5">
+                    <History className="w-4 h-4 text-[#D4AF37]" />
+                    <span className="text-[11px] font-bold text-[#0F294A] uppercase tracking-wider">
+                      Histórico de Regime (Trilha de Auditoria)
+                    </span>
+                  </div>
+                  <span className="text-[10px] text-slate-400 font-mono">
+                    {historicoRegimeFicha.length === 1
+                      ? '1 alteração'
+                      : `${historicoRegimeFicha.length} alterações`}
+                  </span>
+                </div>
+
+                {carregandoHistoricoFicha ? (
+                  <div className="py-4 flex items-center justify-center gap-2 text-xs text-slate-500">
+                    <Loader2 className="w-4 h-4 animate-spin text-[#D4AF37]" />
+                    <span>Carregando histórico de auditoria…</span>
+                  </div>
+                ) : historicoRegimeFicha.length === 0 ? (
+                  <div className="py-3 px-3.5 bg-slate-50 border border-dashed border-slate-200 rounded-lg text-center text-slate-500 text-[11px]">
+                    Nenhuma alteração de regime registrada para este cliente. Quando o regime for
+                    alterado, a data, o regime anterior, o novo e a origem serão gravados aqui.
+                  </div>
+                ) : (
+                  <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                    {historicoRegimeFicha.map((item, idx) => {
+                      const badgeNovo = obterBadgeRegime(item.regime_novo)
+                      const badgeAnterior = obterBadgeRegime(item.regime_anterior)
+                      const badgeOrig = obterBadgeOrigem(item.origem)
+                      return (
+                        <div
+                          key={item.id || idx}
+                          className="p-2.5 bg-slate-50/80 hover:bg-slate-100/80 border border-slate-200/80 rounded-lg text-xs transition-colors"
+                        >
+                          <div className="flex flex-wrap items-center justify-between gap-1.5 mb-1.5">
+                            <span className="text-[10px] font-mono text-slate-500 font-semibold">
+                              {formatarDataHoraAuditoria(item.created)}
+                            </span>
+                            <span
+                              className={`text-[9px] font-bold px-1.5 py-0.5 rounded border uppercase tracking-wider ${badgeOrig.bg} ${badgeOrig.text} ${badgeOrig.border}`}
+                            >
+                              {badgeOrig.label}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <div className="flex items-center gap-1">
+                              <span className="text-[10px] text-slate-400">De:</span>
+                              {item.regime_anterior ? (
+                                <span
+                                  className={`text-[10px] font-semibold px-1.5 py-0.5 rounded border ${badgeAnterior.bg} ${badgeAnterior.text} ${badgeAnterior.border}`}
+                                >
+                                  {item.regime_anterior}
+                                </span>
+                              ) : (
+                                <span className="text-[10px] text-slate-400 italic">
+                                  Não informado
+                                </span>
+                              )}
+                            </div>
+                            <span className="text-slate-400 font-bold">→</span>
+                            <div className="flex items-center gap-1">
+                              <span className="text-[10px] text-slate-400">Para:</span>
+                              {item.regime_novo ? (
+                                <span
+                                  className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${badgeNovo.bg} ${badgeNovo.text} ${badgeNovo.border}`}
+                                >
+                                  {item.regime_novo}
+                                </span>
+                              ) : (
+                                <span className="text-[10px] text-slate-400 italic">
+                                  Não informado
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          {item.usuario_nome && (
+                            <div className="mt-1 text-[10px] text-slate-400">
+                              Operador: <span className="text-slate-600">{item.usuario_nome}</span>
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
                   </div>
                 )}
               </div>

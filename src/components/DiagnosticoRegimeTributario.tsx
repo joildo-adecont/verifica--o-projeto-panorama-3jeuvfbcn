@@ -15,6 +15,13 @@ import {
   EVENTO_REGIME_TRIBUTARIO_ALTERADO,
 } from '@/types/cadastroEmpresas'
 import {
+  registrarAlteracaoRegime,
+  obterUltimaAlteracaoPorEmpresa,
+  listarHistoricoPorEmpresa,
+  formatarDataHoraAuditoria,
+} from '@/services/regimeHistoricoService'
+import type { RegimeHistoricoItem } from '@/types/regimeHistorico'
+import {
   Building2,
   TrendingUp,
   Scale,
@@ -67,6 +74,32 @@ export const DiagnosticoRegimeTributario: React.FC = () => {
   const [salvandoRegimeRapido, setSalvandoRegimeRapido] = useState<boolean>(false)
   const [feedbackRegimeRapido, setFeedbackRegimeRapido] = useState<string | null>(null)
 
+  // Trilha de auditoria da empresa
+  const [ultimaAlteracaoRegime, setUltimaAlteracaoRegime] = useState<RegimeHistoricoItem | null>(
+    null,
+  )
+  const [historicoRegimeLista, setHistoricoRegimeLista] = useState<RegimeHistoricoItem[]>([])
+
+  const carregarHistoricoAuditoria = async () => {
+    try {
+      const [ultima, lista] = await Promise.all([
+        obterUltimaAlteracaoPorEmpresa({
+          empresaCodigo: 1,
+          empresaCnpj: '92.353.630/0001-68',
+        }),
+        listarHistoricoPorEmpresa({
+          empresaCodigo: 1,
+          empresaCnpj: '92.353.630/0001-68',
+          limite: 10,
+        }),
+      ])
+      setUltimaAlteracaoRegime(ultima)
+      setHistoricoRegimeLista(lista)
+    } catch (e) {
+      console.warn('Falha ao carregar auditoria de regime no diagnóstico:', e)
+    }
+  }
+
   const carregar = async () => {
     setCarregando(true)
     setErro(null)
@@ -108,6 +141,20 @@ export const DiagnosticoRegimeTributario: React.FC = () => {
         setMensagemSalvo('Dados salvos no cadastro da Pastore com sucesso!')
         setModoEdicao(false)
 
+        // Grava na trilha de auditoria se houve mudança efetiva de regime
+        const regimeAnterior = data?.regimeTributarioAtual || ''
+        if (regimeAnterior.trim() && regimeAnterior.trim() !== editRegimeTributario.trim()) {
+          registrarAlteracaoRegime({
+            empresa_id: data?.empresa?.id,
+            empresa_codigo: data?.empresa?.codigo || 1,
+            empresa_nome: data?.empresa?.razao_social || 'AUTO MECANICA IRMAOS PASTORE LTDA',
+            empresa_cnpj: data?.empresa?.numero_documento || '92.353.630/0001-68',
+            regime_anterior: regimeAnterior,
+            regime_novo: editRegimeTributario,
+            origem: 'ficha_cadastral',
+          }).then(() => carregarHistoricoAuditoria())
+        }
+
         // Recalcular estado em memória imediatamente
         if (data) {
           const cnaesParsed = parseCnaesSecundarios(editCnaesSecundarios)
@@ -133,6 +180,7 @@ export const DiagnosticoRegimeTributario: React.FC = () => {
             regimeRecomendadoTecnico: 'Simples Nacional',
             tabelaValoresPercentuais: data.tabelaValoresPercentuais,
             margemRetidaLiquidaPct: data.margemRetidaLiquidaPct,
+            dataEntradaRegimeAtual: new Date().toLocaleDateString('pt-BR'),
           })
 
           setData({
@@ -170,8 +218,13 @@ export const DiagnosticoRegimeTributario: React.FC = () => {
   // Alteração rápida de regime diretamente pelo banner de divergência/conformidade
   const handleAlterarRegimeRapido = async (novoRegime: string) => {
     if (!data) return
+    const regimeAnterior = data.regimeTributarioAtual || ''
+    if (regimeAnterior.trim() === (novoRegime || '').trim()) return
+
     setSalvandoRegimeRapido(true)
     setFeedbackRegimeRapido(null)
+
+    const dataHoje = new Date().toLocaleDateString('pt-BR')
 
     // Recalcular alerta de divergência imediatamente em memória
     const novoAlerta = avaliarDivergenciaRegime({
@@ -180,6 +233,7 @@ export const DiagnosticoRegimeTributario: React.FC = () => {
       regimeRecomendadoTecnico: 'Simples Nacional',
       tabelaValoresPercentuais: data.tabelaValoresPercentuais,
       margemRetidaLiquidaPct: data.margemRetidaLiquidaPct,
+      dataEntradaRegimeAtual: dataHoje,
     })
 
     // Atualiza estado de diagnóstico imediatamente (tempo real)
@@ -203,6 +257,21 @@ export const DiagnosticoRegimeTributario: React.FC = () => {
 
       if (resp.sucesso) {
         setFeedbackRegimeRapido('Regime gravado no cadastro!')
+
+        // Grava na trilha de auditoria
+        await registrarAlteracaoRegime({
+          empresa_id: data.empresa?.id,
+          empresa_codigo: data.empresa?.codigo || 1,
+          empresa_nome: data.empresa?.razao_social || 'AUTO MECANICA IRMAOS PASTORE LTDA',
+          empresa_cnpj: data.empresa?.numero_documento || '92.353.630/0001-68',
+          regime_anterior: regimeAnterior,
+          regime_novo: novoRegime,
+          origem: 'banner_diagnostico',
+        })
+
+        // Recarrega trilha no diagnóstico
+        carregarHistoricoAuditoria()
+
         // Notifica outros módulos abertos (ex: listagem de Cadastro de Clientes)
         if (typeof window !== 'undefined') {
           window.dispatchEvent(
@@ -269,6 +338,7 @@ export const DiagnosticoRegimeTributario: React.FC = () => {
 
   useEffect(() => {
     carregar()
+    carregarHistoricoAuditoria()
   }, [])
 
   const brl = (v: number | null | undefined) =>
@@ -334,7 +404,10 @@ export const DiagnosticoRegimeTributario: React.FC = () => {
       {/* Visualização de Impressão A4 Modal */}
       {mostrarImprimivel && (
         <RelatorioDiagnosticoPastoreImprimivel
-          data={data}
+          data={{
+            ...data,
+            historicoRegime: historicoRegimeLista,
+          }}
           onClose={() => setMostrarImprimivel(false)}
         />
       )}
@@ -634,6 +707,33 @@ export const DiagnosticoRegimeTributario: React.FC = () => {
                   <span className="font-bold text-white">Fundamentação Técnica ADECONT: </span>
                   {data.alertaDivergencia.justificativaTecnica}
                 </p>
+
+                {/* Resumo da Última Alteração de Regime (Trilha de Auditoria) */}
+                {ultimaAlteracaoRegime && (
+                  <div className="mt-2 pt-2 border-t border-white/10 flex flex-wrap items-center gap-2 text-[11px] text-slate-300">
+                    <span className="font-bold text-amber-300 flex items-center gap-1">
+                      <span>Última alteração de regime:</span>
+                    </span>
+                    <span className="font-mono bg-slate-950/70 px-2 py-0.5 rounded border border-white/10 text-white">
+                      {formatarDataHoraAuditoria(ultimaAlteracaoRegime.created)}
+                    </span>
+                    <span className="text-slate-400">
+                      ({ultimaAlteracaoRegime.regime_anterior || 'Não informado'} →{' '}
+                      <span className="text-emerald-300 font-semibold">
+                        {ultimaAlteracaoRegime.regime_novo}
+                      </span>
+                      )
+                    </span>
+                    <span className="text-[10px] text-slate-400 bg-slate-800/80 px-1.5 py-0.5 rounded">
+                      Origem:{' '}
+                      {ultimaAlteracaoRegime.origem === 'listagem'
+                        ? 'Listagem de Clientes'
+                        : ultimaAlteracaoRegime.origem === 'ficha_cadastral'
+                          ? 'Ficha Cadastral'
+                          : 'Banner do Diagnóstico'}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
 

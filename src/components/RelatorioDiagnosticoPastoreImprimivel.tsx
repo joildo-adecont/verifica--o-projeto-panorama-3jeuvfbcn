@@ -1,10 +1,14 @@
 import React from 'react'
 import { AdecontLogo } from './AdecontLogo'
 import type { DiagnosticoClienteData } from '@/services/diagnosticoPastore'
-import { Printer, X } from 'lucide-react'
+import type { RegimeHistoricoItem } from '@/types/regimeHistorico'
+import { formatarDataHoraAuditoria } from '@/services/regimeHistoricoService'
+import { Printer, X, History } from 'lucide-react'
 
 interface RelatorioDiagnosticoPastoreImprimivelProps {
-  data: DiagnosticoClienteData
+  data: DiagnosticoClienteData & {
+    historicoRegime?: RegimeHistoricoItem[]
+  }
   onClose: () => void
 }
 
@@ -1066,6 +1070,66 @@ export const RelatorioDiagnosticoPastoreImprimivel: React.FC<
               ))}
             </tbody>
           </table>
+        </div>
+
+        {/* Trilha de Auditoria de Mudanças de Regime Tributário */}
+        <div className="bg-slate-50 border border-slate-300 rounded p-3 mb-4 break-inside-avoid">
+          <div className="flex items-center justify-between pb-1.5 mb-2 border-b border-slate-200">
+            <h3 className="text-xs font-black text-slate-900 uppercase tracking-tight flex items-center gap-1.5">
+              <History className="w-3.5 h-3.5 text-amber-700" />
+              <span>Trilha de Auditoria · Histórico de Regimes Tributários</span>
+            </h3>
+            <span className="text-[9px] font-mono text-slate-500">
+              {data.historicoRegime && data.historicoRegime.length > 0
+                ? `${data.historicoRegime.length} registro(s)`
+                : 'Sem alterações registradas'}
+            </span>
+          </div>
+
+          {data.historicoRegime && data.historicoRegime.length > 0 ? (
+            <table className="w-full text-left border-collapse text-[10px]">
+              <thead>
+                <tr className="bg-slate-200/80 text-slate-700 uppercase font-black text-[9px]">
+                  <th className="border border-slate-300 px-2 py-1">Data / Hora</th>
+                  <th className="border border-slate-300 px-2 py-1">Regime Anterior</th>
+                  <th className="border border-slate-300 px-2 py-1">Novo Regime</th>
+                  <th className="border border-slate-300 px-2 py-1">Origem da Alteração</th>
+                  <th className="border border-slate-300 px-2 py-1">Usuário / Sistema</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200">
+                {data.historicoRegime.slice(0, 8).map((hist, idx) => (
+                  <tr key={hist.id || idx} className="hover:bg-white">
+                    <td className="border border-slate-300 px-2 py-1 font-mono text-slate-900 font-semibold whitespace-nowrap">
+                      {formatarDataHoraAuditoria(hist.created)}
+                    </td>
+                    <td className="border border-slate-300 px-2 py-1 text-slate-600">
+                      {hist.regime_anterior || 'Não informado'}
+                    </td>
+                    <td className="border border-slate-300 px-2 py-1 font-bold text-slate-950 bg-amber-50/50">
+                      {hist.regime_novo}
+                    </td>
+                    <td className="border border-slate-300 px-2 py-1 text-slate-700">
+                      {hist.origem === 'listagem'
+                        ? 'Listagem de Clientes (Inline)'
+                        : hist.origem === 'ficha_cadastral'
+                          ? 'Ficha Cadastral (Formulário)'
+                          : 'Banner Diagnóstico (Rápido)'}
+                    </td>
+                    <td className="border border-slate-300 px-2 py-1 text-slate-500 font-mono text-[9px]">
+                      {hist.usuario_nome || 'Sistema ADECONT'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <p className="text-[10px] text-slate-600 italic py-1">
+              Nenhuma alteração de regime tributário registrada no histórico deste cliente. O regime
+              atual <strong>{data.regimeTributarioAtual || 'Simples Nacional'}</strong> reflete o
+              enquadramento cadastrado na base ADECONT.
+            </p>
+          )}
         </div>
 
         {/* Parecer Técnico e Recomendação Final */}

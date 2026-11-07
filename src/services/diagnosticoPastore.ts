@@ -378,6 +378,8 @@ export interface AlertaDivergenciaRegime {
   receitaAnualizada: number
   estourouTetoSimples: boolean
   ultrapassouSublimiteHibrido: boolean
+  dataEntradaRegimeAtual?: string
+  contextoTemporalAuditoria?: string
 }
 
 export interface DiagnosticoClienteData {
@@ -536,6 +538,7 @@ export function avaliarDivergenciaRegime(params: {
   regimeRecomendadoTecnico?: string
   tabelaValoresPercentuais?: ItemComparativoValoresPercentuais[]
   margemRetidaLiquidaPct?: number
+  dataEntradaRegimeAtual?: string
 }): AlertaDivergenciaRegime {
   const {
     regimeCadastrado: rawCadastrado,
@@ -543,6 +546,7 @@ export function avaliarDivergenciaRegime(params: {
     regimeRecomendadoTecnico = 'Simples Nacional',
     tabelaValoresPercentuais = [],
     margemRetidaLiquidaPct = 4.36,
+    dataEntradaRegimeAtual,
   } = params
 
   const regimeCadNorm = normalizarNomeRegime(rawCadastrado)
@@ -572,22 +576,25 @@ export function avaliarDivergenciaRegime(params: {
     regimeCadNorm === 'não informado' ||
     regimeCadNorm === ''
   ) {
-    return {
-      tipo: 'neutro',
-      divergente: true,
-      titulo: 'Regime Tributário Não Informado na Ficha Cadastral',
-      mensagem:
-        'A empresa não possui regime tributário formalmente definido no cadastro (cadastro_empresas). A recomendação técnica apurada para a receita atual é ' +
-        recTecnica +
-        '.',
-      justificativaTecnica:
-        'Recomenda-se preencher o campo Regime Tributário na Ficha do Cliente para habilitar o monitoramento e conformidade automatizada contínua da ADECONT.',
-      regimeCadastrado: 'Não informado',
-      regimeRecomendado: recTecnica,
-      receitaAnualizada,
-      estourouTetoSimples,
-      ultrapassouSublimiteHibrido,
-    }
+    return anexarContextoTemporalAuditoria(
+      {
+        tipo: 'neutro',
+        divergente: true,
+        titulo: 'Regime Tributário Não Informado na Ficha Cadastral',
+        mensagem:
+          'A empresa não possui regime tributário formalmente definido no cadastro (cadastro_empresas). A recomendação técnica apurada para a receita atual é ' +
+          recTecnica +
+          '.',
+        justificativaTecnica:
+          'Recomenda-se preencher o campo Regime Tributário na Ficha do Cliente para habilitar o monitoramento e conformidade automatizada contínua da ADECONT.',
+        regimeCadastrado: 'Não informado',
+        regimeRecomendado: recTecnica,
+        receitaAnualizada,
+        estourouTetoSimples,
+        ultrapassouSublimiteHibrido,
+      },
+      dataEntradaRegimeAtual,
+    )
   }
 
   // Se o cadastro diz Simples Nacional ou Simples Híbrido, mas estourou o teto de R$ 4,8 mi
@@ -600,18 +607,21 @@ export function avaliarDivergenciaRegime(params: {
       style: 'currency',
       currency: 'BRL',
     })
-    return {
-      tipo: 'grave',
-      divergente: true,
-      titulo: 'Descumprimento de Teto Legal do Simples Nacional',
-      mensagem: `Divergência Crítica: regime cadastrado (${rawCadastrado}) é incompatível com a receita projetada (${recFormatada}), que ultrapassou o teto legal de R$ 4,8 milhões (LC 123/2006).`,
-      justificativaTecnica: `Com receita anualizada em ${recFormatada}, a empresa ultrapassa o limite federal de R$ 4.800.000,00, gerando obrigatoriedade legal de desenquadramento e transição imediata para o Regime Regular / Lucro Real para evitar autuações fiscais e cobrança retroativa com penalidades.`,
-      regimeCadastrado: rawCadastrado,
-      regimeRecomendado: recDestino,
-      receitaAnualizada,
-      estourouTetoSimples: true,
-      ultrapassouSublimiteHibrido: false,
-    }
+    return anexarContextoTemporalAuditoria(
+      {
+        tipo: 'grave',
+        divergente: true,
+        titulo: 'Descumprimento de Teto Legal do Simples Nacional',
+        mensagem: `Divergência Crítica: regime cadastrado (${rawCadastrado}) é incompatível com a receita projetada (${recFormatada}), que ultrapassou o teto legal de R$ 4,8 milhões (LC 123/2006).`,
+        justificativaTecnica: `Com receita anualizada em ${recFormatada}, a empresa ultrapassa o limite federal de R$ 4.800.000,00, gerando obrigatoriedade legal de desenquadramento e transição imediata para o Regime Regular / Lucro Real para evitar autuações fiscais e cobrança retroativa com penalidades.`,
+        regimeCadastrado: rawCadastrado,
+        regimeRecomendado: recDestino,
+        receitaAnualizada,
+        estourouTetoSimples: true,
+        ultrapassouSublimiteHibrido: false,
+      },
+      dataEntradaRegimeAtual,
+    )
   }
 
   // Se o cadastro diz Simples Nacional mas ultrapassou o sublimite de R$ 3,6 mi
@@ -620,18 +630,21 @@ export function avaliarDivergenciaRegime(params: {
       style: 'currency',
       currency: 'BRL',
     })
-    return {
-      tipo: 'atencao',
-      divergente: true,
-      titulo: 'Sublimite do Simples Ultrapassado — Modelo Híbrido Acionável',
-      mensagem: `Divergência Cadastral: regime cadastrado é Simples Nacional puro, mas a receita projetada (${recFormatada}) superou o sublimite de R$ 3,6 mi, acionando o Simples Híbrido da LC 214/2025.`,
-      justificativaTecnica: `A receita entre R$ 3,6 mi e R$ 4,8 mi aciona a regra híbrida da Reforma Tributária: o ICMS/ISS é recolhido no regime regular com direito a créditos de autopeças sobre a parcela excedente, preservando os tributos federais e CPP no DAS.`,
-      regimeCadastrado: rawCadastrado,
-      regimeRecomendado: 'Simples Híbrido',
-      receitaAnualizada,
-      estourouTetoSimples: false,
-      ultrapassouSublimiteHibrido: true,
-    }
+    return anexarContextoTemporalAuditoria(
+      {
+        tipo: 'atencao',
+        divergente: true,
+        titulo: 'Sublimite do Simples Ultrapassado — Modelo Híbrido Acionável',
+        mensagem: `Divergência Cadastral: regime cadastrado é Simples Nacional puro, mas a receita projetada (${recFormatada}) superou o sublimite de R$ 3,6 mi, acionando o Simples Híbrido da LC 214/2025.`,
+        justificativaTecnica: `A receita entre R$ 3,6 mi e R$ 4,8 mi aciona a regra híbrida da Reforma Tributária: o ICMS/ISS é recolhido no regime regular com direito a créditos de autopeças sobre a parcela excedente, preservando os tributos federais e CPP no DAS.`,
+        regimeCadastrado: rawCadastrado,
+        regimeRecomendado: 'Simples Híbrido',
+        receitaAnualizada,
+        estourouTetoSimples: false,
+        ultrapassouSublimiteHibrido: true,
+      },
+      dataEntradaRegimeAtual,
+    )
   }
 
   // Comparar custos da tabela de regimes para apurar economia estimada se cadastrado != recomendado
@@ -653,18 +666,21 @@ export function avaliarDivergenciaRegime(params: {
         style: 'currency',
         currency: 'BRL',
       })
-      return {
-        tipo: 'conformidade',
-        divergente: false,
-        titulo: 'Regime Simples Híbrido em Conformidade com a Faixa de Receita',
-        mensagem: `Conformidade Plena: regime cadastrado (${rawCadastrado}) é exatamente o modelo tributário recomendado pela LC 214/2025 para a receita projetada de ${recFormatada} (faixa entre R$ 3,6 mi e R$ 4,8 mi).`,
-        justificativaTecnica: `Na faixa de faturamento entre R$ 3,6 mi e R$ 4,8 mi, o Simples Híbrido entra em vigor com apuração de ICMS e ISS no regime regular (com creditamento integral sobre autopeças adquiridas) e recolhimento dos tributos federais e CPP unificados no DAS.`,
-        regimeCadastrado: rawCadastrado,
-        regimeRecomendado: 'Simples Híbrido',
-        receitaAnualizada,
-        estourouTetoSimples: false,
-        ultrapassouSublimiteHibrido: true,
-      }
+      return anexarContextoTemporalAuditoria(
+        {
+          tipo: 'conformidade',
+          divergente: false,
+          titulo: 'Regime Simples Híbrido em Conformidade com a Faixa de Receita',
+          mensagem: `Conformidade Plena: regime cadastrado (${rawCadastrado}) é exatamente o modelo tributário recomendado pela LC 214/2025 para a receita projetada de ${recFormatada} (faixa entre R$ 3,6 mi e R$ 4,8 mi).`,
+          justificativaTecnica: `Na faixa de faturamento entre R$ 3,6 mi e R$ 4,8 mi, o Simples Híbrido entra em vigor com apuração de ICMS e ISS no regime regular (com creditamento integral sobre autopeças adquiridas) e recolhimento dos tributos federais e CPP unificados no DAS.`,
+          regimeCadastrado: rawCadastrado,
+          regimeRecomendado: 'Simples Híbrido',
+          receitaAnualizada,
+          estourouTetoSimples: false,
+          ultrapassouSublimiteHibrido: true,
+        },
+        dataEntradaRegimeAtual,
+      )
     }
 
     if (receitaAnualizada <= SUBLIMITE_SIMPLES) {
@@ -672,18 +688,21 @@ export function avaliarDivergenciaRegime(params: {
         style: 'currency',
         currency: 'BRL',
       })
-      return {
-        tipo: 'neutro',
-        divergente: true,
-        titulo: 'Simples Híbrido Cadastrado — Abaixo do Sublimite (Não Acionado)',
-        mensagem: `Aviso Informativo: a empresa está cadastrada em Simples Híbrido, porém a receita projetada (${recFormatada}) permanece abaixo do sublimite estadual de R$ 3,6 milhões, mantendo o modelo híbrido inativo.`,
-        justificativaTecnica: `Conforme a LC 214/2025 e LC 123/2006, o mecanismo de segregação híbrida (IBS/CBS e ICMS/ISS por fora do DAS) só é ativado quando o faturamento acumulado supera R$ 3.600.000,00. Na receita atual, a empresa opera operacionalmente como Simples Nacional integral.`,
-        regimeCadastrado: rawCadastrado,
-        regimeRecomendado: 'Simples Nacional',
-        receitaAnualizada,
-        estourouTetoSimples: false,
-        ultrapassouSublimiteHibrido: false,
-      }
+      return anexarContextoTemporalAuditoria(
+        {
+          tipo: 'neutro',
+          divergente: true,
+          titulo: 'Simples Híbrido Cadastrado — Abaixo do Sublimite (Não Acionado)',
+          mensagem: `Aviso Informativo: a empresa está cadastrada em Simples Híbrido, porém a receita projetada (${recFormatada}) permanece abaixo do sublimite estadual de R$ 3,6 milhões, mantendo o modelo híbrido inativo.`,
+          justificativaTecnica: `Conforme a LC 214/2025 e LC 123/2006, o mecanismo de segregação híbrida (IBS/CBS e ICMS/ISS por fora do DAS) só é ativado quando o faturamento acumulado supera R$ 3.600.000,00. Na receita atual, a empresa opera operacionalmente como Simples Nacional integral.`,
+          regimeCadastrado: rawCadastrado,
+          regimeRecomendado: 'Simples Nacional',
+          receitaAnualizada,
+          estourouTetoSimples: false,
+          ultrapassouSublimiteHibrido: false,
+        },
+        dataEntradaRegimeAtual,
+      )
     }
   }
 
@@ -695,18 +714,21 @@ export function avaliarDivergenciaRegime(params: {
       style: 'currency',
       currency: 'BRL',
     })
-    return {
-      tipo: 'neutro',
-      divergente: true,
-      titulo: 'Regime Regular IBS/CBS Cadastrado — Antecipação à Reforma Tributária',
-      mensagem: `Aviso de Antecipação: regime cadastrado (${rawCadastrado}) é o modelo definitivo da Reforma Tributária (LC 214/2025), cuja vigência plena inicia em 2027. Para o ano-teste de 2026, vigora alíquota-teste de 0,1% IBS e 0,9% CBS.`,
-      justificativaTecnica: `Para a receita atual de ${recFormatada} em ${anoVigente}, a empresa pode manter o Simples Nacional para desoneração de folha e simplicidade de apuração, ou planejar a migração estratégica para o Regime Regular na Janela Crítica 2027–2029 para repassar créditos plenos de IBS/CBS às frotas e pessoas jurídicas clientes.`,
-      regimeCadastrado: rawCadastrado,
-      regimeRecomendado: recTecnica,
-      receitaAnualizada,
-      estourouTetoSimples: false,
-      ultrapassouSublimiteHibrido,
-    }
+    return anexarContextoTemporalAuditoria(
+      {
+        tipo: 'neutro',
+        divergente: true,
+        titulo: 'Regime Regular IBS/CBS Cadastrado — Antecipação à Reforma Tributária',
+        mensagem: `Aviso de Antecipação: regime cadastrado (${rawCadastrado}) é o modelo definitivo da Reforma Tributária (LC 214/2025), cuja vigência plena inicia em 2027. Para o ano-teste de 2026, vigora alíquota-teste de 0,1% IBS e 0,9% CBS.`,
+        justificativaTecnica: `Para a receita atual de ${recFormatada} em ${anoVigente}, a empresa pode manter o Simples Nacional para desoneração de folha e simplicidade de apuração, ou planejar a migração estratégica para o Regime Regular na Janela Crítica 2027–2029 para repassar créditos plenos de IBS/CBS às frotas e pessoas jurídicas clientes.`,
+        regimeCadastrado: rawCadastrado,
+        regimeRecomendado: recTecnica,
+        receitaAnualizada,
+        estourouTetoSimples: false,
+        ultrapassouSublimiteHibrido,
+      },
+      dataEntradaRegimeAtual,
+    )
   }
 
   // Cenário 1: Se o cadastro é Lucro Presumido: alerta âmbar de sobretaxação com cálculo exato de economia
@@ -723,21 +745,24 @@ export function avaliarDivergenciaRegime(params: {
       currency: 'BRL',
     })
 
-    return {
-      tipo: 'atencao',
-      divergente: true,
-      titulo: 'Divergência Cadastral: Sobretaxação no Lucro Presumido',
-      mensagem: `Divergência detectada: regime cadastrado (${rawCadastrado}) difere da recomendação técnica (${recTecnica}), gerando sobrecusto anual estimado de ${economiaFmt}.`,
-      justificativaTecnica: `A Pastore apurou margem real líquida de ~${margemRetidaLiquidaPct.toFixed(1)}%. O Lucro Presumido presume margens fiscais de 8% em peças e 32% em serviços, acrescidas de CPP patronal integral de 28,8% sobre folha de pagamento sem dedutibilidade. A migração para ${recTecnica} proporciona economia de ~${difPp.toFixed(1)} p.p. na carga fiscal efetiva (economia de ${economiaFmt}/ano).`,
-      regimeCadastrado: rawCadastrado,
-      regimeRecomendado: recTecnica,
-      economiaEstimadaAnualBrl: economiaBrl,
-      economiaEstimadaAnualTexto: economiaFmt,
-      diferencaAliquotaPp: difPp,
-      receitaAnualizada,
-      estourouTetoSimples: false,
-      ultrapassouSublimiteHibrido: false,
-    }
+    return anexarContextoTemporalAuditoria(
+      {
+        tipo: 'atencao',
+        divergente: true,
+        titulo: 'Divergência Cadastral: Sobretaxação no Lucro Presumido',
+        mensagem: `Divergência detectada: regime cadastrado (${rawCadastrado}) difere da recomendação técnica (${recTecnica}), gerando sobrecusto anual estimado de ${economiaFmt}.`,
+        justificativaTecnica: `A Pastore apurou margem real líquida de ~${margemRetidaLiquidaPct.toFixed(1)}%. O Lucro Presumido presume margens fiscais de 8% em peças e 32% em serviços, acrescidas de CPP patronal integral de 28,8% sobre folha de pagamento sem dedutibilidade. A migração para ${recTecnica} proporciona economia de ~${difPp.toFixed(1)} p.p. na carga fiscal efetiva (economia de ${economiaFmt}/ano).`,
+        regimeCadastrado: rawCadastrado,
+        regimeRecomendado: recTecnica,
+        economiaEstimadaAnualBrl: economiaBrl,
+        economiaEstimadaAnualTexto: economiaFmt,
+        diferencaAliquotaPp: difPp,
+        receitaAnualizada,
+        estourouTetoSimples: false,
+        ultrapassouSublimiteHibrido: false,
+      },
+      dataEntradaRegimeAtual,
+    )
   }
 
   // Cenário 2: Se o cadastro é Lucro Real com receita dentro do teto do Simples:
@@ -753,34 +778,40 @@ export function avaliarDivergenciaRegime(params: {
 
     // Se a receita está dentro do teto do Simples Nacional (R$ 4,8 mi)
     if (!estourouTetoSimples) {
-      return {
-        tipo: 'neutro',
-        divergente: true,
-        titulo: 'Lucro Real Cadastrado — Alto Custo de Conformidade para o Porte',
-        mensagem: `Aviso Informativo: empresa cadastrada em Lucro Real enquanto a receita projetada (${receitaAnualizada.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}) está dentro do teto do Simples Nacional (${recTecnica}). Diferença de custo tributário estimada em ${diferencaFmt}/ano.`,
-        justificativaTecnica: `O Lucro Real é tecnicamente válido e permite dedução da folha no IRPJ/CSLL, porém exige alto custo de conformidade acessória (ECD, ECF, LALUR, DCTFWeb) e recolhimento patronal de INSS (28,8%). Para a receita anual de ~R$ 2,85 mi, o Simples Nacional oferece menor complexidade operacional imediata, mantendo o Lucro Real como opção estratégica preferencial a partir de 2027 com IBS/CBS.`,
-        regimeCadastrado: rawCadastrado,
-        regimeRecomendado: recTecnica,
-        economiaEstimadaAnualBrl: diferencaBrl,
-        economiaEstimadaAnualTexto: diferencaFmt,
-        receitaAnualizada,
-        estourouTetoSimples: false,
-        ultrapassouSublimiteHibrido,
-      }
+      return anexarContextoTemporalAuditoria(
+        {
+          tipo: 'neutro',
+          divergente: true,
+          titulo: 'Lucro Real Cadastrado — Alto Custo de Conformidade para o Porte',
+          mensagem: `Aviso Informativo: empresa cadastrada em Lucro Real enquanto a receita projetada (${receitaAnualizada.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}) está dentro do teto do Simples Nacional (${recTecnica}). Diferença de custo tributário estimada em ${diferencaFmt}/ano.`,
+          justificativaTecnica: `O Lucro Real é tecnicamente válido e permite dedução da folha no IRPJ/CSLL, porém exige alto custo de conformidade acessória (ECD, ECF, LALUR, DCTFWeb) e recolhimento patronal de INSS (28,8%). Para a receita anual de ~R$ 2,85 mi, o Simples Nacional oferece menor complexidade operacional imediata, mantendo o Lucro Real como opção estratégica preferencial a partir de 2027 com IBS/CBS.`,
+          regimeCadastrado: rawCadastrado,
+          regimeRecomendado: recTecnica,
+          economiaEstimadaAnualBrl: diferencaBrl,
+          economiaEstimadaAnualTexto: diferencaFmt,
+          receitaAnualizada,
+          estourouTetoSimples: false,
+          ultrapassouSublimiteHibrido,
+        },
+        dataEntradaRegimeAtual,
+      )
     } else {
       // Receita acima do teto de R$ 4,8 mi: Lucro Real é de fato o regime legalmente mandatório
-      return {
-        tipo: 'conformidade',
-        divergente: false,
-        titulo: 'Lucro Real em Conformidade com o Porte de Faturamento',
-        mensagem: `Conformidade Legal: o regime Lucro Real registrado no cadastro coincide com a exigência legal para empresas com faturamento acima do teto do Simples Nacional (R$ 4,8 mi).`,
-        justificativaTecnica: `Com receita anualizada em ${receitaAnualizada.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}, a empresa está legalmente impedida de optar pelo Simples Nacional, sendo o Lucro Real a sistemática correta e recomendada pela ADECONT para aproveitamento de créditos não cumulativos e dedutibilidade fiscal de custos operacionais e encargos de folha.`,
-        regimeCadastrado: rawCadastrado,
-        regimeRecomendado: 'Lucro Real',
-        receitaAnualizada,
-        estourouTetoSimples: true,
-        ultrapassouSublimiteHibrido: false,
-      }
+      return anexarContextoTemporalAuditoria(
+        {
+          tipo: 'conformidade',
+          divergente: false,
+          titulo: 'Lucro Real em Conformidade com o Porte de Faturamento',
+          mensagem: `Conformidade Legal: o regime Lucro Real registrado no cadastro coincide com a exigência legal para empresas com faturamento acima do teto do Simples Nacional (R$ 4,8 mi).`,
+          justificativaTecnica: `Com receita anualizada em ${receitaAnualizada.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}, a empresa está legalmente impedida de optar pelo Simples Nacional, sendo o Lucro Real a sistemática correta e recomendada pela ADECONT para aproveitamento de créditos não cumulativos e dedutibilidade fiscal de custos operacionais e encargos de folha.`,
+          regimeCadastrado: rawCadastrado,
+          regimeRecomendado: 'Lucro Real',
+          receitaAnualizada,
+          estourouTetoSimples: true,
+          ultrapassouSublimiteHibrido: false,
+        },
+        dataEntradaRegimeAtual,
+      )
     }
   }
 
@@ -790,18 +821,21 @@ export function avaliarDivergenciaRegime(params: {
     recTecnica !== 'Simples Nacional' &&
     recTecnica !== 'Simples Híbrido'
   ) {
-    return {
-      tipo: 'atencao',
-      divergente: true,
-      titulo: 'Divergência Cadastral vs Rota Estratégica Recomendada',
-      mensagem: `Divergência detectada: regime cadastrado (${rawCadastrado}) difere da recomendação técnica (${recTecnica}).`,
-      justificativaTecnica: `Embora elegível ao Simples, a mecânica aufere créditos substanciais nas compras de autopeças de distribuidoras, tornando o regime ${recTecnica} financeiramente mais vantajoso no horizonte 2027+.`,
-      regimeCadastrado: rawCadastrado,
-      regimeRecomendado: recTecnica,
-      receitaAnualizada,
-      estourouTetoSimples: false,
-      ultrapassouSublimiteHibrido: false,
-    }
+    return anexarContextoTemporalAuditoria(
+      {
+        tipo: 'atencao',
+        divergente: true,
+        titulo: 'Divergência Cadastral vs Rota Estratégica Recomendada',
+        mensagem: `Divergência detectada: regime cadastrado (${rawCadastrado}) difere da recomendação técnica (${recTecnica}).`,
+        justificativaTecnica: `Embora elegível ao Simples, a mecânica aufere créditos substanciais nas compras de autopeças de distribuidoras, tornando o regime ${recTecnica} financeiramente mais vantajoso no horizonte 2027+.`,
+        regimeCadastrado: rawCadastrado,
+        regimeRecomendado: recTecnica,
+        receitaAnualizada,
+        estourouTetoSimples: false,
+        ultrapassouSublimiteHibrido: false,
+      },
+      dataEntradaRegimeAtual,
+    )
   }
 
   // Se o regime cadastrado é compatível/igual ao recomendado (Ex: Simples Nacional)
@@ -809,22 +843,25 @@ export function avaliarDivergenciaRegime(params: {
     regimeCadNorm === recTecnica ||
     (regimeCadNorm === 'Simples Nacional' && recTecnica.includes('Simples Nacional'))
   ) {
-    return {
-      tipo: 'conformidade',
-      divergente: false,
-      titulo: 'Regime Cadastrado em Conformidade com a Recomendação Técnica',
-      mensagem: `O regime tributário registrado no cadastro (${rawCadastrado}) coincide com a recomendação técnica emitida pelo diagnóstico ADECONT (${recTecnica}).`,
-      justificativaTecnica: `Com receita anualizada em R$ ${receitaAnualizada.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}, a empresa opera confortavelmente dentro dos limites legais de R$ 4,8 milhões da LC 123/2006 e sublimite estadual de R$ 3,6 milhões, garantindo desoneração de CPP e tributação unificada pelo Anexo III.`,
-      regimeCadastrado: rawCadastrado,
-      regimeRecomendado: recTecnica,
-      receitaAnualizada,
-      estourouTetoSimples: false,
-      ultrapassouSublimiteHibrido: false,
-    }
+    return anexarContextoTemporalAuditoria(
+      {
+        tipo: 'conformidade',
+        divergente: false,
+        titulo: 'Regime Cadastrado em Conformidade com a Recomendação Técnica',
+        mensagem: `O regime tributário registrado no cadastro (${rawCadastrado}) coincide com a recomendação técnica emitida pelo diagnóstico ADECONT (${recTecnica}).`,
+        justificativaTecnica: `Com receita anualizada em R$ ${receitaAnualizada.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}, a empresa opera confortavelmente dentro dos limites legais de R$ 4,8 milhões da LC 123/2006 e sublimite estadual de R$ 3,6 milhões, garantindo desoneração de CPP e tributação unificada pelo Anexo III.`,
+        regimeCadastrado: rawCadastrado,
+        regimeRecomendado: recTecnica,
+        receitaAnualizada,
+        estourouTetoSimples: false,
+        ultrapassouSublimiteHibrido: false,
+      },
+      dataEntradaRegimeAtual,
+    )
   }
 
   // Fallback seguro caso haja outra divergência não mapeada
-  return {
+  const alertaBase: AlertaDivergenciaRegime = {
     tipo: 'atencao',
     divergente: true,
     titulo: 'Divergência entre Cadastro e Recomendação Técnica',
@@ -835,6 +872,31 @@ export function avaliarDivergenciaRegime(params: {
     receitaAnualizada,
     estourouTetoSimples: false,
     ultrapassouSublimiteHibrido: false,
+  }
+
+  return anexarContextoTemporalAuditoria(alertaBase, dataEntradaRegimeAtual)
+}
+
+/**
+ * Anexa o contexto temporal da trilha de auditoria ao parecer técnico
+ * quando houver data de entrada no regime cadastrado
+ */
+export function anexarContextoTemporalAuditoria(
+  alerta: AlertaDivergenciaRegime,
+  dataEntradaRegimeAtual?: string,
+): AlertaDivergenciaRegime {
+  if (!dataEntradaRegimeAtual) return alerta
+
+  const contexto = `(Regime atual registrado no sistema em ${dataEntradaRegimeAtual})`
+  const justificativaComContexto = alerta.divergente
+    ? `${alerta.justificativaTecnica} Nota temporal de auditoria: enquadramento em ${alerta.regimeCadastrado} vigente desde ${dataEntradaRegimeAtual}.`
+    : `${alerta.justificativaTecnica} Registro confirmado em ${dataEntradaRegimeAtual}.`
+
+  return {
+    ...alerta,
+    dataEntradaRegimeAtual,
+    contextoTemporalAuditoria: contexto,
+    justificativaTecnica: justificativaComContexto,
   }
 }
 
@@ -2425,6 +2487,9 @@ export async function carregarDiagnosticoClientePastore(): Promise<DiagnosticoCl
       regimeRecomendadoTecnico: 'Simples Nacional',
       tabelaValoresPercentuais,
       margemRetidaLiquidaPct,
+      dataEntradaRegimeAtual: empresa?.updated
+        ? new Date(empresa.updated).toLocaleDateString('pt-BR')
+        : undefined,
     }),
   }
 }

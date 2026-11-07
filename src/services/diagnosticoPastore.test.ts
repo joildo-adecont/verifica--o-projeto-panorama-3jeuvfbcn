@@ -730,4 +730,18 @@ describe('diagnosticoPastore - Alertas de divergência entre cadastro e recomend
     // Como a Pastore tem cadastro em Simples Nacional e receita ~2,85 mi, deve ser conformidade
     expect(['conformidade', 'atencao', 'neutro']).toContain(diag.alertaDivergencia.tipo)
   })
+
+  it('cenário 11: parecer de divergência incorpora data de entrada no regime atual quando fornecida', () => {
+    const alerta = avaliarDivergenciaRegime({
+      regimeCadastrado: 'Lucro Presumido',
+      receitaAnualizada: 2854320.0,
+      regimeRecomendadoTecnico: 'Simples Nacional',
+      dataEntradaRegimeAtual: '15/03/2026',
+    })
+
+    expect(alerta.tipo).toBe('atencao')
+    expect(alerta.divergente).toBe(true)
+    expect(alerta.dataEntradaRegimeAtual).toBe('15/03/2026')
+    expect(alerta.justificativaTecnica).toContain('Enquadramento atual vigente desde 15/03/2026')
+  })
 })
