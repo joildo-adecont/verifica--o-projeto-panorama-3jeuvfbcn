@@ -23,6 +23,7 @@ export interface EmpresaCadastro {
   cnae_divisao?: string
   cnaes_secundarios?: string
   enquadramento_tributario?: string
+  porte?: string
   num_funcionarios?: number
   folha_salarial_mensal?: number
   encargos_mensais?: number
@@ -72,9 +73,10 @@ export interface ItemCustoFolhaRegime {
   aliquotaRatFapPct: number
   aliquotaTerceirosSistemaSPct: number
   encargoPrevidenciarioPatronalAnual: number
+  custoFolhaBrutoAnual: number // folha + encargos + CPP patronal antes de qualquer economia fiscal
   dedutibilidadeIrpjCsll: boolean // se a despesa de folha abate base de IRPJ/CSLL (Simples = não, Presumido = não, Real = sim)
-  economiaFiscalIrpjCsllAnual: number // no Real: (folha + encargos) * 24%
-  custoFolhaLiquidoAnual: number // folha + encargos + CPP patronal - economia fiscal
+  economiaFiscalIrpjCsllAnual: number // no Real: (folha + encargos + encargo patronal) * 24%
+  custoFolhaLiquidoAnual: number // custoFolhaBruto - economiaFiscalIrpjCsllAnual
   impactoVsSimplesBrl: number // custoFolhaLiquido - custoFolhaSimples (positivo = custo adicional, negativo = economia)
   explicacaoRegime: string
 }
@@ -436,6 +438,12 @@ export function parseCnaesSecundarios(
           'Serviços de lanternagem ou funilaria e pintura de veículos automotores',
       },
       {
+        codigo: '4520-0/05',
+        descricao:
+          CNAES_CATALOGO_DESCRICOES['4520-0/05'] ||
+          'Serviços de lavagem, lubrificação e polimento de veículos automotores',
+      },
+      {
         codigo: '4520-0/07',
         descricao:
           CNAES_CATALOGO_DESCRICOES['4520-0/07'] ||
@@ -492,6 +500,9 @@ export function calcularComparativoCustoFolha(
   const encargosAnuais =
     dadosFolha.encargosAnuais > 0 ? dadosFolha.encargosAnuais : dadosFolha.encargosMensais * 12
 
+  // Custo base de folha (salários + FGTS/férias)
+  const custoBaseAnual = folhaAnual + encargosAnuais
+
   // Regime 1: Simples Nacional
   const simples: ItemCustoFolhaRegime = {
     regimeId: 'simples',
@@ -502,9 +513,10 @@ export function calcularComparativoCustoFolha(
     aliquotaRatFapPct: 0,
     aliquotaTerceirosSistemaSPct: 0,
     encargoPrevidenciarioPatronalAnual: 0,
+    custoFolhaBrutoAnual: custoBaseAnual,
     dedutibilidadeIrpjCsll: false,
     economiaFiscalIrpjCsllAnual: 0,
-    custoFolhaLiquidoAnual: folhaAnual + encargosAnuais,
+    custoFolhaLiquidoAnual: custoBaseAnual,
     impactoVsSimplesBrl: 0,
     explicacaoRegime:
       'No Simples Nacional (Anexos I e III), a CPP patronal (20% + RAT + Terceiros) é substituída pela alíquota única do DAS sobre o faturamento. Não há recolhimento patronal separado na GPS/DCTFWeb para estas atividades, mantendo a folha desonerada de CPP.',
@@ -520,9 +532,10 @@ export function calcularComparativoCustoFolha(
     aliquotaRatFapPct: 0,
     aliquotaTerceirosSistemaSPct: 0,
     encargoPrevidenciarioPatronalAnual: 0,
+    custoFolhaBrutoAnual: custoBaseAnual,
     dedutibilidadeIrpjCsll: false,
     economiaFiscalIrpjCsllAnual: 0,
-    custoFolhaLiquidoAnual: folhaAnual + encargosAnuais,
+    custoFolhaLiquidoAnual: custoBaseAnual,
     impactoVsSimplesBrl: 0,
     explicacaoRegime:
       'O regime híbrido da LC 214/2025 segrega apenas IBS e CBS por fora do DAS para receitas acima do sublimite de R$ 3,6 mi. A parcela previdenciária e a sistemática trabalhista da folha continuam integradas ao regime simplificado sem incidência patronal segregada.',
@@ -534,7 +547,7 @@ export function calcularComparativoCustoFolha(
   const aliqTerceiros = 0.058
   const aliqEncargosPatronaisTotal = aliqInssPatronal + aliqRat + aliqTerceiros // 28,80%
   const encargoPatronalPresumido = folhaAnual * aliqEncargosPatronaisTotal
-  const custoPresumidoTotal = folhaAnual + encargosAnuais + encargoPatronalPresumido
+  const custoPresumidoTotal = custoBaseAnual + encargoPatronalPresumido
 
   const lucroPresumido: ItemCustoFolhaRegime = {
     regimeId: 'lucro_presumido',
@@ -545,6 +558,7 @@ export function calcularComparativoCustoFolha(
     aliquotaRatFapPct: 3.0,
     aliquotaTerceirosSistemaSPct: 5.8,
     encargoPrevidenciarioPatronalAnual: encargoPatronalPresumido,
+    custoFolhaBrutoAnual: custoPresumidoTotal,
     dedutibilidadeIrpjCsll: false,
     economiaFiscalIrpjCsllAnual: 0,
     custoFolhaLiquidoAnual: custoPresumidoTotal,
@@ -555,7 +569,7 @@ export function calcularComparativoCustoFolha(
 
   // Regime 4: Lucro Real Puro
   const encargoPatronalReal = folhaAnual * aliqEncargosPatronaisTotal
-  const baseDedutivelReal = folhaAnual + encargosAnuais + encargoPatronalReal
+  const baseDedutivelReal = custoBaseAnual + encargoPatronalReal
   const aliqIrpjCsllDedutivel = 0.24 // 15% IRPJ + 9% CSLL (sem adicional pois lucro anual < 240k)
   const economiaFiscalReal = baseDedutivelReal * aliqIrpjCsllDedutivel
   const custoRealLiquido = baseDedutivelReal - economiaFiscalReal
@@ -569,6 +583,7 @@ export function calcularComparativoCustoFolha(
     aliquotaRatFapPct: 3.0,
     aliquotaTerceirosSistemaSPct: 5.8,
     encargoPrevidenciarioPatronalAnual: encargoPatronalReal,
+    custoFolhaBrutoAnual: baseDedutivelReal,
     dedutibilidadeIrpjCsll: true,
     economiaFiscalIrpjCsllAnual: economiaFiscalReal,
     custoFolhaLiquidoAnual: custoRealLiquido,
@@ -587,6 +602,7 @@ export function calcularComparativoCustoFolha(
     aliquotaRatFapPct: 3.0,
     aliquotaTerceirosSistemaSPct: 5.8,
     encargoPrevidenciarioPatronalAnual: encargoPatronalReal,
+    custoFolhaBrutoAnual: baseDedutivelReal,
     dedutibilidadeIrpjCsll: true,
     economiaFiscalIrpjCsllAnual: economiaFiscalReal,
     custoFolhaLiquidoAnual: custoRealLiquido,

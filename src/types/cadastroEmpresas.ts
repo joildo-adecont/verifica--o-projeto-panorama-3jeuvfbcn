@@ -42,6 +42,7 @@ export interface EmpresaRecord {
   pagina?: number
   enquadramento_tributario?: string
   cnaes_secundarios?: string
+  porte?: string
   num_funcionarios?: number
   folha_salarial_mensal?: number
   encargos_mensais?: number

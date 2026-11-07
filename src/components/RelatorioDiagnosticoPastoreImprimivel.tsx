@@ -158,13 +158,13 @@ export const RelatorioDiagnosticoPastoreImprimivel: React.FC<
               <span className="text-[9px] text-indigo-800 font-bold uppercase block mb-0.5">
                 Atividades Econômicas Secundárias Cadastradas ({data.cnaesSecundariosLista.length}):
               </span>
-              <div className="space-y-0.5">
+              <div className="space-y-1">
                 {data.cnaesSecundariosLista.map((cnae, idx) => (
-                  <div key={idx} className="flex items-start gap-1">
-                    <span className="font-mono font-bold text-slate-900 text-[9px] min-w-[62px]">
+                  <div key={idx} className="flex items-start gap-1.5">
+                    <span className="font-mono font-bold text-indigo-950 text-[9.5px] min-w-[66px] bg-indigo-50 px-1 py-0.5 rounded border border-indigo-200">
                       {cnae.codigo}
                     </span>
-                    <span className="text-slate-600 text-[9px] leading-tight">
+                    <span className="text-slate-700 text-[9px] leading-tight pt-0.5">
                       {cnae.descricao}
                     </span>
                   </div>
@@ -268,25 +268,48 @@ export const RelatorioDiagnosticoPastoreImprimivel: React.FC<
             </thead>
             <tbody>
               {data.comparativoCustoFolha.regimes.map((r) => (
-                <tr key={r.regimeId} className="border-b border-indigo-100">
+                <tr
+                  key={r.regimeId}
+                  className={`border-b border-indigo-100 ${
+                    r.regimeId === 'simples'
+                      ? 'bg-emerald-50/50'
+                      : r.regimeId === 'lucro_presumido'
+                        ? 'bg-rose-50/40'
+                        : r.regimeId === 'lucro_real_puro'
+                          ? 'bg-sky-50/40'
+                          : ''
+                  }`}
+                >
                   <td className="p-1 font-semibold text-slate-800 border-r border-indigo-200">
                     {r.nomeRegime}
                   </td>
                   <td className="p-1 text-center border-r border-indigo-200">
-                    {r.temCppSeparada ? 'Sim (20%)' : 'Não (DAS Embutido)'}
+                    {r.temCppSeparada ? (
+                      <span className="font-semibold text-rose-800">Sim (20% + Enc.)</span>
+                    ) : (
+                      <span className="text-emerald-800 font-semibold">Não (DAS Único)</span>
+                    )}
                   </td>
                   <td className="p-1 text-right font-mono border-r border-indigo-200">
-                    {r.encargoPrevidenciarioPatronalAnual > 0
-                      ? brl(r.encargoPrevidenciarioPatronalAnual)
-                      : 'R$ 0,00'}
+                    {r.encargoPrevidenciarioPatronalAnual > 0 ? (
+                      <span className="font-semibold text-rose-800">
+                        {brl(r.encargoPrevidenciarioPatronalAnual)}
+                      </span>
+                    ) : (
+                      <span className="text-slate-400">R$ 0,00</span>
+                    )}
                   </td>
                   <td className="p-1 text-right font-mono border-r border-indigo-200">
                     {brl(r.custoFolhaBrutoAnual)}
                   </td>
-                  <td className="p-1 text-right font-mono border-r border-indigo-200 text-emerald-800 font-medium">
-                    {r.economiaFiscalIrpjCsllAnual > 0
-                      ? `- ${brl(r.economiaFiscalIrpjCsllAnual)} (24%)`
-                      : 'R$ 0,00 (Sem efeito)'}
+                  <td className="p-1 text-right font-mono border-r border-indigo-200">
+                    {r.economiaFiscalIrpjCsllAnual > 0 ? (
+                      <span className="text-emerald-700 font-bold">
+                        - {brl(r.economiaFiscalIrpjCsllAnual)} (24%)
+                      </span>
+                    ) : (
+                      <span className="text-slate-400">R$ 0,00 (Sem efeito)</span>
+                    )}
                   </td>
                   <td className="p-1 text-right font-mono font-bold text-slate-900">
                     {brl(r.custoFolhaLiquidoAnual)}

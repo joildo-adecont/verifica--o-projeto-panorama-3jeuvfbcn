@@ -411,10 +411,12 @@ describe('diagnosticoPastore - recálculo por balancetes cumulativos', () => {
     expect(diag.enquadramentoTributarioAtual).toContain('Simples Nacional')
 
     expect(diag.cnaesSecundariosLista).toBeDefined()
-    expect(diag.cnaesSecundariosLista.length).toBeGreaterThanOrEqual(1)
+    expect(diag.cnaesSecundariosLista.length).toBeGreaterThanOrEqual(3)
 
     const codigosCnae = diag.cnaesSecundariosLista.map((c) => c.codigo)
     expect(codigosCnae).toContain('4530-7/03') // Comércio a varejo de autopeças
+    expect(codigosCnae).toContain('4520-0/02') // Lanternagem/pintura
+    expect(codigosCnae).toContain('4520-0/05') // Lavagem/lubrificação
 
     for (const cnae of diag.cnaesSecundariosLista) {
       expect(cnae.codigo).toBeTruthy()
