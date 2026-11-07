@@ -22,7 +22,7 @@ export const RelatorioDiagnosticoPastoreImprimivel: React.FC<
     window.print()
   }
 
-  const { empresa, balancetes, recomendacao, linhasComparativo, notas } = data
+  const { empresa, balancetes, recomendacao, linhasComparativo, notas, simplesHibrido } = data
 
   return (
     <div className="fixed inset-0 z-50 bg-white text-slate-900 overflow-y-auto print:p-0 print:overflow-visible">
@@ -246,26 +246,82 @@ export const RelatorioDiagnosticoPastoreImprimivel: React.FC<
           </div>
         </div>
 
-        {/* TABELA COMPARATIVA DE REGIMES */}
+        {/* QUADRO DO SIMPLES HÍBRIDO 2027 (LC 214/2025) */}
+        {simplesHibrido && (
+          <div className="bg-indigo-50/70 border border-indigo-300 rounded p-3 mb-4 text-[10px]">
+            <div className="flex justify-between items-center border-b border-indigo-200 pb-1 mb-2">
+              <span className="font-black text-indigo-950 uppercase tracking-tight text-[11px]">
+                2. Cenário de Transição: Simples Híbrido 2027 (LC 214/2025 · Sublimite R$ 3,6 Mi)
+              </span>
+              <span className="text-[9px] bg-indigo-200 text-indigo-950 px-2 py-0.5 rounded font-bold">
+                Proteção Anti-Desenquadramento
+              </span>
+            </div>
+            <div className="grid grid-cols-3 gap-2 mb-2">
+              <div className="border border-indigo-200 bg-white p-2 rounded">
+                <span className="text-[9px] text-indigo-700 font-bold block uppercase">
+                  Situação Atual (~R$ 2,85 mi)
+                </span>
+                <span className="font-semibold text-slate-900">
+                  Não Acionado (Abaixo Sublimite)
+                </span>
+                <p className="text-[8px] text-slate-600 mt-0.5">
+                  Carga idêntica ao Simples puro (~9,2%).
+                </p>
+              </div>
+              <div className="border border-indigo-200 bg-white p-2 rounded">
+                <span className="text-[9px] text-indigo-700 font-bold block uppercase">
+                  Tendência Julho (R$ 297k/mês)
+                </span>
+                <span className="font-semibold text-amber-900">
+                  ~{brl(simplesHibrido.receitaJulhoAnualizada)} / ano
+                </span>
+                <p className="text-[8px] text-slate-600 mt-0.5">
+                  Encosta no sublimite de R$ 3.600.000,00 (98,9%).
+                </p>
+              </div>
+              <div className="border border-indigo-200 bg-white p-2 rounded">
+                <span className="text-[9px] text-indigo-700 font-bold block uppercase">
+                  Cenário no Teto (R$ 4,8 mi)
+                </span>
+                <span className="font-bold text-emerald-800">
+                  {brl(simplesHibrido.cenarioTeto48.cargaTotalAnual)} (~
+                  {simplesHibrido.cenarioTeto48.aliquotaEfetivaPct.toFixed(2)}%)
+                </span>
+                <p className="text-[8px] text-slate-600 mt-0.5">
+                  25% paga IBS/CBS regular com crédito pleno (economia de R$ 145k vs Simples puro).
+                </p>
+              </div>
+            </div>
+            <p className="text-[9px] text-indigo-900 leading-relaxed">
+              <strong>Ponto de Virada:</strong> {simplesHibrido.pontoDeVirada.explicacao}
+            </p>
+          </div>
+        )}
+
+        {/* TABELA COMPARATIVA DE 4 REGIMES */}
         <div className="mb-4">
           <h2 className="text-xs font-bold uppercase tracking-wider text-slate-800 border-b border-slate-300 pb-1 mb-2">
-            2. Tabela Comparativa de Enquadramento Tributário: Simples Nacional × Lucro Presumido ×
-            Regime Regular 2027+
+            3. Tabela Comparativa de 4 Regimes: Simples Nacional × Simples Híbrido 2027 × Lucro
+            Presumido × Regime Regular 2027+
           </h2>
-          <table className="w-full border-collapse border border-slate-300 text-[10px]">
+          <table className="w-full border-collapse border border-slate-300 text-[9px]">
             <thead>
               <tr className="bg-slate-900 text-white">
-                <th className="border border-slate-300 p-1.5 text-left w-[22%]">
+                <th className="border border-slate-300 p-1.5 text-left w-[20%]">
                   Critério Tributário
                 </th>
-                <th className="border border-slate-300 p-1.5 text-left w-[26%] bg-emerald-900 text-emerald-100 font-bold">
-                  Simples Nacional (Opção Cabível)
+                <th className="border border-slate-300 p-1.5 text-left w-[20%] bg-emerald-900 text-emerald-100 font-bold">
+                  Simples Nacional Puro
                 </th>
-                <th className="border border-slate-300 p-1.5 text-left w-[26%] bg-slate-800">
+                <th className="border border-slate-300 p-1.5 text-left w-[20%] bg-indigo-900 text-indigo-100 font-bold">
+                  Simples Híbrido 2027
+                </th>
+                <th className="border border-slate-300 p-1.5 text-left w-[20%] bg-slate-800">
                   Situação Atual: Lucro Presumido
                 </th>
-                <th className="border border-slate-300 p-1.5 text-left w-[26%] bg-amber-900 text-amber-200 font-bold">
-                  Reforma 2027+: Regime Regular (IBS/CBS)
+                <th className="border border-slate-300 p-1.5 text-left w-[20%] bg-amber-900 text-amber-200 font-bold">
+                  Reforma 2027+: Regime Regular
                 </th>
               </tr>
             </thead>
@@ -277,19 +333,27 @@ export const RelatorioDiagnosticoPastoreImprimivel: React.FC<
                   </td>
                   <td className="border border-slate-200 p-1.5 align-top bg-emerald-50/30">
                     <p className="font-semibold text-emerald-950">{linha.simplesNacional.valor}</p>
-                    <p className="text-[9px] text-slate-700 mt-0.5">
+                    <p className="text-[8px] text-slate-700 mt-0.5">
                       {linha.simplesNacional.detalhe}
+                    </p>
+                  </td>
+                  <td className="border border-slate-200 p-1.5 align-top bg-indigo-50/40">
+                    <p className="font-semibold text-indigo-950">
+                      {linha.simplesHibrido2027?.valor || '—'}
+                    </p>
+                    <p className="text-[8px] text-slate-700 mt-0.5">
+                      {linha.simplesHibrido2027?.detalhe}
                     </p>
                   </td>
                   <td className="border border-slate-200 p-1.5 align-top">
                     <p className="font-semibold text-slate-900">{linha.lucroPresumido.valor}</p>
-                    <p className="text-[9px] text-slate-600 mt-0.5">
+                    <p className="text-[8px] text-slate-600 mt-0.5">
                       {linha.lucroPresumido.detalhe}
                     </p>
                   </td>
                   <td className="border border-slate-200 p-1.5 align-top bg-amber-50/40">
                     <p className="font-bold text-amber-950">{linha.reforma2027.valor}</p>
-                    <p className="text-[9px] text-slate-700 mt-0.5">{linha.reforma2027.detalhe}</p>
+                    <p className="text-[8px] text-slate-700 mt-0.5">{linha.reforma2027.detalhe}</p>
                   </td>
                 </tr>
               ))}

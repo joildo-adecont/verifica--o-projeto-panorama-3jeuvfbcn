@@ -71,11 +71,51 @@ export interface EstatisticasNfes {
   }
 }
 
+export interface SimplesHibridoCenario {
+  sublimite: number // R$ 3.600.000,00
+  teto: number // R$ 4.800.000,00
+  receitaProjetadaAtual: number // ~R$ 2.848.822,89
+  acionadoNaProjecaoAtual: boolean // false (< R$ 3,6 mi)
+  receitaJulhoAnualizada: number // R$ 296.986,65 * 12 = R$ 3.563.839,80
+  cargaProjecaoAtual: {
+    receita: number
+    parcelaDas: number
+    parcelaIbsCbsRegular: number
+    creditosAproveitados: number
+    cargaTotalAnual: number
+    aliquotaEfetivaPct: number
+  }
+  cenarioTeto48: {
+    receita: number // R$ 4.800.000,00
+    percentualExcedente: number // 25% = (4,8 - 3,6) / 4,8
+    parcelaDentroSublimite: number // 75% = R$ 3.600.000
+    parcelaExcedenteRegular: number // 25% = R$ 1.200.000
+    cargaDasSemIbsCbs: number
+    cargaIbsCbsExcedenteLiquida: number
+    creditosAproveitadosExcedente: number
+    cargaTotalAnual: number
+    aliquotaEfetivaPct: number
+    comparativoSimplesPuroTeto: number
+    comparativoRegimeRegularTeto: number
+  }
+  pontoDeVirada: {
+    receitaInicioAcionamento: number // R$ 3.600.000,00
+    explicacao: string
+    vantagemVsSimplesPuro: string
+    vantagemVsRegimeRegular: string
+  }
+}
+
 export interface LinhaComparativoRegime {
   criterio: string
   simplesNacional: {
     valor: string
     detalhe: string
+  }
+  simplesHibrido2027: {
+    valor: string
+    detalhe: string
+    destaque?: boolean
   }
   lucroPresumido: {
     valor: string
@@ -200,6 +240,7 @@ export interface DiagnosticoClienteData {
   ativoTotalMaisRecente: number
   notas: EstatisticasNfes
   dataCalculo: string
+  simplesHibrido: SimplesHibridoCenario
   recomendacao: {
     regimeRecomendado: string
     titulo: string
@@ -550,6 +591,108 @@ export async function carregarDiagnosticoClientePastore(): Promise<DiagnosticoCl
   // Carga líquida consolidada estimada no Regime Regular 2027+: ~8,4% a 8,8% sobre a receita bruta (~R$ 242.000 / ano).
   const cargaReformaEstimada = recProj * 0.085
 
+  // 4) Simples Híbrido 2027 (Mecânica da LC 214/2025):
+  // Sublimite legal: R$ 3.600.000,00 | Teto do Simples: R$ 4.800.000,00
+  // Quando a receita bruta anual acumulada excede o sublimite de R$ 3,6 mi, a empresa NÃO é excluída
+  // do Simples Nacional caso permaneça até R$ 4,8 mi. Em vez disso, opera no regime híbrido:
+  // - A parcela até R$ 3,6 mi recolhe os tributos no DAS. A partir do sublimite, IBS e CBS passam a ser
+  //   recolhidos POR FORA do DAS pelo regime regular, proporcionalmente à parcela excedente da receita.
+  // - O DAS exclui o componente de IBS e CBS sobre a parcela excedente.
+  // - Na parcela excedente sujeita ao regime regular, a empresa aproveita integralmente os créditos
+  //   financeiros das compras de autopeças (Cobra Rolamentos e distribuidoras) proporcionalmente.
+  //
+  // (a) Patamar atual projetado (~R$ 2,85 mi):
+  // recProj <= R$ 3.600.000 -> O Híbrido NÃO é acionado. Carga é idêntica ao Simples puro (~R$ 262.000 / ano).
+  // Obs.: Último mês apurado (julho R$ 296.986,65) x 12 = R$ 3.563.839,80, encostando no sublimite (99%).
+  const ultimoBalanceteLiq =
+    balancetes.length > 0 ? balancetes[balancetes.length - 1].receitaLiquida : 296986.65
+  const receitaJulhoAnualizada = ultimoBalanceteLiq * 12
+  const SUBLIMITE_SIMPLES = 3600000
+  const TETO_SIMPLES = 4800000
+  const acionadoNaProjecaoAtual = recProj > SUBLIMITE_SIMPLES
+
+  const cargaHibridoProjecaoAtual = {
+    receita: recProj,
+    parcelaDas: cargaSimplesEstimada,
+    parcelaIbsCbsRegular: 0,
+    creditosAproveitados: 0,
+    cargaTotalAnual: cargaSimplesEstimada,
+    aliquotaEfetivaPct: recProj > 0 ? (cargaSimplesEstimada / recProj) * 100 : 9.2,
+  }
+
+  // (b) Patamar no teto do Simples (R$ 4.800.000,00):
+  // Parcela excedente: (4.800.000 - 3.600.000) / 4.800.000 = 25% (R$ 1.200.000,00)
+  // Parcela dentro do sublimite: 75% (R$ 3.600.000,00)
+  //
+  // No Simples puro a R$ 4,8 mi (6ª faixa, Anexo I/III), a alíquota efetiva média ponderada seria de ~11,8%
+  // (devido à 6ª faixa nominal de 19% no Anexo I e 21-33% no Anexo III), gerando ~R$ 566.400.
+  //
+  // No Simples Híbrido a R$ 4,8 mi:
+  // - Parcela dentro do sublimite (R$ 3,6 mi): DAS com alíquota média de ~9,8% = ~R$ 352.800
+  // - Parcela excedente (R$ 1,2 mi):
+  //   * No DAS, recolhe apenas IRPJ, CSLL e CPP (sem IBS/CBS) a ~4,5% = R$ 54.000
+  //   * Por fora do DAS, IBS + CBS regular (26,5%):
+  //     Débito sobre R$ 1,2 mi = R$ 318.000
+  //     Compras proporcionais de autopeças (mesmo custo de ~95,6% da receita na proporção 25%):
+  //     Compras da parcela = 1.200.000 * (1 - 0.044) = R$ 1.147.200
+  //     Crédito aproveitado de IBS/CBS (26,5%) = R$ 304.008
+  //     IBS/CBS líquido a recolher por fora = R$ 318.000 - R$ 304.008 = R$ 13.992
+  //   * Carga total da parcela excedente = R$ 54.000 + R$ 13.992 = R$ 67.992 (efetiva de ~5,67% sobre o R$ 1,2 mi!)
+  //   * Carga anual total no Simples Híbrido a R$ 4,8 mi:
+  //     R$ 352.800 (parcela sublimite) + R$ 67.992 (parcela excedente líquida) = R$ 420.792 (~8,77% sobre R$ 4,8 mi).
+  // Comparativo no teto de R$ 4,8 mi:
+  // - Simples Puro a R$ 4,8 mi: ~R$ 566.400 (~11,8%)
+  // - Simples Híbrido a R$ 4,8 mi: ~R$ 420.792 (~8,77%) -> Economia de ~R$ 145.600 frente ao Simples puro!
+  // - Regime Regular Pleno a R$ 4,8 mi: ~R$ 408.000 (~8,50%) -> Muito próximo, com vantagem do Híbrido em menor complexidade contábil sobre 75% da receita.
+  const recTeto = TETO_SIMPLES
+  const percExcedente = (recTeto - SUBLIMITE_SIMPLES) / recTeto // 0.25
+  const parcelaDentro = SUBLIMITE_SIMPLES // 3.600.000
+  const parcelaExcedente = recTeto - SUBLIMITE_SIMPLES // 1.200.000
+
+  const cargaDasDentro = parcelaDentro * 0.098 // ~352.800
+  const cargaDasExcedenteSemIbsCbs = parcelaExcedente * 0.045 // ~54.000
+  const debitoIbsCbsExcedente = parcelaExcedente * 0.265 // 318.000
+  const comprasExcedente = parcelaExcedente * (1 - margemRetidaLiquidaPct / 100) // ~1.147.200
+  const creditoIbsCbsExcedente = comprasExcedente * 0.265 // ~304.008
+  const cargaIbsCbsExcedenteLiquida = debitoIbsCbsExcedente - creditoIbsCbsExcedente // ~13.992
+  const cargaTotalHibridoTeto =
+    cargaDasDentro + cargaDasExcedenteSemIbsCbs + cargaIbsCbsExcedenteLiquida // ~420.792
+  const aliqEfetivaHibridoTeto = (cargaTotalHibridoTeto / recTeto) * 100 // ~8.77%
+
+  const cargaSimplesPuroTeto = recTeto * 0.118 // ~566.400
+  const cargaRegimeRegularTeto = recTeto * 0.085 // ~408.000
+
+  const simplesHibrido: SimplesHibridoCenario = {
+    sublimite: SUBLIMITE_SIMPLES,
+    teto: TETO_SIMPLES,
+    receitaProjetadaAtual: recProj,
+    acionadoNaProjecaoAtual,
+    receitaJulhoAnualizada,
+    cargaProjecaoAtual: cargaHibridoProjecaoAtual,
+    cenarioTeto48: {
+      receita: recTeto,
+      percentualExcedente: percExcedente * 100,
+      parcelaDentroSublimite: parcelaDentro,
+      parcelaExcedenteRegular: parcelaExcedente,
+      cargaDasSemIbsCbs: cargaDasDentro + cargaDasExcedenteSemIbsCbs,
+      cargaIbsCbsExcedenteLiquida,
+      creditosAproveitadosExcedente: creditoIbsCbsExcedente,
+      cargaTotalAnual: cargaTotalHibridoTeto,
+      aliquotaEfetivaPct: aliqEfetivaHibridoTeto,
+      comparativoSimplesPuroTeto: cargaSimplesPuroTeto,
+      comparativoRegimeRegularTeto: cargaRegimeRegularTeto,
+    },
+    pontoDeVirada: {
+      receitaInicioAcionamento: SUBLIMITE_SIMPLES,
+      explicacao:
+        'O Simples Híbrido se aciona no momento exato em que a receita bruta acumulada em 12 meses ultrapassa R$ 3.600.000,00 (sublimite da LC 214/2025). Entre R$ 3,6 mi e R$ 4,8 mi, o Híbrido é imbatível contra o Simples puro porque substitui alíquotas marginais altas da 6ª faixa pelo crédito financeiro de autopeças (compras a ~95,6% da receita geram crédito de 26,5%).',
+      vantagemVsSimplesPuro:
+        'Economia de até R$ 145.600/ano no teto de R$ 4,8 mi frente ao Simples Nacional sem segregação de IBS/CBS, reduzindo a alíquota efetiva de ~11,8% para ~8,77%.',
+      vantagemVsRegimeRegular:
+        'Abaixo de R$ 3,6 mi o Simples puro é mais simples. A R$ 4,8 mi, o Híbrido fica a apenas 0,27 p.p. do Regime Regular pleno (~8,77% vs ~8,50%), mantendo a blindagem contábil e simplicidade administrativa sobre 75% da receita da oficina.',
+    },
+  }
+
   const fmtBrl = (v: number) =>
     v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })
 
@@ -559,6 +702,11 @@ export async function carregarDiagnosticoClientePastore(): Promise<DiagnosticoCl
       simplesNacional: {
         valor: 'OPÇÃO CABÍVEL (Dentro do Teto)',
         detalhe: `Receita anual projetada em ~${fmtBrl(recProj)}/ano, perfeitamente compatível com o teto de R$ 4,8 milhões da LC 123/2006. Sublimite estadual de ICMS/ISS (R$ 3,6 mi) também respeitado.`,
+      },
+      simplesHibrido2027: {
+        valor: 'Sublimite R$ 3,6 mi (LC 214/2025)',
+        detalhe: `Não acionado na projeção atual (~${fmtBrl(recProj)} < R$ 3,6 mi). Ativa automaticamente se receita anualizada ultrapassar R$ 3,6 mi (julho anualizado: ~${fmtBrl(receitaJulhoAnualizada)}). Permanece no Simples até R$ 4,8 mi.`,
+        destaque: true,
       },
       lucroPresumido: {
         valor: 'Lucro Presumido (Hoje)',
@@ -579,6 +727,11 @@ export async function carregarDiagnosticoClientePastore(): Promise<DiagnosticoCl
         detalhe:
           'Calculado pela receita bruta nos Anexos I (comércio) e III (serviços), independentemente do lucro ou prejuízo contábil real.',
       },
+      simplesHibrido2027: {
+        valor: 'DAS até R$ 3,6 mi + Parcela IRPJ/CSLL no DAS',
+        detalhe:
+          'IRPJ e CSLL continuam 100% integrados no DAS mesmo sobre a parcela excedente ao sublimite, com alíquota reduzida pela exclusão do IBS/CBS.',
+      },
       lucroPresumido: {
         valor: 'Presunção de 8% (peças) e 32% (serviços)',
         detalhe: `Sobre Faturamento Bruto. Penaliza severamente a Pastore, cuja margem líquida real apurada nos balancetes é de apenas ~${margemRetidaLiquidaPct.toFixed(1)}%.`,
@@ -595,6 +748,12 @@ export async function carregarDiagnosticoClientePastore(): Promise<DiagnosticoCl
         valor: 'DAS com Segregação Monofásica',
         detalhe:
           'Permite abater parcelas de PIS/COFINS e ICMS-ST em autopeças monofásicas, mantendo alíquota efetiva média ponderada de ~9,2%.',
+      },
+      simplesHibrido2027: {
+        valor: 'DAS até R$ 3,6 mi + IBS/CBS por fora no excedente',
+        detalhe:
+          'Até R$ 3,6 mi: recolhimento integral no DAS. Sobre a parcela excedente (> R$ 3,6 mi): IBS e CBS (26,5%) recolhidos por fora com crédito pleno de compras.',
+        destaque: true,
       },
       lucroPresumido: {
         valor: 'PIS/COFINS 3,65% + ICMS ~12% + ISS ~3-5%',
@@ -615,6 +774,12 @@ export async function carregarDiagnosticoClientePastore(): Promise<DiagnosticoCl
         detalhe:
           'Compras de distribuidoras (Cobra Rolamentos, etc.) não geram crédito a abater no DAS da mecânica.',
       },
+      simplesHibrido2027: {
+        valor: 'CRÉDITO PLENO NA PARCELA EXCEDENTE',
+        detalhe:
+          'Sobre as compras vinculadas à receita acima de R$ 3,6 mi, a oficina apropria 100% dos créditos de IBS/CBS (26,5%), neutralizando o custo de insumos.',
+        destaque: true,
+      },
       lucroPresumido: {
         valor: 'VEDADO (Zero crédito nas entradas)',
         detalhe:
@@ -633,6 +798,11 @@ export async function carregarDiagnosticoClientePastore(): Promise<DiagnosticoCl
         valor: 'Favorável para Pessoa Física (PF)',
         detalhe:
           'Excelente para balcão e oficina atendendo veículos particulares; porém não transfere créditos cheios para frotas B2B.',
+      },
+      simplesHibrido2027: {
+        valor: 'Híbrido: DAS em PF + Destaque B2B no excedente',
+        detalhe:
+          'Permite destacar crédito cheio de IBS/CBS aos clientes corporativos/frotistas na proporção da parcela sujeita ao regime regular.',
       },
       lucroPresumido: {
         valor: 'Carga integral embutida no preço ao consumidor',
@@ -653,6 +823,11 @@ export async function carregarDiagnosticoClientePastore(): Promise<DiagnosticoCl
         detalhe:
           'A mecânica não recupera o IBS/CBS das compras de autopeças caso permaneça no Simples sem adesão ao regime regular de créditos.',
       },
+      simplesHibrido2027: {
+        valor: 'Mista / Progressiva',
+        detalhe:
+          'Cumulativo dentro do sublimite; não-cumulativo pleno com recuperação de crédito na parcela que excede R$ 3,6 mi.',
+      },
       lucroPresumido: {
         valor: 'Alta Cumulatividade (Efeito Cascata)',
         detalhe:
@@ -672,6 +847,11 @@ export async function carregarDiagnosticoClientePastore(): Promise<DiagnosticoCl
         detalhe:
           '~9,2% do faturamento. Opção de simplicidade administrativa e carga competitiva, agora 100% legal com a receita real recalculada.',
       },
+      simplesHibrido2027: {
+        valor: `~${fmtBrl(cargaHibridoProjecaoAtual.cargaTotalAnual)} / ano`,
+        detalhe: `Projeção atual (~${fmtBrl(recProj)}) fica abaixo do sublimite (R$ 3,6 mi) -> Carga = Simples puro (~9,2%). Se atingir teto de R$ 4,8 mi: ~${fmtBrl(cargaTotalHibridoTeto)}/ano (~${aliqEfetivaHibridoTeto.toFixed(1)}%).`,
+        destaque: true,
+      },
       lucroPresumido: {
         valor: `~${fmtBrl(cargaPresumidoEstimada)} / ano`,
         detalhe: `~12,6% do faturamento (~${fmtBrl(cargaPresumidoEstimada)}). Pior cenário tributário devido à presunção artificial de 8%/32% contra margem real de ~${margemRetidaLiquidaPct.toFixed(1)}%.`,
@@ -688,6 +868,12 @@ export async function carregarDiagnosticoClientePastore(): Promise<DiagnosticoCl
         valor: 'VIÁVEL E COMPETITIVO (Excelente para Transição)',
         detalhe:
           'Com a receita recalculada dentro do teto de R$ 4,8 mi, o Simples Nacional volta a ser opção perfeitamente legítima, segura e vantajosa no curto prazo.',
+      },
+      simplesHibrido2027: {
+        valor: 'CENÁRIO DE TRANSIÇÃO AUTOMÁTICA (LC 214/2025)',
+        detalhe:
+          'Protege a Pastore caso o faturamento cresça acima de R$ 3,6 mi. Garante alíquota máxima de ~8,77% a R$ 4,8 mi sem necessidade de desenquadramento brusco do Simples.',
+        destaque: true,
       },
       lucroPresumido: {
         valor: 'DESFAVORÁVEL (Sobretaxação Evidente)',
@@ -707,15 +893,16 @@ export async function carregarDiagnosticoClientePastore(): Promise<DiagnosticoCl
     regimeRecomendado:
       'Simples Nacional (Imediato) ou Regime Regular IBS/CBS + Lucro Real (Estratégico 2027+)',
     titulo: 'Veredito Técnico ADECONT: Simples Nacional Cabível & Rota Estratégica 2027+',
-    motivoPrincipal: `A AUTO MECÂNICA IRMÃOS PASTORE LTDA apurou receita real acumulada de R$ 1.661.813,35 nos 7 balancetes contábeis de 2026 (jan–jul) — após a correta detecção de que os balancetes são cumulativos "até a data" e conversão por diferença das receitas líquidas mensais, eliminando a soma duplicada anterior de R$ 6,3 milhões. Com isso, a projeção anualizada do cliente fica em ~R$ 2,85 milhões, posicionando a empresa DENTRO do teto do Simples Nacional (R$ 4,8 milhões da LC 123/2006). A margem retida líquida real apurada no patrimônio líquido é de ~4,4% (variação de +R$ 72.496,24). O Simples Nacional volta a ser uma opção plenamente cabível e muito vantajosa frente ao Lucro Presumido, enquanto o Regime Regular de IBS/CBS com Lucro Real desponta como a melhor rota estratégica para 2027+ devido ao crédito integral nas compras de autopeças (Cobra Rolamentos e distribuidoras).`,
+    motivoPrincipal: `A AUTO MECÂNICA IRMÃOS PASTORE LTDA apurou receita real acumulada de R$ 1.661.813,35 nos 7 balancetes contábeis de 2026 (jan–jul) — após a correta detecção de que os balancetes são cumulativos "até a data" e conversão por diferença das receitas líquidas mensais, eliminando a soma duplicada anterior de R$ 6,3 milhões. Com isso, a projeção anualizada do cliente fica em ~R$ 2,85 milhões, posicionando a empresa DENTRO do teto do Simples Nacional (R$ 4,8 milhões da LC 123/2006). A margem retida líquida real apurada no patrimônio líquido é de ~4,4% (variação de +R$ 72.496,24). O Simples Nacional volta a ser uma opção plenamente cabível e muito vantajosa frente ao Lucro Presumido, enquanto o Regime Regular de IBS/CBS com Lucro Real desponta como a melhor rota estratégica para 2027+ devido ao crédito integral nas compras de autopeças (Cobra Rolamentos e distribuidoras). Como rota de transição intermediária, a LC 214/2025 assegura o Simples Híbrido caso a empresa ultrapasse o sublimite de R$ 3,6 mi, garantindo alíquota de ~8,77% a R$ 4,8 mi.`,
     pontosChave: [
       `Simples Nacional Plenamente Cabível: Com receita real de R$ 1.661.813,35 em 7 meses e projeção anualizada de ~R$ 2,85 milhões, a Pastore fica confortavelmente abaixo do teto de R$ 4,8 mi e do sublimite de R$ 3,6 mi, tornando a opção legalmente válida.`,
       `Margem Real de ~4,4%: A variação do patrimônio líquido (+R$ 72.496,24) sobre a receita líquida real apurada confirma margem estreita de ~4,4%, comprovando que o Lucro Presumido (presunção de 8% em peças e 32% em serviços) sobretaxa a empresa em mais de R$ 90 mil/ano.`,
       `Opção de Transição Imediata: No curto prazo (2026), o Simples Nacional oferece menor complexidade e carga de ~9,2% com segregação de autopeças monofásicas (ICMS-ST e PIS/COFINS).`,
+      `Simples Híbrido 2027 (LC 214/2025): Caso a receita mensal de julho (R$ 296,9 mil) se mantenha anualizada em ~R$ 3,56 mi e cruze o sublimite de R$ 3,6 mi, o Simples Híbrido entra em vigor com crédito pleno de autopeças sobre a parcela excedente, mantendo a carga limitada a ~8,77% mesmo no teto de R$ 4,8 mi.`,
       `Estratégia para 2027+ (Reforma Tributária): A partir de 2027, o Regime Regular de IBS/CBS combinado ao Lucro Real atinge carga efetiva de ~8,5%, permitindo à mecânica abater 100% dos créditos fiscais nas compras de autopeças de distribuidores (Cobra Rolamentos, etc.).`,
       `Metodologia de Balancetes Cumulativos: A conciliação contábil por diferença revelou que o balancete de julho (R$ 1.661.813,35) já contém o acumulado do ano, restabelecendo a exatidão gerencial dos números da Pastore.`,
     ],
-    resumoCargaEstimada: `Economia anual estimada de ~R$ 96 mil a R$ 116 mil ao migrar do Lucro Presumido para o Simples Nacional ou Regime Regular 2027+.`,
+    resumoCargaEstimada: `Economia anual estimada de ~R$ 96 mil a R$ 116 mil ao migrar do Lucro Presumido para o Simples Nacional, Simples Híbrido ou Regime Regular 2027+.`,
   }
 
   return {
@@ -734,6 +921,7 @@ export async function carregarDiagnosticoClientePastore(): Promise<DiagnosticoCl
     ativoTotalMaisRecente,
     notas,
     dataCalculo: new Date().toLocaleDateString('pt-BR'),
+    simplesHibrido,
     recomendacao,
     linhasComparativo,
   }

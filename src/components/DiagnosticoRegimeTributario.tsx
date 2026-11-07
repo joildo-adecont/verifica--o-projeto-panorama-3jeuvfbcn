@@ -90,7 +90,7 @@ export const DiagnosticoRegimeTributario: React.FC = () => {
     )
   }
 
-  const { empresa, balancetes, recomendacao, linhasComparativo, notas } = data
+  const { empresa, balancetes, recomendacao, linhasComparativo, notas, simplesHibrido } = data
 
   return (
     <div className="space-y-6">
@@ -398,14 +398,117 @@ export const DiagnosticoRegimeTributario: React.FC = () => {
         </div>
       </div>
 
-      {/* 3. TABELA COMPARATIVA (NÚCLEO DO PEDIDO: SIMPLES x PRESUMIDO x REGIME REGULAR 2027+) */}
+      {/* 2.5 QUADRO EXPLICATIVO: MECÂNICA E PONTO DE VIRADA DO SIMPLES HÍBRIDO (LC 214/2025) */}
+      {simplesHibrido && (
+        <div className="bg-gradient-to-br from-indigo-950/60 via-slate-900 to-slate-900 border-2 border-indigo-500/40 rounded-xl p-5 shadow-xl">
+          <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4 mb-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-xs font-bold uppercase tracking-wider bg-indigo-500 text-slate-950 px-2.5 py-0.5 rounded font-mono">
+                  Transição LC 214/2025
+                </span>
+                <span className="text-xs font-semibold text-indigo-300 flex items-center gap-1">
+                  <Scale className="w-3.5 h-3.5 text-indigo-400" />
+                  Mecânica do Simples Híbrido 2027
+                </span>
+              </div>
+              <h3 className="text-lg font-black text-white tracking-tight flex items-center gap-2">
+                Simples Híbrido: Sublimite de R$ 3,6 Mi e Ponto de Virada
+              </h3>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="bg-slate-900/80 border border-indigo-500/30 rounded-lg px-3 py-2 text-right">
+                <span className="text-[10px] text-slate-400 uppercase font-semibold block">
+                  Status Atual (Projeção ~{brl(data.receitaAnualizada)})
+                </span>
+                <span className="text-xs font-bold text-emerald-400 flex items-center justify-end gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  Abaixo do Sublimite (Não Acionado)
+                </span>
+              </div>
+              <div className="bg-indigo-950/80 border border-indigo-700/60 rounded-lg px-3 py-2 text-right">
+                <span className="text-[10px] text-indigo-300 uppercase font-semibold block">
+                  Julho Anualizado ({brl(balancetes[balancetes.length - 1]?.receitaLiquida)}/mês)
+                </span>
+                <span className="text-xs font-black text-amber-300">
+                  ~{brl(simplesHibrido.receitaJulhoAnualizada)} (98,9% do Sublimite)
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4 text-xs">
+            {/* Bloco 1: Regra do Sublimite */}
+            <div className="bg-slate-800/80 border border-slate-700 rounded-lg p-3.5 space-y-2">
+              <div className="flex items-center gap-2 text-indigo-300 font-bold uppercase tracking-wider text-[11px]">
+                <Info className="w-4 h-4 text-indigo-400 flex-shrink-0" />
+                1. O que é o Simples Híbrido?
+              </div>
+              <p className="text-slate-300 leading-relaxed">
+                Ao faturar entre <strong>R$ 3.600.000,00</strong> (sublimite) e{' '}
+                <strong>R$ 4.800.000,00</strong> (teto), a empresa NÃO é expulsa do Simples. A
+                parcela até R$ 3,6 mi recolhe no DAS (sem IBS/CBS) e a parcela excedente recolhe
+                IBS/CBS no <strong>regime regular</strong>, com crédito pleno de insumos e
+                autopeças.
+              </p>
+            </div>
+
+            {/* Bloco 2: Cenário a R$ 4,8 mi */}
+            <div className="bg-slate-800/80 border border-slate-700 rounded-lg p-3.5 space-y-2">
+              <div className="flex items-center gap-2 text-amber-300 font-bold uppercase tracking-wider text-[11px]">
+                <TrendingUp className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                2. Cenário no Teto (R$ 4,8 Milhões)
+              </div>
+              <p className="text-slate-300 leading-relaxed">
+                Parcela excedente de <strong>25%</strong> (R$ 1.200.000) paga IBS/CBS regular,
+                abatendo{' '}
+                <strong>{brl(simplesHibrido.cenarioTeto48.creditosAproveitadosExcedente)}</strong>{' '}
+                em créditos de autopeças (Cobra Rolamentos). A carga final no teto é de apenas{' '}
+                <strong className="text-emerald-400">
+                  {brl(simplesHibrido.cenarioTeto48.cargaTotalAnual)} (~
+                  {simplesHibrido.cenarioTeto48.aliquotaEfetivaPct.toFixed(2)}%)
+                </strong>
+                , economizando mais de R$ 145 mil/ano vs Simples puro.
+              </p>
+            </div>
+
+            {/* Bloco 3: Ponto de Virada */}
+            <div className="bg-slate-800/80 border border-slate-700 rounded-lg p-3.5 space-y-2">
+              <div className="flex items-center gap-2 text-emerald-400 font-bold uppercase tracking-wider text-[11px]">
+                <Scale className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                3. Ponto de Virada Tributário
+              </div>
+              <p className="text-slate-300 leading-relaxed">
+                Abaixo de R$ 3,6 mi: Simples puro e Híbrido empatam em <strong>~9,2%</strong>. Acima
+                de R$ 3,6 mi: o Híbrido supera o Simples puro graças ao crédito pleno. Acima de R$
+                4,8 mi ou com crescimento acentuado: o <strong>Regime Regular pleno (~8,5%)</strong>{' '}
+                passa a ser a melhor rota técnica global.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between text-xs text-slate-300 bg-slate-950/60 border border-slate-800 p-3 rounded-lg flex-wrap gap-2">
+            <span className="text-indigo-300">
+              💡 <strong>Diagnóstico Gerencial Pastore:</strong> Faturamento atual (~R$ 2,85 mi)
+              está seguro no Simples. Porém, o ritmo de julho (R$ 296,9k) aponta para R$ 3,56
+              mi/ano, tornando o Simples Híbrido a salvaguarda legal perfeita para 2027+.
+            </span>
+            <span className="font-mono text-emerald-400 font-bold">
+              Sublimite: R$ 3.600.000,00 | Teto: R$ 4.800.000,00
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* 3. TABELA COMPARATIVA (4 REGIMES LADO A LADO: SIMPLES x SIMPLES HÍBRIDO x PRESUMIDO x REGIME REGULAR) */}
       <div className="bg-slate-900 border border-slate-700 rounded-xl overflow-hidden shadow-xl">
         <div className="p-4 bg-slate-800/90 border-b border-slate-700 flex flex-col md:flex-row md:items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <Layers className="w-5 h-5 text-amber-400" />
             <h3 className="font-bold text-white text-base">
-              Tabela Comparativa de Enquadramento: Simples Nacional × Lucro Presumido × Regime
-              Regular 2027+
+              Tabela Comparativa de 4 Regimes: Simples Nacional × Simples Híbrido 2027 × Lucro
+              Presumido × Regime Regular 2027+
             </h3>
           </div>
           <span className="text-xs text-slate-300 bg-slate-900 px-2.5 py-1 rounded border border-slate-700">
@@ -417,21 +520,30 @@ export const DiagnosticoRegimeTributario: React.FC = () => {
           <table className="w-full text-left text-xs border-collapse">
             <thead>
               <tr className="bg-slate-950 text-slate-300 border-b border-slate-700 uppercase tracking-wider text-[11px]">
-                <th className="p-3 w-[22%]">Critério Comparativo</th>
-                <th className="p-3 w-[26%] bg-emerald-950/40 border-l border-emerald-900/60">
+                <th className="p-3 w-[20%]">Critério Comparativo</th>
+                <th className="p-3 w-[20%] bg-emerald-950/40 border-l border-emerald-900/60">
                   <div className="font-bold text-emerald-300 flex items-center gap-1.5">
                     <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                     Simples Nacional
                   </div>
                   <div className="text-[10px] text-emerald-400/80 font-normal">
-                    Opção Cabível (Teto R$ 4,8 mi)
+                    Puro (Dentro do Teto)
                   </div>
                 </th>
-                <th className="p-3 w-[26%] bg-slate-900/90 border-l border-slate-800">
+                <th className="p-3 w-[20%] bg-indigo-950/50 border-l border-indigo-900/60">
+                  <div className="font-bold text-indigo-300 flex items-center gap-1.5">
+                    <Scale className="w-4 h-4 text-indigo-400" />
+                    Simples Híbrido 2027
+                  </div>
+                  <div className="text-[10px] text-indigo-300/80 font-normal">
+                    LC 214/2025 (Sublimite R$ 3,6 mi)
+                  </div>
+                </th>
+                <th className="p-3 w-[20%] bg-slate-900/90 border-l border-slate-800">
                   <div className="font-bold text-slate-200">Situação Atual</div>
                   <div className="text-[10px] text-slate-400 font-normal">Lucro Presumido</div>
                 </th>
-                <th className="p-3 w-[26%] bg-amber-950/40 border-l border-amber-900/60">
+                <th className="p-3 w-[20%] bg-amber-950/40 border-l border-amber-900/60">
                   <div className="font-bold text-amber-400 flex items-center gap-1.5">
                     <ShieldCheck className="w-4 h-4 text-amber-400" />
                     Reforma 2027+
@@ -457,6 +569,14 @@ export const DiagnosticoRegimeTributario: React.FC = () => {
                     <p className="font-semibold text-emerald-200">{linha.simplesNacional.valor}</p>
                     <p className="text-[11px] text-slate-300 mt-1">
                       {linha.simplesNacional.detalhe}
+                    </p>
+                  </td>
+                  <td className="p-3 text-slate-200 border-r border-slate-800 bg-indigo-950/20">
+                    <p className="font-bold text-indigo-300">
+                      {linha.simplesHibrido2027?.valor || '—'}
+                    </p>
+                    <p className="text-[11px] text-slate-300 mt-1">
+                      {linha.simplesHibrido2027?.detalhe}
                     </p>
                   </td>
                   <td className="p-3 text-slate-300 border-r border-slate-800">

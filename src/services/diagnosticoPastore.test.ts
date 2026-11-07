@@ -127,6 +127,8 @@ describe('diagnosticoPastore - recálculo por balancetes cumulativos', () => {
     for (const linha of diag.linhasComparativo) {
       expect(linha.simplesNacional).toBeDefined()
       expect(linha.simplesNacional?.valor).toBeTruthy()
+      expect(linha.simplesHibrido2027).toBeDefined()
+      expect(linha.simplesHibrido2027?.valor).toBeTruthy()
       expect(linha.lucroPresumido?.valor).toBeTruthy()
       expect(linha.reforma2027?.valor).toBeTruthy()
 
@@ -134,6 +136,7 @@ describe('diagnosticoPastore - recálculo por balancetes cumulativos', () => {
       expect(linha.criterio).not.toContain('12,5')
       expect(linha.criterio).not.toContain('6,3')
       expect(linha.simplesNacional?.detalhe).not.toContain('12,5')
+      expect(linha.simplesHibrido2027?.detalhe).not.toContain('12,5')
       expect(linha.lucroPresumido.detalhe).not.toContain('12,5')
       expect(linha.reforma2027.detalhe).not.toContain('12,5')
     }
@@ -143,5 +146,51 @@ describe('diagnosticoPastore - recálculo por balancetes cumulativos', () => {
     expect(diag.isBalanceteCumulativo).toBe(true)
     expect(diag.notaMetodologicaCumulativa).toContain('cumulativos')
     expect(diag.notaMetodologicaCumulativa).toContain('diferença')
+  })
+
+  it('calcula o cenário do Simples Híbrido 2027 com mecânica da LC 214/2025', async () => {
+    const diag = await carregarDiagnosticoClientePastore()
+    const { simplesHibrido } = diag
+
+    expect(simplesHibrido).toBeDefined()
+    expect(simplesHibrido.sublimite).toBe(3600000)
+    expect(simplesHibrido.teto).toBe(4800000)
+
+    // (a) Na projeção atual (~R$ 2,85 mi), o híbrido NÃO é acionado (está abaixo do sublimite de R$ 3,6 mi)
+    expect(simplesHibrido.receitaProjetadaAtual).toBeLessThan(3600000)
+    expect(simplesHibrido.acionadoNaProjecaoAtual).toBe(false)
+    expect(simplesHibrido.cargaProjecaoAtual.parcelaIbsCbsRegular).toBe(0)
+    expect(simplesHibrido.cargaProjecaoAtual.creditosAproveitados).toBe(0)
+    // Carga é exatamente igual ao Simples puro
+    expect(simplesHibrido.cargaProjecaoAtual.cargaTotalAnual).toBeCloseTo(
+      simplesHibrido.receitaProjetadaAtual * 0.092,
+      1,
+    )
+
+    // A receita de julho anualizada encosta no sublimite (R$ 296.986,65 * 12 = ~R$ 3,56 mi)
+    expect(simplesHibrido.receitaJulhoAnualizada).toBeGreaterThan(3500000)
+    expect(simplesHibrido.receitaJulhoAnualizada).toBeLessThan(3600000)
+
+    // (b) No teto do Simples (R$ 4,8 mi), parcela excedente é de 25% (R$ 1,2 mi) e parcela no sublimite é de 75% (R$ 3,6 mi)
+    const teto48 = simplesHibrido.cenarioTeto48
+    expect(teto48.receita).toBe(4800000)
+    expect(teto48.percentualExcedente).toBeCloseTo(25, 1)
+    expect(teto48.parcelaDentroSublimite).toBe(3600000)
+    expect(teto48.parcelaExcedenteRegular).toBe(1200000)
+
+    // Crédito pleno das compras sobre a parcela excedente
+    expect(teto48.creditosAproveitadosExcedente).toBeGreaterThan(300000)
+    expect(teto48.cargaIbsCbsExcedenteLiquida).toBeLessThan(20000)
+
+    // Carga total no teto é substancialmente menor que Simples puro (economia de ~R$ 145k)
+    expect(teto48.aliquotaEfetivaPct).toBeGreaterThan(8.5)
+    expect(teto48.aliquotaEfetivaPct).toBeLessThan(9.5)
+    expect(teto48.cargaTotalAnual).toBeLessThan(teto48.comparativoSimplesPuroTeto)
+    expect(teto48.comparativoSimplesPuroTeto - teto48.cargaTotalAnual).toBeGreaterThan(100000)
+
+    // Ponto de virada e justificativa
+    expect(simplesHibrido.pontoDeVirada.receitaInicioAcionamento).toBe(3600000)
+    expect(simplesHibrido.pontoDeVirada.explicacao).toContain('3.600.000,00')
+    expect(simplesHibrido.pontoDeVirada.vantagemVsSimplesPuro).toContain('145.600')
   })
 })
