@@ -28,6 +28,7 @@ interface RelatorioAnaliseEmpresarialA4Props {
   checklistItens?: ItemChecklistDoc[]
   achados?: AchadoDueDiligence[]
   parecerFinal?: ParecerFinalAnalise
+  balanco3Anos?: import('@/types/analisesEmpresariaisModel').AnaliseBalanco3Exercicios
   onClose: () => void
 }
 
@@ -38,6 +39,7 @@ export const RelatorioAnaliseEmpresarialA4: React.FC<RelatorioAnaliseEmpresarial
   checklistItens,
   achados,
   parecerFinal,
+  balanco3Anos,
   onClose,
 }) => {
   const {
@@ -196,12 +198,179 @@ export const RelatorioAnaliseEmpresarialA4: React.FC<RelatorioAnaliseEmpresarial
           </div>
         )}
 
-        {/* SEÇÃO 2: 25 INDICADORES COM SEMÁFORO (QUADRO SÍNTESE) */}
+        {/* SEÇÃO 2: SÍNTESE PATRIMONIAL & DRE (3 EXERCÍCIOS) */}
+        {balanco3Anos && (
+          <div>
+            <h2 className="text-xs font-black uppercase text-slate-800 border-b border-slate-300 pb-1 mb-2 flex items-center gap-1.5">
+              <Scale className="w-3.5 h-3.5 text-primary" />
+              2. Balanço Patrimonial & DRE Comparativo (3 Exercícios)
+            </h2>
+            <div className="border border-slate-200 rounded overflow-hidden">
+              <table className="w-full text-[9px] text-left">
+                <thead className="bg-slate-100 border-b border-slate-200 text-slate-700 font-bold uppercase">
+                  <tr>
+                    <th className="p-1">Grande Conta Contábil</th>
+                    <th className="p-1 text-right">Ano -2</th>
+                    <th className="p-1 text-right">Ano -1</th>
+                    <th className="p-1 text-right">Ano Atual</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  <tr>
+                    <td className="p-1 font-bold text-slate-900">Receita Bruta</td>
+                    <td className="p-1 text-right font-mono text-slate-700">
+                      {brl(balanco3Anos.anoMenos2.dre.receitaBruta)}
+                    </td>
+                    <td className="p-1 text-right font-mono text-slate-700">
+                      {brl(balanco3Anos.anoMenos1.dre.receitaBruta)}
+                    </td>
+                    <td className="p-1 text-right font-mono font-bold text-slate-900">
+                      {brl(balanco3Anos.anoAtual.dre.receitaBruta)}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="p-1 font-semibold text-slate-800">
+                      (-) Deduções e Impostos S/ Vendas
+                    </td>
+                    <td className="p-1 text-right font-mono text-slate-600">
+                      {brl(balanco3Anos.anoMenos2.dre.deducoesImpostos)}
+                    </td>
+                    <td className="p-1 text-right font-mono text-slate-600">
+                      {brl(balanco3Anos.anoMenos1.dre.deducoesImpostos)}
+                    </td>
+                    <td className="p-1 text-right font-mono text-slate-800">
+                      {brl(balanco3Anos.anoAtual.dre.deducoesImpostos)}
+                    </td>
+                  </tr>
+                  <tr className="bg-slate-50 font-bold">
+                    <td className="p-1 text-slate-900">Receita Operacional Líquida</td>
+                    <td className="p-1 text-right font-mono text-emerald-800">
+                      {brl(
+                        (balanco3Anos.anoMenos2.dre.receitaBruta || 0) -
+                          (balanco3Anos.anoMenos2.dre.deducoesImpostos || 0),
+                      )}
+                    </td>
+                    <td className="p-1 text-right font-mono text-emerald-800">
+                      {brl(
+                        (balanco3Anos.anoMenos1.dre.receitaBruta || 0) -
+                          (balanco3Anos.anoMenos1.dre.deducoesImpostos || 0),
+                      )}
+                    </td>
+                    <td className="p-1 text-right font-mono text-emerald-900">
+                      {brl(
+                        (balanco3Anos.anoAtual.dre.receitaBruta || 0) -
+                          (balanco3Anos.anoAtual.dre.deducoesImpostos || 0),
+                      )}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="p-1 font-semibold text-slate-800">Ativo Circulante (AC)</td>
+                    <td className="p-1 text-right font-mono text-slate-600">
+                      {brl(
+                        (balanco3Anos.anoMenos2.ativoCirculante.caixaEquivalentes || 0) +
+                          (balanco3Anos.anoMenos2.ativoCirculante.aplicacoesFinanceiras || 0) +
+                          (balanco3Anos.anoMenos2.ativoCirculante.contasReceber || 0) +
+                          (balanco3Anos.anoMenos2.ativoCirculante.estoques || 0) +
+                          (balanco3Anos.anoMenos2.ativoCirculante.tributosRecuperar || 0) +
+                          (balanco3Anos.anoMenos2.ativoCirculante.outrosAtivosCirculantes || 0),
+                      )}
+                    </td>
+                    <td className="p-1 text-right font-mono text-slate-600">
+                      {brl(
+                        (balanco3Anos.anoMenos1.ativoCirculante.caixaEquivalentes || 0) +
+                          (balanco3Anos.anoMenos1.ativoCirculante.aplicacoesFinanceiras || 0) +
+                          (balanco3Anos.anoMenos1.ativoCirculante.contasReceber || 0) +
+                          (balanco3Anos.anoMenos1.ativoCirculante.estoques || 0) +
+                          (balanco3Anos.anoMenos1.ativoCirculante.tributosRecuperar || 0) +
+                          (balanco3Anos.anoMenos1.ativoCirculante.outrosAtivosCirculantes || 0),
+                      )}
+                    </td>
+                    <td className="p-1 text-right font-mono font-bold text-slate-900">
+                      {brl(
+                        (balanco3Anos.anoAtual.ativoCirculante.caixaEquivalentes || 0) +
+                          (balanco3Anos.anoAtual.ativoCirculante.aplicacoesFinanceiras || 0) +
+                          (balanco3Anos.anoAtual.ativoCirculante.contasReceber || 0) +
+                          (balanco3Anos.anoAtual.ativoCirculante.estoques || 0) +
+                          (balanco3Anos.anoAtual.ativoCirculante.tributosRecuperar || 0) +
+                          (balanco3Anos.anoAtual.ativoCirculante.outrosAtivosCirculantes || 0),
+                      )}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="p-1 font-semibold text-slate-800">Passivo Circulante (PC)</td>
+                    <td className="p-1 text-right font-mono text-slate-600">
+                      {brl(
+                        (balanco3Anos.anoMenos2.passivoCirculante.fornecedores || 0) +
+                          (balanco3Anos.anoMenos2.passivoCirculante.emprestimosCP || 0) +
+                          (balanco3Anos.anoMenos2.passivoCirculante.obrigacoesTrabalhistas || 0) +
+                          (balanco3Anos.anoMenos2.passivoCirculante.obrigacoesTributarias || 0) +
+                          (balanco3Anos.anoMenos2.passivoCirculante.adiantamentosClientes || 0) +
+                          (balanco3Anos.anoMenos2.passivoCirculante.outrasObrigacoesCP || 0),
+                      )}
+                    </td>
+                    <td className="p-1 text-right font-mono text-slate-600">
+                      {brl(
+                        (balanco3Anos.anoMenos1.passivoCirculante.fornecedores || 0) +
+                          (balanco3Anos.anoMenos1.passivoCirculante.emprestimosCP || 0) +
+                          (balanco3Anos.anoMenos1.passivoCirculante.obrigacoesTrabalhistas || 0) +
+                          (balanco3Anos.anoMenos1.passivoCirculante.obrigacoesTributarias || 0) +
+                          (balanco3Anos.anoMenos1.passivoCirculante.adiantamentosClientes || 0) +
+                          (balanco3Anos.anoMenos1.passivoCirculante.outrasObrigacoesCP || 0),
+                      )}
+                    </td>
+                    <td className="p-1 text-right font-mono font-bold text-slate-900">
+                      {brl(
+                        (balanco3Anos.anoAtual.passivoCirculante.fornecedores || 0) +
+                          (balanco3Anos.anoAtual.passivoCirculante.emprestimosCP || 0) +
+                          (balanco3Anos.anoAtual.passivoCirculante.obrigacoesTrabalhistas || 0) +
+                          (balanco3Anos.anoAtual.passivoCirculante.obrigacoesTributarias || 0) +
+                          (balanco3Anos.anoAtual.passivoCirculante.adiantamentosClientes || 0) +
+                          (balanco3Anos.anoAtual.passivoCirculante.outrasObrigacoesCP || 0),
+                      )}
+                    </td>
+                  </tr>
+                  <tr className="bg-slate-50 font-bold">
+                    <td className="p-1 text-slate-900">Patrimônio Líquido (PL)</td>
+                    <td className="p-1 text-right font-mono text-slate-800">
+                      {brl(
+                        (balanco3Anos.anoMenos2.patrimonioLiquido.capitalSocial || 0) +
+                          (balanco3Anos.anoMenos2.patrimonioLiquido.reservasLucros || 0) +
+                          (balanco3Anos.anoMenos2.patrimonioLiquido.ajustesAvaliacaoPatrimonial ||
+                            0) -
+                          (balanco3Anos.anoMenos2.patrimonioLiquido.prejuizosAcumulados || 0),
+                      )}
+                    </td>
+                    <td className="p-1 text-right font-mono text-slate-800">
+                      {brl(
+                        (balanco3Anos.anoMenos1.patrimonioLiquido.capitalSocial || 0) +
+                          (balanco3Anos.anoMenos1.patrimonioLiquido.reservasLucros || 0) +
+                          (balanco3Anos.anoMenos1.patrimonioLiquido.ajustesAvaliacaoPatrimonial ||
+                            0) -
+                          (balanco3Anos.anoMenos1.patrimonioLiquido.prejuizosAcumulados || 0),
+                      )}
+                    </td>
+                    <td className="p-1 text-right font-mono text-slate-900">
+                      {brl(
+                        (balanco3Anos.anoAtual.patrimonioLiquido.capitalSocial || 0) +
+                          (balanco3Anos.anoAtual.patrimonioLiquido.reservasLucros || 0) +
+                          (balanco3Anos.anoAtual.patrimonioLiquido.ajustesAvaliacaoPatrimonial ||
+                            0) -
+                          (balanco3Anos.anoAtual.patrimonioLiquido.prejuizosAcumulados || 0),
+                      )}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* SEÇÃO 3: 25 INDICADORES COM SEMÁFORO (QUADRO SÍNTESE) */}
         {indicadoresModelo && indicadoresModelo.length > 0 && (
           <div>
             <h2 className="text-xs font-black uppercase text-slate-800 border-b border-slate-300 pb-1 mb-2 flex items-center gap-1.5">
               <TrendingUp className="w-3.5 h-3.5 text-emerald-700" />
-              2. Matriz dos 25 Indicadores Comparativos com Semáforo
+              3. Matriz dos 25 Indicadores Comparativos com Semáforo
             </h2>
             <div className="border border-slate-200 rounded overflow-hidden">
               <table className="w-full text-[9px] text-left">
@@ -254,7 +423,7 @@ export const RelatorioAnaliseEmpresarialA4: React.FC<RelatorioAnaliseEmpresarial
           </div>
         )}
 
-        {/* SEÇÃO 3: SCORE PONDERADO MULTICRITÉRIO & COMPLETUDE DOCUMENTAL */}
+        {/* SEÇÃO 4: SCORE PONDERADO MULTICRITÉRIO & COMPLETUDE DOCUMENTAL */}
         <div className="grid grid-cols-2 gap-3">
           {scoreResultado && (
             <div className="border border-slate-200 rounded p-2.5 bg-white">
@@ -323,12 +492,12 @@ export const RelatorioAnaliseEmpresarialA4: React.FC<RelatorioAnaliseEmpresarial
           </div>
         </div>
 
-        {/* SEÇÃO 4: MATRIZ DE ACHADOS (APONTAMENTOS) */}
+        {/* SEÇÃO 5: MATRIZ DE ACHADOS (APONTAMENTOS) */}
         {achados && achados.length > 0 && (
           <div>
             <h2 className="text-xs font-black uppercase text-slate-800 border-b border-slate-300 pb-1 mb-2 flex items-center gap-1.5">
               <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
-              4. Matriz de Achados e Recomendações (Due Diligence)
+              5. Matriz de Achados e Recomendações (Due Diligence)
             </h2>
             <div className="border border-slate-200 rounded overflow-hidden">
               <table className="w-full text-[9px] text-left">
@@ -375,7 +544,7 @@ export const RelatorioAnaliseEmpresarialA4: React.FC<RelatorioAnaliseEmpresarial
         <div>
           <h2 className="text-xs font-black uppercase text-slate-800 border-b border-slate-300 pb-1 mb-2 flex items-center gap-1.5">
             <ShieldCheck className="w-3.5 h-3.5 text-amber-700" />
-            5. Síntese Técnica dos Agentes Especialistas ADECONT
+            6. Síntese Técnica dos Agentes Especialistas ADECONT
           </h2>
           <div className="grid grid-cols-2 gap-2 text-[10px]">
             <div className="border border-slate-200 rounded p-2 bg-slate-50/50">

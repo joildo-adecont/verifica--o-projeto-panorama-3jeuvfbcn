@@ -22,10 +22,10 @@ import {
 import {
   gerarRelatorioComparativo,
   calcularTotaisExercicio,
-  calcularIndicadoresExercicio,
+  calcular25Indicadores,
 } from '@/services/motorAnaliseEmpresarial'
 import type { EmpresaRecord } from '@/types/cadastroEmpresas'
-import type { AnaliseBalanco3Exercicios, ItemIndicador } from '@/types/analisesEmpresariaisModel'
+import type { AnaliseBalanco3Exercicios } from '@/types/analisesEmpresariaisModel'
 
 interface Props {
   clienteAtual: EmpresaRecord
@@ -51,9 +51,6 @@ export const FerramentaRelatorioComparativo: React.FC<Props> = ({
   const calcMenos1 = calcularTotaisExercicio(balancoAtual.anoMenos1)
   const calcAtual = calcularTotaisExercicio(balancoAtual.anoAtual)
 
-  const indMenos1 = calcularIndicadoresExercicio(balancoAtual.anoMenos1)
-  const indAtual = calcularIndicadoresExercicio(balancoAtual.anoAtual)
-
   // Opção B: Comparação entre DOIS clientes (Ano Atual de ambos)
   const handleSelecionarOutroCliente = async (cnpj: string) => {
     setCnpjOutroCliente(cnpj)
@@ -78,8 +75,8 @@ export const FerramentaRelatorioComparativo: React.FC<Props> = ({
     exB = balancoOutroCliente.anoAtual
   }
 
-  const totaisA = calcularTotaisBalancoDRE(exA)
-  const totaisB = calcularTotaisBalancoDRE(exB)
+  const totaisA = calcularTotaisExercicio(exA)
+  const totaisB = calcularTotaisExercicio(exB)
   const indA = calcular25Indicadores(exA)
   const indB = calcular25Indicadores(exB)
 

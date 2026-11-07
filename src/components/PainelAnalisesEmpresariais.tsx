@@ -749,6 +749,7 @@ export const PainelAnalisesEmpresariais: React.FC<PainelAnalisesEmpresariaisProp
           checklistItens={checklistItens}
           achados={achados}
           parecerFinal={parecerFinal || undefined}
+          balanco3Anos={balanco3Anos}
           onClose={() => setModalRelatorioA4(false)}
         />
       )}

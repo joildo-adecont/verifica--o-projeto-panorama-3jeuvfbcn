@@ -8,7 +8,16 @@ import type {
   SimuladorCenariosItem,
   ProjecaoForecastAno,
   DimensaoDiagnostico,
+  ParecerFinalAnalise,
 } from '@/types/analisesEmpresariaisModel'
+
+export interface QuadroResumoRelatorio {
+  item: string
+  valorA: number
+  valorB: number
+  vantagem: 'A' | 'B' | 'Empate'
+  unidade: 'moeda' | 'percentual' | 'multiplo' | 'dias'
+}
 
 /**
  * Cria estrutura vazia de um exercício financeiro
@@ -990,9 +999,9 @@ export function gerarRelatorioComparativo(
     },
     {
       item: 'Ativo total',
-      valorA: totaisA.totalAtivoTotal,
-      valorB: totaisB.totalAtivoTotal,
-      vantagem: totaisA.totalAtivoTotal >= totaisB.totalAtivoTotal ? 'A' : 'B',
+      valorA: totaisA.ativoTotal,
+      valorB: totaisB.ativoTotal,
+      vantagem: totaisA.ativoTotal >= totaisB.ativoTotal ? 'A' : 'B',
       unidade: 'moeda',
     },
     {
