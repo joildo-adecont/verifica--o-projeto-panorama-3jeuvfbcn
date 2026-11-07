@@ -36,6 +36,8 @@ import {
   filtrarHistoricoPorPeriodo,
 } from '@/services/dadosMercadoAnalises'
 import { SeloNivelConfianca } from '@/components/SeloNivelConfianca'
+import { BotaoExportacaoMercado } from '@/components/BotaoExportacaoMercado'
+import { RelatorioDadosMercadoA4 } from '@/components/RelatorioDadosMercadoA4'
 
 interface PainelDadosMercadoProps {
   indices: ItemIndiceMercado[]
@@ -43,6 +45,9 @@ interface PainelDadosMercadoProps {
   atualizadoEm?: string
   onRecarregar?: () => void
   resumido?: boolean
+  clienteNome?: string
+  clienteDoc?: string
+  regimeTributario?: string
 }
 
 type PeriodoGrafico = '6m' | '12m' | '24m' | 'todos'
@@ -134,9 +139,13 @@ export const PainelDadosMercado: React.FC<PainelDadosMercadoProps> = ({
   atualizadoEm,
   onRecarregar,
   resumido = false,
+  clienteNome,
+  clienteDoc,
+  regimeTributario,
 }) => {
   const [periodoFiltro, setPeriodoFiltro] = useState<PeriodoGrafico>('12m')
   const [filtroCategoria, setFiltroCategoria] = useState<string>('todos')
+  const [modalRelatorioA4, setModalRelatorioA4] = useState(false)
 
   const indicesFiltrados = indices.filter((ind) => {
     if (filtroCategoria === 'todos') return true
@@ -242,6 +251,18 @@ export const PainelDadosMercado: React.FC<PainelDadosMercadoProps> = ({
               </button>
             ))}
           </div>
+
+          {/* Botão de Exportação de Dados de Mercado (PDF, Excel, CSV) */}
+          <BotaoExportacaoMercado
+            indices={indicesFiltrados}
+            clienteNome={clienteNome}
+            clienteDoc={clienteDoc}
+            atualizadoEm={atualizadoEm}
+            onAbrirRelatorioPdf={() => setModalRelatorioA4(true)}
+            disabled={indices.length === 0}
+            motivoDesabilitado="Nenhum índice de mercado carregado no momento"
+            rotuloBotao="Exportar Mercado"
+          />
 
           {onRecarregar && (
             <button
@@ -410,6 +431,18 @@ export const PainelDadosMercado: React.FC<PainelDadosMercadoProps> = ({
             Fonte: Banco Central do Brasil (SGS) · B3 S.A. · IBGE SIDRA · IPEADATA
           </span>
         </div>
+      )}
+
+      {/* Modal / Pré-visualização de Impressão A4 ADECONT */}
+      {modalRelatorioA4 && (
+        <RelatorioDadosMercadoA4
+          indices={indicesFiltrados}
+          clienteNome={clienteNome}
+          clienteDoc={clienteDoc}
+          regimeTributario={regimeTributario}
+          atualizadoEm={atualizadoEm}
+          onClose={() => setModalRelatorioA4(false)}
+        />
       )}
     </div>
   )

@@ -488,6 +488,9 @@ export const PainelAnalisesEmpresariais: React.FC<PainelAnalisesEmpresariaisProp
           carregando={carregandoMercado}
           atualizadoEm={atualizadoMercadoEm}
           onRecarregar={onRecarregarMercado}
+          clienteNome={cliente?.razao_social || cliente?.nome}
+          clienteDoc={cliente?.documento_limpo || cliente?.numero_documento || cliente?.cpf_cnpj}
+          regimeTributario={cliente?.regime_tributario || cliente?.enquadramento_tributario}
         />
       )}
 
