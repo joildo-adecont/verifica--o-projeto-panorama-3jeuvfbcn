@@ -163,18 +163,17 @@ export const DiagnosticoRegimeTributario: React.FC = () => {
         {/* Receita 7 meses + Projeção Anual */}
         <div className="bg-slate-800/90 border border-slate-700/80 rounded-xl p-4 shadow">
           <div className="flex items-center justify-between text-slate-400 text-xs mb-2">
-            <span className="font-semibold uppercase tracking-wider">
-              Receita Líquida (7 meses)
-            </span>
+            <span className="font-semibold uppercase tracking-wider">Receita Real Acumulada</span>
             <TrendingUp className="w-4 h-4 text-amber-400" />
           </div>
           <div className="text-xl font-black text-white">{brl(data.receitaTotalAcumulada)}</div>
           <div className="mt-2 text-xs text-amber-400/90 font-medium bg-amber-950/40 border border-amber-800/50 rounded p-1.5 flex justify-between items-center">
             <span>Projeção Anual (12m):</span>
-            <span className="font-bold">{brl(data.receitaAnualizada)}</span>
+            <span className="font-bold text-emerald-400">{brl(data.receitaAnualizada)}</span>
           </div>
-          <p className="text-[11px] text-slate-400 mt-1">
-            Média mensal de {brl(data.receitaMensalMedia)} com curva de crescimento.
+          <p className="text-[11px] text-emerald-400/90 mt-1 font-medium">
+            Abaixo do teto do Simples Nacional (R$ 4,8 mi). Média: {brl(data.receitaMensalMedia)}
+            /mês.
           </p>
         </div>
 
@@ -272,12 +271,78 @@ export const DiagnosticoRegimeTributario: React.FC = () => {
 
         <div className="flex items-center justify-between text-xs text-slate-400 mt-3 flex-wrap gap-2">
           <span>
-            Curva ascendente: Jan/26 (R$ 233k) → Jul/26 (R$ 1,66 mi) — expansão no faturamento de
-            autopeças e serviços mecânicos.
+            Valores mensais líquidos desdobrados por diferença (de R$ 201k a R$ 297k/mês). Balancete
+            de Julho (R$ 1,66 mi) reflete o acumulado real.
           </span>
-          <span className="text-amber-400 font-medium">
-            Projeção anualizada anual atinge <strong>~{brl(data.receitaAnualizada)}</strong>
+          <span className="text-emerald-400 font-medium">
+            Projeção anualizada de <strong>~{brl(data.receitaAnualizada)}</strong> — DENTRO do teto
+            do Simples (R$ 4,8 mi)
           </span>
+        </div>
+      </div>
+
+      {/* Detalhamento Mensal da Conversão (Cumulativo Gravado vs Líquido Real) */}
+      <div className="bg-slate-900 border border-slate-700 rounded-xl p-5 shadow">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-base font-bold text-white flex items-center gap-2">
+            <Receipt className="w-5 h-5 text-amber-500" />
+            Detalhamento da Conversão de Balancetes Cumulativos (Jan–Jul/2026)
+          </h3>
+          <span className="text-xs bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2.5 py-0.5 rounded font-mono">
+            Conversão por Diferença (Leitura)
+          </span>
+        </div>
+        <p className="text-xs text-slate-300 mb-3 leading-relaxed">
+          {data.notaMetodologicaCumulativa}
+        </p>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr className="bg-slate-950 text-slate-300 border-b border-slate-700 uppercase tracking-wider text-[11px]">
+                <th className="p-2.5">Competência</th>
+                <th className="p-2.5 text-right">Cumulativo Gravado no Balancete</th>
+                <th className="p-2.5 text-right text-emerald-400">Receita Líquida Mensal Real</th>
+                <th className="p-2.5 text-right">Patrimônio Líquido</th>
+                <th className="p-2.5">Arquivo de Origem</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-800">
+              {data.detalhamentoConversao.map((row, idx) => (
+                <tr key={idx} className={idx % 2 === 0 ? 'bg-slate-900/60' : 'bg-slate-800/40'}>
+                  <td className="p-2.5 font-bold text-white">{row.mesRotulo}</td>
+                  <td className="p-2.5 text-right font-mono text-slate-300">
+                    {brl(row.cumulativoGravado)}
+                  </td>
+                  <td className="p-2.5 text-right font-mono font-bold text-emerald-400">
+                    {brl(row.liquidoMensalReal)}
+                  </td>
+                  <td className="p-2.5 text-right font-mono text-slate-300">
+                    {brl(row.patrimonioLiquido)}
+                  </td>
+                  <td className="p-2.5 text-slate-400 text-[11px] truncate max-w-[180px]">
+                    {row.arquivoNome}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr className="bg-slate-950 text-white font-bold border-t-2 border-slate-700">
+                <td className="p-2.5">Total / Acumulado Real</td>
+                <td className="p-2.5 text-right font-mono text-amber-300">
+                  {brl(data.receitaTotalAcumulada)} (Acumulado Julho)
+                </td>
+                <td className="p-2.5 text-right font-mono text-emerald-400">
+                  {brl(data.receitaTotalAcumulada)} (Soma Líquida Real)
+                </td>
+                <td className="p-2.5 text-right font-mono text-slate-300">
+                  {brl(data.patrimonioLiquidoFinal)} (+{brl(data.variacaoPatrimonioLiquido)})
+                </td>
+                <td className="p-2.5 text-[11px] text-slate-400 font-normal">
+                  Sem duplicação indevida
+                </td>
+              </tr>
+            </tfoot>
+          </table>
         </div>
       </div>
 
@@ -289,15 +354,16 @@ export const DiagnosticoRegimeTributario: React.FC = () => {
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs leading-relaxed">
           <div className="bg-slate-800/80 border border-slate-700 rounded-lg p-3.5 space-y-2">
-            <div className="flex items-center gap-2 text-rose-400 font-bold uppercase tracking-wider text-[11px]">
-              <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-              1. Simples Nacional Inviável
+            <div className="flex items-center gap-2 text-emerald-400 font-bold uppercase tracking-wider text-[11px]">
+              <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+              1. Simples Nacional Plenamente Cabível
             </div>
             <p className="text-slate-300">
-              Com receita acumulada de <strong>{brl(data.receitaTotalAcumulada)}</strong> em apenas
-              7 meses e faturamento anualizado de <strong>~{brl(data.receitaAnualizada)}</strong>, a
-              Pastore supera com folga o sublimite de R$ 3,6 mi e o teto máximo de R$ 4,8 milhões do
-              Simples Nacional. O reenquadramento ou manutenção no Simples é legalmente impossível.
+              Com receita acumulada real de <strong>{brl(data.receitaTotalAcumulada)}</strong> em 7
+              meses e faturamento anualizado de <strong>~{brl(data.receitaAnualizada)}</strong>, a
+              Pastore fica confortavelmente abaixo do sublimite de R$ 3,6 mi e do teto de R$ 4,8
+              milhões do Simples Nacional. O Simples volta a ser uma opção perfeitamente viável,
+              legal e competitiva para o cliente.
             </p>
           </div>
 
@@ -311,34 +377,35 @@ export const DiagnosticoRegimeTributario: React.FC = () => {
               <strong>+{brl(data.variacaoPatrimonioLiquido)}</strong> (margem retida líquida de
               apenas <strong>{data.margemRetidaLiquidaPct.toFixed(2)}%</strong>). O Lucro Presumido
               presume lucro fictício de <strong>8%</strong> no comércio de peças e{' '}
-              <strong>32%</strong> nos serviços mecânicos, gerando imposto sobre lucro inexistente e
-              vedando tomada de crédito de insumos.
+              <strong>32%</strong> nos serviços mecânicos, gerando custo tributário desnecessário de
+              quase R$ 100 mil/ano acima dos outros regimes.
             </p>
           </div>
 
           <div className="bg-slate-800/80 border border-slate-700 rounded-lg p-3.5 space-y-2">
-            <div className="flex items-center gap-2 text-emerald-400 font-bold uppercase tracking-wider text-[11px]">
-              <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
-              3. Operação Mista & Consumidor Final
+            <div className="flex items-center gap-2 text-blue-400 font-bold uppercase tracking-wider text-[11px]">
+              <ShieldCheck className="w-4 h-4 flex-shrink-0" />
+              3. Rota Estratégica 2027+ (IBS/CBS)
             </div>
             <p className="text-slate-300">
               A empresa adquire autopeças de grandes distribuidores nacionais (ex.:{' '}
               <em>Cobra Rolamentos</em>) e vende com mão de obra mecânica e peças (CFOP 5102)
               majoritariamente a clientes Pessoa Física (consumidor final). Na Reforma Tributária
-              (2027+), o crédito das compras é 100% compensável, sem perda de margem nas saídas a
-              PF.
+              (2027+), o crédito das compras é 100% compensável no Regime Regular, gerando a menor
+              carga líquida.
             </p>
           </div>
         </div>
       </div>
 
-      {/* 3. TABELA COMPARATIVA (NÚCLEO DO PEDIDO) */}
+      {/* 3. TABELA COMPARATIVA (NÚCLEO DO PEDIDO: SIMPLES x PRESUMIDO x REGIME REGULAR 2027+) */}
       <div className="bg-slate-900 border border-slate-700 rounded-xl overflow-hidden shadow-xl">
         <div className="p-4 bg-slate-800/90 border-b border-slate-700 flex flex-col md:flex-row md:items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <Layers className="w-5 h-5 text-amber-400" />
             <h3 className="font-bold text-white text-base">
-              Tabela Comparativa de Enquadramento: Situação Atual × Alternativa × Reforma 2027+
+              Tabela Comparativa de Enquadramento: Simples Nacional × Lucro Presumido × Regime
+              Regular 2027+
             </h3>
           </div>
           <span className="text-xs text-slate-300 bg-slate-900 px-2.5 py-1 rounded border border-slate-700">
@@ -350,18 +417,21 @@ export const DiagnosticoRegimeTributario: React.FC = () => {
           <table className="w-full text-left text-xs border-collapse">
             <thead>
               <tr className="bg-slate-950 text-slate-300 border-b border-slate-700 uppercase tracking-wider text-[11px]">
-                <th className="p-3 w-1/4">Critério Comparativo</th>
-                <th className="p-3 w-1/4 bg-slate-900/90 border-l border-slate-800">
+                <th className="p-3 w-[22%]">Critério Comparativo</th>
+                <th className="p-3 w-[26%] bg-emerald-950/40 border-l border-emerald-900/60">
+                  <div className="font-bold text-emerald-300 flex items-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                    Simples Nacional
+                  </div>
+                  <div className="text-[10px] text-emerald-400/80 font-normal">
+                    Opção Cabível (Teto R$ 4,8 mi)
+                  </div>
+                </th>
+                <th className="p-3 w-[26%] bg-slate-900/90 border-l border-slate-800">
                   <div className="font-bold text-slate-200">Situação Atual</div>
                   <div className="text-[10px] text-slate-400 font-normal">Lucro Presumido</div>
                 </th>
-                <th className="p-3 w-1/4 bg-slate-800/60 border-l border-slate-700">
-                  <div className="font-bold text-blue-300">Alternativa Atual</div>
-                  <div className="text-[10px] text-slate-400 font-normal">
-                    Lucro Real (Imediato)
-                  </div>
-                </th>
-                <th className="p-3 w-1/4 bg-amber-950/40 border-l border-amber-900/60">
+                <th className="p-3 w-[26%] bg-amber-950/40 border-l border-amber-900/60">
                   <div className="font-bold text-amber-400 flex items-center gap-1.5">
                     <ShieldCheck className="w-4 h-4 text-amber-400" />
                     Reforma 2027+
@@ -383,15 +453,17 @@ export const DiagnosticoRegimeTributario: React.FC = () => {
                   <td className="p-3 font-semibold text-slate-200 border-r border-slate-800 bg-slate-950/20">
                     {linha.criterio}
                   </td>
+                  <td className="p-3 text-slate-300 border-r border-slate-800 bg-emerald-950/10">
+                    <p className="font-semibold text-emerald-200">{linha.simplesNacional.valor}</p>
+                    <p className="text-[11px] text-slate-300 mt-1">
+                      {linha.simplesNacional.detalhe}
+                    </p>
+                  </td>
                   <td className="p-3 text-slate-300 border-r border-slate-800">
                     <p className="font-semibold text-white">{linha.lucroPresumido.valor}</p>
                     <p className="text-[11px] text-slate-400 mt-1">
                       {linha.lucroPresumido.detalhe}
                     </p>
-                  </td>
-                  <td className="p-3 text-slate-300 border-r border-slate-800 bg-slate-800/20">
-                    <p className="font-semibold text-blue-200">{linha.lucroReal.valor}</p>
-                    <p className="text-[11px] text-slate-400 mt-1">{linha.lucroReal.detalhe}</p>
                   </td>
                   <td className="p-3 text-slate-200 bg-amber-950/20 border-l border-amber-900/30">
                     <p className="font-bold text-amber-300">{linha.reforma2027.valor}</p>
@@ -422,7 +494,7 @@ export const DiagnosticoRegimeTributario: React.FC = () => {
             <span className="text-[11px] text-emerald-300 uppercase font-semibold block">
               Economia Anual Estimada
             </span>
-            <span className="text-lg font-black text-emerald-400">~R$ 525.000 / ano</span>
+            <span className="text-lg font-black text-emerald-400">~R$ 96k a R$ 116k / ano</span>
           </div>
         </div>
 

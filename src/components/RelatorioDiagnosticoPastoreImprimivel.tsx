@@ -137,17 +137,17 @@ export const RelatorioDiagnosticoPastoreImprimivel: React.FC<
           </h2>
           <div className="grid grid-cols-4 gap-2 mb-3">
             <div className="border border-slate-200 p-2 rounded bg-slate-50 text-center">
-              <span className="text-[10px] text-slate-500 block">Receita Acumulada (7 meses)</span>
+              <span className="text-[10px] text-slate-500 block">Receita Real Acumulada</span>
               <span className="text-xs font-bold text-slate-900">
                 {brl(data.receitaTotalAcumulada)}
               </span>
             </div>
-            <div className="border border-slate-200 p-2 rounded bg-amber-50/60 text-center">
-              <span className="text-[10px] text-amber-900 font-medium block">
+            <div className="border border-slate-200 p-2 rounded bg-emerald-50/60 text-center">
+              <span className="text-[10px] text-emerald-900 font-medium block">
                 Projeção Anual (12m)
               </span>
-              <span className="text-xs font-bold text-amber-950">
-                {brl(data.receitaAnualizada)}
+              <span className="text-xs font-bold text-emerald-950">
+                {brl(data.receitaAnualizada)} (Teto Simples OK)
               </span>
             </div>
             <div className="border border-slate-200 p-2 rounded bg-slate-50 text-center">
@@ -161,41 +161,68 @@ export const RelatorioDiagnosticoPastoreImprimivel: React.FC<
                 Margem Retida no PL
               </span>
               <span className="text-xs font-bold text-emerald-950">
-                {data.margemRetidaLiquidaPct.toFixed(2)}% ({brl(data.variacaoPatrimonioLiquido)})
+                {data.margemRetidaLiquidaPct.toFixed(2)}% (+{brl(data.variacaoPatrimonioLiquido)})
               </span>
             </div>
           </div>
 
-          {/* Tabela dos 7 balancetes */}
+          {/* Nota Metodológica de Balancetes Cumulativos */}
+          <div className="bg-amber-50/80 border border-amber-300 rounded p-2 mb-2 text-[9px] text-amber-950 leading-relaxed">
+            <span className="font-bold uppercase tracking-wider block mb-0.5 text-amber-900">
+              Nota Metodológica — Balancetes Cumulativos "Até a Data":
+            </span>
+            {data.notaMetodologicaCumulativa}
+          </div>
+
+          {/* Tabela dos 7 balancetes com Detalhamento de Conversão */}
           <table className="w-full border-collapse border border-slate-200 text-[10px] mb-2">
             <thead>
               <tr className="bg-slate-100 text-slate-700">
                 <th className="border border-slate-200 p-1 text-left">Competência</th>
-                <th className="border border-slate-200 p-1 text-right">Receita Líquida (R$)</th>
-                <th className="border border-slate-200 p-1 text-right">Ativo Total (R$)</th>
+                <th className="border border-slate-200 p-1 text-right">Cumulativo Gravado (R$)</th>
+                <th className="border border-slate-200 p-1 text-right bg-emerald-50 text-emerald-950 font-bold">
+                  Líquido Mensal Real (R$)
+                </th>
                 <th className="border border-slate-200 p-1 text-right">Patrimônio Líquido (R$)</th>
                 <th className="border border-slate-200 p-1 text-left">Arquivo de Origem</th>
               </tr>
             </thead>
             <tbody>
-              {balancetes.map((b) => (
-                <tr key={b.id} className="hover:bg-slate-50">
-                  <td className="border border-slate-200 p-1 font-semibold">{b.mesRotulo}</td>
-                  <td className="border border-slate-200 p-1 text-right font-mono">
-                    {brl(b.receitaLiquida)}
+              {data.detalhamentoConversao.map((row, idx) => (
+                <tr key={idx} className="hover:bg-slate-50">
+                  <td className="border border-slate-200 p-1 font-semibold">{row.mesRotulo}</td>
+                  <td className="border border-slate-200 p-1 text-right font-mono text-slate-600">
+                    {brl(row.cumulativoGravado)}
+                  </td>
+                  <td className="border border-slate-200 p-1 text-right font-mono font-bold text-emerald-900 bg-emerald-50/40">
+                    {brl(row.liquidoMensalReal)}
                   </td>
                   <td className="border border-slate-200 p-1 text-right font-mono">
-                    {brl(b.totalAtivo)}
-                  </td>
-                  <td className="border border-slate-200 p-1 text-right font-mono">
-                    {brl(b.patrimonioLiquido)}
+                    {brl(row.patrimonioLiquido)}
                   </td>
                   <td className="border border-slate-200 p-1 text-slate-500 truncate max-w-[150px]">
-                    {b.arquivoNome}
+                    {row.arquivoNome}
                   </td>
                 </tr>
               ))}
             </tbody>
+            <tfoot>
+              <tr className="bg-slate-100 font-bold text-slate-900">
+                <td className="border border-slate-200 p-1">Acumulado / Variação</td>
+                <td className="border border-slate-200 p-1 text-right font-mono text-amber-900">
+                  {brl(data.receitaTotalAcumulada)} (Acum. Jul)
+                </td>
+                <td className="border border-slate-200 p-1 text-right font-mono text-emerald-950 bg-emerald-100/60">
+                  {brl(data.receitaTotalAcumulada)} (Total Real)
+                </td>
+                <td className="border border-slate-200 p-1 text-right font-mono">
+                  {brl(data.patrimonioLiquidoFinal)} (+{brl(data.variacaoPatrimonioLiquido)})
+                </td>
+                <td className="border border-slate-200 p-1 text-[9px] text-slate-500 font-normal">
+                  Sem duplicação indevida
+                </td>
+              </tr>
+            </tfoot>
           </table>
 
           <div className="text-[10px] text-slate-600 space-y-0.5">
@@ -222,7 +249,8 @@ export const RelatorioDiagnosticoPastoreImprimivel: React.FC<
         {/* TABELA COMPARATIVA DE REGIMES */}
         <div className="mb-4">
           <h2 className="text-xs font-bold uppercase tracking-wider text-slate-800 border-b border-slate-300 pb-1 mb-2">
-            2. Tabela Comparativa de Enquadramento Tributário: Atual × Reforma 2027+
+            2. Tabela Comparativa de Enquadramento Tributário: Simples Nacional × Lucro Presumido ×
+            Regime Regular 2027+
           </h2>
           <table className="w-full border-collapse border border-slate-300 text-[10px]">
             <thead>
@@ -230,11 +258,11 @@ export const RelatorioDiagnosticoPastoreImprimivel: React.FC<
                 <th className="border border-slate-300 p-1.5 text-left w-[22%]">
                   Critério Tributário
                 </th>
+                <th className="border border-slate-300 p-1.5 text-left w-[26%] bg-emerald-900 text-emerald-100 font-bold">
+                  Simples Nacional (Opção Cabível)
+                </th>
                 <th className="border border-slate-300 p-1.5 text-left w-[26%] bg-slate-800">
                   Situação Atual: Lucro Presumido
-                </th>
-                <th className="border border-slate-300 p-1.5 text-left w-[26%] bg-slate-700">
-                  Alternativa Atual: Lucro Real
                 </th>
                 <th className="border border-slate-300 p-1.5 text-left w-[26%] bg-amber-900 text-amber-200 font-bold">
                   Reforma 2027+: Regime Regular (IBS/CBS)
@@ -247,15 +275,17 @@ export const RelatorioDiagnosticoPastoreImprimivel: React.FC<
                   <td className="border border-slate-200 p-1.5 font-bold text-slate-900 bg-slate-100/50">
                     {linha.criterio}
                   </td>
+                  <td className="border border-slate-200 p-1.5 align-top bg-emerald-50/30">
+                    <p className="font-semibold text-emerald-950">{linha.simplesNacional.valor}</p>
+                    <p className="text-[9px] text-slate-700 mt-0.5">
+                      {linha.simplesNacional.detalhe}
+                    </p>
+                  </td>
                   <td className="border border-slate-200 p-1.5 align-top">
                     <p className="font-semibold text-slate-900">{linha.lucroPresumido.valor}</p>
                     <p className="text-[9px] text-slate-600 mt-0.5">
                       {linha.lucroPresumido.detalhe}
                     </p>
-                  </td>
-                  <td className="border border-slate-200 p-1.5 align-top">
-                    <p className="font-semibold text-slate-900">{linha.lucroReal.valor}</p>
-                    <p className="text-[9px] text-slate-600 mt-0.5">{linha.lucroReal.detalhe}</p>
                   </td>
                   <td className="border border-slate-200 p-1.5 align-top bg-amber-50/40">
                     <p className="font-bold text-amber-950">{linha.reforma2027.valor}</p>
@@ -270,9 +300,9 @@ export const RelatorioDiagnosticoPastoreImprimivel: React.FC<
         {/* Parecer Técnico e Recomendação Final */}
         <div className="bg-amber-50/70 border border-amber-300 rounded p-3 mb-4">
           <h3 className="text-xs font-black text-amber-950 uppercase tracking-tight mb-1 flex items-center justify-between">
-            <span>3. Recomendação Estratégica Oficial ADECONT para 2027+</span>
-            <span className="text-[10px] bg-amber-200 text-amber-900 px-2 py-0.5 rounded font-bold">
-              Regime Regular Recomendado
+            <span>3. Parecer Técnico e Recomendação Estratégica Oficial ADECONT</span>
+            <span className="text-[10px] bg-emerald-200 text-emerald-950 px-2 py-0.5 rounded font-bold">
+              Simples Nacional Cabível & Rota 2027+
             </span>
           </h3>
           <p className="text-[10px] text-slate-800 leading-relaxed font-medium mb-2">
