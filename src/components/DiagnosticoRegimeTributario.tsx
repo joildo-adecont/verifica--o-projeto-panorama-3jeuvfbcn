@@ -1,6 +1,9 @@
 import React, { useEffect, useState, useMemo } from 'react'
 import {
   carregarDiagnosticoClientePastore,
+  salvarDadosFolhaEEnquadramentoPastore,
+  calcularComparativoCustoFolha,
+  parseCnaesSecundarios,
   type DiagnosticoClienteData,
   CNPJ_PASTORE_FORMATADO,
 } from '@/services/diagnosticoPastore'
@@ -28,6 +31,11 @@ import {
   Briefcase,
   ThumbsUp,
   ThumbsDown,
+  Users,
+  Edit3,
+  Save,
+  Check,
+  X,
 } from 'lucide-react'
 
 export const DiagnosticoRegimeTributario: React.FC = () => {
@@ -36,16 +44,101 @@ export const DiagnosticoRegimeTributario: React.FC = () => {
   const [erro, setErro] = useState<string | null>(null)
   const [mostrarImprimivel, setMostrarImprimivel] = useState<boolean>(false)
 
+  // Estados de edição dos novos blocos (Enquadramento e Folha)
+  const [modoEdicao, setModoEdicao] = useState<boolean>(false)
+  const [salvandoEdicao, setSalvandoEdicao] = useState<boolean>(false)
+  const [mensagemSalvo, setMensagemSalvo] = useState<string | null>(null)
+
+  // Form states
+  const [editEnquadramento, setEditEnquadramento] = useState<string>('Simples Nacional')
+  const [editCnaesSecundarios, setEditCnaesSecundarios] = useState<string>('')
+  const [editNumFuncionarios, setEditNumFuncionarios] = useState<number>(9)
+  const [editFolhaMensal, setEditFolhaMensal] = useState<number>(31850)
+  const [editEncargosMensais, setEditEncargosMensais] = useState<number>(5730)
+
   const carregar = async () => {
     setCarregando(true)
     setErro(null)
     try {
       const res = await carregarDiagnosticoClientePastore()
       setData(res)
+      setEditEnquadramento(res.enquadramentoTributarioAtual || 'Simples Nacional')
+      setEditCnaesSecundarios(
+        res.empresa?.cnaes_secundarios ||
+          res.cnaesSecundariosLista.map((c) => `${c.codigo} - ${c.descricao}`).join('; '),
+      )
+      setEditNumFuncionarios(res.folhaPagamento.numFuncionarios || 9)
+      setEditFolhaMensal(res.folhaPagamento.folhaSalarialMensal || 31850)
+      setEditEncargosMensais(res.folhaPagamento.encargosMensais || 5730)
     } catch (e: any) {
       setErro(e?.message || 'Falha ao carregar dados do diagnóstico.')
     } finally {
       setCarregando(false)
+    }
+  }
+
+  const salvarEdicao = async () => {
+    setSalvandoEdicao(true)
+    setMensagemSalvo(null)
+    try {
+      const resp = await salvarDadosFolhaEEnquadramentoPastore({
+        enquadramento_tributario: editEnquadramento,
+        cnaes_secundarios: editCnaesSecundarios,
+        num_funcionarios: Number(editNumFuncionarios) || 0,
+        folha_salarial_mensal: Number(editFolhaMensal) || 0,
+        encargos_mensais: Number(editEncargosMensais) || 0,
+      })
+
+      if (resp.sucesso) {
+        setMensagemSalvo('Dados salvos no cadastro da Pastore com sucesso!')
+        setModoEdicao(false)
+
+        // Recalcular estado em memória imediatamente
+        if (data) {
+          const cnaesParsed = parseCnaesSecundarios(editCnaesSecundarios)
+          const novaFolha = {
+            ...data.folhaPagamento,
+            numFuncionarios: Number(editNumFuncionarios) || 9,
+            folhaSalarialMensal: Number(editFolhaMensal) || 31850,
+            encargosMensais: Number(editEncargosMensais) || 5730,
+            custoTotalMensal:
+              (Number(editFolhaMensal) || 31850) + (Number(editEncargosMensais) || 5730),
+            folhaSalarialAnual: (Number(editFolhaMensal) || 31850) * 13.33,
+            encargosAnuais: (Number(editEncargosMensais) || 5730) * 12,
+            custoTotalAnual:
+              (Number(editFolhaMensal) || 31850) * 13.33 +
+              (Number(editEncargosMensais) || 5730) * 12,
+            origemDados: 'cadastro' as const,
+            detalheOrigem: 'Atualizado pelo usuário no cadastro de clientes.',
+          }
+          const novoComparativo = calcularComparativoCustoFolha(novaFolha)
+
+          setData({
+            ...data,
+            enquadramentoTributarioAtual: editEnquadramento,
+            cnaesSecundariosLista: cnaesParsed,
+            folhaPagamento: novaFolha,
+            comparativoCustoFolha: novoComparativo,
+            empresa: data.empresa
+              ? {
+                  ...data.empresa,
+                  enquadramento_tributario: editEnquadramento,
+                  cnaes_secundarios: editCnaesSecundarios,
+                  num_funcionarios: Number(editNumFuncionarios),
+                  folha_salarial_mensal: Number(editFolhaMensal),
+                  encargos_mensais: Number(editEncargosMensais),
+                }
+              : null,
+          })
+        }
+      } else {
+        setMensagemSalvo(`Aviso: ${resp.mensagem}`)
+      }
+    } catch (err: any) {
+      setMensagemSalvo(`Erro: ${err?.message || 'Falha ao salvar'}`)
+    } finally {
+      setSalvandoEdicao(false)
+      setTimeout(() => setMensagemSalvo(null), 4000)
     }
   }
 
@@ -97,6 +190,10 @@ export const DiagnosticoRegimeTributario: React.FC = () => {
 
   const {
     empresa,
+    cnaesSecundariosLista,
+    enquadramentoTributarioAtual,
+    folhaPagamento,
+    comparativoCustoFolha,
     balancetes,
     recomendacao,
     linhasComparativo,
@@ -128,6 +225,11 @@ export const DiagnosticoRegimeTributario: React.FC = () => {
               <span className="text-xs text-slate-400">
                 Dados ao vivo do PocketBase (Jan–Jul/2026)
               </span>
+              {mensagemSalvo && (
+                <span className="text-xs font-semibold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 animate-pulse">
+                  {mensagemSalvo}
+                </span>
+              )}
             </div>
             <h2 className="text-xl md:text-2xl font-black text-white tracking-tight flex items-center gap-2">
               <Building2 className="w-6 h-6 text-amber-500 flex-shrink-0" />
@@ -138,10 +240,11 @@ export const DiagnosticoRegimeTributario: React.FC = () => {
                 CNPJ {empresa?.numero_documento || CNPJ_PASTORE_FORMATADO}
               </span>
               <span>·</span>
-              <span>
-                CNAE {empresa?.cnae || '4520-0/01'} (
-                {empresa?.ramo_atividade || 'Manutenção Mecânica'})
+              <span className="text-amber-400 font-semibold">
+                Enquadramento: {enquadramentoTributarioAtual || 'Simples Nacional (EPP)'}
               </span>
+              <span>·</span>
+              <span>CNAE Principal: {empresa?.cnae || '4520-0/01'}</span>
               <span>·</span>
               <span>
                 {empresa?.municipio || 'Vacaria'}/{empresa?.uf || 'RS'}
@@ -154,6 +257,18 @@ export const DiagnosticoRegimeTributario: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-3 flex-shrink-0">
+            <button
+              onClick={() => setModoEdicao(!modoEdicao)}
+              className={`flex items-center gap-2 px-3.5 py-2.5 rounded-lg font-semibold text-xs transition-all border ${
+                modoEdicao
+                  ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-md'
+                  : 'bg-slate-800 text-amber-300 border-amber-500/40 hover:bg-slate-700'
+              }`}
+              title="Editar enquadramento, CNAEs secundários e folha de pagamento da Pastore"
+            >
+              <Edit3 className="w-4 h-4" />
+              {modoEdicao ? 'Fechar Edição' : 'Editar Cadastro / Folha'}
+            </button>
             <button
               onClick={() => setMostrarImprimivel(true)}
               className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-bold rounded-lg shadow-md transition-all text-sm"
@@ -169,6 +284,478 @@ export const DiagnosticoRegimeTributario: React.FC = () => {
             >
               <RefreshCw className="w-4 h-4" />
             </button>
+          </div>
+        </div>
+      </div>
+
+      {/* PAINEL DE EDIÇÃO EM TEMPO REAL (QUANDO ATIVADO) */}
+      {modoEdicao && (
+        <div className="bg-slate-900 border-2 border-amber-500/60 rounded-xl p-5 shadow-2xl space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+            <div className="flex items-center gap-2">
+              <Edit3 className="w-5 h-5 text-amber-400" />
+              <h3 className="text-base font-bold text-white">
+                Editar Dados do Cadastro & Folha de Pagamento — Cliente Pastore
+              </h3>
+            </div>
+            <button
+              onClick={() => setModoEdicao(false)}
+              className="text-slate-400 hover:text-white p-1"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+            <div>
+              <label className="block text-slate-300 font-semibold mb-1">
+                Enquadramento Tributário Atual
+              </label>
+              <select
+                value={editEnquadramento}
+                onChange={(e) => setEditEnquadramento(e.target.value)}
+                className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white font-medium focus:border-amber-500 outline-none"
+              >
+                <option value="Simples Nacional">Simples Nacional (Anexo III)</option>
+                <option value="Simples Nacional - EPP">Simples Nacional - EPP</option>
+                <option value="Lucro Presumido">Lucro Presumido</option>
+                <option value="Lucro Real">Lucro Real</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-slate-300 font-semibold mb-1">
+                Número de Funcionários
+              </label>
+              <input
+                type="number"
+                min="0"
+                value={editNumFuncionarios}
+                onChange={(e) => setEditNumFuncionarios(Number(e.target.value))}
+                className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white font-mono focus:border-amber-500 outline-none"
+                placeholder="Ex: 9"
+              />
+            </div>
+
+            <div>
+              <label className="block text-slate-300 font-semibold mb-1">
+                Folha Salarial Mensal (R$)
+              </label>
+              <input
+                type="number"
+                step="100"
+                min="0"
+                value={editFolhaMensal}
+                onChange={(e) => setEditFolhaMensal(Number(e.target.value))}
+                className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white font-mono focus:border-amber-500 outline-none"
+                placeholder="Ex: 31850"
+              />
+              <span className="text-[10px] text-slate-400 mt-1 block">
+                Salários, ordenados e pró-labore base
+              </span>
+            </div>
+
+            <div className="md:col-span-1">
+              <label className="block text-slate-300 font-semibold mb-1">
+                Encargos Mensais (R$)
+              </label>
+              <input
+                type="number"
+                step="50"
+                min="0"
+                value={editEncargosMensais}
+                onChange={(e) => setEditEncargosMensais(Number(e.target.value))}
+                className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white font-mono focus:border-amber-500 outline-none"
+                placeholder="Ex: 5730"
+              />
+              <span className="text-[10px] text-slate-400 mt-1 block">
+                FGTS (8%), provisões férias/13º, benefícios
+              </span>
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="block text-slate-300 font-semibold mb-1">
+                CNAEs Secundários (código e descrição, separados por ponto e vírgula)
+              </label>
+              <input
+                type="text"
+                value={editCnaesSecundarios}
+                onChange={(e) => setEditCnaesSecundarios(e.target.value)}
+                className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white focus:border-amber-500 outline-none font-mono text-xs"
+                placeholder="4530-7/03 - Comércio a varejo de autopeças; 4520-0/02 - Serviços de lanternagem"
+              />
+              <span className="text-[10px] text-slate-400 mt-1 block">
+                Gravado no cadastro_empresas para auditoria tributária contínua
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-end gap-3 pt-2">
+            <button
+              onClick={() => setModoEdicao(false)}
+              className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-semibold"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={salvarEdicao}
+              disabled={salvandoEdicao}
+              className="px-5 py-2 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-slate-950 font-bold rounded-lg text-xs flex items-center gap-2 shadow"
+            >
+              {salvandoEdicao ? (
+                <RefreshCw className="w-4 h-4 animate-spin" />
+              ) : (
+                <Save className="w-4 h-4" />
+              )}
+              {salvandoEdicao ? 'Gravando no Banco...' : 'Gravar Alterações no Cadastro'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* BLOCO DE ENQUADRAMENTO TRIBUTÁRIO & CNAES DO CADASTRO (DESTAQUE NO TOPO) */}
+      <div className="bg-slate-900/90 border border-slate-700 rounded-xl p-5 shadow-lg space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-800">
+          <div className="flex items-center gap-2.5">
+            <Briefcase className="w-5 h-5 text-amber-400 flex-shrink-0" />
+            <div>
+              <h3 className="text-base font-bold text-white flex items-center gap-2">
+                Enquadramento Tributário & Atividades Econômicas Cadastradas
+              </h3>
+              <p className="text-xs text-slate-400">
+                Informações extraídas diretamente do cadastro do cliente (cadastro_empresas) no
+                banco de dados ADECONT
+              </p>
+            </div>
+          </div>
+          <span className="text-xs px-2.5 py-1 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 font-semibold self-start sm:self-auto">
+            Regime Atual: {enquadramentoTributarioAtual}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Enquadramento e Porte */}
+          <div className="bg-slate-950/60 border border-slate-800 rounded-lg p-3.5 space-y-2">
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+              Regime Tributário Atual
+            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-black text-emerald-400">
+                {enquadramentoTributarioAtual}
+              </span>
+              <span className="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded font-mono">
+                Porte: {empresa?.porte || 'EPP'}
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-400 leading-relaxed">
+              Tributação simplificada pela LC 123/2006. Tributos federais, ICMS e ISS unificados no
+              DAS, com CPP (INSS patronal) embutida na alíquota única.
+            </p>
+          </div>
+
+          {/* Atividade Principal */}
+          <div className="bg-slate-950/60 border border-slate-800 rounded-lg p-3.5 space-y-2">
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+              Atividade Econômica Principal
+            </span>
+            <div>
+              <span className="text-xs font-mono font-bold text-amber-400 bg-amber-950/50 border border-amber-800/40 px-2 py-0.5 rounded inline-block mb-1">
+                CNAE {empresa?.cnae || '4520-0/01'}
+              </span>
+              <p className="text-xs font-semibold text-white">
+                {empresa?.ramo_atividade ||
+                  'Serviços de manutenção e reparação mecânica de veículos automotores'}
+              </p>
+            </div>
+            <p className="text-[11px] text-slate-400 leading-relaxed">
+              Incidência predominante de ISS e serviços automotivos. Sujeito ao Anexo III do Simples
+              Nacional.
+            </p>
+          </div>
+
+          {/* Atividades Secundárias */}
+          <div className="bg-slate-950/60 border border-slate-800 rounded-lg p-3.5 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+                Atividades Econômicas Secundárias
+              </span>
+              <span className="text-[10px] text-slate-500 font-mono">
+                {cnaesSecundariosLista.length} cadastrada(s)
+              </span>
+            </div>
+            <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+              {cnaesSecundariosLista.map((cnae, idx) => (
+                <div
+                  key={idx}
+                  className="bg-slate-900 border border-slate-800/80 p-1.5 rounded text-[11px]"
+                >
+                  <span className="font-mono font-bold text-amber-300 block text-[10px]">
+                    {cnae.codigo}
+                  </span>
+                  <span className="text-slate-300 leading-tight block">{cnae.descricao}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* BLOCO DE FOLHA DE PAGAMENTO & RECURSOS HUMANOS */}
+      <div className="bg-slate-900/90 border border-slate-700 rounded-xl p-5 shadow-lg space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-800">
+          <div className="flex items-center gap-2.5">
+            <Users className="w-5 h-5 text-indigo-400 flex-shrink-0" />
+            <div>
+              <h3 className="text-base font-bold text-white flex items-center gap-2">
+                Folha de Pagamento & Encargos Sociais
+              </h3>
+              <p className="text-xs text-slate-400">
+                Parâmetros apurados no balancete analítico e cadastro (
+                {folhaPagamento.detalheOrigem})
+              </p>
+            </div>
+          </div>
+          <span className="text-xs px-2.5 py-1 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-semibold self-start sm:self-auto">
+            Fonte: {folhaPagamento.origemDados.toUpperCase()}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+          {/* Quadro de Funcionários */}
+          <div className="bg-slate-950/60 border border-slate-800 rounded-lg p-3.5">
+            <div className="flex items-center justify-between text-slate-400 text-xs mb-1">
+              <span className="font-semibold uppercase tracking-wider">Quadro de Pessoal</span>
+              <Users className="w-4 h-4 text-indigo-400" />
+            </div>
+            <div className="text-2xl font-black text-white">
+              {folhaPagamento.numFuncionarios}{' '}
+              <span className="text-xs font-normal text-slate-400">colaboradores</span>
+            </div>
+            <p className="text-[11px] text-slate-400 mt-1">
+              Mecânicos especializados, eletricistas, atendimento e gestão de oficina.
+            </p>
+          </div>
+
+          {/* Folha Salarial Mensal */}
+          <div className="bg-slate-950/60 border border-slate-800 rounded-lg p-3.5">
+            <div className="flex items-center justify-between text-slate-400 text-xs mb-1">
+              <span className="font-semibold uppercase tracking-wider">Folha Salarial Mensal</span>
+              <DollarSign className="w-4 h-4 text-emerald-400" />
+            </div>
+            <div className="text-2xl font-black text-emerald-400">
+              {brl(folhaPagamento.folhaSalarialMensal)}
+            </div>
+            <p className="text-[11px] text-slate-400 mt-1">
+              Projeção anual (13,33 salários):{' '}
+              <strong className="text-slate-200">{brl(folhaPagamento.folhaSalarialAnual)}</strong>
+            </p>
+          </div>
+
+          {/* Encargos e FGTS Mensal */}
+          <div className="bg-slate-950/60 border border-slate-800 rounded-lg p-3.5">
+            <div className="flex items-center justify-between text-slate-400 text-xs mb-1">
+              <span className="font-semibold uppercase tracking-wider">
+                Encargos Sociais Mensais
+              </span>
+              <Percent className="w-4 h-4 text-amber-400" />
+            </div>
+            <div className="text-2xl font-black text-amber-400">
+              {brl(folhaPagamento.encargosMensais)}
+            </div>
+            <p className="text-[11px] text-slate-400 mt-1">
+              FGTS (8%), provisão de férias e 13º. Anual:{' '}
+              <strong className="text-slate-200">{brl(folhaPagamento.encargosAnuais)}</strong>
+            </p>
+          </div>
+
+          {/* Custo Total Mensal */}
+          <div className="bg-slate-950/60 border border-slate-800 rounded-lg p-3.5">
+            <div className="flex items-center justify-between text-slate-400 text-xs mb-1">
+              <span className="font-semibold uppercase tracking-wider">
+                Custo Total de Folha (Mês)
+              </span>
+              <Receipt className="w-4 h-4 text-sky-400" />
+            </div>
+            <div className="text-2xl font-black text-sky-400">
+              {brl(folhaPagamento.custoTotalMensal)}
+            </div>
+            <p className="text-[11px] text-slate-400 mt-1">
+              Custo anual consolidado:{' '}
+              <strong className="text-sky-300">{brl(folhaPagamento.custoTotalAnual)}</strong>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* BLOCO DE COMPARATIVO DE CUSTO DE FOLHA POR REGIME (REAL vs PRESUMIDO vs SIMPLES) */}
+      <div className="bg-slate-900 border border-slate-700 rounded-xl overflow-hidden shadow-xl space-y-0">
+        <div className="p-4 bg-slate-800/90 border-b border-slate-700 flex flex-col md:flex-row md:items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <Scale className="w-5 h-5 text-indigo-400 flex-shrink-0" />
+            <div>
+              <h3 className="font-bold text-white text-base">
+                Comparativo do Custo de Folha e Encargos Previdenciários por Regime
+              </h3>
+              <p className="text-xs text-slate-400">
+                Análise do impacto da Contribuição Previdenciária Patronal (CPP) e dedutibilidade em
+                Lucro Real × Lucro Presumido
+              </p>
+            </div>
+          </div>
+          <span className="text-xs text-amber-300 bg-amber-950/60 border border-amber-800/50 px-2.5 py-1 rounded">
+            Diferença Real × Presumido:{' '}
+            <strong className="text-emerald-400">
+              Economia de {brl(comparativoCustoFolha.diferencaRealVsPresumidoBrl)}/ano
+            </strong>
+          </span>
+        </div>
+
+        <div className="p-4 bg-indigo-950/20 border-b border-indigo-900/40 text-xs text-indigo-200/90 leading-relaxed">
+          <div className="flex items-start gap-2">
+            <Info className="w-4 h-4 text-indigo-400 flex-shrink-0 mt-0.5" />
+            <div>
+              <strong>Destaque Regulamentar — Simples Nacional e Simples Híbrido:</strong>{' '}
+              {comparativoCustoFolha.notaSimplesSemDestaque}
+            </div>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr className="bg-slate-950 text-slate-300 border-b border-slate-700 uppercase tracking-wider text-[11px]">
+                <th className="p-3 w-[24%]">Regime Tributário</th>
+                <th className="p-3 text-center w-[12%]">CPP Destacada?</th>
+                <th className="p-3 text-right w-[16%]">INSS Patronal (Ano)</th>
+                <th className="p-3 text-right w-[16%]">Custo Bruto Folha</th>
+                <th className="p-3 text-right w-[16%]">Dedutibilidade IRPJ/CSLL</th>
+                <th className="p-3 text-right w-[16%]">Custo Líquido Anual</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-800">
+              {comparativoCustoFolha.regimes.map((r) => {
+                const isSimples = r.regimeId === 'simples' || r.regimeId === 'simples_hibrido'
+                const isReal = r.regimeId === 'lucro_real_puro'
+                const isPresumido = r.regimeId === 'lucro_presumido'
+
+                return (
+                  <tr
+                    key={r.regimeId}
+                    className={`transition-colors ${
+                      isReal
+                        ? 'bg-emerald-950/20 hover:bg-emerald-950/30'
+                        : isPresumido
+                          ? 'bg-rose-950/20 hover:bg-rose-950/30'
+                          : isSimples
+                            ? 'bg-slate-900/60 hover:bg-slate-800/40'
+                            : 'bg-slate-900/40'
+                    }`}
+                  >
+                    <td className="p-3 border-r border-slate-800 font-semibold text-white">
+                      <div className="flex items-center gap-2">
+                        <span>{r.nomeRegime}</span>
+                        {isSimples && (
+                          <span className="text-[10px] bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded font-mono">
+                            DAS Unificado
+                          </span>
+                        )}
+                        {isReal && (
+                          <span className="text-[10px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded font-mono">
+                            Dedutível
+                          </span>
+                        )}
+                        {isPresumido && (
+                          <span className="text-[10px] bg-rose-500/20 text-rose-300 px-1.5 py-0.5 rounded font-mono">
+                            Custo Puro (+20%)
+                          </span>
+                        )}
+                      </div>
+                    </td>
+
+                    <td className="p-3 text-center border-r border-slate-800 font-mono">
+                      {r.temCppSeparada ? (
+                        <span className="text-rose-400 font-bold">Sim (20%)</span>
+                      ) : (
+                        <span className="text-slate-400">Não (Embutido)</span>
+                      )}
+                    </td>
+
+                    <td className="p-3 text-right font-mono border-r border-slate-800">
+                      {r.encargoPrevidenciarioPatronalAnual > 0 ? (
+                        <span className="font-bold text-rose-300">
+                          {brl(r.encargoPrevidenciarioPatronalAnual)}
+                        </span>
+                      ) : (
+                        <span className="text-slate-400 italic">R$ 0,00</span>
+                      )}
+                    </td>
+
+                    <td className="p-3 text-right font-mono text-slate-200 border-r border-slate-800 font-medium">
+                      {brl(r.custoFolhaBrutoAnual)}
+                    </td>
+
+                    <td className="p-3 text-right font-mono border-r border-slate-800">
+                      {r.economiaFiscalIrpjCsllAnual > 0 ? (
+                        <span className="text-emerald-400 font-bold">
+                          - {brl(r.economiaFiscalIrpjCsllAnual)} (24%)
+                        </span>
+                      ) : (
+                        <span className="text-slate-400 italic">R$ 0,00 (Sem efeito)</span>
+                      )}
+                    </td>
+
+                    <td className="p-3 text-right font-mono font-bold text-white">
+                      <span
+                        className={
+                          isReal
+                            ? 'text-emerald-400'
+                            : isPresumido
+                              ? 'text-rose-300'
+                              : 'text-slate-200'
+                        }
+                      >
+                        {brl(r.custoFolhaLiquidoAnual)}
+                      </span>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="p-4 bg-slate-950/70 border-t border-slate-800 text-xs text-slate-300 space-y-2">
+          <div className="flex items-center gap-2 font-bold text-amber-400">
+            <Scale className="w-4 h-4" /> Veredito Técnico ADECONT sobre o Custo de Pessoal nos
+            Regimes:
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-[11px] leading-relaxed">
+            <div className="bg-slate-900/80 border border-slate-800 p-2.5 rounded">
+              <strong className="text-rose-300 block mb-1">
+                Lucro Presumido — Desvantagem Crítica na Folha:
+              </strong>
+              No Lucro Presumido, a Pastore recolheria 20% de CPP patronal (
+              {brl(
+                comparativoCustoFolha.regimes.find((r) => r.regimeId === 'lucro_presumido')
+                  ?.encargoPrevidenciarioPatronalAnual || 0,
+              )}
+              /ano) sem direito de abater a despesa de folha da base de cálculo do IRPJ e da CSLL,
+              pois o imposto é calculado sobre uma receita presumida de 32% (serviços) / 8% (peças).
+            </div>
+            <div className="bg-slate-900/80 border border-slate-800 p-2.5 rounded">
+              <strong className="text-emerald-300 block mb-1">
+                Lucro Real — Efeito Protetivo da Dedutibilidade:
+              </strong>
+              No Lucro Real, embora haja os mesmos 20% de CPP, todo o gasto de salários, FGTS e
+              encargos patronais (
+              {brl(
+                comparativoCustoFolha.regimes.find((r) => r.regimeId === 'lucro_real_puro')
+                  ?.custoFolhaBrutoAnual || 0,
+              )}
+              ) é despesa operacional 100% dedutível, gerando economia fiscal de 24% (15% IRPJ + 9%
+              CSLL), o que reduz o custo líquido anual em{' '}
+              {brl(comparativoCustoFolha.diferencaRealVsPresumidoBrl)} vs o Lucro Presumido.
+            </div>
           </div>
         </div>
       </div>

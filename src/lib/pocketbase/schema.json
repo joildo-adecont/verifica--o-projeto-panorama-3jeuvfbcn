@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-07T17:08:17.412Z",
+  "generatedAt": "2026-11-07T17:29:14.753Z",
   "collections": [
     {
       "name": "users",
@@ -4148,6 +4148,36 @@
         {
           "name": "duracao_contrato",
           "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "enquadramento_tributario",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "cnaes_secundarios",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "num_funcionarios",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "folha_salarial_mensal",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "encargos_mensais",
+          "type": "number",
           "required": false,
           "system": false
         }

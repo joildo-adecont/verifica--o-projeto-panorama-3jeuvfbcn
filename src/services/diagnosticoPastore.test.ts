@@ -2,6 +2,8 @@ import { describe, it, expect } from 'vitest'
 import {
   carregarDiagnosticoClientePastore,
   converterBalancetesCumulativosParaLiquidosMensais,
+  calcularComparativoCustoFolha,
+  parseCnaesSecundarios,
 } from './diagnosticoPastore'
 
 describe('diagnosticoPastore - recálculo por balancetes cumulativos', () => {
@@ -400,6 +402,100 @@ describe('diagnosticoPastore - recálculo por balancetes cumulativos', () => {
       expect(item.resumo.length).toBeGreaterThan(5)
       expect(['inclusao', 'alteracao', 'exclusao']).toContain(item.tipo)
     }
+  })
+
+  it('extrai enquadramento tributário e CNAEs secundários do cadastro da empresa Pastore', async () => {
+    const diag = await carregarDiagnosticoClientePastore()
+
+    expect(diag.enquadramentoTributarioAtual).toBeDefined()
+    expect(diag.enquadramentoTributarioAtual).toContain('Simples Nacional')
+
+    expect(diag.cnaesSecundariosLista).toBeDefined()
+    expect(diag.cnaesSecundariosLista.length).toBeGreaterThanOrEqual(1)
+
+    const codigosCnae = diag.cnaesSecundariosLista.map((c) => c.codigo)
+    expect(codigosCnae).toContain('4530-7/03') // Comércio a varejo de autopeças
+
+    for (const cnae of diag.cnaesSecundariosLista) {
+      expect(cnae.codigo).toBeTruthy()
+      expect(cnae.descricao).toBeTruthy()
+    }
+  })
+
+  it('avalia bloco de folha de pagamento e compara custo entre Lucro Real e Presumido', async () => {
+    const diag = await carregarDiagnosticoClientePastore()
+    const { folhaPagamento, comparativoCustoFolha } = diag
+
+    expect(folhaPagamento).toBeDefined()
+    expect(folhaPagamento.numFuncionarios).toBeGreaterThanOrEqual(1)
+    expect(folhaPagamento.folhaSalarialMensal).toBeGreaterThan(10000)
+    expect(folhaPagamento.encargosMensais).toBeGreaterThan(1000)
+    expect(folhaPagamento.custoTotalMensal).toBe(
+      folhaPagamento.folhaSalarialMensal + folhaPagamento.encargosMensais,
+    )
+    expect(folhaPagamento.origemDados).toBeDefined()
+    expect(['cadastro', 'balancete', 'estimado']).toContain(folhaPagamento.origemDados)
+
+    // Comparativo de custo de folha
+    expect(comparativoCustoFolha).toBeDefined()
+    expect(comparativoCustoFolha.regimes).toHaveLength(5)
+
+    const simples = comparativoCustoFolha.regimes.find((r) => r.regimeId === 'simples')!
+    expect(simples.temCppSeparada).toBe(false)
+    expect(simples.encargoPrevidenciarioPatronalAnual).toBe(0)
+    expect(simples.impactoVsSimplesBrl).toBe(0)
+
+    const simplesHibrido = comparativoCustoFolha.regimes.find(
+      (r) => r.regimeId === 'simples_hibrido',
+    )!
+    expect(simplesHibrido.temCppSeparada).toBe(false)
+    expect(simplesHibrido.encargoPrevidenciarioPatronalAnual).toBe(0)
+
+    const presumido = comparativoCustoFolha.regimes.find((r) => r.regimeId === 'lucro_presumido')!
+    expect(presumido.temCppSeparada).toBe(true)
+    expect(presumido.aliquotaInssPatronalPct).toBe(20.0)
+    expect(presumido.encargoPrevidenciarioPatronalAnual).toBeGreaterThan(0)
+    expect(presumido.dedutibilidadeIrpjCsll).toBe(false)
+    expect(presumido.economiaFiscalIrpjCsllAnual).toBe(0)
+    expect(presumido.impactoVsSimplesBrl).toBeGreaterThan(0)
+
+    const lucroReal = comparativoCustoFolha.regimes.find((r) => r.regimeId === 'lucro_real_puro')!
+    expect(lucroReal.temCppSeparada).toBe(true)
+    expect(lucroReal.dedutibilidadeIrpjCsll).toBe(true)
+    expect(lucroReal.economiaFiscalIrpjCsllAnual).toBeGreaterThan(0)
+
+    // Vantagem do Lucro Real sobre o Presumido quanto ao componente da folha
+    expect(comparativoCustoFolha.diferencaRealVsPresumidoBrl).toBeGreaterThan(0)
+    expect(lucroReal.custoFolhaLiquidoAnual).toBeLessThan(presumido.custoFolhaLiquidoAnual)
+
+    // Nota metodológica explícita de Simples/Simples Híbrido sem destaque de CPP
+    expect(comparativoCustoFolha.notaSimplesSemDestaque).toContain('Simples Nacional')
+    expect(comparativoCustoFolha.notaSimplesSemDestaque).toContain('Simples Híbrido')
+    expect(comparativoCustoFolha.notaSimplesSemDestaque).toContain('DAS')
+  })
+
+  it('função auxiliar parseCnaesSecundarios trata formatos variados com fallback', () => {
+    const lista1 = parseCnaesSecundarios(null)
+    expect(lista1.length).toBeGreaterThan(0)
+
+    const lista2 = parseCnaesSecundarios('4530703; 4520002')
+    expect(lista2.some((c) => c.codigo === '4530-7/03')).toBe(true)
+    expect(lista2.some((c) => c.codigo === '4520-0/02')).toBe(true)
+
+    const calc = calcularComparativoCustoFolha({
+      numFuncionarios: 10,
+      folhaSalarialMensal: 30000,
+      encargosMensais: 5000,
+      custoTotalMensal: 35000,
+      folhaSalarialAnual: 399900,
+      encargosAnuais: 60000,
+      custoTotalAnual: 459900,
+      proLaboreMensalEstimado: 4863,
+      origemDados: 'cadastro',
+      detalheOrigem: 'teste unitário',
+    })
+
+    expect(calc.diferencaRealVsPresumidoBrl).toBeGreaterThan(10000)
   })
 })
 

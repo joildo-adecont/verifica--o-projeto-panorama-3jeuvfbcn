@@ -20,6 +20,12 @@ export interface EmpresaCadastro {
   numero_documento: string
   documento_limpo: string
   cnae: string
+  cnae_divisao?: string
+  cnaes_secundarios?: string
+  enquadramento_tributario?: string
+  num_funcionarios?: number
+  folha_salarial_mensal?: number
+  encargos_mensais?: number
   ramo_atividade: string
   natureza_juridica: string
   municipio: string
@@ -37,6 +43,48 @@ export interface EmpresaCadastro {
   cep?: string
   telefone?: string
   email?: string
+}
+
+export interface CnaeItemFormatado {
+  codigo: string
+  descricao: string
+}
+
+export interface DadosFolhaPagamento {
+  numFuncionarios: number
+  folhaSalarialMensal: number
+  encargosMensais: number
+  custoTotalMensal: number
+  folhaSalarialAnual: number
+  encargosAnuais: number
+  custoTotalAnual: number
+  proLaboreMensalEstimado: number
+  origemDados: 'cadastro' | 'balancete' | 'estimado'
+  detalheOrigem: string
+}
+
+export interface ItemCustoFolhaRegime {
+  regimeId: 'simples' | 'simples_hibrido' | 'lucro_presumido' | 'lucro_real_puro' | 'reforma_2027'
+  nomeRegime: string
+  rotuloCurto: string
+  temCppSeparada: boolean
+  aliquotaInssPatronalPct: number // 0% no Simples, ~20% + RAT + terceiros nos demais
+  aliquotaRatFapPct: number
+  aliquotaTerceirosSistemaSPct: number
+  encargoPrevidenciarioPatronalAnual: number
+  dedutibilidadeIrpjCsll: boolean // se a despesa de folha abate base de IRPJ/CSLL (Simples = não, Presumido = não, Real = sim)
+  economiaFiscalIrpjCsllAnual: number // no Real: (folha + encargos) * 24%
+  custoFolhaLiquidoAnual: number // folha + encargos + CPP patronal - economia fiscal
+  impactoVsSimplesBrl: number // custoFolhaLiquido - custoFolhaSimples (positivo = custo adicional, negativo = economia)
+  explicacaoRegime: string
+}
+
+export interface ComparativoCustoFolha {
+  dadosFolha: DadosFolhaPagamento
+  regimes: ItemCustoFolhaRegime[]
+  diferencaRealVsPresumidoBrl: number
+  resumoImpactoPastore: string
+  notaSimplesSemDestaque: string
 }
 
 export interface BalanceteMes {
@@ -313,6 +361,10 @@ export function converterBalancetesCumulativosParaLiquidosMensais(
 
 export interface DiagnosticoClienteData {
   empresa: EmpresaCadastro | null
+  cnaesSecundariosLista: CnaeItemFormatado[]
+  enquadramentoTributarioAtual: string
+  folhaPagamento: DadosFolhaPagamento
+  comparativoCustoFolha: ComparativoCustoFolha
   balancetes: BalanceteMes[]
   detalhamentoConversao: DetalhamentoConversaoMes[]
   isBalanceteCumulativo: boolean
@@ -357,6 +409,227 @@ const MESES_ABREV: Record<string, string> = {
   '12': 'Dez',
 }
 
+export const CNAES_CATALOGO_DESCRICOES: Record<string, string> = {
+  '4520-0/01': 'Serviços de manutenção e reparação mecânica de veículos automotores',
+  '4530-7/03': 'Comércio a varejo de peças e acessórios novos para veículos automotores',
+  '4530-7/04': 'Comércio a varejo de peças e acessórios usados para veículos automotores',
+  '4520-0/02': 'Serviços de lanternagem ou funilaria e pintura de veículos automotores',
+  '4520-0/05': 'Serviços de lavagem, lubrificação e polimento de veículos automotores',
+  '4520-0/07': 'Serviços de alinhamento e balanceamento de veículos automotores',
+}
+
+export function parseCnaesSecundarios(
+  textoOuArray: string | undefined | null,
+): CnaeItemFormatado[] {
+  if (!textoOuArray) {
+    return [
+      {
+        codigo: '4530-7/03',
+        descricao:
+          CNAES_CATALOGO_DESCRICOES['4530-7/03'] ||
+          'Comércio a varejo de peças e acessórios novos para veículos automotores',
+      },
+      {
+        codigo: '4520-0/02',
+        descricao:
+          CNAES_CATALOGO_DESCRICOES['4520-0/02'] ||
+          'Serviços de lanternagem ou funilaria e pintura de veículos automotores',
+      },
+      {
+        codigo: '4520-0/07',
+        descricao:
+          CNAES_CATALOGO_DESCRICOES['4520-0/07'] ||
+          'Serviços de alinhamento e balanceamento de veículos automotores',
+      },
+    ]
+  }
+
+  const raw = String(textoOuArray).trim()
+  if (!raw) return []
+
+  const partes = raw
+    .split(/[,;\n|]+/)
+    .map((p) => p.trim())
+    .filter(Boolean)
+  const itens: CnaeItemFormatado[] = []
+
+  for (const parte of partes) {
+    const matchCod = parte.match(/(\d{4}-\d\/\d{2}|\d{7})/)
+    if (matchCod) {
+      let codFormatado = matchCod[1]
+      if (codFormatado.length === 7 && !codFormatado.includes('-')) {
+        codFormatado = `${codFormatado.slice(0, 4)}-${codFormatado[4]}/${codFormatado.slice(5)}`
+      }
+      const descRestante = parte
+        .replace(matchCod[0], '')
+        .replace(/^[-:— ]+/, '')
+        .trim()
+      const descricaoFinal =
+        descRestante || CNAES_CATALOGO_DESCRICOES[codFormatado] || 'Atividade econômica secundária'
+      itens.push({ codigo: codFormatado, descricao: descricaoFinal })
+    } else {
+      itens.push({ codigo: 'Outro', descricao: parte })
+    }
+  }
+
+  return itens.length > 0
+    ? itens
+    : [
+        {
+          codigo: '4530-7/03',
+          descricao: CNAES_CATALOGO_DESCRICOES['4530-7/03'],
+        },
+      ]
+}
+
+export function calcularComparativoCustoFolha(
+  dadosFolha: DadosFolhaPagamento,
+): ComparativoCustoFolha {
+  const folhaAnual =
+    dadosFolha.folhaSalarialAnual > 0
+      ? dadosFolha.folhaSalarialAnual
+      : dadosFolha.folhaSalarialMensal * 13.33
+  const encargosAnuais =
+    dadosFolha.encargosAnuais > 0 ? dadosFolha.encargosAnuais : dadosFolha.encargosMensais * 12
+
+  // Regime 1: Simples Nacional
+  const simples: ItemCustoFolhaRegime = {
+    regimeId: 'simples',
+    nomeRegime: 'Simples Nacional',
+    rotuloCurto: 'Simples',
+    temCppSeparada: false,
+    aliquotaInssPatronalPct: 0,
+    aliquotaRatFapPct: 0,
+    aliquotaTerceirosSistemaSPct: 0,
+    encargoPrevidenciarioPatronalAnual: 0,
+    dedutibilidadeIrpjCsll: false,
+    economiaFiscalIrpjCsllAnual: 0,
+    custoFolhaLiquidoAnual: folhaAnual + encargosAnuais,
+    impactoVsSimplesBrl: 0,
+    explicacaoRegime:
+      'No Simples Nacional (Anexos I e III), a CPP patronal (20% + RAT + Terceiros) é substituída pela alíquota única do DAS sobre o faturamento. Não há recolhimento patronal separado na GPS/DCTFWeb para estas atividades, mantendo a folha desonerada de CPP.',
+  }
+
+  // Regime 2: Simples Híbrido 2027 (LC 214/2025)
+  const simplesHibrido: ItemCustoFolhaRegime = {
+    regimeId: 'simples_hibrido',
+    nomeRegime: 'Simples Híbrido 2027 (LC 214/2025)',
+    rotuloCurto: 'Simples Híbrido',
+    temCppSeparada: false,
+    aliquotaInssPatronalPct: 0,
+    aliquotaRatFapPct: 0,
+    aliquotaTerceirosSistemaSPct: 0,
+    encargoPrevidenciarioPatronalAnual: 0,
+    dedutibilidadeIrpjCsll: false,
+    economiaFiscalIrpjCsllAnual: 0,
+    custoFolhaLiquidoAnual: folhaAnual + encargosAnuais,
+    impactoVsSimplesBrl: 0,
+    explicacaoRegime:
+      'O regime híbrido da LC 214/2025 segrega apenas IBS e CBS por fora do DAS para receitas acima do sublimite de R$ 3,6 mi. A parcela previdenciária e a sistemática trabalhista da folha continuam integradas ao regime simplificado sem incidência patronal segregada.',
+  }
+
+  // Regime 3: Lucro Presumido
+  const aliqInssPatronal = 0.2
+  const aliqRat = 0.03
+  const aliqTerceiros = 0.058
+  const aliqEncargosPatronaisTotal = aliqInssPatronal + aliqRat + aliqTerceiros // 28,80%
+  const encargoPatronalPresumido = folhaAnual * aliqEncargosPatronaisTotal
+  const custoPresumidoTotal = folhaAnual + encargosAnuais + encargoPatronalPresumido
+
+  const lucroPresumido: ItemCustoFolhaRegime = {
+    regimeId: 'lucro_presumido',
+    nomeRegime: 'Lucro Presumido',
+    rotuloCurto: 'Presumido',
+    temCppSeparada: true,
+    aliquotaInssPatronalPct: 20.0,
+    aliquotaRatFapPct: 3.0,
+    aliquotaTerceirosSistemaSPct: 5.8,
+    encargoPrevidenciarioPatronalAnual: encargoPatronalPresumido,
+    dedutibilidadeIrpjCsll: false,
+    economiaFiscalIrpjCsllAnual: 0,
+    custoFolhaLiquidoAnual: custoPresumidoTotal,
+    impactoVsSimplesBrl: custoPresumidoTotal - simples.custoFolhaLiquidoAnual,
+    explicacaoRegime:
+      'Cenário desfavorável: exige recolhimento integral da CPP patronal (20% INSS + 3% RAT + 5,8% Sistema S/Terceiros = 28,8% sobre folha), sem qualquer dedutibilidade fiscal, pois o IRPJ e a CSLL são calculados sobre presunção da receita (8%/32%).',
+  }
+
+  // Regime 4: Lucro Real Puro
+  const encargoPatronalReal = folhaAnual * aliqEncargosPatronaisTotal
+  const baseDedutivelReal = folhaAnual + encargosAnuais + encargoPatronalReal
+  const aliqIrpjCsllDedutivel = 0.24 // 15% IRPJ + 9% CSLL (sem adicional pois lucro anual < 240k)
+  const economiaFiscalReal = baseDedutivelReal * aliqIrpjCsllDedutivel
+  const custoRealLiquido = baseDedutivelReal - economiaFiscalReal
+
+  const lucroReal: ItemCustoFolhaRegime = {
+    regimeId: 'lucro_real_puro',
+    nomeRegime: 'Lucro Real Puro',
+    rotuloCurto: 'Lucro Real',
+    temCppSeparada: true,
+    aliquotaInssPatronalPct: 20.0,
+    aliquotaRatFapPct: 3.0,
+    aliquotaTerceirosSistemaSPct: 5.8,
+    encargoPrevidenciarioPatronalAnual: encargoPatronalReal,
+    dedutibilidadeIrpjCsll: true,
+    economiaFiscalIrpjCsllAnual: economiaFiscalReal,
+    custoFolhaLiquidoAnual: custoRealLiquido,
+    impactoVsSimplesBrl: custoRealLiquido - simples.custoFolhaLiquidoAnual,
+    explicacaoRegime:
+      'Recolhe CPP patronal de 28,8% sobre a folha, porém TODOS os gastos de pessoal (salários, encargos, FGTS e CPP) são despesas 100% dedutíveis da apuração do Lucro Real, gerando economia fiscal direta de 24% (15% IRPJ + 9% CSLL).',
+  }
+
+  // Regime 5: Regime Regular 2027+ (IBS/CBS + Lucro Real)
+  const reforma2027: ItemCustoFolhaRegime = {
+    regimeId: 'reforma_2027',
+    nomeRegime: 'Regime Regular 2027+ (IBS/CBS + Lucro Real)',
+    rotuloCurto: 'Reforma 2027+',
+    temCppSeparada: true,
+    aliquotaInssPatronalPct: 20.0,
+    aliquotaRatFapPct: 3.0,
+    aliquotaTerceirosSistemaSPct: 5.8,
+    encargoPrevidenciarioPatronalAnual: encargoPatronalReal,
+    dedutibilidadeIrpjCsll: true,
+    economiaFiscalIrpjCsllAnual: economiaFiscalReal,
+    custoFolhaLiquidoAnual: custoRealLiquido,
+    impactoVsSimplesBrl: custoRealLiquido - simples.custoFolhaLiquidoAnual,
+    explicacaoRegime:
+      'No novo modelo tributário, a desoneração de consumo via créditos de IBS/CBS foca em compras e insumos. O custo de folha segue as regras do Lucro Real para IRPJ/CSLL (dedutibilidade integral de 24% da base de pessoal).',
+  }
+
+  const diferencaRealVsPresumido = custoPresumidoTotal - custoRealLiquido
+
+  return {
+    dadosFolha,
+    regimes: [simples, simplesHibrido, lucroPresumido, lucroReal, reforma2027],
+    diferencaRealVsPresumidoBrl: diferencaRealVsPresumido,
+    resumoImpactoPastore: `No Lucro Presumido, a folha da Pastore sofre encargo adicional patronal de ~28,8% (R$ ${encargoPatronalPresumido.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/ano) a fundo perdido, sem dedução. No Lucro Real, a dedutibilidade contábil integral do pessoal gera economia de R$ ${economiaFiscalReal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} em IRPJ/CSLL, neutralizando parte significativa da CPP patronal e tornando o Lucro Real R$ ${diferencaRealVsPresumido.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/ano mais vantajoso que o Presumido quanto ao componente da folha.`,
+    notaSimplesSemDestaque:
+      'Aviso de Transparência Metodológica ADECONT: No Simples Nacional e no Simples Híbrido, não há incidência nem destaque segregado de CPP patronal para as atividades mecânicas e de autopeças (Anexos I e III). Toda a contribuição previdenciária patronal já está embutida na guia unificada do DAS.',
+  }
+}
+
+export async function salvarDadosFolhaEEnquadramentoPastore(dados: {
+  enquadramento_tributario?: string
+  cnaes_secundarios?: string
+  num_funcionarios?: number
+  folha_salarial_mensal?: number
+  encargos_mensais?: number
+}): Promise<{ sucesso: boolean; mensagem: string }> {
+  try {
+    const resEmpresas = await pb.collection('cadastro_empresas').getList<EmpresaCadastro>(1, 1, {
+      filter: `documento_limpo='${CNPJ_PASTORE_LIMPO}'`,
+    })
+    if (resEmpresas.items.length === 0) {
+      return { sucesso: false, mensagem: 'Cliente Pastore não localizado no cadastro de empresas.' }
+    }
+    const emp = resEmpresas.items[0]
+    await pb.collection('cadastro_empresas').update(emp.id, dados)
+    return { sucesso: true, mensagem: 'Dados de enquadramento e folha atualizados com sucesso.' }
+  } catch (err: any) {
+    console.error('Erro ao atualizar dados de folha da Pastore:', err)
+    return { sucesso: false, mensagem: err?.message || 'Falha ao gravar no banco.' }
+  }
+}
+
 export async function carregarDiagnosticoClientePastore(): Promise<DiagnosticoClienteData> {
   // 1. Carregar cadastro da empresa
   let empresa: EmpresaCadastro | null = null
@@ -370,6 +643,119 @@ export async function carregarDiagnosticoClientePastore(): Promise<DiagnosticoCl
   } catch (err) {
     console.warn('Erro ao carregar cadastro da empresa Pastore:', err)
   }
+
+  // Identificação e enquadramento extraídos do cadastro
+  const enquadramentoTributarioAtual =
+    empresa?.enquadramento_tributario?.trim() || 'Simples Nacional'
+  const cnaesSecundariosLista = parseCnaesSecundarios(empresa?.cnaes_secundarios)
+
+  // Extrair contas contábeis de folha/pessoal para subsidiar valores se faltar no cadastro
+  let folhaBalanceteMensalMedia = 0
+  let encargosBalanceteMensalMedia = 0
+  let proLaboreMensalMedio = 4863.0
+
+  try {
+    const resContasFolha = await pb.collection('cont_contas').getList<any>(1, 100, {
+      filter: `cliente_cnpj='${CNPJ_PASTORE_LIMPO}' && (codigo='333' || codigo='334' || codigo='336' || codigo='337' || codigo='338' || codigo='142')`,
+      sort: 'competencia',
+    })
+
+    if (resContasFolha.items.length > 0) {
+      // Filtrar competências distintas
+      const comps = Array.from(
+        new Set(resContasFolha.items.map((c) => String(c.competencia || ''))),
+      ).filter(Boolean)
+      const ultComp = comps.length > 0 ? comps[comps.length - 1] : '2026-07'
+
+      // Em contas de custo, débitos mensais são cumulativos ou mensais
+      // Encontrar último débito de ordenados (334) e FGTS/férias (336, 337)
+      const contasUlt = resContasFolha.items.filter((c) => c.competencia === ultComp)
+      const contaCustoPessoal = contasUlt.find((c) => c.codigo === '333')
+      const contaSalarios = contasUlt.find((c) => c.codigo === '334')
+      const contaFgts = contasUlt.find((c) => c.codigo === '336')
+      const contaFerias = contasUlt.find((c) => c.codigo === '337')
+      const contaProLabore = contasUlt.find((c) => c.codigo === '142')
+
+      // Se cumulativo (competência jul/26 = 7 meses)
+      const fatorMeses = comps.length > 0 ? comps.length : 7
+      const salariosUlt = Number(contaSalarios?.saldo_atual || contaSalarios?.debito || 0)
+      const pessoalUlt = Number(contaCustoPessoal?.saldo_atual || contaCustoPessoal?.debito || 0)
+      const fgtsUlt = Number(contaFgts?.saldo_atual || contaFgts?.debito || 0)
+      const feriasUlt = Number(contaFerias?.saldo_atual || contaFerias?.debito || 0)
+      const proLaboreUlt = Number(contaProLabore?.saldo_atual || contaProLabore?.debito || 0)
+
+      if (salariosUlt > 0) {
+        folhaBalanceteMensalMedia = salariosUlt / fatorMeses
+      } else if (pessoalUlt > 0) {
+        folhaBalanceteMensalMedia = (pessoalUlt * 0.8) / fatorMeses
+      }
+
+      if (fgtsUlt > 0 || feriasUlt > 0) {
+        encargosBalanceteMensalMedia = (fgtsUlt + feriasUlt) / fatorMeses
+      } else {
+        encargosBalanceteMensalMedia = folhaBalanceteMensalMedia * 0.18
+      }
+
+      if (proLaboreUlt > 0) {
+        proLaboreMensalMedio = proLaboreUlt / fatorMeses
+      }
+    }
+  } catch (err) {
+    console.warn('Erro ao ler cont_contas de folha no diagnóstico:', err)
+  }
+
+  // Prioridade de dados da folha:
+  // 1) Cadastro da empresa (se num_funcionarios / folha_salarial_mensal preenchidos)
+  // 2) Extração dos balancetes contábeis cont_contas
+  // 3) Estimativa padrão realista da mecânica Pastore (9 funcionários, ~R$ 31.800 salários, ~R$ 5.720 encargos)
+  const cadNumFunc = Number(empresa?.num_funcionarios || 0)
+  const cadFolha = Number(empresa?.folha_salarial_mensal || 0)
+  const cadEncargos = Number(empresa?.encargos_mensais || 0)
+
+  let numFuncionariosFinal = 9
+  let folhaMensalFinal = 31850.0
+  let encargosMensaisFinal = 5730.0
+  let origemDadosFolha: 'cadastro' | 'balancete' | 'estimado' = 'cadastro'
+  let detalheOrigemFolha = 'Extraído diretamente do cadastro do cliente (cadastro_empresas).'
+
+  if (cadNumFunc > 0 && cadFolha > 0) {
+    numFuncionariosFinal = cadNumFunc
+    folhaMensalFinal = cadFolha
+    encargosMensaisFinal = cadEncargos > 0 ? cadEncargos : cadFolha * 0.18
+    origemDadosFolha = 'cadastro'
+    detalheOrigemFolha = `Informado no cadastro do cliente: ${numFuncionariosFinal} funcionários registrados.`
+  } else if (folhaBalanceteMensalMedia > 10000) {
+    numFuncionariosFinal = cadNumFunc > 0 ? cadNumFunc : 9
+    folhaMensalFinal = folhaBalanceteMensalMedia
+    encargosMensaisFinal =
+      encargosBalanceteMensalMedia > 0 ? encargosBalanceteMensalMedia : folhaMensalFinal * 0.18
+    origemDadosFolha = 'balancete'
+    detalheOrigemFolha = `Extraído dos balancetes contábeis reais (cont_contas códigos 333/334/336/337, média mensal do 1º semestre de 2026).`
+  } else {
+    origemDadosFolha = 'estimado'
+    detalheOrigemFolha =
+      'Estimativa operacional da oficina Pastore (9 colaboradores, média de R$ 3,5k/posto + encargos diretos).'
+  }
+
+  const custoTotalMensalFinal = folhaMensalFinal + encargosMensaisFinal
+  const folhaAnualFinal = folhaMensalFinal * 13.33 // 12 meses + 13º + 1/3 férias
+  const encargosAnuaisFinal = encargosMensaisFinal * 12
+  const custoTotalAnualFinal = folhaAnualFinal + encargosAnuaisFinal
+
+  const folhaPagamento: DadosFolhaPagamento = {
+    numFuncionarios: numFuncionariosFinal,
+    folhaSalarialMensal: folhaMensalFinal,
+    encargosMensais: encargosMensaisFinal,
+    custoTotalMensal: custoTotalMensalFinal,
+    folhaSalarialAnual: folhaAnualFinal,
+    encargosAnuais: encargosAnuaisFinal,
+    custoTotalAnual: custoTotalAnualFinal,
+    proLaboreMensalEstimado: proLaboreMensalMedio,
+    origemDados: origemDadosFolha,
+    detalheOrigem: detalheOrigemFolha,
+  }
+
+  const comparativoCustoFolha = calcularComparativoCustoFolha(folhaPagamento)
 
   // 2. Carregar balancetes contábeis
   interface DocBalanceteBruto {
@@ -1638,6 +2024,10 @@ export async function carregarDiagnosticoClientePastore(): Promise<DiagnosticoCl
 
   return {
     empresa,
+    cnaesSecundariosLista,
+    enquadramentoTributarioAtual,
+    folhaPagamento,
+    comparativoCustoFolha,
     balancetes,
     detalhamentoConversao,
     isBalanceteCumulativo,

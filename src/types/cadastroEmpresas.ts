@@ -40,6 +40,11 @@ export interface EmpresaRecord {
   foro_comarca?: string
   duracao_contrato?: string
   pagina?: number
+  enquadramento_tributario?: string
+  cnaes_secundarios?: string
+  num_funcionarios?: number
+  folha_salarial_mensal?: number
+  encargos_mensais?: number
   tipo_cadastro?: string
   cpf_cnpj?: string
   telefone_2?: string

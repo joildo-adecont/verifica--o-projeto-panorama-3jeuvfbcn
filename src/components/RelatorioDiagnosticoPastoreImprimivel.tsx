@@ -88,8 +88,8 @@ export const RelatorioDiagnosticoPastoreImprimivel: React.FC<
           </div>
         </div>
 
-        {/* Identificação do Cliente */}
-        <div className="bg-slate-50 border border-slate-300 rounded p-3 mb-4">
+        {/* Identificação do Cliente & Enquadramento Cadastral */}
+        <div className="bg-slate-50 border border-slate-300 rounded p-3 mb-4 space-y-2.5">
           <div className="grid grid-cols-3 gap-2">
             <div>
               <span className="text-[10px] text-slate-500 block uppercase font-bold">
@@ -107,18 +107,18 @@ export const RelatorioDiagnosticoPastoreImprimivel: React.FC<
             </div>
             <div>
               <span className="text-[10px] text-slate-500 block uppercase font-bold">
-                Município / UF:
+                Enquadramento Tributário Atual:
               </span>
-              <span className="font-semibold text-slate-900 text-xs">
-                {empresa?.municipio || 'Vacaria'} / {empresa?.uf || 'RS'}
+              <span className="font-bold text-emerald-800 text-xs bg-emerald-100/70 border border-emerald-300 px-1.5 py-0.5 rounded inline-block">
+                {data.enquadramentoTributarioAtual || 'Simples Nacional (EPP)'}
               </span>
             </div>
             <div>
               <span className="text-[10px] text-slate-500 block uppercase font-bold">
-                CNAE Principal:
+                Município / UF:
               </span>
-              <span className="text-slate-800 text-xs">
-                {empresa?.cnae || '4520-0/01'} — Manutenção e reparação de veículos
+              <span className="font-semibold text-slate-900 text-xs">
+                {empresa?.municipio || 'Vacaria'} / {empresa?.uf || 'RS'}
               </span>
             </div>
             <div>
@@ -136,6 +136,190 @@ export const RelatorioDiagnosticoPastoreImprimivel: React.FC<
               <span className="font-semibold text-slate-800 text-xs">
                 {empresa?.capital_social || 'R$ 640.000,00'}
               </span>
+            </div>
+          </div>
+
+          {/* Destaque Atividade Principal e Secundárias */}
+          <div className="pt-2 border-t border-slate-200 grid grid-cols-1 md:grid-cols-2 gap-2 text-[10px]">
+            <div className="bg-white border border-slate-200 p-2 rounded">
+              <span className="text-[9px] text-amber-800 font-bold uppercase block mb-0.5">
+                Atividade Econômica Principal (CNAE Primário):
+              </span>
+              <span className="font-mono font-bold text-slate-900 text-[11px] block">
+                {empresa?.cnae || '4520-0/01'}
+              </span>
+              <span className="text-slate-700">
+                {empresa?.ramo_atividade ||
+                  'Serviços de manutenção e reparação mecânica de veículos automotores'}
+              </span>
+            </div>
+
+            <div className="bg-white border border-slate-200 p-2 rounded">
+              <span className="text-[9px] text-indigo-800 font-bold uppercase block mb-0.5">
+                Atividades Econômicas Secundárias Cadastradas ({data.cnaesSecundariosLista.length}):
+              </span>
+              <div className="space-y-0.5">
+                {data.cnaesSecundariosLista.map((cnae, idx) => (
+                  <div key={idx} className="flex items-start gap-1">
+                    <span className="font-mono font-bold text-slate-900 text-[9px] min-w-[62px]">
+                      {cnae.codigo}
+                    </span>
+                    <span className="text-slate-600 text-[9px] leading-tight">
+                      {cnae.descricao}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* BLOCO DE FOLHA DE PAGAMENTO & RECURSOS HUMANOS NO RELATÓRIO A4 */}
+        <div className="bg-slate-50 border border-slate-300 rounded p-3 mb-4 break-inside-avoid">
+          <div className="flex justify-between items-center border-b border-slate-200 pb-1 mb-2">
+            <span className="font-black text-slate-900 uppercase tracking-tight text-[11px]">
+              Folha de Pagamento, Encargos & Recursos Humanos
+            </span>
+            <span className="text-[9px] bg-slate-200 text-slate-800 px-2 py-0.5 rounded font-bold">
+              Base: {data.folhaPagamento.detalheOrigem}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-4 gap-2 text-center text-[10px]">
+            <div className="border border-slate-200 bg-white p-2 rounded">
+              <span className="text-[8px] text-slate-500 uppercase block font-semibold">
+                Quadro de Colaboradores
+              </span>
+              <span className="font-bold text-slate-900 text-xs">
+                {data.folhaPagamento.numFuncionarios} funcionários
+              </span>
+              <p className="text-[7.5px] text-slate-500 mt-0.5">Equipe técnica e operacional</p>
+            </div>
+
+            <div className="border border-slate-200 bg-white p-2 rounded">
+              <span className="text-[8px] text-slate-500 uppercase block font-semibold">
+                Folha Salarial Mensal
+              </span>
+              <span className="font-bold text-emerald-800 text-xs">
+                {brl(data.folhaPagamento.folhaSalarialMensal)}
+              </span>
+              <p className="text-[7.5px] text-slate-500 mt-0.5">
+                Anual: {brl(data.folhaPagamento.folhaSalarialAnual)}
+              </p>
+            </div>
+
+            <div className="border border-slate-200 bg-white p-2 rounded">
+              <span className="text-[8px] text-slate-500 uppercase block font-semibold">
+                Encargos Mensais (FGTS/Prov.)
+              </span>
+              <span className="font-bold text-amber-800 text-xs">
+                {brl(data.folhaPagamento.encargosMensais)}
+              </span>
+              <p className="text-[7.5px] text-slate-500 mt-0.5">
+                Anual: {brl(data.folhaPagamento.encargosAnuais)}
+              </p>
+            </div>
+
+            <div className="border border-slate-200 bg-white p-2 rounded">
+              <span className="text-[8px] text-slate-500 uppercase block font-semibold">
+                Custo de Folha Consolidado
+              </span>
+              <span className="font-bold text-slate-900 text-xs">
+                {brl(data.folhaPagamento.custoTotalMensal)} /mês
+              </span>
+              <p className="text-[7.5px] text-slate-500 mt-0.5">
+                Anual: {brl(data.folhaPagamento.custoTotalAnual)}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* COMPARATIVO DE CUSTO DE FOLHA POR REGIME (REAL vs PRESUMIDO vs SIMPLES) */}
+        <div className="bg-indigo-50/60 border border-indigo-200 rounded p-3 mb-4 break-inside-avoid text-[10px]">
+          <div className="flex justify-between items-center border-b border-indigo-200 pb-1 mb-2">
+            <span className="font-black text-indigo-950 uppercase tracking-tight text-[11px]">
+              Comparativo de Custos de Folha: Lucro Real × Lucro Presumido × Simples
+            </span>
+            <span className="text-[9px] bg-indigo-200 text-indigo-950 px-2 py-0.5 rounded font-bold">
+              Economia Real vs Presumido:{' '}
+              {brl(data.comparativoCustoFolha.diferencaRealVsPresumidoBrl)}/ano
+            </span>
+          </div>
+
+          <p className="text-[9px] text-indigo-900 mb-2 leading-relaxed">
+            <strong>Destaque Regulamentar:</strong>{' '}
+            {data.comparativoCustoFolha.notaSimplesSemDestaque}
+          </p>
+
+          <table className="w-full border-collapse border border-indigo-200 text-[9px] mb-2 bg-white">
+            <thead>
+              <tr className="bg-indigo-100 text-indigo-950 font-bold">
+                <th className="border border-indigo-200 p-1 text-left">Regime</th>
+                <th className="border border-indigo-200 p-1 text-center">CPP Separada?</th>
+                <th className="border border-indigo-200 p-1 text-right">INSS Patronal (Ano)</th>
+                <th className="border border-indigo-200 p-1 text-right">Custo Bruto Anual</th>
+                <th className="border border-indigo-200 p-1 text-right">
+                  Dedutibilidade IRPJ/CSLL
+                </th>
+                <th className="border border-indigo-200 p-1 text-right font-bold">
+                  Custo Líquido Anual
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.comparativoCustoFolha.regimes.map((r) => (
+                <tr key={r.regimeId} className="border-b border-indigo-100">
+                  <td className="p-1 font-semibold text-slate-800 border-r border-indigo-200">
+                    {r.nomeRegime}
+                  </td>
+                  <td className="p-1 text-center border-r border-indigo-200">
+                    {r.temCppSeparada ? 'Sim (20%)' : 'Não (DAS Embutido)'}
+                  </td>
+                  <td className="p-1 text-right font-mono border-r border-indigo-200">
+                    {r.encargoPrevidenciarioPatronalAnual > 0
+                      ? brl(r.encargoPrevidenciarioPatronalAnual)
+                      : 'R$ 0,00'}
+                  </td>
+                  <td className="p-1 text-right font-mono border-r border-indigo-200">
+                    {brl(r.custoFolhaBrutoAnual)}
+                  </td>
+                  <td className="p-1 text-right font-mono border-r border-indigo-200 text-emerald-800 font-medium">
+                    {r.economiaFiscalIrpjCsllAnual > 0
+                      ? `- ${brl(r.economiaFiscalIrpjCsllAnual)} (24%)`
+                      : 'R$ 0,00 (Sem efeito)'}
+                  </td>
+                  <td className="p-1 text-right font-mono font-bold text-slate-900">
+                    {brl(r.custoFolhaLiquidoAnual)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          <div className="grid grid-cols-2 gap-2 text-[8.5px] text-slate-700 leading-tight">
+            <div className="bg-white/80 p-1.5 rounded border border-indigo-200">
+              <strong className="text-rose-900 block mb-0.5">
+                Lucro Presumido (+R$ 80k/ano de encargo puro):
+              </strong>
+              Adiciona 20% de CPP (
+              {brl(
+                data.comparativoCustoFolha.regimes.find((r) => r.regimeId === 'lucro_presumido')
+                  ?.encargoPrevidenciarioPatronalAnual || 0,
+              )}
+              ) sem dedutibilidade na base do IRPJ/CSLL, onerando severamente a empresa de serviços
+              mecânicos.
+            </div>
+            <div className="bg-white/80 p-1.5 rounded border border-indigo-200">
+              <strong className="text-emerald-900 block mb-0.5">
+                Lucro Real (Dedutibilidade Integral):
+              </strong>
+              Gasto total de pessoal é abatido como custo/despesa operacional integral, gerando
+              crédito fiscal de 24% (
+              {brl(
+                data.comparativoCustoFolha.regimes.find((r) => r.regimeId === 'lucro_real_puro')
+                  ?.economiaFiscalIrpjCsllAnual || 0,
+              )}
+              ) que anula mais da metade da CPP patronal.
             </div>
           </div>
         </div>
