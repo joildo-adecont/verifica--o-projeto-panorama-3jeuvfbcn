@@ -90,12 +90,13 @@ export const AnalisesEmpresariais: React.FC = () => {
     <div className="min-h-screen bg-slate-100 flex flex-col font-sans">
       <PanoramaHeader searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
 
-      <div className="flex-1 flex flex-col md:flex-row max-w-7xl w-full mx-auto p-4 md:p-6 gap-6">
-        {/* Menu Lateral da Aplicação */}
-        <PanoramaSideMenu />
+      {/* Menu Lateral da Aplicação (fixo em lg: w-60 z-40 e gaveta mobile z-50) */}
+      <PanoramaSideMenu />
 
+      {/* Corpo da página com recuo lg:pl-60 para não sobrepor o menu lateral fixo em desktop */}
+      <div className="flex-1 flex flex-col lg:pl-60">
         {/* Conteúdo Central */}
-        <main className="flex-1 space-y-6">
+        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
           {/* Banner do Módulo */}
           <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 text-white rounded-2xl p-6 shadow-md border border-slate-800 flex flex-wrap items-center justify-between gap-4">
             <div className="space-y-1">
@@ -232,9 +233,9 @@ export const AnalisesEmpresariais: React.FC = () => {
             </div>
           )}
         </main>
-      </div>
 
-      <PanoramaFooter />
+        <PanoramaFooter />
+      </div>
     </div>
   )
 }
