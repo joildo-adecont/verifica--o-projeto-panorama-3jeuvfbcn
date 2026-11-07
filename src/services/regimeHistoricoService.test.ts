@@ -1,10 +1,16 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import {
   registrarMudancaRegime,
+  registrarAlteracaoRegime,
   listarHistoricoRegimePorCliente,
+  listarHistoricoPorEmpresa,
+  obterUltimaAlteracaoPorEmpresa,
   obterResumoUltimaAlteracao,
+  obterBadgeRegime,
+  obterBadgeOrigem,
   formatarOrigemAlteracao,
   formatarDataHoraRegime,
+  formatarDataHoraAuditoria,
   limparCacheLocalHistorico,
   normalizarNomeRegime,
 } from './regimeHistoricoService'
@@ -136,5 +142,52 @@ describe('Serviço de Trilha de Auditoria de Regime Tributário (ADECONT)', () =
     expect(formatarDataHoraRegime(null)).toBe('—')
     expect(formatarDataHoraRegime('')).toBe('—')
     expect(formatarDataHoraRegime('data_invalida')).toBe('data_invalida')
+    expect(formatarDataHoraAuditoria(null)).toBe('—')
+  })
+
+  it('suporta aliases registrarAlteracaoRegime, listarHistoricoPorEmpresa e obterUltimaAlteracaoPorEmpresa com parâmetros flexíveis', async () => {
+    const res = await registrarAlteracaoRegime({
+      empresa_codigo: 99,
+      empresa_nome: 'Empresa Teste Aliases',
+      empresa_cnpj: '11.222.333/0001-44',
+      regime_anterior: 'Simples Nacional',
+      regime_novo: 'Lucro Real',
+      origem: 'listagem',
+    })
+    expect(res.sucesso).toBe(true)
+    expect(res.gravou).toBe(true)
+
+    const ultima = await obterUltimaAlteracaoPorEmpresa({ empresaCodigo: 99 })
+    expect(ultima).not.toBeNull()
+    expect(ultima?.regime_novo).toBe('Lucro Real')
+
+    const lista = await listarHistoricoPorEmpresa({ empresa_codigo: 99 })
+    expect(lista.length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('gera badges visuais consistentes para regimes e origens', () => {
+    const badgeSimples = obterBadgeRegime('Simples Nacional')
+    expect(badgeSimples.bg).toContain('emerald')
+
+    const badgePresumido = obterBadgeRegime('Lucro Presumido')
+    expect(badgePresumido.bg).toContain('amber')
+
+    const badgeReal = obterBadgeRegime('Lucro Real')
+    expect(badgeReal.bg).toContain('blue')
+
+    const badgeHibrido = obterBadgeRegime('Simples Híbrido')
+    expect(badgeHibrido.bg).toContain('purple')
+
+    const badgeIbs = obterBadgeRegime('Regime Regular IBS/CBS')
+    expect(badgeIbs.bg).toContain('rose')
+
+    const badgeListagem = obterBadgeOrigem('listagem')
+    expect(badgeListagem.label).toBe('Listagem Inline')
+
+    const badgeFicha = obterBadgeOrigem('ficha_cadastral')
+    expect(badgeFicha.label).toBe('Ficha Cadastral')
+
+    const badgeBanner = obterBadgeOrigem('banner_diagnostico')
+    expect(badgeBanner.label).toBe('Banner Diagnóstico')
   })
 })

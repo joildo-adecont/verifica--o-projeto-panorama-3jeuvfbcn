@@ -45,6 +45,8 @@ export interface EmpresaCadastro {
   cep?: string
   telefone?: string
   email?: string
+  created?: string
+  updated?: string
 }
 
 export interface CnaeItemFormatado {

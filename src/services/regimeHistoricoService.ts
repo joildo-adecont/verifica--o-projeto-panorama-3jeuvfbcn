@@ -11,13 +11,126 @@ import pb from '../lib/pocketbase/client'
 import type {
   OrigemAlteracaoRegime,
   RegistroHistoricoRegime,
+  RegimeHistoricoItem,
   RegistrarMudancaRegimeParams,
+  ListarHistoricoFiltros,
   ResumoUltimaAlteracaoRegime,
 } from '../types/regimeHistorico'
 
 export const EVENTO_REGIME_HISTORICO_ATUALIZADO = 'adecont:regime-historico-atualizado'
 
 const STORAGE_KEY_FALLBACK = 'adecont_regime_historico_cache'
+
+export interface BadgeVisualInfo {
+  label: string
+  bg: string
+  text: string
+  border: string
+}
+
+/**
+ * Retorna classes Tailwind de badge visual para cada regime tributário
+ */
+export function obterBadgeRegime(regime?: string | null): BadgeVisualInfo {
+  const norm = (regime || '').trim().toLowerCase()
+  if (!norm || norm === 'não informado') {
+    return {
+      label: 'Não informado',
+      bg: 'bg-slate-100',
+      text: 'text-slate-600',
+      border: 'border-slate-300',
+    }
+  }
+  if (norm.includes('híbrido') || norm.includes('hibrido')) {
+    return {
+      label: regime || 'Simples Híbrido',
+      bg: 'bg-purple-50',
+      text: 'text-purple-700',
+      border: 'border-purple-300',
+    }
+  }
+  if (norm.includes('simples')) {
+    return {
+      label: regime || 'Simples Nacional',
+      bg: 'bg-emerald-50',
+      text: 'text-emerald-700',
+      border: 'border-emerald-300',
+    }
+  }
+  if (norm.includes('presumido')) {
+    return {
+      label: regime || 'Lucro Presumido',
+      bg: 'bg-amber-50',
+      text: 'text-amber-800',
+      border: 'border-amber-300',
+    }
+  }
+  if (norm.includes('real')) {
+    return {
+      label: regime || 'Lucro Real',
+      bg: 'bg-blue-50',
+      text: 'text-blue-700',
+      border: 'border-blue-300',
+    }
+  }
+  if (norm.includes('ibs') || norm.includes('regular') || norm.includes('cbs')) {
+    return {
+      label: regime || 'Regime Regular IBS/CBS',
+      bg: 'bg-rose-50',
+      text: 'text-rose-700',
+      border: 'border-rose-300',
+    }
+  }
+  return {
+    label: regime || 'Regime',
+    bg: 'bg-slate-100',
+    text: 'text-slate-800',
+    border: 'border-slate-300',
+  }
+}
+
+/**
+ * Retorna classes Tailwind de badge visual para cada origem de alteração
+ */
+export function obterBadgeOrigem(origem?: OrigemAlteracaoRegime | string): BadgeVisualInfo {
+  switch (origem) {
+    case 'listagem':
+      return {
+        label: 'Listagem Inline',
+        bg: 'bg-cyan-50',
+        text: 'text-cyan-800',
+        border: 'border-cyan-300',
+      }
+    case 'ficha_cadastral':
+      return {
+        label: 'Ficha Cadastral',
+        bg: 'bg-indigo-50',
+        text: 'text-indigo-800',
+        border: 'border-indigo-300',
+      }
+    case 'banner_diagnostico':
+      return {
+        label: 'Banner Diagnóstico',
+        bg: 'bg-amber-50',
+        text: 'text-amber-800',
+        border: 'border-amber-300',
+      }
+    case 'parametrizador':
+      return {
+        label: 'Parametrizador',
+        bg: 'bg-slate-100',
+        text: 'text-slate-800',
+        border: 'border-slate-300',
+      }
+    default:
+      return {
+        label: origem ? String(origem) : 'ADECONT',
+        bg: 'bg-slate-100',
+        text: 'text-slate-700',
+        border: 'border-slate-200',
+      }
+  }
+}
 
 /**
  * Mapeia a origem técnica para descrição legível em relatórios e telas
@@ -69,6 +182,7 @@ export function normalizarNomeRegime(regime?: string | null): string {
 
 /**
  * Registra uma alteração de regime tributário no histórico de auditoria.
+ * Aceita tanto parâmetros camelCase quanto snake_case para compatibilidade.
  *
  * REGRA DE OURO: se o regime novo for idêntico ao regime anterior, NÃO grava.
  */
@@ -78,8 +192,21 @@ export async function registrarMudancaRegime(params: RegistrarMudancaRegimeParam
   registro?: RegistroHistoricoRegime
   motivo?: string
 }> {
-  const anteriorNorm = normalizarNomeRegime(params.regimeAnterior)
-  const novoNorm = normalizarNomeRegime(params.regimeNovo)
+  const regAnterior = params.regimeAnterior ?? params.regime_anterior ?? null
+  const regNovo = params.regimeNovo ?? params.regime_novo ?? ''
+  const empId = params.empresaId || params.empresa_id || ''
+  const empCodigo = params.empresaCodigo ?? params.empresa_codigo
+  const empNome = params.empresaNome || params.empresa_nome || ''
+  const empDoc =
+    params.empresaDocumento ||
+    params.empresa_documento ||
+    params.empresaCnpj ||
+    params.empresa_cnpj ||
+    ''
+  const usuario = params.usuario || params.usuario_nome || 'ADECONT Operador'
+
+  const anteriorNorm = normalizarNomeRegime(regAnterior)
+  const novoNorm = normalizarNomeRegime(regNovo)
 
   // Deduplicação: se o regime anterior for idêntico ao novo, ignora
   if (anteriorNorm && novoNorm && anteriorNorm.toLowerCase() === novoNorm.toLowerCase()) {
@@ -92,14 +219,15 @@ export async function registrarMudancaRegime(params: RegistrarMudancaRegimeParam
 
   const agoraIso = new Date().toISOString()
   const payload: RegistroHistoricoRegime = {
-    empresa_id: params.empresaId || '',
-    empresa_codigo: params.empresaCodigo,
-    empresa_nome: params.empresaNome || '',
-    empresa_documento: (params.empresaDocumento || '').replace(/\D/g, ''),
-    regime_anterior: params.regimeAnterior || 'Não informado',
-    regime_novo: params.regimeNovo,
+    empresa_id: empId,
+    empresa_codigo: empCodigo,
+    empresa_nome: empNome,
+    empresa_documento: empDoc.replace(/\D/g, ''),
+    regime_anterior: regAnterior || 'Não informado',
+    regime_novo: regNovo,
     origem: params.origem,
-    usuario: params.usuario || 'ADECONT Operador',
+    usuario,
+    usuario_nome: usuario,
     data_hora: agoraIso,
     observacao: params.observacao || `Alteração via ${formatarOrigemAlteracao(params.origem)}`,
   }
@@ -107,7 +235,18 @@ export async function registrarMudancaRegime(params: RegistrarMudancaRegimeParam
   let gravado: RegistroHistoricoRegime = { ...payload }
 
   try {
-    const record = await pb.collection('regime_historico').create(payload)
+    const record = await pb.collection('regime_historico').create({
+      empresa_id: payload.empresa_id,
+      empresa_codigo: payload.empresa_codigo,
+      empresa_nome: payload.empresa_nome,
+      empresa_documento: payload.empresa_documento,
+      regime_anterior: payload.regime_anterior,
+      regime_novo: payload.regime_novo,
+      origem: payload.origem,
+      usuario: payload.usuario,
+      data_hora: payload.data_hora,
+      observacao: payload.observacao,
+    })
     gravado = {
       ...payload,
       id: record.id,
@@ -131,7 +270,7 @@ export async function registrarMudancaRegime(params: RegistrarMudancaRegimeParam
       new CustomEvent(EVENTO_REGIME_HISTORICO_ATUALIZADO, {
         detail: {
           registro: gravado,
-          empresaCodigo: params.empresaCodigo,
+          empresaCodigo: empCodigo,
           empresaDocumento: payload.empresa_documento,
         },
       }),
@@ -142,27 +281,39 @@ export async function registrarMudancaRegime(params: RegistrarMudancaRegimeParam
 }
 
 /**
- * Busca o histórico de alterações de regime de um cliente específico
- * por código, documento limpo ou ID da empresa.
+ * Alias de registrarMudancaRegime para componentes existentes
  */
-export async function listarHistoricoRegimePorCliente(identificador: {
-  empresaId?: string
-  empresaCodigo?: number
-  empresaDocumento?: string
-}): Promise<RegistroHistoricoRegime[]> {
+export const registrarAlteracaoRegime = registrarMudancaRegime
+
+/**
+ * Busca o histórico de alterações de regime de um cliente específico
+ * por código, documento limpo, CNPJ ou ID da empresa.
+ */
+export async function listarHistoricoRegimePorCliente(
+  identificador: ListarHistoricoFiltros,
+): Promise<RegistroHistoricoRegime[]> {
   const filtros: string[] = []
 
-  if (identificador.empresaCodigo) {
-    filtros.push(`empresa_codigo = ${identificador.empresaCodigo}`)
+  const empCodigo = identificador.empresaCodigo ?? identificador.empresa_codigo
+  const empDocRaw =
+    identificador.empresaDocumento ||
+    identificador.empresa_documento ||
+    identificador.empresaCnpj ||
+    identificador.empresa_cnpj
+  const empId = identificador.empresaId || identificador.empresa_id
+  const limite = identificador.limite
+
+  if (empCodigo) {
+    filtros.push(`empresa_codigo = ${empCodigo}`)
   }
-  if (identificador.empresaDocumento) {
-    const docLimpo = identificador.empresaDocumento.replace(/\D/g, '')
+  if (empDocRaw) {
+    const docLimpo = empDocRaw.replace(/\D/g, '')
     if (docLimpo) {
       filtros.push(`empresa_documento = '${docLimpo}'`)
     }
   }
-  if (identificador.empresaId) {
-    filtros.push(`empresa_id = '${identificador.empresaId}'`)
+  if (empId) {
+    filtros.push(`empresa_id = '${empId}'`)
   }
 
   let registrosPb: RegistroHistoricoRegime[] = []
@@ -184,6 +335,7 @@ export async function listarHistoricoRegimePorCliente(identificador: {
         regime_novo: r.regime_novo,
         origem: (r.origem as OrigemAlteracaoRegime) || 'ficha_cadastral',
         usuario: r.usuario,
+        usuario_nome: r.usuario || 'ADECONT Operador',
         data_hora: r.data_hora || r.created,
         observacao: r.observacao,
         created: r.created,
@@ -196,13 +348,12 @@ export async function listarHistoricoRegimePorCliente(identificador: {
 
   // Mescla com cache local para resiliência sem duplicar IDs
   const local = lerCacheLocal().filter((item) => {
-    if (identificador.empresaCodigo && item.empresa_codigo === identificador.empresaCodigo)
-      return true
-    if (identificador.empresaDocumento) {
-      const doc = identificador.empresaDocumento.replace(/\D/g, '')
+    if (empCodigo && item.empresa_codigo === empCodigo) return true
+    if (empDocRaw) {
+      const doc = empDocRaw.replace(/\D/g, '')
       if (doc && item.empresa_documento === doc) return true
     }
-    if (identificador.empresaId && item.empresa_id === identificador.empresaId) return true
+    if (empId && item.empresa_id === empId) return true
     return false
   })
 
@@ -222,7 +373,26 @@ export async function listarHistoricoRegimePorCliente(identificador: {
     return db - da
   })
 
+  if (limite && limite > 0) {
+    return combinados.slice(0, limite)
+  }
+
   return combinados
+}
+
+/**
+ * Alias de listarHistoricoRegimePorCliente
+ */
+export const listarHistoricoPorEmpresa = listarHistoricoRegimePorCliente
+
+/**
+ * Obtém o último registro de alteração de regime de um cliente
+ */
+export async function obterUltimaAlteracaoPorEmpresa(
+  identificador: ListarHistoricoFiltros,
+): Promise<RegistroHistoricoRegime | null> {
+  const lista = await listarHistoricoPorEmpresa({ ...identificador, limite: 1 })
+  return lista.length > 0 ? lista[0] : null
 }
 
 /**
@@ -244,6 +414,11 @@ export function formatarDataHoraRegime(isoOuData?: string | null): string {
     return isoOuData
   }
 }
+
+/**
+ * Alias de formatação de data/hora para auditoria
+ */
+export const formatarDataHoraAuditoria = formatarDataHoraRegime
 
 /**
  * Obtém resumo da última alteração de regime para uso no Diagnóstico e Parecer
