@@ -782,7 +782,13 @@ export default function CadastroClientes() {
                       <th className="py-3 px-3 min-w-[140px]">Município / UF</th>
                       <th className="py-3 px-3 min-w-[130px]">Contato</th>
                       <th className="py-3 px-3 w-24 text-center">Situação</th>
-                      <th className="py-3 px-3 w-20 text-center">Ficha</th>
+                      <th className="py-3 px-3 min-w-[125px] text-center">
+                        <span className="inline-flex items-center gap-1 font-bold text-slate-200">
+                          <Power className="w-3 h-3 text-[#D4AF37]" />
+                          <span>Status / Ação</span>
+                        </span>
+                      </th>
+                      <th className="py-3 px-3 w-16 text-center">Ficha</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -815,13 +821,16 @@ export default function CadastroClientes() {
                             <div className="h-4 w-12 bg-slate-200 rounded mx-auto" />
                           </td>
                           <td className="py-3.5 px-3 text-center">
+                            <div className="h-6 w-20 bg-slate-200 rounded mx-auto" />
+                          </td>
+                          <td className="py-3.5 px-3 text-center">
                             <div className="h-4 w-8 bg-slate-200 rounded mx-auto" />
                           </td>
                         </tr>
                       ))
                     ) : empresas.length === 0 ? (
                       <tr>
-                        <td colSpan={9} className="py-12 text-center text-slate-500">
+                        <td colSpan={10} className="py-12 text-center text-slate-500">
                           <div className="max-w-xs mx-auto flex flex-col items-center gap-2">
                             <Building2 className="w-8 h-8 text-slate-300" />
                             <span className="font-semibold text-slate-700">
@@ -1030,11 +1039,34 @@ export default function CadastroClientes() {
                               </span>
                             </td>
 
+                            {/* TECLA INDIVIDUAL ATIVO / INATIVO — Pedido do CEO */}
+                            <td className="py-2.5 px-3 text-center">
+                              <button
+                                type="button"
+                                onClick={() => handleInativar(emp)}
+                                disabled={inativandoCodigo === emp.codigo}
+                                title={`Clique para inativar "${emp.razao_social || emp.codigo}" e mover para o Cadastro Analítico de Clientes Inativos`}
+                                className="inline-flex items-center justify-center gap-1.5 px-2.5 py-1 text-[11px] font-bold rounded-lg border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 hover:border-rose-300 hover:text-rose-900 active:scale-95 transition-all shadow-xs disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
+                              >
+                                {inativandoCodigo === emp.codigo ? (
+                                  <>
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin text-rose-600 shrink-0" />
+                                    <span>Inativando…</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <UserX className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+                                    <span>Inativar</span>
+                                  </>
+                                )}
+                              </button>
+                            </td>
+
                             {/* Ficha completa / Detalhes */}
                             <td className="py-3 px-3 text-center">
                               <button
                                 onClick={() => abrirFichaCliente(emp)}
-                                className="inline-flex items-center justify-center p-1.5 text-[#0F294A] hover:bg-[#0F294A]/10 rounded-lg transition-colors"
+                                className="inline-flex items-center justify-center p-1.5 text-[#0F294A] hover:bg-[#0F294A]/10 rounded-lg transition-colors cursor-pointer"
                                 title="Abrir ficha cadastral completa"
                               >
                                 <FileText className="w-4 h-4 text-[#0F294A]" />
@@ -1438,12 +1470,28 @@ export default function CadastroClientes() {
               <span className="text-[11px] text-slate-400">
                 Base cadastral interna ADECONT • Protegida
               </span>
-              <button
-                onClick={() => setModalEmpresa(null)}
-                className="px-4 py-1.5 rounded-lg bg-[#0F294A] text-white font-semibold text-xs hover:bg-[#1a3d68] transition-colors"
-              >
-                Fechar Ficha
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleInativar(modalEmpresa)}
+                  disabled={inativandoCodigo === modalEmpresa.codigo}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-rose-300 bg-rose-50 text-rose-700 hover:bg-rose-100 text-xs font-bold transition-colors disabled:opacity-50 cursor-pointer"
+                  title="Inativar este cliente e movê-lo para o Cadastro de Clientes Inativos"
+                >
+                  {inativandoCodigo === modalEmpresa.codigo ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-rose-600" />
+                  ) : (
+                    <UserX className="w-3.5 h-3.5 text-rose-600" />
+                  )}
+                  <span>Inativar Cliente</span>
+                </button>
+                <button
+                  onClick={() => setModalEmpresa(null)}
+                  className="px-4 py-1.5 rounded-lg bg-[#0F294A] text-white font-semibold text-xs hover:bg-[#1a3d68] transition-colors cursor-pointer"
+                >
+                  Fechar Ficha
+                </button>
+              </div>
             </div>
           </div>
         </div>
