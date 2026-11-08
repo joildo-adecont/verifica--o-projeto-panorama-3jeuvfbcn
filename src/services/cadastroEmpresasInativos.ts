@@ -161,6 +161,32 @@ export async function listarEmpresasInativasParaRelatorio(
   return todas
 }
 
+/**
+ * INATIVAR (tecla individual da linha no Cadastro de Clientes).
+ * Chama a rota /backend/v1/inativos-inativar, que copia o cadastro para os
+ * inativos e remove do ativo — a operação inversa da reativação abaixo.
+ */
+export async function inativarCliente(
+  codigo: number,
+  motivo?: string,
+): Promise<{ ok: boolean; mensagem?: string }> {
+  const backend =
+    import.meta.env.VITE_POCKETBASE_URL?.replace(/\/$/, '') ||
+    'https://verificacao-projeto-panorama-18549.shrd02.internal.goskip.dev'
+
+  const token =
+    (typeof window !== 'undefined' && window.localStorage.getItem('adecont_painel_token')) || ''
+
+  const r = await fetch(`${backend}/backend/v1/inativos-inativar`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Painel-Token': token },
+    body: JSON.stringify({ codigo, motivo }),
+  })
+  const j = await r.json()
+  if (!r.ok) throw new Error(j.erro || `Falha (${r.status})`)
+  return j
+}
+
 /** Devolve o cliente ao cadastro ativo. */
 export async function reativarCliente(codigo: number): Promise<{ ok: boolean; mensagem?: string }> {
   const backend =

@@ -26,6 +26,8 @@ import {
   FileSpreadsheet,
   Check,
   Loader2,
+  Power,
+  UserX,
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { AdecontLogo } from '@/components/AdecontLogo'
@@ -34,6 +36,7 @@ import {
   listarEmpresasParaRelatorio,
   atualizarEmpresa,
 } from '@/services/cadastroEmpresas'
+import { inativarCliente, listarEmpresasInativas } from '@/services/cadastroEmpresasInativos'
 import { RelatorioClientesImprimivel } from '@/components/RelatorioClientesImprimivel'
 import { BadgeDocumentoCliente } from '@/components/BadgeDocumentoCliente'
 import { SecaoClientesArquivados } from '@/components/SecaoClientesArquivados'
@@ -71,6 +74,10 @@ export default function CadastroClientes() {
   const [filtroRegime, setFiltroRegime] = useState<string>('TODOS')
   const [abaAtiva, setAbaAtiva] = useState<'ativos' | 'arquivados'>('ativos')
   const [totalArquivadosContador, setTotalArquivadosContador] = useState<number>(0)
+  const [totalInativosContador, setTotalInativosContador] = useState<number>(0)
+  // Tecla individual Ativo/Inativo por linha
+  const [inativandoCodigo, setInativandoCodigo] = useState<number | null>(null)
+  const [avisoInativacao, setAvisoInativacao] = useState<string | null>(null)
   const [ordenacao, setOrdenacao] = useState<
     'codigo-asc' | 'codigo-desc' | 'nome-asc' | 'nome-desc'
   >('codigo-asc')
@@ -275,6 +282,49 @@ export default function CadastroClientes() {
     }
   }
 
+  /**
+   * TECLA INDIVIDUAL ATIVO/INATIVO — pedido do CEO: cada cliente da lista tem
+   * uma tecla própria; ao inativar, o cliente sai daqui e passa a constar no
+   * Cadastro Analítico de Clientes Inativos (de onde pode ser reativado e onde
+   * a busca dele fica facilitada). Confirmação leve antes de mover, porque a
+   * operação muda as duas telas e a contagem da carteira.
+   */
+  const handleInativar = async (emp: EmpresaRecord) => {
+    const nome = emp.razao_social || `Cliente #${emp.codigo}`
+    if (
+      !window.confirm(
+        `Inativar "${nome}"?\n\nO cliente sai da listagem de ativos e passa a constar no Cadastro Analítico de Clientes Inativos.`,
+      )
+    )
+      return
+
+    setInativandoCodigo(emp.codigo)
+    setAvisoInativacao(null)
+    try {
+      await inativarCliente(emp.codigo)
+      setAvisoInativacao(
+        `"${nome}" foi inativado e agora consta no Cadastro Analítico de Clientes Inativos.`,
+      )
+      setModalEmpresa((prev) => (prev && prev.codigo === emp.codigo ? null : prev))
+      await carregarDados()
+    } catch (e: any) {
+      console.error('Erro ao inativar cliente:', e)
+      setStatusInline((prev) => ({
+        ...prev,
+        [emp.codigo]: { tipo: 'erro', texto: e?.message || 'Falha ao inativar cliente' },
+      }))
+      setTimeout(() => {
+        setStatusInline((prev) => {
+          const next = { ...prev }
+          delete next[emp.codigo]
+          return next
+        })
+      }, 4000)
+    } finally {
+      setInativandoCodigo(null)
+    }
+  }
+
   // Estado do Relatório A4 impresso/PDF
   const [modalRelatorioAberto, setModalRelatorioAberto] = useState<boolean>(false)
   const [empresasRelatorio, setEmpresasRelatorio] = useState<EmpresaRecord[]>([])
@@ -303,6 +353,14 @@ export default function CadastroClientes() {
       try {
         const arqRes = await listarEmpresas({ somenteArquivados: true, porPagina: 1 })
         setTotalArquivadosContador(arqRes.totalItems || 0)
+      } catch {
+        // silencioso
+      }
+
+      // Atualiza contagem do cadastro de inativos (aba de atalho)
+      try {
+        const inaRes = await listarEmpresasInativas({ porPagina: 1 })
+        setTotalInativosContador(inaRes.totalItems || 0)
       } catch {
         // silencioso
       }
@@ -519,7 +577,40 @@ export default function CadastroClientes() {
               {totalArquivadosContador}
             </span>
           </button>
+
+          <Link
+            to="/cadastro-clientes-inativos"
+            className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-t-lg text-xs font-bold transition-all border-b-2 ${
+              abaAtiva === 'inativos-link'
+                ? 'border-[#2C3E50] text-[#2C3E50] bg-white shadow-sm'
+                : 'border-transparent text-slate-500 hover:text-[#2C3E50] hover:bg-slate-100/60'
+            }`}
+            title="Abrir o Cadastro Analítico de Clientes Inativos"
+          >
+            <UserX className="w-4 h-4" />
+            <span>Clientes Inativos</span>
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-[#2C3E50] text-white">
+              {totalInativosContador.toLocaleString('pt-BR')}
+            </span>
+          </Link>
         </div>
+
+        {/* AVISO DE INATIVAÇÃO — com atalho direto para o cadastro de inativos */}
+        {abaAtiva === 'ativos' && avisoInativacao && (
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-emerald-300 bg-emerald-50 p-3 text-xs text-emerald-900">
+            <span className="inline-flex items-center gap-2">
+              <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+              {avisoInativacao}
+            </span>
+            <Link
+              to="/cadastro-clientes-inativos"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#2C3E50] text-white font-bold text-[11px] hover:opacity-90 transition-opacity"
+            >
+              Abrir Cadastro de Clientes Inativos
+              <ExternalLink className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        )}
 
         {abaAtiva === 'arquivados' ? (
           <SecaoClientesArquivados
