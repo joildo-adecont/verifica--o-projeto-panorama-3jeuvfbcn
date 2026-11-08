@@ -72,7 +72,7 @@ export default function CadastroClientes() {
   const [filtroTipoDoc, setFiltroTipoDoc] = useState<string>('TODOS')
   const [filtroSituacao, setFiltroSituacao] = useState<string>('TODOS')
   const [filtroRegime, setFiltroRegime] = useState<string>('TODOS')
-  const [abaAtiva, setAbaAtiva] = useState<'ativos' | 'arquivados'>('ativos')
+  const [abaAtiva, setAbaAtiva] = useState<'ativos' | 'arquivados' | 'inativos-link'>('ativos')
   const [totalArquivadosContador, setTotalArquivadosContador] = useState<number>(0)
   const [totalInativosContador, setTotalInativosContador] = useState<number>(0)
   // Tecla individual Ativo/Inativo por linha
