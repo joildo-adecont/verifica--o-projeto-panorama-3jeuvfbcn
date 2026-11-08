@@ -1094,6 +1094,25 @@ export function gerarRelatorioComparativo(
 export const calcularTodosIndicadores = calcular25Indicadores
 export const calcularIndicadoresExercicio = calcular25Indicadores
 
+// Reexporta os novos índices avançados preservando a integridade dos 25 existentes
+export {
+  calcularTodosIndicesAvancados,
+  calcularAnaliseDinamica,
+  calcularTermometroKanitz,
+  calcularAltmanZ1,
+  calcularElizabetsky,
+  calcularFormulaDuPont,
+} from './indicesAvancadosEmpresariais'
+export type {
+  ItemIndiceAvancado,
+  AnaliseDinamicaCapital,
+  TermometroKanitzResultado,
+  AltmanZ1Resultado,
+  ElizabetskyResultado,
+  FormulaDuPontResultado,
+  RelatorioIndicesAvancados,
+} from './indicesAvancadosEmpresariais'
+
 export function gerarParecerAutomatico(
   empresaNome: string,
   indicadores: ItemIndicador[],

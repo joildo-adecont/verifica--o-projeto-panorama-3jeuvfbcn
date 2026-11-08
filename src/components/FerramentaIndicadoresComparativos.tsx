@@ -25,7 +25,11 @@ import type {
   StatusSemaforo,
   AnaliseBalanco3Exercicios,
 } from '@/types/analisesEmpresariaisModel'
-import { calcular25Indicadores } from '@/services/motorAnaliseEmpresarial'
+import {
+  calcular25Indicadores,
+  calcularTodosIndicesAvancados,
+} from '@/services/motorAnaliseEmpresarial'
+import { PainelIndicesAvancadosPdf } from './PainelIndicesAvancadosPdf'
 
 interface Props {
   indicadores: ItemIndicador[]
@@ -100,28 +104,32 @@ export const FerramentaIndicadoresComparativos: React.FC<Props> = ({
   const [ordenacao, setOrdenacao] = useState<'padrao' | 'criticos' | 'alfabetica'>('padrao')
 
   // Indicadores calculados para Ano -2 e Ano -1 quando houver balanço 3 anos
-  const { indMenos2Map, indMenos1Map, rotuloMenos2, rotuloMenos1, rotuloAtual } = useMemo(() => {
-    if (!balanco3Anos) {
-      return {
-        indMenos2Map: new Map<string, ItemIndicador>(),
-        indMenos1Map: new Map<string, ItemIndicador>(),
-        rotuloMenos2: 'Ano -2',
-        rotuloMenos1: 'Ano -1',
-        rotuloAtual: exercicioRotulo,
+  const { indMenos2Map, indMenos1Map, rotuloMenos2, rotuloMenos1, rotuloAtual, relatorioAvancado } =
+    useMemo(() => {
+      if (!balanco3Anos) {
+        return {
+          indMenos2Map: new Map<string, ItemIndicador>(),
+          indMenos1Map: new Map<string, ItemIndicador>(),
+          rotuloMenos2: 'Ano -2',
+          rotuloMenos1: 'Ano -1',
+          rotuloAtual: exercicioRotulo,
+          relatorioAvancado: null,
+        }
       }
-    }
 
-    const calcMenos2 = calcular25Indicadores(balanco3Anos.anoMenos2)
-    const calcMenos1 = calcular25Indicadores(balanco3Anos.anoMenos1)
+      const calcMenos2 = calcular25Indicadores(balanco3Anos.anoMenos2)
+      const calcMenos1 = calcular25Indicadores(balanco3Anos.anoMenos1)
+      const relAvancado = calcularTodosIndicesAvancados(balanco3Anos.anoAtual)
 
-    return {
-      indMenos2Map: new Map(calcMenos2.map((i) => [i.id, i])),
-      indMenos1Map: new Map(calcMenos1.map((i) => [i.id, i])),
-      rotuloMenos2: balanco3Anos.anoMenos2?.rotulo || 'Ano -2',
-      rotuloMenos1: balanco3Anos.anoMenos1?.rotulo || 'Ano -1',
-      rotuloAtual: balanco3Anos.anoAtual?.rotulo || exercicioRotulo,
-    }
-  }, [balanco3Anos, exercicioRotulo])
+      return {
+        indMenos2Map: new Map(calcMenos2.map((i) => [i.id, i])),
+        indMenos1Map: new Map(calcMenos1.map((i) => [i.id, i])),
+        rotuloMenos2: balanco3Anos.anoMenos2?.rotulo || 'Ano -2',
+        rotuloMenos1: balanco3Anos.anoMenos1?.rotulo || 'Ano -1',
+        rotuloAtual: balanco3Anos.anoAtual?.rotulo || exercicioRotulo,
+        relatorioAvancado: relAvancado,
+      }
+    }, [balanco3Anos, exercicioRotulo])
 
   const formatarValorNumerico = (
     val: number | null | undefined,
@@ -773,6 +781,9 @@ export const FerramentaIndicadoresComparativos: React.FC<Props> = ({
           </CardContent>
         </Card>
       )}
+
+      {/* 4. BLOCO EXPANDIDO: ÍNDICES DO MODELO PDF FMF (FONTES LEGAIS, KANITZ, ALTMAN Z1, ELIZABETSKY, DU PONT, FLEURIET) */}
+      {relatorioAvancado && <PainelIndicesAvancadosPdf relatorioAvancado={relatorioAvancado} />}
     </div>
   )
 }

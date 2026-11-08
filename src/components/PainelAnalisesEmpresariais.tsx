@@ -49,6 +49,7 @@ import {
   calcularScorePonderado,
   gerarParecerAutomatico,
 } from '@/services/motorAnaliseEmpresarial'
+import { DADOS_EXEMPLO_FMF_3_ANOS } from '@/data/exemploFmfAnalise'
 import type {
   ExercicioFinanceiro,
   ItemIndicador,
@@ -278,6 +279,22 @@ export const PainelAnalisesEmpresariais: React.FC<PainelAnalisesEmpresariaisProp
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            onClick={() => {
+              setBalanco3Anos(DADOS_EXEMPLO_FMF_3_ANOS)
+              const inds = calcularTodosIndicadores(DADOS_EXEMPLO_FMF_3_ANOS.anoAtual)
+              const score = calcularScorePonderado(notasCustomScore, inds)
+              setIndicadoresApurados(inds)
+              setScoreResultado(score)
+            }}
+            className="flex items-center gap-2 px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-lg shadow-sm text-xs transition-all cursor-pointer border border-amber-400"
+            title="Carrega o balanço e DRE completos da FMF Fruticultura (2022-2024) do modelo pericial PDF com conferência obrigatória dos índices"
+          >
+            <Sparkles className="w-4 h-4" />
+            Carregar exemplo FMF 2022–2024
+          </button>
+
           <BotaoExportacaoContabil
             indicadores={indicadoresApurados}
             clienteNome={cliente.razao_social || cliente.nome}
