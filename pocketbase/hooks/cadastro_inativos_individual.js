@@ -27,10 +27,19 @@ routerAdd('POST', '/backend/v1/inativos-inativar', (e) => {
 
   let corpo = {}
   try {
-    const info = $apis.requestInfo(e)
-    if (info && info.data && typeof info.data === 'object') corpo = info.data
+    const info = e.requestInfo()
+    if (info && info.body && typeof info.body === 'object') {
+      corpo = info.body
+    }
   } catch (err) {
     corpo = {}
+  }
+  if (!corpo || !corpo.codigo) {
+    try {
+      corpo = JSON.parse(toString(e.request.body)) || {}
+    } catch (err) {
+      corpo = corpo || {}
+    }
   }
 
   const codigo = Number(corpo.codigo || 0)

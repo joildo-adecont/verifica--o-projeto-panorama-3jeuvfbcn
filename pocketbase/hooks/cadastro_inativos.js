@@ -266,8 +266,10 @@ routerAdd('POST', '/backend/v1/inativos-reativar', (e) => {
 
   let corpo = {}
   try {
-    const info = $apis.requestInfo(e)
-    if (info && info.data && typeof info.data === 'object') corpo = info.data
+    const info = e.requestInfo()
+    if (info && info.body && typeof info.body === 'object') {
+      corpo = info.body
+    }
   } catch (err) {
     corpo = {}
   }
