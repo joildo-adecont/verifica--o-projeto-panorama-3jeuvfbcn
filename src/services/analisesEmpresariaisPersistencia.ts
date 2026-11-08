@@ -322,12 +322,14 @@ export async function carregarParecerCliente(cnpj: string): Promise<{
 export async function salvarParecerENotasCliente(
   cnpj: string,
   parecer: Partial<ParecerFinalEstruturado>,
-  notasAjustadas: Partial<Record<BlocoScorePonderado['bloco'], number>>,
+  notasAjustadas?: Partial<Record<BlocoScorePonderado['bloco'], number>>,
 ): Promise<void> {
   const cnpjLimpo = limparCnpj(cnpj)
-  if (!cnpjLimpo) return
+  if (!cnpjLimpo) {
+    throw new Error('CNPJ do cliente não informado para salvar o parecer.')
+  }
 
-  const payload = {
+  const payload: Record<string, unknown> = {
     cliente_cnpj: cnpjLimpo,
     periodo: parecer.periodo || '3 exercícios',
     escopo: parecer.escopo || 'Contábil, fiscal, patrimonial e financeiro',
@@ -338,19 +340,46 @@ export async function salvarParecerENotasCliente(
     nivel_opiniao: parecer.nivelOpiniao || 'Sem ressalvas',
     recomendacao_credito: parecer.recomendacaoCredito || '',
     responsavel_tecnico: parecer.responsavelTecnico || 'Analista ADECONT',
-    notas_ajustadas: notasAjustadas || {},
+    notas_ajustadas: notasAjustadas ?? {},
   }
 
   try {
-    const existing = await pb
-      .collection('analise_pareceres')
-      .getFirstListItem(`cliente_cnpj = "${cnpjLimpo}"`)
-      .catch(() => null)
+    // 1. Tenta buscar registro existente por cliente_cnpj
+    let existingId: string | null = null
+    try {
+      const existing = await pb
+        .collection('analise_pareceres')
+        .getFirstListItem(`cliente_cnpj = "${cnpjLimpo}"`)
+      if (existing?.id) {
+        existingId = existing.id
+      }
+    } catch {
+      // Ignora 404
+      existingId = null
+    }
 
-    if (existing) {
-      await pb.collection('analise_pareceres').update(existing.id, payload)
-    } else {
+    if (existingId) {
+      await pb.collection('analise_pareceres').update(existingId, payload)
+      return
+    }
+
+    // 2. Se não encontrou, tenta criar
+    try {
       await pb.collection('analise_pareceres').create(payload)
+    } catch (createErr) {
+      // Caso de corrida ou índice único violado (duplicação simultânea):
+      // busca novamente pelo CNPJ e tenta atualizar
+      const retryExisting = await pb
+        .collection('analise_pareceres')
+        .getFirstListItem(`cliente_cnpj = "${cnpjLimpo}"`)
+        .catch(() => null)
+
+      if (retryExisting?.id) {
+        await pb.collection('analise_pareceres').update(retryExisting.id, payload)
+        return
+      }
+
+      throw createErr
     }
   } catch (err) {
     console.error('[analisesEmpresariaisService] Erro ao salvar parecer:', err)

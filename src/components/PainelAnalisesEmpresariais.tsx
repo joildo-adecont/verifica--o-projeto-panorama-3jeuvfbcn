@@ -69,6 +69,8 @@ import {
   carregarBalancoCliente,
 } from '@/services/analisesEmpresariaisPersistencia'
 import { criarExercicioVazio } from '@/services/motorAnaliseEmpresarial'
+import { useToast } from '@/hooks/use-toast'
+import { getErrorMessage } from '@/lib/pocketbase/errors'
 
 interface PainelAnalisesEmpresariaisProps {
   dossie: SinteseAnaliseEmpresarial
@@ -119,8 +121,10 @@ export const PainelAnalisesEmpresariais: React.FC<PainelAnalisesEmpresariaisProp
     anoMenos1: criarExercicioVazio('ano_menos_1'),
     anoAtual: criarExercicioVazio('ano_atual'),
   })
+  const { toast } = useToast()
   const [salvandoBalanco, setSalvandoBalanco] = useState(false)
   const [salvandoChecklist, setSalvandoChecklist] = useState(false)
+  const [salvandoParecer, setSalvandoParecer] = useState(false)
   const [notasCustomScore, setNotasCustomScore] = useState<
     Partial<Record<BlocoScorePonderado['bloco'], number>>
   >({})
@@ -428,8 +432,13 @@ export const PainelAnalisesEmpresariais: React.FC<PainelAnalisesEmpresariaisProp
             const novoScore = calcularScorePonderado(novas, indicadoresApurados)
             setScoreResultado(novoScore)
             const docLimpo = cliente.documento_limpo || cliente.numero_documento || ''
-            if (parecerFinal) {
-              salvarParecerENotasCliente(docLimpo, parecerFinal, novas)
+            if (parecerFinal && docLimpo) {
+              salvarParecerENotasCliente(docLimpo, parecerFinal, novas).catch((err) => {
+                console.warn(
+                  '[PainelAnalisesEmpresariais] Falha ao persistir nota customizada:',
+                  err,
+                )
+              })
             }
           }}
           anoMenos2={balanco3Anos.anoMenos2}
@@ -499,16 +508,54 @@ export const PainelAnalisesEmpresariais: React.FC<PainelAnalisesEmpresariaisProp
           }
           indicadores={indicadoresApurados}
           scoreFinal={scoreResultado?.notaFinal || 7.0}
-          salvando={false}
+          salvando={salvandoParecer}
           onUpdateCampo={(campo, valor) => {
-            if (!parecerFinal) return
-            const novo = { ...parecerFinal, [campo]: valor }
+            const base =
+              parecerFinal ||
+              (gerarParecerAutomatico(
+                cliente.razao_social || cliente.nome,
+                indicadoresApurados,
+                scoreResultado?.notaFinal || 7.0,
+              ) as ParecerFinalAnalise)
+            const novo = { ...base, [campo]: valor }
             setParecerFinal(novo)
           }}
           onSalvar={async () => {
-            if (!parecerFinal) return
+            const base =
+              parecerFinal ||
+              (gerarParecerAutomatico(
+                cliente.razao_social || cliente.nome,
+                indicadoresApurados,
+                scoreResultado?.notaFinal || 7.0,
+              ) as ParecerFinalAnalise)
             const docLimpo = cliente.documento_limpo || cliente.numero_documento || ''
-            await salvarParecerENotasCliente(docLimpo, parecerFinal, notasCustomScore)
+            if (!docLimpo) {
+              toast({
+                title: 'Não foi possível salvar',
+                description: 'CNPJ do cliente não localizado para vincular o parecer.',
+                variant: 'destructive',
+              })
+              return
+            }
+
+            setSalvandoParecer(true)
+            try {
+              await salvarParecerENotasCliente(docLimpo, base, notasCustomScore)
+              toast({
+                title: 'Parecer salvo com sucesso',
+                description: 'O parecer técnico e as notas foram gravados no sistema.',
+              })
+            } catch (err) {
+              console.error('[PainelAnalisesEmpresariais] Erro ao salvar parecer:', err)
+              const msg = getErrorMessage(err)
+              toast({
+                title: 'Erro ao salvar parecer',
+                description: msg || 'Ocorreu uma falha ao salvar o registro no banco de dados.',
+                variant: 'destructive',
+              })
+            } finally {
+              setSalvandoParecer(false)
+            }
           }}
           onImprimir={() => {
             window.print()
