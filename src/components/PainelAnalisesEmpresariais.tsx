@@ -33,7 +33,10 @@ import { FerramentaChecklistDocumental } from './FerramentaChecklistDocumental'
 import { FerramentaMatrizAchados } from './FerramentaMatrizAchados'
 import { FerramentaParecerFinal } from './FerramentaParecerFinal'
 import { PainelDadosMercado } from './PainelDadosMercado'
+import { PainelIndicadoresSetoriais } from './PainelIndicadoresSetoriais'
 import { type ItemIndiceMercado, formatarValorIndice } from '@/services/dadosMercadoAnalises'
+import type { ItemIndicadorSetorial } from '@/services/indicadoresSetoriais'
+import { Activity } from 'lucide-react'
 
 import {
   carregarBalancoEmpresarial,
@@ -73,6 +76,10 @@ interface PainelAnalisesEmpresariaisProps {
   carregandoMercado?: boolean
   atualizadoMercadoEm?: string
   onRecarregarMercado?: () => void
+  indicadoresSetoriais?: ItemIndicadorSetorial[]
+  carregandoSetoriais?: boolean
+  atualizadoSetoriaisEm?: string
+  onRecarregarSetoriais?: () => void
 }
 
 type AbaFerramenta =
@@ -85,6 +92,7 @@ type AbaFerramenta =
   | 'achados'
   | 'parecer'
   | 'mercado'
+  | 'setoriais'
   | 'visao_geral'
 
 export const PainelAnalisesEmpresariais: React.FC<PainelAnalisesEmpresariaisProps> = ({
@@ -94,6 +102,10 @@ export const PainelAnalisesEmpresariais: React.FC<PainelAnalisesEmpresariaisProp
   carregandoMercado = false,
   atualizadoMercadoEm = '',
   onRecarregarMercado,
+  indicadoresSetoriais = [],
+  carregandoSetoriais = false,
+  atualizadoSetoriaisEm = '',
+  onRecarregarSetoriais,
 }) => {
   const [abaAtiva, setAbaAtiva] = useState<AbaFerramenta>('balanco')
   const [modalRelatorioA4, setModalRelatorioA4] = useState(false)
@@ -229,8 +241,13 @@ export const PainelAnalisesEmpresariais: React.FC<PainelAnalisesEmpresariaisProp
       icon: <LineChart className="w-4 h-4" />,
     },
     {
+      id: 'setoriais',
+      label: '10. Indicadores Setoriais',
+      icon: <Activity className="w-4 h-4" />,
+    },
+    {
       id: 'visao_geral',
-      label: '10. Visão Geral & Agentes',
+      label: '11. Visão Geral & Agentes',
       icon: <Sparkles className="w-4 h-4" />,
     },
   ]
@@ -491,6 +508,17 @@ export const PainelAnalisesEmpresariais: React.FC<PainelAnalisesEmpresariaisProp
           clienteNome={cliente?.razao_social || cliente?.nome}
           clienteDoc={cliente?.documento_limpo || cliente?.numero_documento || cliente?.cpf_cnpj}
           regimeTributario={cliente?.regime_tributario || cliente?.enquadramento_tributario}
+        />
+      )}
+
+      {abaAtiva === 'setoriais' && (
+        <PainelIndicadoresSetoriais
+          indicadores={indicadoresSetoriais}
+          carregando={carregandoSetoriais}
+          atualizadoEm={atualizadoSetoriaisEm}
+          onRecarregar={onRecarregarSetoriais}
+          clienteNome={cliente?.razao_social || cliente?.nome}
+          clienteDoc={cliente?.documento_limpo || cliente?.numero_documento || cliente?.cpf_cnpj}
         />
       )}
 

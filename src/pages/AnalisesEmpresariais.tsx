@@ -20,6 +20,10 @@ import {
   buscarIndicesMercadoAnalises,
   type ItemIndiceMercado,
 } from '@/services/dadosMercadoAnalises'
+import {
+  buscarIndicadoresSetoriais,
+  type ItemIndicadorSetorial,
+} from '@/services/indicadoresSetoriais'
 import { listarEmpresasParaRelatorio } from '@/services/cadastroEmpresas'
 import type { EmpresaRecord } from '@/types/cadastroEmpresas'
 import { ImportadorDocumentosEmpresariais } from '@/components/ImportadorDocumentosEmpresariais'
@@ -38,6 +42,9 @@ export const AnalisesEmpresariais: React.FC = () => {
   const [indicesMercado, setIndicesMercado] = useState<ItemIndiceMercado[]>([])
   const [carregandoMercado, setCarregandoMercado] = useState(false)
   const [atualizadoMercadoEm, setAtualizadoMercadoEm] = useState<string>('')
+  const [indicadoresSetoriais, setIndicadoresSetoriais] = useState<ItemIndicadorSetorial[]>([])
+  const [carregandoSetoriais, setCarregandoSetoriais] = useState(false)
+  const [atualizadoSetoriaisEm, setAtualizadoSetoriaisEm] = useState<string>('')
 
   // Carrega a lista real de clientes
   const carregarListaClientes = async () => {
@@ -71,9 +78,24 @@ export const AnalisesEmpresariais: React.FC = () => {
     }
   }
 
+  // Carrega os indicadores econômicos setoriais (agro, construção, comércio, crédito)
+  const carregarSetoriais = async () => {
+    setCarregandoSetoriais(true)
+    try {
+      const res = await buscarIndicadoresSetoriais()
+      setIndicadoresSetoriais(res.itens)
+      setAtualizadoSetoriaisEm(res.atualizadoEm)
+    } catch (err) {
+      console.error('[AnalisesEmpresariais] Erro ao carregar indicadores setoriais:', err)
+    } finally {
+      setCarregandoSetoriais(false)
+    }
+  }
+
   useEffect(() => {
     carregarListaClientes()
     carregarMercado()
+    carregarSetoriais()
   }, [])
 
   // Carrega a síntese de análise quando o cliente selecionado mudar
@@ -253,6 +275,10 @@ export const AnalisesEmpresariais: React.FC = () => {
                   carregandoMercado={carregandoMercado}
                   atualizadoMercadoEm={atualizadoMercadoEm}
                   onRecarregarMercado={carregarMercado}
+                  indicadoresSetoriais={indicadoresSetoriais}
+                  carregandoSetoriais={carregandoSetoriais}
+                  atualizadoSetoriaisEm={atualizadoSetoriaisEm}
+                  onRecarregarSetoriais={carregarSetoriais}
                 />
               ) : (
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8 text-center text-xs text-slate-500">

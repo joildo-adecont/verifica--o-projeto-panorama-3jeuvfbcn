@@ -15,7 +15,6 @@
 
 import { fetchSerieHistorica, type ChaveSerieHistorica, type PontoSerie } from './seriesHistoricas'
 import { formatarPeriodoReferencia, type InterpretacaoIndice } from './dadosMercadoAnalises'
-import { formatarVariacaoMercado, type ItemExportacaoMercado } from './exportarDadosMercado'
 
 export type SetorIndicador =
   | 'agronegocio'
@@ -370,48 +369,4 @@ export async function buscarIndicadoresSetoriais(): Promise<{
     }),
     todasVivas,
   }
-}
-
-/**
- * Mapeia os indicadores setoriais para o formato tabular da exportação padrão
- * ADECONT (mesmas colunas dos Dados de Mercado: Índice, Valor, Unidade, Data do
- * Dado, Fonte, Variação e Status), agrupados por setor na ordem canônica.
- */
-export function prepararLinhasExportacaoSetorial(
-  itens: ItemIndicadorSetorial[],
-): ItemExportacaoMercado[] {
-  if (!itens || itens.length === 0) return []
-
-  const ordenados = [...itens].sort((a, b) => {
-    const oa = ORDEM_SETOR.indexOf(a.setor)
-    const ob = ORDEM_SETOR.indexOf(b.setor)
-    if (oa !== ob) return oa - ob
-    return a.nome.localeCompare(b.nome, 'pt-BR')
-  })
-
-  return ordenados.map((ind) => {
-    const valorFmt = formatarValorSetorial(ind.valorAtual, ind.formato, ind.casasDecimais)
-    const { statusTexto } = obterStatusSemaforoSetorial(ind.variacao)
-    const casasVar = ind.casasDecimais > 2 ? 4 : 2
-    const varFmt = formatarVariacaoMercado(ind.variacao, casasVar)
-    const fonteReal = ind.baseInterna
-      ? 'Base Interna ADECONT'
-      : ind.fonteRota?.trim() || ind.fonte?.trim() || 'Fonte Oficial'
-    const dataDado = ind.periodoFormatado || ind.dataReferencia || '—'
-
-    return {
-      indice: ind.nome,
-      codigo: ind.codigoCurto,
-      valor: valorFmt,
-      unidade: ind.unidade || '—',
-      dataDado,
-      fonte: fonteReal,
-      fonteReal,
-      variacao: varFmt,
-      status: statusTexto,
-      baseInterna: !!ind.baseInterna,
-      aviso: ind.aviso || '',
-      categoria: ROTULO_SETOR[ind.setor],
-    }
-  })
 }
