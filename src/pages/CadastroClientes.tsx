@@ -1040,23 +1040,33 @@ export default function CadastroClientes() {
                             </td>
 
                             {/* TECLA INDIVIDUAL ATIVO / INATIVO — Pedido do CEO */}
-                            <td className="py-2.5 px-3 text-center">
+                            <td className="py-2.5 px-3 text-center whitespace-nowrap">
                               <button
                                 type="button"
                                 onClick={() => handleInativar(emp)}
                                 disabled={inativandoCodigo === emp.codigo}
-                                title={`Clique para inativar "${emp.razao_social || emp.codigo}" e mover para o Cadastro Analítico de Clientes Inativos`}
-                                className="inline-flex items-center justify-center gap-1.5 px-2.5 py-1 text-[11px] font-bold rounded-lg border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 hover:border-rose-300 hover:text-rose-900 active:scale-95 transition-all shadow-xs disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
+                                title={`Cliente atualmente ATIVO. Clique para inativar "${emp.razao_social || emp.codigo}" e transferi-lo para o Cadastro de Clientes Inativos.`}
+                                aria-label={`Status Ativo: clique para inativar ${emp.razao_social || emp.codigo}`}
+                                className="group inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-bold rounded-full border border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-rose-50 hover:border-rose-300 hover:text-rose-700 active:scale-95 transition-all shadow-xs disabled:opacity-50 disabled:pointer-events-none cursor-pointer select-none"
                               >
                                 {inativandoCodigo === emp.codigo ? (
                                   <>
-                                    <Loader2 className="w-3.5 h-3.5 animate-spin text-rose-600 shrink-0" />
-                                    <span>Inativando…</span>
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-700 group-hover:text-rose-600 shrink-0" />
+                                    <span className="font-semibold">Inativando…</span>
                                   </>
                                 ) : (
                                   <>
-                                    <UserX className="w-3.5 h-3.5 text-rose-600 shrink-0" />
-                                    <span>Inativar</span>
+                                    {/* Indicador visual de estado Ativo com hover para Inativar */}
+                                    <span className="relative flex h-2 w-2 shrink-0">
+                                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60 group-hover:opacity-0" />
+                                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-600 group-hover:bg-rose-600 transition-colors" />
+                                    </span>
+                                    <UserCheck className="w-3.5 h-3.5 text-emerald-700 group-hover:hidden shrink-0" />
+                                    <UserX className="w-3.5 h-3.5 text-rose-600 hidden group-hover:inline-block shrink-0" />
+                                    <span className="group-hover:hidden font-bold">Ativo</span>
+                                    <span className="hidden group-hover:inline-block font-bold text-rose-700">
+                                      Inativar
+                                    </span>
                                   </>
                                 )}
                               </button>
@@ -1475,15 +1485,30 @@ export default function CadastroClientes() {
                   type="button"
                   onClick={() => handleInativar(modalEmpresa)}
                   disabled={inativandoCodigo === modalEmpresa.codigo}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-rose-300 bg-rose-50 text-rose-700 hover:bg-rose-100 text-xs font-bold transition-colors disabled:opacity-50 cursor-pointer"
-                  title="Inativar este cliente e movê-lo para o Cadastro de Clientes Inativos"
+                  className="group inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-rose-50 hover:border-rose-300 hover:text-rose-700 text-xs font-bold transition-all shadow-xs disabled:opacity-50 cursor-pointer select-none"
+                  title={`Cliente atualmente ATIVO. Clique para inativar "${modalEmpresa.razao_social || modalEmpresa.codigo}" e transferir para o Cadastro de Inativos.`}
                 >
                   {inativandoCodigo === modalEmpresa.codigo ? (
-                    <Loader2 className="w-3.5 h-3.5 animate-spin text-rose-600" />
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-700 group-hover:text-rose-600" />
+                      <span>Inativando Cliente…</span>
+                    </>
                   ) : (
-                    <UserX className="w-3.5 h-3.5 text-rose-600" />
+                    <>
+                      <span className="relative flex h-2 w-2 shrink-0">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60 group-hover:opacity-0" />
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-600 group-hover:bg-rose-600 transition-colors" />
+                      </span>
+                      <UserCheck className="w-3.5 h-3.5 text-emerald-700 group-hover:hidden shrink-0" />
+                      <UserX className="w-3.5 h-3.5 text-rose-600 hidden group-hover:inline-block shrink-0" />
+                      <span className="group-hover:hidden font-bold">
+                        Ativo (clique p/ Inativar)
+                      </span>
+                      <span className="hidden group-hover:inline-block font-bold text-rose-700">
+                        Inativar Cliente
+                      </span>
+                    </>
                   )}
-                  <span>Inativar Cliente</span>
                 </button>
                 <button
                   onClick={() => setModalEmpresa(null)}

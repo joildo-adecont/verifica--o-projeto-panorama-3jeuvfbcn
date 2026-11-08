@@ -23,6 +23,9 @@ import {
   Printer,
   RotateCcw,
   History,
+  UserX,
+  UserCheck,
+  Loader2,
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { AdecontLogo } from '@/components/AdecontLogo'
@@ -421,14 +424,33 @@ td{border-bottom:1px solid #ddd;padding:3px 5px}
                         {emp.situacao || 'Inativa'}
                       </span>
 
+                      {/* Tecla individual de status Inativo / Reativar */}
                       <button
+                        type="button"
                         onClick={() => reativar(emp)}
                         disabled={reativando === emp.codigo}
-                        title="Devolver ao Cadastro Analítico de Clientes"
-                        className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-[#2C3E50] px-2 py-1 text-[10px] font-bold text-white hover:opacity-90 disabled:opacity-50 cursor-pointer"
+                        title={`Cliente atualmente INATIVO. Clique para reativar "${emp.razao_social || emp.codigo}" e devolver ao Cadastro Analítico de Clientes.`}
+                        aria-label={`Status Inativo: clique para reativar ${emp.razao_social || emp.codigo}`}
+                        className="group inline-flex shrink-0 items-center gap-1.5 rounded-full border border-rose-300 bg-rose-50 px-2.5 py-1 text-[10.5px] font-bold text-rose-700 hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-800 active:scale-95 transition-all shadow-xs disabled:opacity-50 disabled:pointer-events-none cursor-pointer select-none"
                       >
-                        <RotateCcw className="w-3 h-3" />
-                        {reativando === emp.codigo ? '...' : 'Reativar'}
+                        {reativando === emp.codigo ? (
+                          <>
+                            <Loader2 className="w-3.5 h-3.5 animate-spin text-rose-700 group-hover:text-emerald-700 shrink-0" />
+                            <span>Reativando…</span>
+                          </>
+                        ) : (
+                          <>
+                            <span className="relative flex h-2 w-2 shrink-0">
+                              <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500 group-hover:bg-emerald-600 transition-colors" />
+                            </span>
+                            <UserX className="w-3.5 h-3.5 text-rose-600 group-hover:hidden shrink-0" />
+                            <UserCheck className="w-3.5 h-3.5 text-emerald-700 hidden group-hover:inline-block shrink-0" />
+                            <span className="group-hover:hidden font-bold">Inativo</span>
+                            <span className="hidden group-hover:inline-block font-bold text-emerald-700">
+                              Reativar
+                            </span>
+                          </>
+                        )}
                       </button>
                     </div>
 
@@ -636,12 +658,32 @@ td{border-bottom:1px solid #ddd;padding:3px 5px}
                 Fechar
               </button>
               <button
+                type="button"
                 onClick={() => reativar(modalEmpresa)}
                 disabled={reativando === modalEmpresa.codigo}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-[#2C3E50] px-3 py-1.5 text-[11px] font-bold text-white hover:opacity-90 disabled:opacity-50 cursor-pointer"
+                className="group inline-flex items-center gap-1.5 rounded-full border border-rose-300 bg-rose-50 px-3 py-1.5 text-[11px] font-bold text-rose-700 hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-800 active:scale-95 transition-all shadow-xs disabled:opacity-50 cursor-pointer select-none"
+                title={`Cliente atualmente INATIVO. Clique para reativar "${modalEmpresa.razao_social || modalEmpresa.codigo}" e devolver ao cadastro ativo.`}
               >
-                <RotateCcw className="w-3.5 h-3.5" />
-                {reativando === modalEmpresa.codigo ? 'Reativando…' : 'Devolver ao cadastro ativo'}
+                {reativando === modalEmpresa.codigo ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-rose-700 group-hover:text-emerald-700" />
+                    <span>Reativando Cliente…</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="relative flex h-2 w-2 shrink-0">
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500 group-hover:bg-emerald-600 transition-colors" />
+                    </span>
+                    <UserX className="w-3.5 h-3.5 text-rose-600 group-hover:hidden shrink-0" />
+                    <UserCheck className="w-3.5 h-3.5 text-emerald-700 hidden group-hover:inline-block shrink-0" />
+                    <span className="group-hover:hidden font-bold">
+                      Inativo (clique p/ Reativar)
+                    </span>
+                    <span className="hidden group-hover:inline-block font-bold text-emerald-700">
+                      Reativar Cliente
+                    </span>
+                  </>
+                )}
               </button>
             </div>
           </div>
