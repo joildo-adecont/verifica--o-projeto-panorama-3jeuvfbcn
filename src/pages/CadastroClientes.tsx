@@ -782,9 +782,9 @@ export default function CadastroClientes() {
                       <th className="py-3 px-3 min-w-[140px]">Município / UF</th>
                       <th className="py-3 px-3 min-w-[130px]">Contato</th>
                       <th className="py-3 px-3 w-24 text-center">Situação</th>
-                      <th className="py-3 px-3 min-w-[125px] text-center">
-                        <span className="inline-flex items-center gap-1 font-bold text-slate-200">
-                          <Power className="w-3 h-3 text-[#D4AF37]" />
+                      <th className="py-3 px-3 min-w-[130px] text-center bg-[#13335A]/60">
+                        <span className="inline-flex items-center gap-1 font-bold text-white tracking-wide">
+                          <Power className="w-3.5 h-3.5 text-[#D4AF37]" />
                           <span>Status / Ação</span>
                         </span>
                       </th>
@@ -1040,19 +1040,22 @@ export default function CadastroClientes() {
                             </td>
 
                             {/* TECLA INDIVIDUAL ATIVO / INATIVO — Pedido do CEO */}
-                            <td className="py-2.5 px-3 text-center whitespace-nowrap">
+                            <td className="py-2.5 px-3 text-center whitespace-nowrap bg-slate-50/40">
                               <button
                                 type="button"
-                                onClick={() => handleInativar(emp)}
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleInativar(emp)
+                                }}
                                 disabled={inativandoCodigo === emp.codigo}
-                                title={`Cliente atualmente ATIVO. Clique para inativar "${emp.razao_social || emp.codigo}" e transferi-lo para o Cadastro de Clientes Inativos.`}
+                                title={`Cliente atualmente ATIVO. Clique ou toque para inativar "${emp.razao_social || emp.codigo}" e transferi-lo para o Cadastro de Clientes Inativos.`}
                                 aria-label={`Status Ativo: clique para inativar ${emp.razao_social || emp.codigo}`}
-                                className="group inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-bold rounded-full border border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-rose-50 hover:border-rose-300 hover:text-rose-700 active:scale-95 transition-all shadow-xs disabled:opacity-50 disabled:pointer-events-none cursor-pointer select-none"
+                                className="group relative inline-flex items-center justify-center gap-1.5 min-w-[92px] px-2.5 py-1 text-[11px] font-bold rounded-full border border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-rose-50 hover:border-rose-300 hover:text-rose-700 active:scale-95 transition-all shadow-xs disabled:opacity-50 disabled:pointer-events-none cursor-pointer select-none touch-manipulation focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/50"
                               >
                                 {inativandoCodigo === emp.codigo ? (
                                   <>
                                     <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-700 group-hover:text-rose-600 shrink-0" />
-                                    <span className="font-semibold">Inativando…</span>
+                                    <span className="font-semibold text-[10.5px]">Inativando…</span>
                                   </>
                                 ) : (
                                   <>
@@ -1485,8 +1488,9 @@ export default function CadastroClientes() {
                   type="button"
                   onClick={() => handleInativar(modalEmpresa)}
                   disabled={inativandoCodigo === modalEmpresa.codigo}
-                  className="group inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-rose-50 hover:border-rose-300 hover:text-rose-700 text-xs font-bold transition-all shadow-xs disabled:opacity-50 cursor-pointer select-none"
-                  title={`Cliente atualmente ATIVO. Clique para inativar "${modalEmpresa.razao_social || modalEmpresa.codigo}" e transferir para o Cadastro de Inativos.`}
+                  className="group inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-rose-50 hover:border-rose-300 hover:text-rose-700 text-xs font-bold transition-all shadow-xs disabled:opacity-50 cursor-pointer select-none touch-manipulation focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/50"
+                  title={`Cliente atualmente ATIVO. Clique ou toque para inativar "${modalEmpresa.razao_social || modalEmpresa.codigo}" e transferir para o Cadastro de Inativos.`}
+                  aria-label={`Status Ativo: clique para inativar ${modalEmpresa.razao_social || modalEmpresa.codigo}`}
                 >
                   {inativandoCodigo === modalEmpresa.codigo ? (
                     <>

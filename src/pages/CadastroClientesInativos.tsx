@@ -26,6 +26,7 @@ import {
   UserX,
   UserCheck,
   Loader2,
+  Power,
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { AdecontLogo } from '@/components/AdecontLogo'
@@ -364,153 +365,189 @@ td{border-bottom:1px solid #ddd;padding:3px 5px}
           </div>
         </section>
 
-        {/* lista */}
-        <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          {carregando ? (
-            <div className="p-10 text-center text-sm text-slate-500">Carregando…</div>
-          ) : empresas.length === 0 ? (
-            <div className="p-10 text-center">
-              <p className="text-sm font-semibold text-slate-600">
-                Nenhum cliente inativo encontrado
-              </p>
-              <p className="mt-1 text-xs text-slate-400">
-                {termoBusca
-                  ? 'Nenhum resultado para esta busca.'
-                  : 'Todos os clientes estão ativos — ou já foram reativados.'}
-              </p>
-            </div>
-          ) : (
-            <div className="divide-y divide-slate-100">
-              {empresas.map((emp) => {
-                const aberto = empresaExpandidaId === emp.codigo
-                return (
-                  <div key={`${emp.id}-${emp.codigo}`}>
-                    <div className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50">
-                      <button
-                        onClick={() => alternarExpansao(emp.codigo)}
-                        className="p-0.5 text-slate-400 hover:text-slate-700 cursor-pointer"
-                      >
-                        {aberto ? (
-                          <ChevronUp className="w-4 h-4" />
-                        ) : (
-                          <ChevronDown className="w-4 h-4" />
-                        )}
-                      </button>
-
-                      <span className="w-12 shrink-0 text-[11px] font-bold text-slate-400">
-                        #{emp.codigo}
-                      </span>
-
-                      <button
-                        onClick={() => setModalEmpresa(emp)}
-                        className="flex-1 text-left cursor-pointer"
-                      >
-                        <p className="text-[13px] font-semibold text-[#2C3E50] hover:underline">
-                          {emp.razao_social}
-                          {emp.nome_fantasia && (
-                            <span className="ml-1.5 text-[11px] font-normal text-slate-400">
-                              ({emp.nome_fantasia})
-                            </span>
-                          )}
+        {/* TABELA DE CLIENTES INATIVOS */}
+        <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr className="bg-[#2C3E50] text-white font-medium border-b border-[#1F2D3D] select-none">
+                  <th className="py-3 px-3 w-16 text-center">Cód.</th>
+                  <th className="py-3 px-4 min-w-[240px]">Razão Social / Nome</th>
+                  <th className="py-3 px-3 min-w-[150px]">CNPJ / CPF</th>
+                  <th className="py-3 px-3 min-w-[140px]">Município / UF</th>
+                  <th className="py-3 px-3 min-w-[110px]">CNAE</th>
+                  <th className="py-3 px-3 w-24 text-center">Situação</th>
+                  <th className="py-3 px-3 min-w-[130px] text-center bg-[#1F2D3D]/80">
+                    <span className="inline-flex items-center gap-1 font-bold text-white tracking-wide">
+                      <Power className="w-3.5 h-3.5 text-[#D4AF37]" />
+                      <span>Status / Ação</span>
+                    </span>
+                  </th>
+                  <th className="py-3 px-3 w-16 text-center">Ficha</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {carregando ? (
+                  Array.from({ length: 6 }).map((_, i) => (
+                    <tr key={`skel-ina-${i}`} className="animate-pulse">
+                      <td className="py-3.5 px-3 text-center">
+                        <div className="h-4 w-8 bg-slate-200 rounded mx-auto" />
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <div className="h-4 w-48 bg-slate-200 rounded mb-1" />
+                        <div className="h-3 w-28 bg-slate-100 rounded" />
+                      </td>
+                      <td className="py-3.5 px-3">
+                        <div className="h-4 w-28 bg-slate-200 rounded" />
+                      </td>
+                      <td className="py-3.5 px-3">
+                        <div className="h-4 w-24 bg-slate-200 rounded" />
+                      </td>
+                      <td className="py-3.5 px-3">
+                        <div className="h-4 w-20 bg-slate-200 rounded" />
+                      </td>
+                      <td className="py-3.5 px-3 text-center">
+                        <div className="h-4 w-12 bg-slate-200 rounded mx-auto" />
+                      </td>
+                      <td className="py-3.5 px-3 text-center">
+                        <div className="h-6 w-20 bg-slate-200 rounded mx-auto" />
+                      </td>
+                      <td className="py-3.5 px-3 text-center">
+                        <div className="h-4 w-8 bg-slate-200 rounded mx-auto" />
+                      </td>
+                    </tr>
+                  ))
+                ) : empresas.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="py-12 text-center text-slate-500">
+                      <div className="max-w-xs mx-auto flex flex-col items-center gap-2">
+                        <Building2 className="w-8 h-8 text-slate-300" />
+                        <span className="font-semibold text-slate-700">
+                          Nenhum cliente inativo encontrado
+                        </span>
+                        <p className="text-xs text-slate-400">
+                          {termoBusca
+                            ? 'Nenhum resultado para esta busca.'
+                            : 'Todos os clientes estão ativos — ou já foram reativados.'}
                         </p>
-                        <p className="text-[10.5px] text-slate-500">
-                          {emp.numero_documento || 'sem documento'}
-                          {emp.municipio && ` · ${emp.municipio}/${emp.uf}`}
-                          {emp.cnae && ` · CNAE ${emp.cnae}`}
-                        </p>
-                      </button>
-
-                      <span className="shrink-0 rounded-full bg-slate-200 px-2 py-0.5 text-[9.5px] font-bold text-slate-600">
-                        {emp.situacao || 'Inativa'}
-                      </span>
-
-                      {/* Tecla individual de status Inativo / Reativar */}
-                      <button
-                        type="button"
-                        onClick={() => reativar(emp)}
-                        disabled={reativando === emp.codigo}
-                        title={`Cliente atualmente INATIVO. Clique para reativar "${emp.razao_social || emp.codigo}" e devolver ao Cadastro Analítico de Clientes.`}
-                        aria-label={`Status Inativo: clique para reativar ${emp.razao_social || emp.codigo}`}
-                        className="group inline-flex shrink-0 items-center gap-1.5 rounded-full border border-rose-300 bg-rose-50 px-2.5 py-1 text-[10.5px] font-bold text-rose-700 hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-800 active:scale-95 transition-all shadow-xs disabled:opacity-50 disabled:pointer-events-none cursor-pointer select-none"
-                      >
-                        {reativando === emp.codigo ? (
-                          <>
-                            <Loader2 className="w-3.5 h-3.5 animate-spin text-rose-700 group-hover:text-emerald-700 shrink-0" />
-                            <span>Reativando…</span>
-                          </>
-                        ) : (
-                          <>
-                            <span className="relative flex h-2 w-2 shrink-0">
-                              <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500 group-hover:bg-emerald-600 transition-colors" />
-                            </span>
-                            <UserX className="w-3.5 h-3.5 text-rose-600 group-hover:hidden shrink-0" />
-                            <UserCheck className="w-3.5 h-3.5 text-emerald-700 hidden group-hover:inline-block shrink-0" />
-                            <span className="group-hover:hidden font-bold">Inativo</span>
-                            <span className="hidden group-hover:inline-block font-bold text-emerald-700">
-                              Reativar
-                            </span>
-                          </>
-                        )}
-                      </button>
-                    </div>
-
-                    {aberto && (
-                      <div className="border-t border-slate-100 bg-slate-50/60 px-4 py-3 pl-16">
-                        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-                          <Campo
-                            icone={<Hash className="w-3 h-3" />}
-                            rotulo="Documento"
-                            valor={emp.numero_documento}
-                          />
-                          <Campo
-                            icone={<Building2 className="w-3 h-3" />}
-                            rotulo="Natureza"
-                            valor={emp.natureza_juridica}
-                          />
-                          <Campo
-                            icone={<MapPin className="w-3 h-3" />}
-                            rotulo="Endereço"
-                            valor={`${emp.endereco || ''} ${emp.numero_endereco || ''}`.trim()}
-                          />
-                          <Campo
-                            icone={<MapPin className="w-3 h-3" />}
-                            rotulo="Município"
-                            valor={`${emp.municipio || ''}/${emp.uf || ''}`}
-                          />
-                          <Campo
-                            icone={<Phone className="w-3 h-3" />}
-                            rotulo="Telefone"
-                            valor={emp.telefone}
-                          />
-                          <Campo
-                            icone={<Mail className="w-3 h-3" />}
-                            rotulo="E-mail"
-                            valor={emp.email}
-                          />
-                          <Campo
-                            icone={<Calendar className="w-3 h-3" />}
-                            rotulo="Cliente desde"
-                            valor={emp.cliente_desde}
-                          />
-                          <Campo
-                            icone={<FileText className="w-3 h-3" />}
-                            rotulo="CNAE"
-                            valor={emp.cnae}
-                          />
-                        </div>
-                        {emp.motivo_transferencia && (
-                          <p className="mt-2 text-[10px] text-slate-500">
-                            <strong>Motivo da transferência:</strong> {emp.motivo_transferencia}
-                            {emp.transferido_em && ` · em ${emp.transferido_em.slice(0, 10)}`}
-                          </p>
-                        )}
                       </div>
-                    )}
-                  </div>
-                )
-              })}
-            </div>
-          )}
+                    </td>
+                  </tr>
+                ) : (
+                  empresas.map((emp) => {
+                    const aberto = empresaExpandidaId === emp.codigo
+                    return (
+                      <tr
+                        key={`${emp.id}-${emp.codigo}`}
+                        className={`hover:bg-slate-50 transition-colors ${
+                          aberto ? 'bg-amber-50/20' : ''
+                        }`}
+                      >
+                        {/* Código */}
+                        <td className="py-3 px-3 text-center font-mono font-bold text-[#2C3E50]">
+                          #{emp.codigo}
+                        </td>
+
+                        {/* Razão Social */}
+                        <td className="py-3 px-4">
+                          <div className="flex flex-col">
+                            <button
+                              onClick={() => setModalEmpresa(emp)}
+                              className="text-left font-semibold text-slate-900 hover:text-[#2C3E50] hover:underline cursor-pointer"
+                            >
+                              {emp.razao_social}
+                            </button>
+                            {emp.nome_fantasia && (
+                              <span className="text-[11px] text-slate-500 italic">
+                                {emp.nome_fantasia}
+                              </span>
+                            )}
+                          </div>
+                        </td>
+
+                        {/* Documento */}
+                        <td className="py-3 px-3 font-mono text-[11px] text-slate-700">
+                          {emp.numero_documento || '—'}
+                        </td>
+
+                        {/* Município / UF */}
+                        <td className="py-3 px-3 text-slate-600">
+                          {emp.municipio ? (
+                            <span className="inline-flex items-center gap-1">
+                              <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
+                              <span>
+                                {emp.municipio}
+                                {emp.uf ? `/${emp.uf}` : ''}
+                              </span>
+                            </span>
+                          ) : (
+                            <span className="text-slate-400">—</span>
+                          )}
+                        </td>
+
+                        {/* CNAE */}
+                        <td className="py-3 px-3 text-slate-600 font-mono text-[11px]">
+                          {emp.cnae || '—'}
+                        </td>
+
+                        {/* Situação */}
+                        <td className="py-3 px-3 text-center">
+                          <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-200 text-slate-700">
+                            {emp.situacao || 'Inativa'}
+                          </span>
+                        </td>
+
+                        {/* TECLA INDIVIDUAL STATUS / AÇÃO — INATIVO / REATIVAR */}
+                        <td className="py-2.5 px-3 text-center whitespace-nowrap bg-slate-50/40">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              reativar(emp)
+                            }}
+                            disabled={reativando === emp.codigo}
+                            title={`Cliente atualmente INATIVO. Clique ou toque para reativar "${emp.razao_social || emp.codigo}" e devolver ao Cadastro Analítico de Clientes.`}
+                            aria-label={`Status Inativo: clique para reativar ${emp.razao_social || emp.codigo}`}
+                            className="group relative inline-flex items-center justify-center gap-1.5 min-w-[96px] px-2.5 py-1 text-[11px] font-bold rounded-full border border-rose-300 bg-rose-50 text-rose-700 hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-800 active:scale-95 transition-all shadow-xs disabled:opacity-50 disabled:pointer-events-none cursor-pointer select-none touch-manipulation focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/50"
+                          >
+                            {reativando === emp.codigo ? (
+                              <>
+                                <Loader2 className="w-3.5 h-3.5 animate-spin text-rose-700 group-hover:text-emerald-700 shrink-0" />
+                                <span className="font-semibold text-[10.5px]">Reativando…</span>
+                              </>
+                            ) : (
+                              <>
+                                <span className="relative flex h-2 w-2 shrink-0">
+                                  <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500 group-hover:bg-emerald-600 transition-colors" />
+                                </span>
+                                <UserX className="w-3.5 h-3.5 text-rose-600 group-hover:hidden shrink-0" />
+                                <UserCheck className="w-3.5 h-3.5 text-emerald-700 hidden group-hover:inline-block shrink-0" />
+                                <span className="group-hover:hidden font-bold">Inativo</span>
+                                <span className="hidden group-hover:inline-block font-bold text-emerald-700">
+                                  Reativar
+                                </span>
+                              </>
+                            )}
+                          </button>
+                        </td>
+
+                        {/* Ficha completa / Detalhes */}
+                        <td className="py-3 px-3 text-center">
+                          <button
+                            onClick={() => setModalEmpresa(emp)}
+                            className="inline-flex items-center justify-center p-1.5 text-[#2C3E50] hover:bg-[#2C3E50]/10 rounded-lg transition-colors cursor-pointer"
+                            title="Abrir ficha do cliente inativo"
+                          >
+                            <FileText className="w-4 h-4 text-[#2C3E50]" />
+                          </button>
+                        </td>
+                      </tr>
+                    )
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
         </section>
 
         {/* paginação */}
