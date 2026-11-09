@@ -56,9 +56,10 @@ import { ModalFichaClienteDetalhada } from '@/components/ModalFichaClienteDetalh
 import { ModalGerenciarCamposPersonalizados } from '@/components/ModalGerenciarCamposPersonalizados'
 import { ModalImportExportMassaClientes } from '@/components/ModalImportExportMassaClientes'
 import { ModalRecepcionarDocumentoCliente } from '@/components/ModalRecepcionarDocumentoCliente'
+import { ModalAnexarPdfEmMassa } from '@/components/ModalAnexarPdfEmMassa'
 import { listarCamposPersonalizados } from '@/services/clienteDadosComplementaresService'
 import type { CampoPersonalizadoDef } from '@/types/clienteDadosComplementares'
-import { Sliders, Upload, Download } from 'lucide-react'
+import { Sliders, Upload, Download, Paperclip } from 'lucide-react'
 import { BadgeDocumentoCliente } from '@/components/BadgeDocumentoCliente'
 import { SecaoClientesArquivados } from '@/components/SecaoClientesArquivados'
 import {
@@ -106,6 +107,7 @@ export default function CadastroClientes() {
   const [camposDef, setCamposDef] = useState<CampoPersonalizadoDef[]>([])
   const [modalGerenciarCamposAberto, setModalGerenciarCamposAberto] = useState<boolean>(false)
   const [modalImportExportAberto, setModalImportExportAberto] = useState<boolean>(false)
+  const [modalAnexoMassaAberto, setModalAnexoMassaAberto] = useState<boolean>(false)
 
   // Atalho "Recepcionar Documento" nesta tela (mesmo fluxo de /analises-empresariais)
   const [modalRecepcaoAberto, setModalRecepcaoAberto] = useState<boolean>(false)
@@ -853,6 +855,16 @@ export default function CadastroClientes() {
             </button>
 
             <button
+              onClick={() => setModalAnexoMassaAberto(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600/90 hover:bg-emerald-700 text-xs font-bold text-white transition-colors shadow-sm cursor-pointer"
+              title="Anexar vários PDFs de uma vez aos clientes (vínculo por CNPJ/CPF ou código no nome do arquivo)"
+            >
+              <Paperclip className="w-3.5 h-3.5" />
+              <span className="hidden md:inline">Anexar em massa</span>
+              <span className="md:hidden">Anexar</span>
+            </button>
+
+            <button
               onClick={() => setModalImportExportAberto(true)}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-semibold text-slate-100 transition-colors border border-white/10 cursor-pointer"
               title="Importar e exportar dados complementares em massa"
@@ -1576,6 +1588,22 @@ export default function CadastroClientes() {
         onFechar={() => setModalImportExportAberto(false)}
         onSucessoImportacao={() => {
           carregarDados()
+        }}
+      />
+
+      {/* MODAL DE ANEXO DE PDFs EM MASSA AOS CLIENTES */}
+      <ModalAnexarPdfEmMassa
+        aberto={modalAnexoMassaAberto}
+        empresas={empresas}
+        onFechar={() => setModalAnexoMassaAberto(false)}
+        onConcluido={(resumo) => {
+          if (resumo.anexados > 0) {
+            carregarDados()
+            toast({
+              title: 'Anexos em massa concluídos',
+              description: `${resumo.anexados} anexado(s), ${resumo.duplicados} duplicado(s) ignorado(s), ${resumo.pendentes} sem cliente, ${resumo.falhas} falha(s).`,
+            })
+          }
         }}
       />
 
