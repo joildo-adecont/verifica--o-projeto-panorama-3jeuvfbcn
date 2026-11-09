@@ -121,6 +121,10 @@ export function mesclarComPadrao(
       ...base.secoes,
       ...(parcial.secoes || {}),
     },
+    titulosSecoes: {
+      ...(base.titulosSecoes || {}),
+      ...(parcial.titulosSecoes || {}),
+    },
     secoesCustomizadas: Array.isArray(parcial.secoesCustomizadas)
       ? parcial.secoesCustomizadas.map((s, idx) => ({
           id: s.id || `secao-custom-${idx}-${Date.now()}`,

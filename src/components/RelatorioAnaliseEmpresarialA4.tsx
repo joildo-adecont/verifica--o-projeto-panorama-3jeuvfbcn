@@ -76,6 +76,26 @@ export const RelatorioAnaliseEmpresarialA4: React.FC<RelatorioAnaliseEmpresarial
   const subtituloRelatorio = customizacao?.subtituloPersonalizado?.trim()
   const observacoesFinais = customizacao?.observacoesFinais?.trim()
 
+  // Títulos personalizados das seções (com fallback para os títulos padrão numerados do relatório A4)
+  const titulos = customizacao?.titulosSecoes
+  const tituloSecaoParecer =
+    titulos?.parecerTecnico?.trim() || '1. Parecer Técnico Oficial & Recomendação de Crédito'
+  const tituloSecaoBalanco =
+    titulos?.balanco3Anos?.trim() || '2. Balanço Patrimonial & DRE Comparativo (3 Exercícios)'
+  const tituloSecaoClassicos =
+    titulos?.indicesClassicos?.trim() ||
+    '3. Matriz dos Indicadores Contábeis com Semáforo & Comparativo Trienal'
+  const tituloSecaoAvancados =
+    titulos?.modelosAvancados?.trim() ||
+    '3.1 Modelos de Insolvência, Decomposição Du Pont & Dinâmica Financeira'
+  const tituloSecaoScore = titulos?.sinteseExecutiva?.trim() || 'Score Ponderado (0 a 10)'
+  const tituloSecaoChecklist =
+    titulos?.checklistDocumental?.trim() || 'Checklist Documental & Due Diligence'
+  const tituloSecaoAchados =
+    titulos?.achadosCriticos?.trim() || '5. Matriz de Achados e Recomendações (Due Diligence)'
+  const tituloSecaoAgentes =
+    titulos?.agentesEspecialistas?.trim() || '6. Síntese Técnica dos Agentes Especialistas ADECONT'
+
   // Obter ou calcular relatório avançado a partir do balanço mais recente
   const avancadoCalculado: RelatorioIndicesAvancados | null = React.useMemo(() => {
     if (relatorioAvancado) return relatorioAvancado
@@ -276,7 +296,7 @@ export const RelatorioAnaliseEmpresarialA4: React.FC<RelatorioAnaliseEmpresarial
               <div className="flex justify-between items-center mb-2 border-b border-slate-200 pb-1.5">
                 <h2 className="text-xs font-black uppercase text-slate-900 flex items-center gap-1.5">
                   <ShieldCheck className="w-3.5 h-3.5 text-primary" />
-                  1. Parecer Técnico Oficial & Recomendação de Crédito
+                  {tituloSecaoParecer}
                 </h2>
                 {incluirParecer && (
                   <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-slate-200 text-slate-800">
@@ -338,7 +358,7 @@ export const RelatorioAnaliseEmpresarialA4: React.FC<RelatorioAnaliseEmpresarial
           <div>
             <h2 className="text-xs font-black uppercase text-slate-800 border-b border-slate-300 pb-1 mb-2 flex items-center gap-1.5">
               <Scale className="w-3.5 h-3.5 text-primary" />
-              2. Balanço Patrimonial & DRE Comparativo (3 Exercícios)
+              {tituloSecaoBalanco}
             </h2>
             <div className="border border-slate-200 rounded overflow-hidden">
               <table className="w-full text-[9px] text-left">
@@ -506,7 +526,7 @@ export const RelatorioAnaliseEmpresarialA4: React.FC<RelatorioAnaliseEmpresarial
             <h2 className="text-xs font-black uppercase text-slate-800 border-b border-slate-300 pb-1 mb-2 flex items-center justify-between">
               <span className="flex items-center gap-1.5">
                 <TrendingUp className="w-3.5 h-3.5 text-emerald-700" />
-                3. Matriz dos Indicadores Contábeis com Semáforo & Comparativo Trienal
+                {tituloSecaoClassicos}
               </span>
               <span className="text-[10px] text-slate-500 font-normal">
                 Exercícios: {balanco3Anos?.anoMenos2?.rotulo || 'Ano -2'} •{' '}
@@ -607,7 +627,7 @@ export const RelatorioAnaliseEmpresarialA4: React.FC<RelatorioAnaliseEmpresarial
             <div className="flex items-center justify-between border-b border-slate-200 pb-1">
               <h2 className="text-xs font-black uppercase text-slate-900 flex items-center gap-1.5">
                 <Layers className="w-3.5 h-3.5 text-amber-600" />
-                3.1 Modelos de Insolvência, Decomposição Du Pont & Dinâmica Financeira
+                {tituloSecaoAvancados}
               </h2>
               <span className="text-[10px] font-bold text-slate-600 bg-white px-2 py-0.5 rounded border border-slate-200">
                 Ref.: {avancadoCalculado.exercicioRotulo}
@@ -832,7 +852,7 @@ export const RelatorioAnaliseEmpresarialA4: React.FC<RelatorioAnaliseEmpresarial
                 <h3 className="font-bold text-[11px] text-slate-900 uppercase mb-1.5 flex items-center justify-between">
                   <span className="flex items-center gap-1">
                     <Award className="w-3 h-3 text-amber-600" />
-                    Score Ponderado (0 a 10)
+                    {tituloSecaoScore}
                   </span>
                   <span className="text-primary font-bold font-mono">
                     Nota: {scoreResultado.notaFinal.toFixed(2)}
@@ -865,7 +885,7 @@ export const RelatorioAnaliseEmpresarialA4: React.FC<RelatorioAnaliseEmpresarial
                 <div>
                   <h3 className="font-bold text-[11px] text-slate-900 uppercase mb-1.5 flex items-center gap-1">
                     <FileText className="w-3 h-3 text-blue-600" />
-                    Checklist Documental & Due Diligence
+                    {tituloSecaoChecklist}
                   </h3>
                   <div className="space-y-2 text-[10px]">
                     <div className="flex justify-between border-b border-slate-100 pb-1">
@@ -902,7 +922,7 @@ export const RelatorioAnaliseEmpresarialA4: React.FC<RelatorioAnaliseEmpresarial
           <div>
             <h2 className="text-xs font-black uppercase text-slate-800 border-b border-slate-300 pb-1 mb-2 flex items-center gap-1.5">
               <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
-              5. Matriz de Achados e Recomendações (Due Diligence)
+              {tituloSecaoAchados}
             </h2>
             <div className="border border-slate-200 rounded overflow-hidden">
               <table className="w-full text-[9px] text-left">
@@ -950,7 +970,7 @@ export const RelatorioAnaliseEmpresarialA4: React.FC<RelatorioAnaliseEmpresarial
           <div>
             <h2 className="text-xs font-black uppercase text-slate-800 border-b border-slate-300 pb-1 mb-2 flex items-center gap-1.5">
               <ShieldCheck className="w-3.5 h-3.5 text-amber-700" />
-              6. Síntese Técnica dos Agentes Especialistas ADECONT
+              {tituloSecaoAgentes}
             </h2>
             <div className="grid grid-cols-2 gap-2 text-[10px]">
               <div className="border border-slate-200 rounded p-2 bg-slate-50/50">

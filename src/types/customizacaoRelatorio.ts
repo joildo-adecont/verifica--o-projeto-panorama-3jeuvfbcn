@@ -22,6 +22,30 @@ export interface SecoesCustomizacaoRelatorio {
   checklistDocumental?: boolean
 }
 
+/**
+ * Títulos customizados opcionais para cada seção do relatório.
+ * Se preenchido, substitui o título padrão na visualização e nas exportações (A4, Excel e CSV).
+ * Se vazio ou não informado, o título padrão da seção é mantido.
+ */
+export interface TitulosSecoesCustomizacao {
+  /** Título personalizado para Índices Clássicos (padrão: "Índices Clássicos" / "3. Matriz dos Indicadores Contábeis...") */
+  indicesClassicos?: string
+  /** Título personalizado para Modelos Avançados (padrão: "Modelos Avançados" / "3.1 Modelos de Insolvência...") */
+  modelosAvancados?: string
+  /** Título personalizado para Parecer Técnico (padrão: "Parecer Técnico Oficial" / "1. Parecer Técnico Oficial...") */
+  parecerTecnico?: string
+  /** Título personalizado para Notas e Achados Críticos (padrão: "Notas & Achados Críticos" / "5. Matriz de Achados...") */
+  achadosCriticos?: string
+  /** Título personalizado para Síntese Executiva / Score Ponderado (padrão: "Síntese Executiva" / "Score Ponderado (0 a 10)") */
+  sinteseExecutiva?: string
+  /** Título personalizado para Balanço & DRE Comparativo 3 Anos (padrão: "Balanço Patrimonial & DRE Comparativo") */
+  balanco3Anos?: string
+  /** Título personalizado para Agentes Especialistas (padrão: "Síntese Técnica dos Agentes Especialistas ADECONT") */
+  agentesEspecialistas?: string
+  /** Título personalizado para Checklist Documental (padrão: "Checklist Documental & Due Diligence") */
+  checklistDocumental?: string
+}
+
 export interface SecaoCustomizada {
   /** Identificador único da seção customizada */
   id: string
@@ -44,6 +68,8 @@ export interface ConfiguracaoRelatorioCustomizado {
   observacoesFinais?: string
   /** Seleção de seções ativas na exportação */
   secoes: SecoesCustomizacaoRelatorio
+  /** Títulos customizados/renomeados de cada seção do relatório */
+  titulosSecoes?: TitulosSecoesCustomizacao
   /** Seções customizadas criadas pelo usuário */
   secoesCustomizadas?: SecaoCustomizada[]
   /** Chave mestra para incluir ou não as seções customizadas no relatório */
@@ -60,6 +86,17 @@ export const TITULO_PADRAO_RELATORIO = 'Parecer Técnico & Dossiê Empresarial I
 
 export const SUBTITULO_PADRAO_RELATORIO = 'Portal Panorama RT · Módulo de Análises Empresariais'
 
+export const TITULOS_PADRAO_SECOES: Required<TitulosSecoesCustomizacao> = {
+  indicesClassicos: 'Índices Clássicos',
+  modelosAvancados: 'Modelos Avançados de Insolvência & Dinâmica Financeira',
+  parecerTecnico: 'Parecer Técnico Oficial & Recomendação de Crédito',
+  achadosCriticos: 'Notas & Achados Críticos (Due Diligence)',
+  sinteseExecutiva: 'Síntese Executiva & Score Ponderado',
+  balanco3Anos: 'Balanço Patrimonial & DRE Comparativo (3 Exercícios)',
+  agentesEspecialistas: 'Síntese Técnica dos Agentes Especialistas ADECONT',
+  checklistDocumental: 'Checklist Documental & Due Diligence',
+}
+
 export const CONFIGURACAO_RELATORIO_PADRAO: ConfiguracaoRelatorioCustomizado = {
   tituloPersonalizado: '',
   subtituloPersonalizado: '',
@@ -74,6 +111,7 @@ export const CONFIGURACAO_RELATORIO_PADRAO: ConfiguracaoRelatorioCustomizado = {
     agentesEspecialistas: true,
     checklistDocumental: true,
   },
+  titulosSecoes: {},
   secoesCustomizadas: [],
   incluirSecoesCustomizadas: true,
   incluirDadosEmpresa: true,

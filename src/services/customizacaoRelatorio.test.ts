@@ -139,4 +139,32 @@ describe('customizacaoRelatorio - Modelos e Persistência de Preferências', () 
     expect(resultado.secoesCustomizadas?.[1].titulo).toBe('Garantias Hipotecárias')
     expect(resultado.secoesCustomizadas?.[1].ordem).toBe(1)
   })
+
+  it('persiste e decodifica títulos customizados para seções padrão', () => {
+    const configComTitulos: ConfiguracaoRelatorioCustomizado = {
+      ...criarConfiguracaoPadrao(),
+      titulosSecoes: {
+        indicesClassicos: 'Métricas Financeiras Clássicas',
+        modelosAvancados: 'Termômetro de Insolvência e Du Pont',
+        parecerTecnico: 'Conclusão e Opinião da Auditoria',
+        achadosCriticos: 'Apontamentos Relevantes',
+      },
+    }
+
+    const notasComConfig = codificarNotasComAjustes('Anotações do consultor', configComTitulos)
+    const decodificado = decodificarNotasEAjustes(notasComConfig)
+
+    expect(decodificado.configuracao?.titulosSecoes?.indicesClassicos).toBe(
+      'Métricas Financeiras Clássicas',
+    )
+    expect(decodificado.configuracao?.titulosSecoes?.modelosAvancados).toBe(
+      'Termômetro de Insolvência e Du Pont',
+    )
+    expect(decodificado.configuracao?.titulosSecoes?.parecerTecnico).toBe(
+      'Conclusão e Opinião da Auditoria',
+    )
+    expect(decodificado.configuracao?.titulosSecoes?.achadosCriticos).toBe(
+      'Apontamentos Relevantes',
+    )
+  })
 })

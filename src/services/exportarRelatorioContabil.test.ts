@@ -731,4 +731,153 @@ describe('exportarRelatorioContabil - Funções de Formatação e Geração de A
     expect(csvSemSecoes).not.toContain('=== ANÁLISE DE GARANTIAS E IMÓVEIS ===')
     expect(csvSemSecoes).not.toContain('Foram vistoriados 3 galpões logísticos livres de ônus.')
   })
+
+  it('aplica títulos customizados nas seções na exportação de linhas e CSV', () => {
+    const indicadoresTesteLocal: ItemIndicador[] = [
+      {
+        id: 'liq_corrente',
+        nome: 'Liquidez Corrente',
+        valor: 1.85,
+        unidade: 'fator',
+        referencia: '> 1,20x',
+        formula: 'AC / PC',
+        semaforo: 'saudavel',
+        explicacao: 'Excelente liquidez',
+      },
+    ]
+
+    const configPersonalizada = {
+      tituloPersonalizado: 'Relatório Executivo Reestruturado',
+      titulosSecoes: {
+        indicesClassicos: 'Indicadores Tradicionais de Desempenho',
+        modelosAvancados: 'Previsão de Insolvência e Risco Sistêmico',
+        parecerTecnico: 'Parecer Conclusivo do Auditor',
+        achadosCriticos: 'Vulnerabilidades e Pontos Críticos',
+      },
+      secoes: {
+        indicesClassicos: true,
+        modelosAvancados: true,
+        parecerTecnico: true,
+        achadosCriticos: true,
+      },
+      incluirDadosEmpresa: true,
+      incluirQrCode: true,
+    }
+
+    const linhas = prepararLinhasExportacao(indicadoresTesteLocal, balancoMockGlobal, {
+      customizacao: configPersonalizada,
+      incluirIndicesAvancados: true,
+    })
+
+    const grupos = linhas.map((l) => l.grupo)
+    expect(grupos).toContain('Indicadores Tradicionais de Desempenho')
+    expect(grupos).toContain('Previsão de Insolvência e Risco Sistêmico')
+
+    // Gera CSV e verifica cabeçalhos das seções e grupos
+    const csv = gerarCsvRelatorioContabil(linhas, {
+      clienteNome: 'Empresa Teste Títulos',
+      customizacao: configPersonalizada,
+      parecerFinal: {
+        nivelOpiniao: 'Excelente',
+        conclusaoGeral: 'Empresa auditada e aprovada.',
+        achadosCriticos: 'Ponto crítico sob monitoramento.',
+      } as any,
+    })
+
+    expect(csv).toContain('=== PARECER CONCLUSIVO DO AUDITOR ===')
+    expect(csv).toContain('=== VULNERABILIDADES E PONTOS CRÍTICOS ===')
+    expect(csv).toContain('Indicadores Tradicionais de Desempenho')
+    expect(csv).toContain('Previsão de Insolvência e Risco Sistêmico')
+  })
+
+  it('mantém títulos padrão quando titulosSecoes não for informado ou estiver vazio', () => {
+    const indicadoresTesteLocal: ItemIndicador[] = [
+      {
+        id: 'liq_corrente',
+        nome: 'Liquidez Corrente',
+        valor: 1.85,
+        unidade: 'fator',
+        referencia: '> 1,20x',
+        formula: 'AC / PC',
+        semaforo: 'saudavel',
+        explicacao: 'Excelente liquidez',
+      },
+    ]
+
+    const configVazia = {
+      titulosSecoes: {
+        indicesClassicos: '   ', // espaço em branco deve cair no padrão
+        parecerTecnico: '',
+      },
+      secoes: {
+        indicesClassicos: true,
+        modelosAvancados: true,
+        parecerTecnico: true,
+        achadosCriticos: true,
+      },
+      incluirDadosEmpresa: true,
+      incluirQrCode: true,
+    }
+
+    const linhas = prepararLinhasExportacao(indicadoresTesteLocal, balancoMockGlobal, {
+      customizacao: configVazia,
+      incluirIndicesAvancados: true,
+    })
+
+    const grupos = linhas.map((l) => l.grupo)
+    expect(grupos).toContain('Índices Clássicos')
+    expect(grupos).toContain('Modelos Avançados')
+
+    const csv = gerarCsvRelatorioContabil(linhas, {
+      clienteNome: 'Empresa Teste Padrões',
+      customizacao: configVazia,
+      parecerFinal: {
+        nivelOpiniao: 'Normal',
+        conclusaoGeral: 'Tudo nos conformes.',
+      } as any,
+    })
+
+    expect(csv).toContain('=== PARECER TÉCNICO OFICIAL ===')
+    expect(csv).toContain('Índices Clássicos')
+  })
+
+  it('respeita seção desmarcada mesmo quando possui título customizado preenchido', () => {
+    const indicadoresTesteLocal: ItemIndicador[] = [
+      {
+        id: 'liq_corrente',
+        nome: 'Liquidez Corrente',
+        valor: 1.85,
+        unidade: 'fator',
+        referencia: '> 1,20x',
+        formula: 'AC / PC',
+        semaforo: 'saudavel',
+        explicacao: 'Excelente liquidez',
+      },
+    ]
+
+    const configComDesmarcada = {
+      titulosSecoes: {
+        indicesClassicos: 'Indicadores Renomeados Mas Desmarcados',
+        modelosAvancados: 'Modelos Ativos Customizados',
+      },
+      secoes: {
+        indicesClassicos: false, // Desmarcada!
+        modelosAvancados: true,
+        parecerTecnico: true,
+        achadosCriticos: true,
+      },
+      incluirDadosEmpresa: true,
+      incluirQrCode: true,
+    }
+
+    const linhas = prepararLinhasExportacao(indicadoresTesteLocal, balancoMockGlobal, {
+      customizacao: configComDesmarcada,
+      incluirIndicesAvancados: true,
+    })
+
+    const grupos = linhas.map((l) => l.grupo)
+    expect(grupos).not.toContain('Indicadores Renomeados Mas Desmarcados')
+    expect(grupos).not.toContain('Índices Clássicos')
+    expect(grupos).toContain('Modelos Ativos Customizados')
+  })
 })

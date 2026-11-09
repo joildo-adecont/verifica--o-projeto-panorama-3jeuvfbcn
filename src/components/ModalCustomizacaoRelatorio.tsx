@@ -111,6 +111,19 @@ export const ModalCustomizacaoRelatorio: React.FC<ModalCustomizacaoRelatorioProp
     }))
   }
 
+  const handleAlterarTituloSecao = (
+    chave: keyof import('@/types/customizacaoRelatorio').TitulosSecoesCustomizacao,
+    valor: string,
+  ) => {
+    setConfig((anterior) => ({
+      ...anterior,
+      titulosSecoes: {
+        ...(anterior.titulosSecoes || {}),
+        [chave]: valor,
+      },
+    }))
+  }
+
   const handleRestaurarPadrao = () => {
     setConfig(criarConfiguracaoPadrao())
     setMostrarFormNovaSecao(false)
@@ -414,178 +427,282 @@ export const ModalCustomizacaoRelatorio: React.FC<ModalCustomizacaoRelatorioProp
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               {/* Índices Clássicos */}
               <div
-                onClick={() => alternarSecao('indicesClassicos')}
-                className={`p-3 rounded-xl border transition-all cursor-pointer flex items-start justify-between gap-3 ${
+                className={`p-3 rounded-xl border transition-all flex flex-col justify-between gap-2.5 ${
                   config.secoes.indicesClassicos
                     ? 'bg-blue-50/60 dark:bg-blue-950/20 border-blue-300 dark:border-blue-800'
                     : 'bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-800 opacity-60'
                 }`}
               >
-                <div className="flex items-start gap-2.5">
-                  <div className="w-7 h-7 rounded-lg bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 flex items-center justify-center shrink-0 mt-0.5">
-                    <Calculator className="w-3.5 h-3.5" />
+                <div className="flex items-start justify-between gap-2.5">
+                  <div
+                    onClick={() => alternarSecao('indicesClassicos')}
+                    className="flex items-start gap-2.5 cursor-pointer flex-1"
+                  >
+                    <div className="w-7 h-7 rounded-lg bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 flex items-center justify-center shrink-0 mt-0.5">
+                      <Calculator className="w-3.5 h-3.5" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-slate-900 dark:text-slate-100">
+                        Índices Clássicos
+                      </p>
+                      <p className="text-[11px] text-slate-500 leading-tight mt-0.5">
+                        Liquidez, Endividamento, Rentabilidade, Atividade e Cobertura (
+                        {totalIndicadores} índices)
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-xs font-bold text-slate-900 dark:text-slate-100">
-                      Índices Clássicos
-                    </p>
-                    <p className="text-[11px] text-slate-500 leading-tight mt-0.5">
-                      Liquidez, Endividamento, Rentabilidade, Atividade e Cobertura (
-                      {totalIndicadores} índices)
-                    </p>
-                  </div>
+                  <Switch
+                    checked={config.secoes.indicesClassicos}
+                    onCheckedChange={() => alternarSecao('indicesClassicos')}
+                    className="shrink-0"
+                  />
                 </div>
-                <Switch
-                  checked={config.secoes.indicesClassicos}
-                  onCheckedChange={() => alternarSecao('indicesClassicos')}
-                  className="shrink-0"
-                />
+                {config.secoes.indicesClassicos && (
+                  <div className="pt-2 border-t border-blue-200/60 dark:border-blue-800/50 space-y-1">
+                    <label className="text-[10px] font-semibold text-slate-600 dark:text-slate-400 block">
+                      Título personalizado da seção:
+                    </label>
+                    <Input
+                      value={config.titulosSecoes?.indicesClassicos || ''}
+                      onChange={(e) => handleAlterarTituloSecao('indicesClassicos', e.target.value)}
+                      placeholder="Padrão: Índices Clássicos"
+                      className="text-xs h-7.5 bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700"
+                    />
+                  </div>
+                )}
               </div>
 
               {/* Modelos Avançados de Insolvência */}
               <div
-                onClick={() => alternarSecao('modelosAvancados')}
-                className={`p-3 rounded-xl border transition-all cursor-pointer flex items-start justify-between gap-3 ${
+                className={`p-3 rounded-xl border transition-all flex flex-col justify-between gap-2.5 ${
                   config.secoes.modelosAvancados
                     ? 'bg-amber-50/60 dark:bg-amber-950/20 border-amber-300 dark:border-amber-800'
                     : 'bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-800 opacity-60'
                 }`}
               >
-                <div className="flex items-start gap-2.5">
-                  <div className="w-7 h-7 rounded-lg bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 flex items-center justify-center shrink-0 mt-0.5">
-                    <Activity className="w-3.5 h-3.5" />
+                <div className="flex items-start justify-between gap-2.5">
+                  <div
+                    onClick={() => alternarSecao('modelosAvancados')}
+                    className="flex items-start gap-2.5 cursor-pointer flex-1"
+                  >
+                    <div className="w-7 h-7 rounded-lg bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 flex items-center justify-center shrink-0 mt-0.5">
+                      <Activity className="w-3.5 h-3.5" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-slate-900 dark:text-slate-100">
+                        Modelos Avançados
+                      </p>
+                      <p className="text-[11px] text-slate-500 leading-tight mt-0.5">
+                        Kanitz, Altman Z1, Elizabetsky, Du Pont e Dinâmica Fleuriet (CDG/NCG/Efeito
+                        Tesoura)
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-xs font-bold text-slate-900 dark:text-slate-100">
-                      Modelos Avançados
-                    </p>
-                    <p className="text-[11px] text-slate-500 leading-tight mt-0.5">
-                      Kanitz, Altman Z1, Elizabetsky, Du Pont e Dinâmica Fleuriet (CDG/NCG/Efeito
-                      Tesoura)
-                    </p>
-                  </div>
+                  <Switch
+                    checked={config.secoes.modelosAvancados}
+                    onCheckedChange={() => alternarSecao('modelosAvancados')}
+                    className="shrink-0"
+                  />
                 </div>
-                <Switch
-                  checked={config.secoes.modelosAvancados}
-                  onCheckedChange={() => alternarSecao('modelosAvancados')}
-                  className="shrink-0"
-                />
+                {config.secoes.modelosAvancados && (
+                  <div className="pt-2 border-t border-amber-200/60 dark:border-amber-800/50 space-y-1">
+                    <label className="text-[10px] font-semibold text-slate-600 dark:text-slate-400 block">
+                      Título personalizado da seção:
+                    </label>
+                    <Input
+                      value={config.titulosSecoes?.modelosAvancados || ''}
+                      onChange={(e) => handleAlterarTituloSecao('modelosAvancados', e.target.value)}
+                      placeholder="Padrão: Modelos Avançados"
+                      className="text-xs h-7.5 bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700"
+                    />
+                  </div>
+                )}
               </div>
 
               {/* Parecer Técnico Final */}
               <div
-                onClick={() => alternarSecao('parecerTecnico')}
-                className={`p-3 rounded-xl border transition-all cursor-pointer flex items-start justify-between gap-3 ${
+                className={`p-3 rounded-xl border transition-all flex flex-col justify-between gap-2.5 ${
                   config.secoes.parecerTecnico
                     ? 'bg-emerald-50/60 dark:bg-emerald-950/20 border-emerald-300 dark:border-emerald-800'
                     : 'bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-800 opacity-60'
                 }`}
               >
-                <div className="flex items-start gap-2.5">
-                  <div className="w-7 h-7 rounded-lg bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 flex items-center justify-center shrink-0 mt-0.5">
-                    <FileCheck className="w-3.5 h-3.5" />
+                <div className="flex items-start justify-between gap-2.5">
+                  <div
+                    onClick={() => alternarSecao('parecerTecnico')}
+                    className="flex items-start gap-2.5 cursor-pointer flex-1"
+                  >
+                    <div className="w-7 h-7 rounded-lg bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 flex items-center justify-center shrink-0 mt-0.5">
+                      <FileCheck className="w-3.5 h-3.5" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-slate-900 dark:text-slate-100">
+                        Parecer Técnico Oficial
+                      </p>
+                      <p className="text-[11px] text-slate-500 leading-tight mt-0.5">
+                        Opinião, Conclusão Executiva, Recomendação de Crédito e Responsável Técnico
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-xs font-bold text-slate-900 dark:text-slate-100">
-                      Parecer Técnico Oficial
-                    </p>
-                    <p className="text-[11px] text-slate-500 leading-tight mt-0.5">
-                      Opinião, Conclusão Executiva, Recomendação de Crédito e Responsável Técnico
-                    </p>
-                  </div>
+                  <Switch
+                    checked={config.secoes.parecerTecnico}
+                    onCheckedChange={() => alternarSecao('parecerTecnico')}
+                    className="shrink-0"
+                  />
                 </div>
-                <Switch
-                  checked={config.secoes.parecerTecnico}
-                  onCheckedChange={() => alternarSecao('parecerTecnico')}
-                  className="shrink-0"
-                />
+                {config.secoes.parecerTecnico && (
+                  <div className="pt-2 border-t border-emerald-200/60 dark:border-emerald-800/50 space-y-1">
+                    <label className="text-[10px] font-semibold text-slate-600 dark:text-slate-400 block">
+                      Título personalizado da seção:
+                    </label>
+                    <Input
+                      value={config.titulosSecoes?.parecerTecnico || ''}
+                      onChange={(e) => handleAlterarTituloSecao('parecerTecnico', e.target.value)}
+                      placeholder="Padrão: Parecer Técnico Oficial"
+                      className="text-xs h-7.5 bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700"
+                    />
+                  </div>
+                )}
               </div>
 
               {/* Notas e Achados Críticos */}
               <div
-                onClick={() => alternarSecao('achadosCriticos')}
-                className={`p-3 rounded-xl border transition-all cursor-pointer flex items-start justify-between gap-3 ${
+                className={`p-3 rounded-xl border transition-all flex flex-col justify-between gap-2.5 ${
                   config.secoes.achadosCriticos
                     ? 'bg-rose-50/60 dark:bg-rose-950/20 border-rose-300 dark:border-rose-800'
                     : 'bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-800 opacity-60'
                 }`}
               >
-                <div className="flex items-start gap-2.5">
-                  <div className="w-7 h-7 rounded-lg bg-rose-100 dark:bg-rose-900/50 text-rose-700 dark:text-rose-300 flex items-center justify-center shrink-0 mt-0.5">
-                    <ShieldCheck className="w-3.5 h-3.5" />
+                <div className="flex items-start justify-between gap-2.5">
+                  <div
+                    onClick={() => alternarSecao('achadosCriticos')}
+                    className="flex items-start gap-2.5 cursor-pointer flex-1"
+                  >
+                    <div className="w-7 h-7 rounded-lg bg-rose-100 dark:bg-rose-900/50 text-rose-700 dark:text-rose-300 flex items-center justify-center shrink-0 mt-0.5">
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-slate-900 dark:text-slate-100">
+                        Notas & Achados Críticos
+                      </p>
+                      <p className="text-[11px] text-slate-500 leading-tight mt-0.5">
+                        Notas ajustadas da tela e Matriz de Achados / Due Diligence de Riscos
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-xs font-bold text-slate-900 dark:text-slate-100">
-                      Notas & Achados Críticos
-                    </p>
-                    <p className="text-[11px] text-slate-500 leading-tight mt-0.5">
-                      Notas ajustadas da tela e Matriz de Achados / Due Diligence de Riscos
-                    </p>
-                  </div>
+                  <Switch
+                    checked={config.secoes.achadosCriticos}
+                    onCheckedChange={() => alternarSecao('achadosCriticos')}
+                    className="shrink-0"
+                  />
                 </div>
-                <Switch
-                  checked={config.secoes.achadosCriticos}
-                  onCheckedChange={() => alternarSecao('achadosCriticos')}
-                  className="shrink-0"
-                />
+                {config.secoes.achadosCriticos && (
+                  <div className="pt-2 border-t border-rose-200/60 dark:border-rose-800/50 space-y-1">
+                    <label className="text-[10px] font-semibold text-slate-600 dark:text-slate-400 block">
+                      Título personalizado da seção:
+                    </label>
+                    <Input
+                      value={config.titulosSecoes?.achadosCriticos || ''}
+                      onChange={(e) => handleAlterarTituloSecao('achadosCriticos', e.target.value)}
+                      placeholder="Padrão: Notas & Achados Críticos"
+                      className="text-xs h-7.5 bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700"
+                    />
+                  </div>
+                )}
               </div>
 
               {/* Síntese Executiva & Balanço Trienal (aplica-se ao A4) */}
               <div
-                onClick={() => alternarSecao('sinteseExecutiva')}
-                className={`p-3 rounded-xl border transition-all cursor-pointer flex items-start justify-between gap-3 ${
+                className={`p-3 rounded-xl border transition-all flex flex-col justify-between gap-2.5 ${
                   config.secoes.sinteseExecutiva
                     ? 'bg-indigo-50/60 dark:bg-indigo-950/20 border-indigo-300 dark:border-indigo-800'
                     : 'bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-800 opacity-60'
                 }`}
               >
-                <div className="flex items-start gap-2.5">
-                  <div className="w-7 h-7 rounded-lg bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 flex items-center justify-center shrink-0 mt-0.5">
-                    <Sparkles className="w-3.5 h-3.5" />
+                <div className="flex items-start justify-between gap-2.5">
+                  <div
+                    onClick={() => alternarSecao('sinteseExecutiva')}
+                    className="flex items-start gap-2.5 cursor-pointer flex-1"
+                  >
+                    <div className="w-7 h-7 rounded-lg bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 flex items-center justify-center shrink-0 mt-0.5">
+                      <Sparkles className="w-3.5 h-3.5" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-slate-900 dark:text-slate-100">
+                        Síntese Executiva (A4)
+                      </p>
+                      <p className="text-[11px] text-slate-500 leading-tight mt-0.5">
+                        Score ponderado, cards de liquidez e diagnóstico estratégico
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-xs font-bold text-slate-900 dark:text-slate-100">
-                      Síntese Executiva (A4)
-                    </p>
-                    <p className="text-[11px] text-slate-500 leading-tight mt-0.5">
-                      Score ponderado, cards de liquidez e diagnóstico estratégico
-                    </p>
-                  </div>
+                  <Switch
+                    checked={config.secoes.sinteseExecutiva}
+                    onCheckedChange={() => alternarSecao('sinteseExecutiva')}
+                    className="shrink-0"
+                  />
                 </div>
-                <Switch
-                  checked={config.secoes.sinteseExecutiva}
-                  onCheckedChange={() => alternarSecao('sinteseExecutiva')}
-                  className="shrink-0"
-                />
+                {config.secoes.sinteseExecutiva && (
+                  <div className="pt-2 border-t border-indigo-200/60 dark:border-indigo-800/50 space-y-1">
+                    <label className="text-[10px] font-semibold text-slate-600 dark:text-slate-400 block">
+                      Título personalizado da seção:
+                    </label>
+                    <Input
+                      value={config.titulosSecoes?.sinteseExecutiva || ''}
+                      onChange={(e) => handleAlterarTituloSecao('sinteseExecutiva', e.target.value)}
+                      placeholder="Padrão: Síntese Executiva & Score Ponderado"
+                      className="text-xs h-7.5 bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700"
+                    />
+                  </div>
+                )}
               </div>
 
               {/* Agentes Especialistas e Checklist */}
               <div
-                onClick={() => alternarSecao('agentesEspecialistas')}
-                className={`p-3 rounded-xl border transition-all cursor-pointer flex items-start justify-between gap-3 ${
+                className={`p-3 rounded-xl border transition-all flex flex-col justify-between gap-2.5 ${
                   config.secoes.agentesEspecialistas
                     ? 'bg-purple-50/60 dark:bg-purple-950/20 border-purple-300 dark:border-purple-800'
                     : 'bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-800 opacity-60'
                 }`}
               >
-                <div className="flex items-start gap-2.5">
-                  <div className="w-7 h-7 rounded-lg bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 flex items-center justify-center shrink-0 mt-0.5">
-                    <ShieldCheck className="w-3.5 h-3.5" />
+                <div className="flex items-start justify-between gap-2.5">
+                  <div
+                    onClick={() => alternarSecao('agentesEspecialistas')}
+                    className="flex items-start gap-2.5 cursor-pointer flex-1"
+                  >
+                    <div className="w-7 h-7 rounded-lg bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 flex items-center justify-center shrink-0 mt-0.5">
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-slate-900 dark:text-slate-100">
+                        Agentes & Checklist (A4)
+                      </p>
+                      <p className="text-[11px] text-slate-500 leading-tight mt-0.5">
+                        Pareceres dos 4 Agentes ADECONT e conferência de due diligence
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-xs font-bold text-slate-900 dark:text-slate-100">
-                      Agentes & Checklist (A4)
-                    </p>
-                    <p className="text-[11px] text-slate-500 leading-tight mt-0.5">
-                      Pareceres dos 4 Agentes ADECONT e conferência de due diligence
-                    </p>
-                  </div>
+                  <Switch
+                    checked={config.secoes.agentesEspecialistas}
+                    onCheckedChange={() => alternarSecao('agentesEspecialistas')}
+                    className="shrink-0"
+                  />
                 </div>
-                <Switch
-                  checked={config.secoes.agentesEspecialistas}
-                  onCheckedChange={() => alternarSecao('agentesEspecialistas')}
-                  className="shrink-0"
-                />
+                {config.secoes.agentesEspecialistas && (
+                  <div className="pt-2 border-t border-purple-200/60 dark:border-purple-800/50 space-y-1">
+                    <label className="text-[10px] font-semibold text-slate-600 dark:text-slate-400 block">
+                      Título personalizado da seção:
+                    </label>
+                    <Input
+                      value={config.titulosSecoes?.agentesEspecialistas || ''}
+                      onChange={(e) =>
+                        handleAlterarTituloSecao('agentesEspecialistas', e.target.value)
+                      }
+                      placeholder="Padrão: Síntese Técnica dos Agentes Especialistas"
+                      className="text-xs h-7.5 bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700"
+                    />
+                  </div>
+                )}
               </div>
             </div>
           </div>

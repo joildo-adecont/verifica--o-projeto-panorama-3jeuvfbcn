@@ -230,9 +230,12 @@ export function prepararLinhasExportacao(
     }
   }
 
+  const prefixoClassicos = opcoes?.customizacao?.titulosSecoes?.indicesClassicos?.trim()
+
   const linhasClassicas: ItemExportacaoIndicador[] = incluirClassicos
     ? indicadores.map((ind) => {
-        const grupo = obterNomeGrupoIndicador(ind.id)
+        const grupoBase = obterNomeGrupoIndicador(ind.id)
+        const grupo = prefixoClassicos ? `${prefixoClassicos} · ${grupoBase}` : grupoBase
         const indMenos1 = indMenos1Map.get(ind.id)
         const indMenos2 = indMenos2Map.get(ind.id)
 
@@ -302,9 +305,22 @@ export function prepararLinhasExportacao(
     }
   }
 
-  const linhasAvancadas: ItemExportacaoIndicador[] = relAtual.indices.map((adv) =>
-    converterIndiceAvancadoParaExportacao(adv, advMenos2Map.get(adv.id), advMenos1Map.get(adv.id)),
-  )
+  const prefixoAvancados = opcoes?.customizacao?.titulosSecoes?.modelosAvancados?.trim()
+
+  const linhasAvancadas: ItemExportacaoIndicador[] = relAtual.indices.map((adv) => {
+    const item = converterIndiceAvancadoParaExportacao(
+      adv,
+      advMenos2Map.get(adv.id),
+      advMenos1Map.get(adv.id),
+    )
+    if (prefixoAvancados) {
+      return {
+        ...item,
+        grupo: `${prefixoAvancados} · ${adv.grupoTitulo}`,
+      }
+    }
+    return item
+  })
 
   return [...linhasClassicas, ...linhasAvancadas]
 }
@@ -382,14 +398,28 @@ export function gerarCsvRelatorioContabil(
     linhasCsv.push(linha.join(';'))
   }
 
-  // Seções de parecer técnico e notas do cliente no CSV (respeitando flags de customização)
+  // Seções de parecer técnico e notas do cliente no CSV (respeitando flags de customização e títulos personalizados)
   const incluirParecer = opcoes?.customizacao?.secoes?.parecerTecnico ?? true
   const incluirNotas = opcoes?.customizacao?.secoes?.achadosCriticos ?? true
+  const tituloCustomParecer =
+    opcoes?.customizacao?.titulosSecoes?.parecerTecnico?.trim() || 'PARECER TÉCNICO OFICIAL'
+  const tituloCustomNotas =
+    opcoes?.customizacao?.titulosSecoes?.achadosCriticos?.trim() || 'NOTAS & ACHADOS CRÍTICOS'
 
   if (opcoes?.parecerFinal && (incluirParecer || incluirNotas)) {
     const pf = opcoes.parecerFinal
     linhasCsv.push('')
-    linhasCsv.push(escaparCampoCsv('=== PARECER TÉCNICO & NOTAS DO CLIENTE ==='))
+    const tituloCabecalhoParecer =
+      incluirParecer && incluirNotas
+        ? opcoes?.customizacao?.titulosSecoes?.parecerTecnico?.trim() &&
+          opcoes?.customizacao?.titulosSecoes?.achadosCriticos?.trim()
+          ? `${tituloCustomParecer.toUpperCase()} & ${tituloCustomNotas.toUpperCase()}`
+          : 'PARECER TÉCNICO & NOTAS DO CLIENTE'
+        : incluirParecer
+          ? tituloCustomParecer.toUpperCase()
+          : tituloCustomNotas.toUpperCase()
+
+    linhasCsv.push(escaparCampoCsv(`=== ${tituloCabecalhoParecer} ===`))
 
     if (incluirParecer) {
       if (pf.nivelOpiniao) {
@@ -421,9 +451,10 @@ export function gerarCsvRelatorioContabil(
     }
 
     if (incluirNotas && pf.achadosCriticos) {
-      linhasCsv.push(
-        `${escaparCampoCsv('Achados Críticos / Notas:')};${escaparCampoCsv(pf.achadosCriticos)}`,
-      )
+      const rotuloNotas = opcoes?.customizacao?.titulosSecoes?.achadosCriticos?.trim()
+        ? `${opcoes.customizacao.titulosSecoes.achadosCriticos.trim()}:`
+        : 'Achados Críticos / Notas:'
+      linhasCsv.push(`${escaparCampoCsv(rotuloNotas)};${escaparCampoCsv(pf.achadosCriticos)}`)
     }
   }
 
@@ -540,14 +571,28 @@ export function exportarExcelRelatorioContabil(
     ])
   }
 
-  // Seção de parecer técnico e notas do cliente (respeitando flags de customização)
+  // Seção de parecer técnico e notas do cliente (respeitando flags de customização e títulos personalizados)
   const incluirParecer = opcoes?.customizacao?.secoes?.parecerTecnico ?? true
   const incluirNotas = opcoes?.customizacao?.secoes?.achadosCriticos ?? true
+  const tituloCustomParecer =
+    opcoes?.customizacao?.titulosSecoes?.parecerTecnico?.trim() || 'PARECER TÉCNICO OFICIAL'
+  const tituloCustomNotas =
+    opcoes?.customizacao?.titulosSecoes?.achadosCriticos?.trim() || 'NOTAS & ACHADOS CRÍTICOS'
 
   if (opcoes?.parecerFinal && (incluirParecer || incluirNotas)) {
     const pf = opcoes.parecerFinal
     dadosAoa.push([])
-    dadosAoa.push(['=== PARECER TÉCNICO & NOTAS DO CLIENTE ==='])
+    const tituloCabecalhoParecerExcel =
+      incluirParecer && incluirNotas
+        ? opcoes?.customizacao?.titulosSecoes?.parecerTecnico?.trim() &&
+          opcoes?.customizacao?.titulosSecoes?.achadosCriticos?.trim()
+          ? `${tituloCustomParecer.toUpperCase()} & ${tituloCustomNotas.toUpperCase()}`
+          : 'PARECER TÉCNICO & NOTAS DO CLIENTE'
+        : incluirParecer
+          ? tituloCustomParecer.toUpperCase()
+          : tituloCustomNotas.toUpperCase()
+
+    dadosAoa.push([`=== ${tituloCabecalhoParecerExcel} ===`])
 
     if (incluirParecer) {
       if (pf.nivelOpiniao) {
@@ -571,7 +616,10 @@ export function exportarExcelRelatorioContabil(
     }
 
     if (incluirNotas && pf.achadosCriticos) {
-      dadosAoa.push(['Achados Críticos / Notas:', pf.achadosCriticos])
+      const rotuloNotasExcel = opcoes?.customizacao?.titulosSecoes?.achadosCriticos?.trim()
+        ? `${opcoes.customizacao.titulosSecoes.achadosCriticos.trim()}:`
+        : 'Achados Críticos / Notas:'
+      dadosAoa.push([rotuloNotasExcel, pf.achadosCriticos])
     }
   }
 
