@@ -76,6 +76,7 @@ import {
 } from '@/services/regimeHistoricoService'
 import type { RegimeHistoricoItem } from '@/types/regimeHistorico'
 import { History } from 'lucide-react'
+import { seedAnexoContratoSocialCardoso } from '@/services/seedAnexoContratoSocialCardoso'
 
 export { OPCOES_REGIME_TRIBUTARIO, type RegimeTributarioTipo }
 
@@ -453,6 +454,12 @@ export default function CadastroClientes() {
     }, 250)
     return () => clearTimeout(timer)
   }, [carregarDados])
+
+  // Seed único do anexo do contrato social da CARDOSO & SIX LTDA (cliente 94109):
+  // idempotente — se o anexo já existe, não grava nem toca em nada.
+  useEffect(() => {
+    seedAnexoContratoSocialCardoso()
+  }, [])
 
   // Ouvinte de sincronização em tempo real quando o regime for alterado externamente (ex.: pelo Diagnóstico)
   useEffect(() => {
