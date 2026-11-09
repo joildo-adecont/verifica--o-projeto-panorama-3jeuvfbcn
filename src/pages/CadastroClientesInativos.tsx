@@ -40,6 +40,12 @@ import {
 } from '@/services/cadastroEmpresasInativos'
 import { ModalConfirmarStatusCliente } from '@/components/ModalConfirmarStatusCliente'
 import { registrarAuditoriaStatus } from '@/services/statusAuditoriaService'
+import { ModalFichaClienteDetalhada } from '@/components/ModalFichaClienteDetalhada'
+import { ModalGerenciarCamposPersonalizados } from '@/components/ModalGerenciarCamposPersonalizados'
+import { ModalImportExportMassaClientes } from '@/components/ModalImportExportMassaClientes'
+import { listarCamposPersonalizados } from '@/services/clienteDadosComplementaresService'
+import type { CampoPersonalizadoDef } from '@/types/clienteDadosComplementares'
+import { Sliders, FileSpreadsheet } from 'lucide-react'
 import {
   editarClientesEmMassa,
   alterarRegimeClientesEmMassa,
@@ -95,10 +101,28 @@ export default function CadastroClientesInativos() {
   const [clienteParaReativar, setClienteParaReativar] = useState<EmpresaInativa | null>(null)
   const [gerandoRelatorio, setGerandoRelatorio] = useState<boolean>(false)
 
+  // Modais de Dados Complementares e Import/Export em Massa
+  const [camposDef, setCamposDef] = useState<CampoPersonalizadoDef[]>([])
+  const [modalGerenciarCamposAberto, setModalGerenciarCamposAberto] = useState<boolean>(false)
+  const [modalImportExportAberto, setModalImportExportAberto] = useState<boolean>(false)
+
   // Seleção múltipla para ações em massa
   const [selecionadosCodigos, setSelecionadosCodigos] = useState<Set<number>>(new Set())
   const [processandoMassa, setProcessandoMassa] = useState<boolean>(false)
   const { toast } = useToast()
+
+  const carregarDefinicoesCampos = useCallback(async () => {
+    try {
+      const defs = await listarCamposPersonalizados(false)
+      setCamposDef(defs)
+    } catch (e) {
+      console.warn('Erro ao carregar definições de campos personalizados:', e)
+    }
+  }, [])
+
+  useEffect(() => {
+    carregarDefinicoesCampos()
+  }, [carregarDefinicoesCampos])
 
   const carregarDados = useCallback(async () => {
     setCarregando(true)
@@ -507,6 +531,24 @@ td{border-bottom:1px solid #ddd;padding:3px 5px}
             </button>
 
             <button
+              onClick={() => setModalGerenciarCamposAberto(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-semibold text-slate-100 transition-colors border border-white/10 cursor-pointer"
+              title="Criar e gerenciar campos personalizados da ficha do cliente"
+            >
+              <Sliders className="w-3.5 h-3.5 text-[#D4AF37]" />
+              <span className="hidden sm:inline">Campos Ficha</span>
+            </button>
+
+            <button
+              onClick={() => setModalImportExportAberto(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-semibold text-slate-100 transition-colors border border-white/10 cursor-pointer"
+              title="Importar e exportar dados complementares em massa"
+            >
+              <FileSpreadsheet className="w-3.5 h-3.5 text-[#D4AF37]" />
+              <span className="hidden md:inline">Import/Export Massa</span>
+            </button>
+
+            <button
               onClick={imprimir}
               disabled={gerandoRelatorio || carregando || totalItens === 0}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#D4AF37] hover:bg-[#c29f2f] text-xs font-bold text-[#2C3E50] transition-colors shadow-sm disabled:opacity-50 cursor-pointer"
@@ -908,142 +950,67 @@ td{border-bottom:1px solid #ddd;padding:3px 5px}
         )}
       </main>
 
-      {/* modal de detalhes */}
+      {/* modal de detalhes estendido da empresa */}
       {modalEmpresa && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-          onClick={() => setModalEmpresa(null)}
-        >
-          <div
-            className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl bg-white p-5"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
-                  Cliente inativo #{modalEmpresa.codigo}
-                </p>
-                <h2 className="text-[15px] font-bold text-[#2C3E50]">
-                  {modalEmpresa.razao_social}
-                </h2>
-                <p className="text-[11px] text-slate-500">
-                  {modalEmpresa.numero_documento} · {modalEmpresa.situacao || 'Inativa'}
-                </p>
-              </div>
-              <button
-                onClick={() => setModalEmpresa(null)}
-                className="rounded p-1 text-slate-400 hover:bg-slate-100 cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="mt-3 grid gap-2 sm:grid-cols-2">
-              <Campo
-                icone={<Building2 className="w-3 h-3" />}
-                rotulo="Natureza jurídica"
-                valor={modalEmpresa.natureza_juridica}
-              />
-              <Campo
-                icone={<FileText className="w-3 h-3" />}
-                rotulo="CNAE"
-                valor={modalEmpresa.cnae}
-              />
-              <Campo
-                icone={<FileText className="w-3 h-3" />}
-                rotulo="Ramo de atividade"
-                valor={modalEmpresa.ramo_atividade}
-              />
-              <Campo
-                icone={<Calendar className="w-3 h-3" />}
-                rotulo="Cliente desde"
-                valor={modalEmpresa.cliente_desde}
-              />
-              <Campo
-                icone={<MapPin className="w-3 h-3" />}
-                rotulo="Endereço"
-                valor={`${modalEmpresa.endereco || ''} ${modalEmpresa.numero_endereco || ''}`.trim()}
-              />
-              <Campo
-                icone={<MapPin className="w-3 h-3" />}
-                rotulo="Município"
-                valor={`${modalEmpresa.municipio || ''}/${modalEmpresa.uf || ''}`}
-              />
-              <Campo
-                icone={<Phone className="w-3 h-3" />}
-                rotulo="Telefone"
-                valor={modalEmpresa.telefone}
-              />
-              <Campo
-                icone={<Mail className="w-3 h-3" />}
-                rotulo="E-mail"
-                valor={modalEmpresa.email}
-              />
-              <Campo
-                icone={<Hash className="w-3 h-3" />}
-                rotulo="Inscrição estadual"
-                valor={modalEmpresa.inscricao_estadual}
-              />
-              <Campo
-                icone={<Hash className="w-3 h-3" />}
-                rotulo="Capital social"
-                valor={modalEmpresa.capital_social}
-              />
-            </div>
-
-            {modalEmpresa.motivo_transferencia && (
-              <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-2.5">
-                <p className="text-[9.5px] font-bold uppercase tracking-wide text-slate-500">
-                  Por que está aqui
-                </p>
-                <p className="text-[11px] text-slate-700">{modalEmpresa.motivo_transferencia}</p>
-                {modalEmpresa.transferido_em && (
-                  <p className="mt-0.5 text-[10px] text-slate-400">
-                    Transferido em {modalEmpresa.transferido_em.slice(0, 16).replace('T', ' ')}
-                  </p>
-                )}
-              </div>
-            )}
-
-            <div className="mt-4 flex justify-end gap-2">
-              <button
-                onClick={() => setModalEmpresa(null)}
-                className="rounded-lg border border-slate-300 px-3 py-1.5 text-[11px] font-bold text-slate-600 hover:bg-slate-50 cursor-pointer"
-              >
-                Fechar
-              </button>
-              <button
-                type="button"
-                onClick={() => handleAbrirModalReativar(modalEmpresa)}
-                disabled={reativando === modalEmpresa.codigo}
-                className="group inline-flex items-center gap-1.5 rounded-full border border-rose-300 bg-rose-50 px-3 py-1.5 text-[11px] font-bold text-rose-700 hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-800 active:scale-95 transition-all shadow-xs disabled:opacity-50 cursor-pointer select-none"
-                title={`Cliente atualmente INATIVO. Clique para reativar "${modalEmpresa.razao_social || modalEmpresa.codigo}" e devolver ao cadastro ativo.`}
-              >
-                {reativando === modalEmpresa.codigo ? (
-                  <>
-                    <Loader2 className="w-3.5 h-3.5 animate-spin text-rose-700 group-hover:text-emerald-700" />
-                    <span>Reativando Cliente…</span>
-                  </>
-                ) : (
-                  <>
-                    <span className="relative flex h-2 w-2 shrink-0">
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500 group-hover:bg-emerald-600 transition-colors" />
-                    </span>
-                    <UserX className="w-3.5 h-3.5 text-rose-600 group-hover:hidden shrink-0" />
-                    <UserCheck className="w-3.5 h-3.5 text-emerald-700 hidden group-hover:inline-block shrink-0" />
-                    <span className="group-hover:hidden font-bold">
-                      Inativo (clique p/ Reativar)
-                    </span>
-                    <span className="hidden group-hover:inline-block font-bold text-emerald-700">
-                      Reativar Cliente
-                    </span>
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
+        <ModalFichaClienteDetalhada
+          empresa={{
+            id: modalEmpresa.id,
+            codigo: modalEmpresa.codigo,
+            razao_social: modalEmpresa.razao_social,
+            apelido: modalEmpresa.apelido || modalEmpresa.razao_social,
+            cpf_cnpj: modalEmpresa.numero_documento,
+            numero_documento: modalEmpresa.numero_documento,
+            documento_limpo: modalEmpresa.numero_documento?.replace(/\D/g, '') || '',
+            tipo_documento: modalEmpresa.tipo_documento || 'CNPJ',
+            tipo_cadastro: modalEmpresa.tipo_cadastro || 'Empresa',
+            situacao: modalEmpresa.situacao || 'Inativa',
+            endereco: modalEmpresa.endereco,
+            numero_endereco: modalEmpresa.numero_endereco,
+            municipio: modalEmpresa.municipio,
+            uf: modalEmpresa.uf,
+            cep: modalEmpresa.cep,
+            telefone: modalEmpresa.telefone,
+            email: modalEmpresa.email,
+            inscricao_estadual: modalEmpresa.inscricao_estadual,
+            data_inicio_atividades: modalEmpresa.cliente_desde,
+            regime_tributario: (modalEmpresa as any).regime_tributario,
+          }}
+          camposDef={camposDef}
+          onFechar={() => setModalEmpresa(null)}
+          onAbrirGerenciadorCampos={() => setModalGerenciarCamposAberto(true)}
+          onAlterarStatus={() => handleAbrirModalReativar(modalEmpresa)}
+        />
       )}
+
+      {/* MODAL DE GERENCIAMENTO DE CAMPOS PERSONALIZADOS */}
+      <ModalGerenciarCamposPersonalizados
+        aberto={modalGerenciarCamposAberto}
+        campos={camposDef}
+        onFechar={() => setModalGerenciarCamposAberto(false)}
+        onCamposAtualizados={carregarDefinicoesCampos}
+      />
+
+      {/* MODAL DE IMPORTAÇÃO E EXPORTAÇÃO EM MASSA */}
+      <ModalImportExportMassaClientes
+        aberto={modalImportExportAberto}
+        empresas={empresas.map((e) => ({
+          id: e.id,
+          codigo: e.codigo,
+          razao_social: e.razao_social,
+          apelido: e.apelido,
+          cpf_cnpj: e.numero_documento,
+          numero_documento: e.numero_documento,
+          documento_limpo: e.numero_documento?.replace(/\D/g, '') || '',
+          tipo_documento: e.tipo_documento,
+          tipo_cadastro: e.tipo_cadastro,
+          situacao: e.situacao || 'Inativa',
+          email: e.email,
+          telefone: e.telefone,
+        }))}
+        camposDef={camposDef}
+        onFechar={() => setModalImportExportAberto(false)}
+        onSucessoImportacao={() => carregarDados()}
+      />
 
       {/* MODAL DE CONFIRMAÇÃO INDIVIDUAL COM CAMPO DE MOTIVO */}
       {clienteParaReativar && (

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-09T02:55:14.661Z",
+  "generatedAt": "2026-11-09T03:30:36.448Z",
   "collections": [
     {
       "name": "users",
@@ -6033,6 +6033,325 @@
         }
       ],
       "indexes": ["CREATE UNIQUE INDEX idx_analise_par_cnpj ON analise_pareceres (cliente_cnpj)"]
+    },
+    {
+      "name": "cliente_campos_def",
+      "type": "base",
+      "apiRules": {
+        "list": "",
+        "view": "",
+        "create": "",
+        "update": "",
+        "delete": ""
+      },
+      "fields": [
+        {
+          "name": "chave",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "rotulo",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "tipo",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "opcoes",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "descricao",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "ordem",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "ativo",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "criado_por",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX idx_cliente_campos_def_chave ON cliente_campos_def (chave)",
+        "CREATE INDEX idx_cliente_campos_def_ordem ON cliente_campos_def (ordem)"
+      ]
+    },
+    {
+      "name": "cliente_campos_valores",
+      "type": "base",
+      "apiRules": {
+        "list": "",
+        "view": "",
+        "create": "",
+        "update": "",
+        "delete": ""
+      },
+      "fields": [
+        {
+          "name": "cliente_cnpj",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "cliente_codigo",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "campo_chave",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "valor",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "atualizado_por",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": [
+        "CREATE INDEX idx_cli_valores_cnpj ON cliente_campos_valores (cliente_cnpj)",
+        "CREATE INDEX idx_cli_valores_codigo ON cliente_campos_valores (cliente_codigo)",
+        "CREATE UNIQUE INDEX idx_cli_valores_cnpj_campo ON cliente_campos_valores (cliente_cnpj, campo_chave)"
+      ]
+    },
+    {
+      "name": "cliente_contatos",
+      "type": "base",
+      "apiRules": {
+        "list": "",
+        "view": "",
+        "create": "",
+        "update": "",
+        "delete": ""
+      },
+      "fields": [
+        {
+          "name": "cliente_cnpj",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "cliente_codigo",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "tipo",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "identificador",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "rotulo",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "nome_responsavel",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "cargo_responsavel",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "principal",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "observacao",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": [
+        "CREATE INDEX idx_cli_contatos_cnpj ON cliente_contatos (cliente_cnpj)",
+        "CREATE INDEX idx_cli_contatos_codigo ON cliente_contatos (cliente_codigo)",
+        "CREATE INDEX idx_cli_contatos_tipo ON cliente_contatos (tipo)"
+      ]
+    },
+    {
+      "name": "cliente_arquivos",
+      "type": "base",
+      "apiRules": {
+        "list": "",
+        "view": "",
+        "create": "",
+        "update": "",
+        "delete": ""
+      },
+      "fields": [
+        {
+          "name": "cliente_cnpj",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "cliente_codigo",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "titulo",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "categoria",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "arquivo",
+          "type": "file",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "nome_original",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "tamanho_bytes",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "tipo_mime",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "observacao",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "enviado_por",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": [
+        "CREATE INDEX idx_cli_arquivos_cnpj ON cliente_arquivos (cliente_cnpj)",
+        "CREATE INDEX idx_cli_arquivos_codigo ON cliente_arquivos (cliente_codigo)",
+        "CREATE INDEX idx_cli_arquivos_categoria ON cliente_arquivos (categoria)"
+      ]
     }
   ]
 }

@@ -51,6 +51,12 @@ import {
 import { BarraAcoesMassaClientes } from '@/components/BarraAcoesMassaClientes'
 import { useToast } from '@/hooks/use-toast'
 import { RelatorioClientesImprimivel } from '@/components/RelatorioClientesImprimivel'
+import { ModalFichaClienteDetalhada } from '@/components/ModalFichaClienteDetalhada'
+import { ModalGerenciarCamposPersonalizados } from '@/components/ModalGerenciarCamposPersonalizados'
+import { ModalImportExportMassaClientes } from '@/components/ModalImportExportMassaClientes'
+import { listarCamposPersonalizados } from '@/services/clienteDadosComplementaresService'
+import type { CampoPersonalizadoDef } from '@/types/clienteDadosComplementares'
+import { Sliders, Upload, Download } from 'lucide-react'
 import { BadgeDocumentoCliente } from '@/components/BadgeDocumentoCliente'
 import { SecaoClientesArquivados } from '@/components/SecaoClientesArquivados'
 import {
@@ -93,6 +99,11 @@ export default function CadastroClientes() {
   const [avisoInativacao, setAvisoInativacao] = useState<string | null>(null)
   const [clienteParaInativar, setClienteParaInativar] = useState<EmpresaRecord | null>(null)
 
+  // Modais de Dados Complementares e Import/Export em Massa
+  const [camposDef, setCamposDef] = useState<CampoPersonalizadoDef[]>([])
+  const [modalGerenciarCamposAberto, setModalGerenciarCamposAberto] = useState<boolean>(false)
+  const [modalImportExportAberto, setModalImportExportAberto] = useState<boolean>(false)
+
   // Seleção e Ações em Massa
   const { toast } = useToast()
   const [selecionadosCodigos, setSelecionadosCodigos] = useState<Set<number>>(new Set())
@@ -119,6 +130,20 @@ export default function CadastroClientes() {
   )
   const [historicoRegimeFicha, setHistoricoRegimeFicha] = useState<RegimeHistoricoItem[]>([])
   const [carregandoHistoricoFicha, setCarregandoHistoricoFicha] = useState<boolean>(false)
+
+  // Carrega campos personalizados ativos do sistema
+  const carregarDefinicoesCampos = useCallback(async () => {
+    try {
+      const defs = await listarCamposPersonalizados(false)
+      setCamposDef(defs)
+    } catch (e) {
+      console.warn('Erro ao carregar definições de campos personalizados:', e)
+    }
+  }, [])
+
+  useEffect(() => {
+    carregarDefinicoesCampos()
+  }, [carregarDefinicoesCampos])
 
   // Carrega histórico de auditoria da empresa selecionada
   const carregarHistoricoFicha = useCallback(async (emp: EmpresaRecord) => {
@@ -797,6 +822,24 @@ export default function CadastroClientes() {
             </button>
 
             <button
+              onClick={() => setModalGerenciarCamposAberto(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-semibold text-slate-100 transition-colors border border-white/10 cursor-pointer"
+              title="Criar e gerenciar campos personalizados da ficha do cliente"
+            >
+              <Sliders className="w-3.5 h-3.5 text-[#D4AF37]" />
+              <span className="hidden sm:inline">Campos Ficha</span>
+            </button>
+
+            <button
+              onClick={() => setModalImportExportAberto(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-semibold text-slate-100 transition-colors border border-white/10 cursor-pointer"
+              title="Importar e exportar dados complementares em massa"
+            >
+              <FileSpreadsheet className="w-3.5 h-3.5 text-[#D4AF37]" />
+              <span className="hidden md:inline">Import/Export Massa</span>
+            </button>
+
+            <button
               onClick={abrirRelatorioA4}
               disabled={gerandoRelatorio || carregando || totalItens === 0}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#D4AF37] hover:bg-[#c29f2f] text-xs font-bold text-[#0F294A] transition-colors shadow-sm disabled:opacity-50 cursor-pointer"
@@ -1467,375 +1510,35 @@ export default function CadastroClientes() {
         )}
       </main>
 
-      {/* MODAL DETALHADO DA EMPRESA (FICHA CADASTRAL) */}
+      {/* MODAL DETALHADO DA EMPRESA (FICHA CADASTRAL COMPLETA COM CAMPOS, CONTATOS E ARQUIVOS) */}
       {modalEmpresa && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fade-in">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden border border-slate-200">
-            {/* Header da modal */}
-            <div className="bg-[#0F294A] px-6 py-4 flex items-center justify-between text-white border-b border-[#0A1D34]">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center border border-white/20">
-                  <Building2 className="w-5 h-5 text-[#D4AF37]" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-base text-white leading-tight">
-                    Ficha Cadastral do Cliente
-                  </h3>
-                  <span className="text-xs text-[#D4AF37] font-mono">
-                    Código do Sistema: {modalEmpresa.codigo}
-                  </span>
-                </div>
-              </div>
-              <button
-                onClick={() => setModalEmpresa(null)}
-                className="p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
-                title="Fechar"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Conteúdo da modal */}
-            <div className="p-6 overflow-y-auto space-y-5 text-xs text-slate-700">
-              {/* Identificação Principal */}
-              <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400">
-                    Razão Social
-                  </span>
-                  <span
-                    className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                      modalEmpresa.situacao?.toLowerCase() === 'ativa'
-                        ? 'bg-emerald-100 text-emerald-800'
-                        : 'bg-slate-200 text-slate-700'
-                    }`}
-                  >
-                    {modalEmpresa.situacao || 'Ativa'}
-                  </span>
-                </div>
-                <div className="text-sm font-bold text-slate-900">
-                  {modalEmpresa.razao_social || '—'}
-                </div>
-                <div className="pt-1 flex flex-wrap gap-4 text-slate-600">
-                  <div>
-                    <span className="text-slate-400">Apelido/Fantasia: </span>
-                    <span className="font-semibold text-slate-800">
-                      {modalEmpresa.apelido || '—'}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-slate-400">Tipo: </span>
-                    <span className="font-mono font-medium">
-                      {modalEmpresa.tipo_cadastro || 'Empresa'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Documentos */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="p-3 bg-white border border-slate-200 rounded-xl">
-                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">
-                    Documento ({modalEmpresa.tipo_documento})
-                  </span>
-                  <div className="font-mono text-sm font-bold text-slate-900">
-                    {modalEmpresa.cpf_cnpj || 'Não informado'}
-                  </div>
-                </div>
-
-                <div className="p-3 bg-white border border-slate-200 rounded-xl">
-                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">
-                    Inscrição Estadual (IE)
-                  </span>
-                  <div className="font-mono text-sm text-slate-800">
-                    {modalEmpresa.inscricao_estadual || 'Isento / Não informada'}
-                  </div>
-                </div>
-              </div>
-
-              {/* Bloco de Enquadramento e Regime Tributário */}
-              <div className="p-4 bg-amber-50/40 border border-amber-200/80 rounded-xl space-y-3">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                  <div>
-                    <label
-                      htmlFor="select-regime-tributario"
-                      className="text-[11px] font-bold text-[#0F294A] uppercase tracking-wider flex items-center gap-1.5"
-                    >
-                      <Briefcase className="w-3.5 h-3.5 text-[#D4AF37]" />
-                      <span>Regime Tributário</span>
-                    </label>
-                    <p className="text-[10px] text-slate-500">
-                      Alteração direta na Ficha Cadastral (gravação automática ao selecionar nova
-                      opção)
-                    </p>
-                  </div>
-                  {modalEmpresa.regime_tributario ? (
-                    <span className="self-start sm:self-auto text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300">
-                      Atual: {modalEmpresa.regime_tributario}
-                    </span>
-                  ) : (
-                    <span className="self-start sm:self-auto text-[10px] font-medium px-2 py-0.5 rounded bg-slate-100 text-slate-500 border border-slate-200 italic">
-                      Não informado
-                    </span>
-                  )}
-                </div>
-
-                <div className="relative">
-                  <select
-                    id="select-regime-tributario"
-                    value={modalEmpresa.regime_tributario || ''}
-                    disabled={salvandoFichaRegime}
-                    onChange={(e) => handleAlterarRegimeFicha(e.target.value)}
-                    className="w-full px-3 py-2 pr-8 text-xs font-semibold bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0F294A]/20 focus:border-[#0F294A] text-slate-800 disabled:opacity-60 cursor-pointer"
-                  >
-                    <option value="">Não informado / Em definição</option>
-                    {OPCOES_REGIME_TRIBUTARIO.map((opcao) => (
-                      <option key={opcao} value={opcao}>
-                        {opcao}
-                      </option>
-                    ))}
-                  </select>
-                  {salvandoFichaRegime && (
-                    <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
-                      <Loader2 className="w-4 h-4 text-[#D4AF37] animate-spin" />
-                    </div>
-                  )}
-                </div>
-
-                {feedbackFicha && (
-                  <div
-                    className={`flex items-center gap-1.5 text-[11px] font-semibold px-3 py-1.5 rounded-lg border ${
-                      feedbackFicha.tipo === 'ok'
-                        ? 'text-emerald-700 bg-emerald-50 border-emerald-200'
-                        : 'text-rose-700 bg-rose-50 border-rose-200'
-                    }`}
-                  >
-                    {feedbackFicha.tipo === 'ok' ? (
-                      <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                    ) : (
-                      <AlertCircle className="w-3.5 h-3.5 text-rose-600 shrink-0" />
-                    )}
-                    <span>{feedbackFicha.texto}</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Histórico de Alterações de Regime (Trilha de Auditoria ADECONT) */}
-              <div className="p-4 bg-white border border-slate-200 rounded-xl space-y-3">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                  <div className="flex items-center gap-1.5">
-                    <History className="w-4 h-4 text-[#D4AF37]" />
-                    <span className="text-[11px] font-bold text-[#0F294A] uppercase tracking-wider">
-                      Histórico de Regime (Trilha de Auditoria)
-                    </span>
-                  </div>
-                  <span className="text-[10px] text-slate-400 font-mono">
-                    {historicoRegimeFicha.length === 1
-                      ? '1 alteração'
-                      : `${historicoRegimeFicha.length} alterações`}
-                  </span>
-                </div>
-
-                {carregandoHistoricoFicha ? (
-                  <div className="py-4 flex items-center justify-center gap-2 text-xs text-slate-500">
-                    <Loader2 className="w-4 h-4 animate-spin text-[#D4AF37]" />
-                    <span>Carregando histórico de auditoria…</span>
-                  </div>
-                ) : historicoRegimeFicha.length === 0 ? (
-                  <div className="py-3 px-3.5 bg-slate-50 border border-dashed border-slate-200 rounded-lg text-center text-slate-500 text-[11px]">
-                    Nenhuma alteração de regime registrada para este cliente. Quando o regime for
-                    alterado, a data, o regime anterior, o novo e a origem serão gravados aqui.
-                  </div>
-                ) : (
-                  <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
-                    {historicoRegimeFicha.map((item, idx) => {
-                      const badgeNovo = obterBadgeRegime(item.regime_novo)
-                      const badgeAnterior = obterBadgeRegime(item.regime_anterior)
-                      const badgeOrig = obterBadgeOrigem(item.origem)
-                      return (
-                        <div
-                          key={item.id || idx}
-                          className="p-2.5 bg-slate-50/80 hover:bg-slate-100/80 border border-slate-200/80 rounded-lg text-xs transition-colors"
-                        >
-                          <div className="flex flex-wrap items-center justify-between gap-1.5 mb-1.5">
-                            <span className="text-[10px] font-mono text-slate-500 font-semibold">
-                              {formatarDataHoraAuditoria(item.created)}
-                            </span>
-                            <span
-                              className={`text-[9px] font-bold px-1.5 py-0.5 rounded border uppercase tracking-wider ${badgeOrig.bg} ${badgeOrig.text} ${badgeOrig.border}`}
-                            >
-                              {badgeOrig.label}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <div className="flex items-center gap-1">
-                              <span className="text-[10px] text-slate-400">De:</span>
-                              {item.regime_anterior ? (
-                                <span
-                                  className={`text-[10px] font-semibold px-1.5 py-0.5 rounded border ${badgeAnterior.bg} ${badgeAnterior.text} ${badgeAnterior.border}`}
-                                >
-                                  {item.regime_anterior}
-                                </span>
-                              ) : (
-                                <span className="text-[10px] text-slate-400 italic">
-                                  Não informado
-                                </span>
-                              )}
-                            </div>
-                            <span className="text-slate-400 font-bold">→</span>
-                            <div className="flex items-center gap-1">
-                              <span className="text-[10px] text-slate-400">Para:</span>
-                              {item.regime_novo ? (
-                                <span
-                                  className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${badgeNovo.bg} ${badgeNovo.text} ${badgeNovo.border}`}
-                                >
-                                  {item.regime_novo}
-                                </span>
-                              ) : (
-                                <span className="text-[10px] text-slate-400 italic">
-                                  Não informado
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          {item.usuario_nome && (
-                            <div className="mt-1 text-[10px] text-slate-400">
-                              Operador: <span className="text-slate-600">{item.usuario_nome}</span>
-                            </div>
-                          )}
-                        </div>
-                      )
-                    })}
-                  </div>
-                )}
-              </div>
-
-              {/* Endereço */}
-              <div className="p-4 bg-white border border-slate-200 rounded-xl space-y-2">
-                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">
-                  Endereço Cadastrado
-                </span>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                  <div className="sm:col-span-2">
-                    <span className="text-slate-400 block text-[11px]">Logradouro</span>
-                    <span className="font-medium text-slate-800">
-                      {modalEmpresa.endereco || '—'}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 block text-[11px]">Bairro</span>
-                    <span className="font-medium text-slate-800">{modalEmpresa.bairro || '—'}</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 block text-[11px]">Município</span>
-                    <span className="font-medium text-slate-800">
-                      {modalEmpresa.municipio || '—'}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 block text-[11px]">UF</span>
-                    <span className="font-medium text-slate-800">{modalEmpresa.uf || '—'}</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 block text-[11px]">CEP</span>
-                    <span className="font-mono text-slate-800">{modalEmpresa.cep || '—'}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Contatos */}
-              <div className="p-4 bg-white border border-slate-200 rounded-xl space-y-2">
-                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">
-                  Canais de Contato
-                </span>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <span className="text-slate-400 block text-[11px]">Telefone Principal</span>
-                    <span className="font-mono font-medium text-slate-800">
-                      {modalEmpresa.telefone || '—'}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 block text-[11px]">Telefone Alternativo</span>
-                    <span className="font-mono text-slate-800">
-                      {modalEmpresa.telefone_2 || '—'}
-                    </span>
-                  </div>
-                  <div className="sm:col-span-2">
-                    <span className="text-slate-400 block text-[11px]">E-mail</span>
-                    <span className="font-mono text-slate-800">{modalEmpresa.email || '—'}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Datas de Acompanhamento */}
-              <div className="grid grid-cols-2 gap-3 text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-200">
-                <div>
-                  <span className="text-slate-400 block text-[10px] uppercase font-bold">
-                    Início das Atividades
-                  </span>
-                  <span className="font-medium">
-                    {modalEmpresa.data_inicio_atividades || 'Não registrada'}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-slate-400 block text-[10px] uppercase font-bold">
-                    Data do Cadastro
-                  </span>
-                  <span className="font-medium">
-                    {modalEmpresa.data_cadastro || 'Não registrada'}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Rodapé da modal */}
-            <div className="bg-slate-50 px-6 py-3 border-t border-slate-200 flex items-center justify-between">
-              <span className="text-[11px] text-slate-400">
-                Base cadastral interna ADECONT • Protegida
-              </span>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleAbrirModalInativar(modalEmpresa)}
-                  disabled={inativandoCodigo === modalEmpresa.codigo}
-                  className="group inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-rose-50 hover:border-rose-300 hover:text-rose-700 text-xs font-bold transition-all shadow-xs disabled:opacity-50 cursor-pointer select-none touch-manipulation focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/50"
-                  title={`Cliente atualmente ATIVO. Clique ou toque para inativar "${modalEmpresa.razao_social || modalEmpresa.codigo}" e transferir para o Cadastro de Inativos.`}
-                  aria-label={`Status Ativo: clique para inativar ${modalEmpresa.razao_social || modalEmpresa.codigo}`}
-                >
-                  {inativandoCodigo === modalEmpresa.codigo ? (
-                    <>
-                      <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-700 group-hover:text-rose-600" />
-                      <span>Inativando Cliente…</span>
-                    </>
-                  ) : (
-                    <>
-                      <span className="relative flex h-2 w-2 shrink-0">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60 group-hover:opacity-0" />
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-600 group-hover:bg-rose-600 transition-colors" />
-                      </span>
-                      <UserCheck className="w-3.5 h-3.5 text-emerald-700 group-hover:hidden shrink-0" />
-                      <UserX className="w-3.5 h-3.5 text-rose-600 hidden group-hover:inline-block shrink-0" />
-                      <span className="group-hover:hidden font-bold">
-                        Ativo (clique p/ Inativar)
-                      </span>
-                      <span className="hidden group-hover:inline-block font-bold text-rose-700">
-                        Inativar Cliente
-                      </span>
-                    </>
-                  )}
-                </button>
-                <button
-                  onClick={() => setModalEmpresa(null)}
-                  className="px-4 py-1.5 rounded-lg bg-[#0F294A] text-white font-semibold text-xs hover:bg-[#1a3d68] transition-colors cursor-pointer"
-                >
-                  Fechar Ficha
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <ModalFichaClienteDetalhada
+          empresa={modalEmpresa}
+          camposDef={camposDef}
+          onFechar={() => setModalEmpresa(null)}
+          onAbrirGerenciadorCampos={() => setModalGerenciarCamposAberto(true)}
+          onAlterarStatus={(emp) => handleAbrirModalInativar(emp)}
+        />
       )}
+
+      {/* MODAL DE GERENCIAMENTO DE CAMPOS PERSONALIZADOS DA FICHA */}
+      <ModalGerenciarCamposPersonalizados
+        aberto={modalGerenciarCamposAberto}
+        campos={camposDef}
+        onFechar={() => setModalGerenciarCamposAberto(false)}
+        onCamposAtualizados={carregarDefinicoesCampos}
+      />
+
+      {/* MODAL DE IMPORTAÇÃO E EXPORTAÇÃO EM MASSA DE DADOS COMPLEMENTARES */}
+      <ModalImportExportMassaClientes
+        aberto={modalImportExportAberto}
+        empresas={empresas}
+        camposDef={camposDef}
+        onFechar={() => setModalImportExportAberto(false)}
+        onSucessoImportacao={() => {
+          carregarDados()
+        }}
+      />
 
       {/* MODAL DO RELATÓRIO A4 IMPRIMÍVEL COM SELO ADECONT */}
       {modalRelatorioAberto && (
