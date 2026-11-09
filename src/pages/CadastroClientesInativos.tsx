@@ -38,6 +38,8 @@ import {
   reativarCliente,
   type EmpresaInativa,
 } from '@/services/cadastroEmpresasInativos'
+import { ModalConfirmarStatusCliente } from '@/components/ModalConfirmarStatusCliente'
+import { registrarAuditoriaStatus } from '@/services/statusAuditoriaService'
 import {
   editarClientesEmMassa,
   alterarRegimeClientesEmMassa,
@@ -90,6 +92,7 @@ export default function CadastroClientesInativos() {
   const [empresaExpandidaId, setEmpresaExpandidaId] = useState<number | null>(null)
   const [modalEmpresa, setModalEmpresa] = useState<EmpresaInativa | null>(null)
   const [reativando, setReativando] = useState<number | null>(null)
+  const [clienteParaReativar, setClienteParaReativar] = useState<EmpresaInativa | null>(null)
   const [gerandoRelatorio, setGerandoRelatorio] = useState<boolean>(false)
 
   // Seleção múltipla para ações em massa
@@ -358,19 +361,42 @@ export default function CadastroClientesInativos() {
 
   /**
    * REATIVAR — devolve o cliente ao cadastro principal.
-   * Confirma antes: mover cadastro de volta altera as duas telas e a contagem
-   * da carteira, e um clique errado não tem desfazer automático.
+   * Abre modal de confirmação com campo de motivo opcional e registra a trilha
+   * de auditoria de status na ADECONT.
    */
-  const reativar = async (emp: EmpresaInativa) => {
+  const handleAbrirModalReativar = (emp: EmpresaInativa) => {
+    setClienteParaReativar(emp)
+  }
+
+  const handleConfirmarReativacao = async (motivo: string) => {
+    if (!clienteParaReativar) return
+    const emp = clienteParaReativar
     const nome = emp.razao_social || String(emp.codigo)
-    if (!window.confirm(`Devolver "${nome}" ao Cadastro Analítico de Clientes como Ativa?`)) return
 
     setReativando(emp.codigo)
     setAviso(null)
     try {
-      await reativarCliente(emp.codigo)
+      await reativarCliente(emp.codigo, motivo)
+
+      // Grava auditoria de status com o motivo informado
+      try {
+        await registrarAuditoriaStatus({
+          empresaCodigo: emp.codigo,
+          empresaNome: emp.razao_social,
+          empresaDocumento: emp.numero_documento || emp.documento_limpo,
+          statusAnterior: emp.situacao || 'Inativa',
+          statusNovo: 'Ativa',
+          acao: 'reativar',
+          motivo: motivo || undefined,
+          usuario: 'ADECONT Operador',
+        })
+      } catch (errAuditoria) {
+        console.warn('Falha secundária ao registrar auditoria de reativação:', errAuditoria)
+      }
+
       setAviso(`"${nome}" voltou para o Cadastro Analítico de Clientes.`)
-      setModalEmpresa(null)
+      setModalEmpresa((prev) => (prev && prev.codigo === emp.codigo ? null : prev))
+      setClienteParaReativar(null)
       carregarDados()
     } catch (e: any) {
       setErro(e.message)
@@ -764,7 +790,7 @@ td{border-bottom:1px solid #ddd;padding:3px 5px}
                             type="button"
                             onClick={(e) => {
                               e.stopPropagation()
-                              reativar(emp)
+                              handleAbrirModalReativar(emp)
                             }}
                             disabled={reativando === emp.codigo}
                             title={`Cliente atualmente INATIVO. Clique ou toque para reativar "${emp.razao_social || emp.codigo}" e devolver ao Cadastro Analítico de Clientes.`}
@@ -988,7 +1014,7 @@ td{border-bottom:1px solid #ddd;padding:3px 5px}
               </button>
               <button
                 type="button"
-                onClick={() => reativar(modalEmpresa)}
+                onClick={() => handleAbrirModalReativar(modalEmpresa)}
                 disabled={reativando === modalEmpresa.codigo}
                 className="group inline-flex items-center gap-1.5 rounded-full border border-rose-300 bg-rose-50 px-3 py-1.5 text-[11px] font-bold text-rose-700 hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-800 active:scale-95 transition-all shadow-xs disabled:opacity-50 cursor-pointer select-none"
                 title={`Cliente atualmente INATIVO. Clique para reativar "${modalEmpresa.razao_social || modalEmpresa.codigo}" e devolver ao cadastro ativo.`}
@@ -1017,6 +1043,25 @@ td{border-bottom:1px solid #ddd;padding:3px 5px}
             </div>
           </div>
         </div>
+      )}
+
+      {/* MODAL DE CONFIRMAÇÃO INDIVIDUAL COM CAMPO DE MOTIVO */}
+      {clienteParaReativar && (
+        <ModalConfirmarStatusCliente
+          aberto={Boolean(clienteParaReativar)}
+          acao="reativar"
+          cliente={{
+            codigo: clienteParaReativar.codigo,
+            razao_social: clienteParaReativar.razao_social,
+            cpf_cnpj: clienteParaReativar.numero_documento,
+            numero_documento: clienteParaReativar.numero_documento,
+            situacao: clienteParaReativar.situacao,
+            id: clienteParaReativar.id,
+          }}
+          processando={reativando === clienteParaReativar.codigo}
+          aoConfirmar={handleConfirmarReativacao}
+          aoCancelar={() => setClienteParaReativar(null)}
+        />
       )}
     </div>
   )

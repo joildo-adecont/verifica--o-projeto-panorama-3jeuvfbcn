@@ -37,6 +37,8 @@ import {
   atualizarEmpresa,
 } from '@/services/cadastroEmpresas'
 import { inativarCliente, listarEmpresasInativas } from '@/services/cadastroEmpresasInativos'
+import { ModalConfirmarStatusCliente } from '@/components/ModalConfirmarStatusCliente'
+import { registrarAuditoriaStatus } from '@/services/statusAuditoriaService'
 import {
   editarClientesEmMassa,
   alterarRegimeClientesEmMassa,
@@ -86,9 +88,10 @@ export default function CadastroClientes() {
   const [abaAtiva, setAbaAtiva] = useState<'ativos' | 'arquivados' | 'inativos-link'>('ativos')
   const [totalArquivadosContador, setTotalArquivadosContador] = useState<number>(0)
   const [totalInativosContador, setTotalInativosContador] = useState<number>(0)
-  // Tecla individual Ativo/Inativo por linha
+  // Tecla individual Ativo/Inativo por linha com Modal e Campo de Motivo
   const [inativandoCodigo, setInativandoCodigo] = useState<number | null>(null)
   const [avisoInativacao, setAvisoInativacao] = useState<string | null>(null)
+  const [clienteParaInativar, setClienteParaInativar] = useState<EmpresaRecord | null>(null)
 
   // Seleção e Ações em Massa
   const { toast } = useToast()
@@ -303,26 +306,44 @@ export default function CadastroClientes() {
    * TECLA INDIVIDUAL ATIVO/INATIVO — pedido do CEO: cada cliente da lista tem
    * uma tecla própria; ao inativar, o cliente sai daqui e passa a constar no
    * Cadastro Analítico de Clientes Inativos (de onde pode ser reativado e onde
-   * a busca dele fica facilitada). Confirmação leve antes de mover, porque a
-   * operação muda as duas telas e a contagem da carteira.
+   * a busca dele fica facilitada). Modal de confirmação dedicado com campo de
+   * motivo opcional que alimenta a trilha de auditoria ADECONT.
    */
-  const handleInativar = async (emp: EmpresaRecord) => {
+  const handleAbrirModalInativar = (emp: EmpresaRecord) => {
+    setClienteParaInativar(emp)
+  }
+
+  const handleConfirmarInativacao = async (motivo: string) => {
+    if (!clienteParaInativar) return
+    const emp = clienteParaInativar
     const nome = emp.razao_social || `Cliente #${emp.codigo}`
-    if (
-      !window.confirm(
-        `Inativar "${nome}"?\n\nO cliente sai da listagem de ativos e passa a constar no Cadastro Analítico de Clientes Inativos.`,
-      )
-    )
-      return
 
     setInativandoCodigo(emp.codigo)
     setAvisoInativacao(null)
     try {
-      await inativarCliente(emp.codigo)
+      await inativarCliente(emp.codigo, motivo)
+
+      // Grava na trilha de auditoria de status com o motivo informado
+      try {
+        await registrarAuditoriaStatus({
+          empresaCodigo: emp.codigo,
+          empresaNome: emp.razao_social,
+          empresaDocumento: emp.numero_documento || emp.documento_limpo,
+          statusAnterior: emp.situacao || 'Ativa',
+          statusNovo: 'Inativa',
+          acao: 'inativar',
+          motivo: motivo || undefined,
+          usuario: 'ADECONT Operador',
+        })
+      } catch (errAuditoria) {
+        console.warn('Falha secundária ao registrar auditoria de inativação:', errAuditoria)
+      }
+
       setAvisoInativacao(
         `"${nome}" foi inativado e agora consta no Cadastro Analítico de Clientes Inativos.`,
       )
       setModalEmpresa((prev) => (prev && prev.codigo === emp.codigo ? null : prev))
+      setClienteParaInativar(null)
       await carregarDados()
     } catch (e: any) {
       console.error('Erro ao inativar cliente:', e)
@@ -1202,7 +1223,7 @@ export default function CadastroClientes() {
                                 type="button"
                                 onClick={(e) => {
                                   e.stopPropagation()
-                                  handleInativar(emp)
+                                  handleAbrirModalInativar(emp)
                                 }}
                                 disabled={inativandoCodigo === emp.codigo}
                                 title={`Cliente atualmente ATIVO. Clique ou toque para inativar "${emp.razao_social || emp.codigo}" e transferi-lo para o Cadastro de Clientes Inativos.`}
@@ -1776,7 +1797,7 @@ export default function CadastroClientes() {
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => handleInativar(modalEmpresa)}
+                  onClick={() => handleAbrirModalInativar(modalEmpresa)}
                   disabled={inativandoCodigo === modalEmpresa.codigo}
                   className="group inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-rose-50 hover:border-rose-300 hover:text-rose-700 text-xs font-bold transition-all shadow-xs disabled:opacity-50 cursor-pointer select-none touch-manipulation focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/50"
                   title={`Cliente atualmente ATIVO. Clique ou toque para inativar "${modalEmpresa.razao_social || modalEmpresa.codigo}" e transferir para o Cadastro de Inativos.`}
@@ -1827,6 +1848,25 @@ export default function CadastroClientes() {
           filtroRegime={filtroRegime}
           ordenacao={ordenacao}
           totalBanco={totalItens}
+        />
+      )}
+
+      {/* MODAL DE CONFIRMAÇÃO INDIVIDUAL COM CAMPO DE MOTIVO */}
+      {clienteParaInativar && (
+        <ModalConfirmarStatusCliente
+          aberto={Boolean(clienteParaInativar)}
+          acao="inativar"
+          cliente={{
+            codigo: clienteParaInativar.codigo,
+            razao_social: clienteParaInativar.razao_social,
+            cpf_cnpj: clienteParaInativar.numero_documento,
+            numero_documento: clienteParaInativar.numero_documento,
+            situacao: clienteParaInativar.situacao,
+            id: clienteParaInativar.id,
+          }}
+          processando={inativandoCodigo === clienteParaInativar.codigo}
+          aoConfirmar={handleConfirmarInativacao}
+          aoCancelar={() => setClienteParaInativar(null)}
         />
       )}
 
