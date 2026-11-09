@@ -427,6 +427,28 @@ export function gerarCsvRelatorioContabil(
     }
   }
 
+  // Seções customizadas criadas pelo usuário (respeitando chave mestra e ordenação)
+  const incluirSecoesCustomizadas = opcoes?.customizacao?.incluirSecoesCustomizadas ?? true
+  const secoesCustomizadas = opcoes?.customizacao?.secoesCustomizadas || []
+  if (incluirSecoesCustomizadas && secoesCustomizadas.length > 0) {
+    const secoesAtivas = secoesCustomizadas
+      .filter((s) => s.ativa !== false && (s.titulo.trim() || s.conteudo.trim()))
+      .sort((a, b) => (a.ordem ?? 0) - (b.ordem ?? 0))
+
+    for (const secao of secoesAtivas) {
+      linhasCsv.push('')
+      linhasCsv.push(
+        escaparCampoCsv(`=== ${secao.titulo.trim().toUpperCase() || 'SEÇÃO PERSONALIZADA'} ===`),
+      )
+      if (secao.conteudo.trim()) {
+        const linhasConteudo = secao.conteudo.trim().split(/\r?\n/)
+        for (const linha of linhasConteudo) {
+          linhasCsv.push(escaparCampoCsv(linha))
+        }
+      }
+    }
+  }
+
   // Observações e considerações finais livres personalizadas
   if (opcoes?.customizacao?.observacoesFinais?.trim()) {
     linhasCsv.push('')
@@ -550,6 +572,26 @@ export function exportarExcelRelatorioContabil(
 
     if (incluirNotas && pf.achadosCriticos) {
       dadosAoa.push(['Achados Críticos / Notas:', pf.achadosCriticos])
+    }
+  }
+
+  // Seções customizadas criadas pelo usuário no Excel (.xlsx)
+  const incluirSecoesCustomizadasExcel = opcoes?.customizacao?.incluirSecoesCustomizadas ?? true
+  const secoesCustomizadasExcel = opcoes?.customizacao?.secoesCustomizadas || []
+  if (incluirSecoesCustomizadasExcel && secoesCustomizadasExcel.length > 0) {
+    const secoesAtivas = secoesCustomizadasExcel
+      .filter((s) => s.ativa !== false && (s.titulo.trim() || s.conteudo.trim()))
+      .sort((a, b) => (a.ordem ?? 0) - (b.ordem ?? 0))
+
+    for (const secao of secoesAtivas) {
+      dadosAoa.push([])
+      dadosAoa.push([`=== ${secao.titulo.trim().toUpperCase() || 'SEÇÃO PERSONALIZADA'} ===`])
+      if (secao.conteudo.trim()) {
+        const linhasConteudo = secao.conteudo.trim().split(/\r?\n/)
+        for (const linha of linhasConteudo) {
+          dadosAoa.push([linha])
+        }
+      }
     }
   }
 

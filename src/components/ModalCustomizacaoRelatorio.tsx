@@ -28,9 +28,16 @@ import {
   Layers,
   Save,
   Check,
+  Plus,
+  Trash2,
+  ArrowUp,
+  ArrowDown,
+  Edit3,
+  BookmarkPlus,
 } from 'lucide-react'
 import {
   type ConfiguracaoRelatorioCustomizado,
+  type SecaoCustomizada,
   TITULO_PADRAO_RELATORIO,
 } from '@/types/customizacaoRelatorio'
 import { criarConfiguracaoPadrao } from '@/services/customizacaoRelatorio'
@@ -75,12 +82,22 @@ export const ModalCustomizacaoRelatorio: React.FC<ModalCustomizacaoRelatorioProp
   const [salvando, setSalvando] = useState(false)
   const [sucessoSalvo, setSucessoSalvo] = useState(false)
 
+  // Estado para nova seção em edição / criação rápida
+  const [editandoSecaoId, setEditandoSecaoId] = useState<string | null>(null)
+  const [novoTitulo, setNovoTitulo] = useState('')
+  const [novoConteudo, setNovoConteudo] = useState('')
+  const [mostrarFormNovaSecao, setMostrarFormNovaSecao] = useState(false)
+
   // Sincroniza estado quando modal abre ou configuração externa muda
   useEffect(() => {
     if (aberto) {
       const fonte = configInicial || configuracaoAtual || criarConfiguracaoPadrao()
       setConfig(JSON.parse(JSON.stringify(fonte)))
       setSucessoSalvo(false)
+      setEditandoSecaoId(null)
+      setMostrarFormNovaSecao(false)
+      setNovoTitulo('')
+      setNovoConteudo('')
     }
   }, [aberto, configuracaoAtual, configInicial])
 
@@ -96,6 +113,109 @@ export const ModalCustomizacaoRelatorio: React.FC<ModalCustomizacaoRelatorioProp
 
   const handleRestaurarPadrao = () => {
     setConfig(criarConfiguracaoPadrao())
+    setMostrarFormNovaSecao(false)
+    setEditandoSecaoId(null)
+  }
+
+  // --- Gerenciador de Seções Customizadas ---
+  const handleAdicionarOuAtualizarSecao = () => {
+    const tituloLimpo = novoTitulo.trim()
+    const conteudoLimpo = novoConteudo.trim()
+
+    if (!tituloLimpo && !conteudoLimpo) {
+      return
+    }
+
+    setConfig((anterior) => {
+      const listaAtual = [...(anterior.secoesCustomizadas || [])]
+
+      if (editandoSecaoId) {
+        // Atualiza existente
+        const atualizada = listaAtual.map((s) => {
+          if (s.id === editandoSecaoId) {
+            return {
+              ...s,
+              titulo: tituloLimpo || 'Seção Sem Título',
+              conteudo: conteudoLimpo,
+            }
+          }
+          return s
+        })
+        return { ...anterior, secoesCustomizadas: atualizada, incluirSecoesCustomizadas: true }
+      }
+
+      // Adiciona nova
+      const nova: SecaoCustomizada = {
+        id: `secao-custom-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        titulo: tituloLimpo || `Nova Seção ${listaAtual.length + 1}`,
+        conteudo: conteudoLimpo,
+        ordem: listaAtual.length,
+        ativa: true,
+      }
+
+      return {
+        ...anterior,
+        secoesCustomizadas: [...listaAtual, nova],
+        incluirSecoesCustomizadas: true,
+      }
+    })
+
+    // Limpa formulário
+    setNovoTitulo('')
+    setNovoConteudo('')
+    setEditandoSecaoId(null)
+    setMostrarFormNovaSecao(false)
+  }
+
+  const handleIniciarEdicao = (secao: SecaoCustomizada) => {
+    setEditandoSecaoId(secao.id)
+    setNovoTitulo(secao.titulo)
+    setNovoConteudo(secao.conteudo)
+    setMostrarFormNovaSecao(true)
+  }
+
+  const handleRemoverSecao = (id: string) => {
+    setConfig((anterior) => {
+      const filtrada = (anterior.secoesCustomizadas || []).filter((s) => s.id !== id)
+      // Reordena índices
+      const reordenada = filtrada.map((s, idx) => ({ ...s, ordem: idx }))
+      return { ...anterior, secoesCustomizadas: reordenada }
+    })
+    if (editandoSecaoId === id) {
+      setEditandoSecaoId(null)
+      setMostrarFormNovaSecao(false)
+      setNovoTitulo('')
+      setNovoConteudo('')
+    }
+  }
+
+  const handleMoverSecao = (index: number, direcao: 'cima' | 'baixo') => {
+    setConfig((anterior) => {
+      const lista = [...(anterior.secoesCustomizadas || [])]
+      const alvoIndex = direcao === 'cima' ? index - 1 : index + 1
+      if (alvoIndex < 0 || alvoIndex >= lista.length) return anterior
+
+      // Troca posições
+      const temp = lista[index]
+      lista[index] = lista[alvoIndex]
+      lista[alvoIndex] = temp
+
+      // Atualiza índices de ordem
+      const reordenada = lista.map((s, idx) => ({ ...s, ordem: idx }))
+      return { ...anterior, secoesCustomizadas: reordenada }
+    })
+  }
+
+  const handleAlternarSecaoCustomizada = (id: string) => {
+    setConfig((anterior) => {
+      const lista = (anterior.secoesCustomizadas || []).map((s) => {
+        if (s.id === id) {
+          return { ...s, ativa: s.ativa === false }
+        }
+        return s
+      })
+      return { ...anterior, secoesCustomizadas: lista }
+    })
   }
 
   const salvarEfetivo = async (novaCfg: ConfiguracaoRelatorioCustomizado) => {
@@ -540,7 +660,260 @@ export const ModalCustomizacaoRelatorio: React.FC<ModalCustomizacaoRelatorioProp
             </div>
           </div>
 
-          {/* BLOCO 4: Observações e Considerações Finais Livres */}
+          {/* BLOCO 4: Seções Customizadas Próprias do Usuário */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Label className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                  <BookmarkPlus className="w-3.5 h-3.5 text-primary" />
+                  Seções Customizadas Próprias (
+                  {(config.secoesCustomizadas || []).filter((s) => s.ativa !== false).length}{' '}
+                  ativas)
+                </Label>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                    Incluir nos relatórios:
+                  </span>
+                  <Switch
+                    checked={config.incluirSecoesCustomizadas ?? true}
+                    onCheckedChange={(v) =>
+                      setConfig((c) => ({ ...c, incluirSecoesCustomizadas: v }))
+                    }
+                  />
+                </div>
+
+                {!mostrarFormNovaSecao && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setEditandoSecaoId(null)
+                      setNovoTitulo('')
+                      setNovoConteudo('')
+                      setMostrarFormNovaSecao(true)
+                    }}
+                    className="h-7 text-xs px-2.5 gap-1 border-primary/40 text-primary hover:bg-primary/10"
+                  >
+                    <Plus className="w-3 h-3" />
+                    <span>Adicionar Seção</span>
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            {/* Formulário de Adicionar / Editar Seção */}
+            {mostrarFormNovaSecao && (
+              <div className="p-3.5 rounded-xl border border-primary/30 bg-primary/5 dark:bg-primary/10 space-y-3 animate-in fade-in-50">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+                    {editandoSecaoId ? (
+                      <>
+                        <Edit3 className="w-3.5 h-3.5 text-primary" />
+                        Editar Seção Customizada
+                      </>
+                    ) : (
+                      <>
+                        <BookmarkPlus className="w-3.5 h-3.5 text-primary" />
+                        Criar Nova Seção Customizada
+                      </>
+                    )}
+                  </span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setMostrarFormNovaSecao(false)
+                      setEditandoSecaoId(null)
+                      setNovoTitulo('')
+                      setNovoConteudo('')
+                    }}
+                    className="h-6 px-2 text-[11px] text-slate-500 hover:text-slate-900"
+                  >
+                    Cancelar
+                  </Button>
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-[11px] font-semibold text-slate-700 dark:text-slate-300">
+                    Título da Seção
+                  </Label>
+                  <Input
+                    value={novoTitulo}
+                    onChange={(e) => setNovoTitulo(e.target.value)}
+                    placeholder="Ex.: Análise Setorial & Competitiva / Garantias Vinculadas / Parecer ESG"
+                    className="text-xs h-8 bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700"
+                    autoFocus
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-[11px] font-semibold text-slate-700 dark:text-slate-300">
+                    Conteúdo / Texto Livre (multi-linha)
+                  </Label>
+                  <Textarea
+                    value={novoConteudo}
+                    onChange={(e) => setNovoConteudo(e.target.value)}
+                    placeholder="Escreva livremente as conclusões, métricas adicionais, pareceres do comitê de crédito ou notas específicas..."
+                    rows={4}
+                    className="text-xs bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 resize-none leading-relaxed"
+                  />
+                </div>
+
+                <div className="flex justify-end gap-2 pt-1">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setMostrarFormNovaSecao(false)
+                      setEditandoSecaoId(null)
+                      setNovoTitulo('')
+                      setNovoConteudo('')
+                    }}
+                    className="h-7 text-xs"
+                  >
+                    Descartar
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    disabled={!novoTitulo.trim() && !novoConteudo.trim()}
+                    onClick={handleAdicionarOuAtualizarSecao}
+                    className="h-7 text-xs gap-1 bg-primary text-primary-foreground font-semibold"
+                  >
+                    <Check className="w-3.5 h-3.5" />
+                    <span>{editandoSecaoId ? 'Atualizar Seção' : 'Salvar Seção'}</span>
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Lista de Seções Customizadas Cadastradas */}
+            {(!config.secoesCustomizadas || config.secoesCustomizadas.length === 0) &&
+            !mostrarFormNovaSecao ? (
+              <div className="text-center py-5 px-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-dashed border-slate-300 dark:border-slate-700">
+                <BookmarkPlus className="w-7 h-7 mx-auto text-slate-400 mb-1.5 opacity-60" />
+                <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  Nenhuma seção customizada adicionada ainda
+                </p>
+                <p className="text-[11px] text-slate-500 max-w-sm mx-auto mt-0.5">
+                  Adicione tópicos livres como Análise de Garantias, Notas de ESG, Comparativo de
+                  Filiais ou Parecer de Comitê para figurarem no relatório.
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setMostrarFormNovaSecao(true)}
+                  className="mt-3 h-7 text-xs gap-1 border-primary/40 text-primary hover:bg-primary/10"
+                >
+                  <Plus className="w-3 h-3" />
+                  <span>Criar Primeira Seção Customizada</span>
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {(config.secoesCustomizadas || []).map((secao, idx) => {
+                  const ativa = secao.ativa !== false
+                  const total = (config.secoesCustomizadas || []).length
+                  return (
+                    <div
+                      key={secao.id}
+                      className={`p-3 rounded-xl border transition-all flex flex-col gap-2 ${
+                        ativa
+                          ? 'bg-slate-50 dark:bg-slate-800/70 border-slate-300 dark:border-slate-700'
+                          : 'bg-slate-50/50 dark:bg-slate-800/30 border-slate-200 dark:border-slate-800 opacity-60'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <Badge
+                            variant="outline"
+                            className="text-[10px] py-0 px-1.5 font-mono shrink-0 bg-white dark:bg-slate-900"
+                          >
+                            #{idx + 1}
+                          </Badge>
+                          <span className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate">
+                            {secao.titulo || 'Seção Sem Título'}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-1 shrink-0">
+                          {/* Reordenação */}
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            disabled={idx === 0}
+                            onClick={() => handleMoverSecao(idx, 'cima')}
+                            className="h-6 w-6 text-slate-500 hover:text-slate-900 dark:hover:text-white"
+                            title="Mover para cima"
+                          >
+                            <ArrowUp className="w-3.5 h-3.5" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            disabled={idx === total - 1}
+                            onClick={() => handleMoverSecao(idx, 'baixo')}
+                            className="h-6 w-6 text-slate-500 hover:text-slate-900 dark:hover:text-white"
+                            title="Mover para baixo"
+                          >
+                            <ArrowDown className="w-3.5 h-3.5" />
+                          </Button>
+
+                          {/* Editar */}
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleIniciarEdicao(secao)}
+                            className="h-6 w-6 text-slate-500 hover:text-slate-900 dark:hover:text-white"
+                            title="Editar título e conteúdo"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" />
+                          </Button>
+
+                          {/* Excluir */}
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleRemoverSecao(secao.id)}
+                            className="h-6 w-6 text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/40"
+                            title="Remover seção"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </Button>
+
+                          {/* Toggle ativação */}
+                          <Switch
+                            checked={ativa}
+                            onCheckedChange={() => handleAlternarSecaoCustomizada(secao.id)}
+                            className="ml-1"
+                          />
+                        </div>
+                      </div>
+
+                      {secao.conteudo && (
+                        <p className="text-[11px] text-slate-600 dark:text-slate-300 line-clamp-2 bg-white/70 dark:bg-slate-900/60 p-2 rounded-lg border border-slate-200/60 dark:border-slate-700/60">
+                          {secao.conteudo}
+                        </p>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* BLOCO 5: Observações e Considerações Finais Livres */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-1.5">

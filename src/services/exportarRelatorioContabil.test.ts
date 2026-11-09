@@ -638,4 +638,97 @@ describe('exportarRelatorioContabil - Funções de Formatação e Geração de A
     // Notas foram mantidas, então achados críticos devem constar
     expect(csv).toContain('Nota Crítica Exibida com Sucesso')
   })
+
+  it('exporta seções customizadas no CSV respeitando ordem e toggle de inclusão', () => {
+    const indicadoresTesteLocal: ItemIndicador[] = [
+      {
+        id: 'liq_corrente',
+        nome: 'Liquidez Corrente',
+        valor: 1.85,
+        unidade: 'fator',
+        referencia: '> 1,20x',
+        formula: 'AC / PC',
+        semaforo: 'saudavel',
+        explicacao: 'Excelente liquidez',
+      },
+    ]
+    const linhas = prepararLinhasExportacao(indicadoresTesteLocal, balancoMockGlobal)
+
+    // Cenário 1: com seções customizadas habilitadas
+    const csvComSecoes = gerarCsvRelatorioContabil(linhas, {
+      clienteNome: 'FMF Participações',
+      customizacao: {
+        tituloPersonalizado: 'Relatório Completo',
+        incluirSecoesCustomizadas: true,
+        secoesCustomizadas: [
+          {
+            id: 'sec-1',
+            titulo: 'Análise de Garantias e Imóveis',
+            conteudo: 'Foram vistoriados 3 galpões logísticos livres de ônus.',
+            ordem: 0,
+            ativa: true,
+          },
+          {
+            id: 'sec-2',
+            titulo: 'Comitê de Crédito e Risco',
+            conteudo: 'Aprovado limite de R$ 5.000.000,00 para capital de giro.',
+            ordem: 1,
+            ativa: true,
+          },
+          {
+            id: 'sec-inativa',
+            titulo: 'Seção Oculta',
+            conteudo: 'Este texto não deve aparecer no CSV.',
+            ordem: 2,
+            ativa: false,
+          },
+        ],
+        secoes: {
+          indicesClassicos: true,
+          modelosAvancados: true,
+          parecerTecnico: true,
+          achadosCriticos: true,
+        },
+        incluirDadosEmpresa: true,
+        incluirQrCode: true,
+      },
+    })
+
+    expect(csvComSecoes).toContain('=== ANÁLISE DE GARANTIAS E IMÓVEIS ===')
+    expect(csvComSecoes).toContain('Foram vistoriados 3 galpões logísticos livres de ônus.')
+    expect(csvComSecoes).toContain('=== COMITÊ DE CRÉDITO E RISCO ===')
+    expect(csvComSecoes).toContain('Aprovado limite de R$ 5.000.000,00 para capital de giro.')
+    // Seção inativa não aparece
+    expect(csvComSecoes).not.toContain('=== SEÇÃO OCULTA ===')
+    expect(csvComSecoes).not.toContain('Este texto não deve aparecer no CSV.')
+
+    // Cenário 2: com toggle mestre incluirSecoesCustomizadas = false
+    const csvSemSecoes = gerarCsvRelatorioContabil(linhas, {
+      clienteNome: 'FMF Participações',
+      customizacao: {
+        tituloPersonalizado: 'Relatório Sem Customizadas',
+        incluirSecoesCustomizadas: false,
+        secoesCustomizadas: [
+          {
+            id: 'sec-1',
+            titulo: 'Análise de Garantias e Imóveis',
+            conteudo: 'Foram vistoriados 3 galpões logísticos livres de ônus.',
+            ordem: 0,
+            ativa: true,
+          },
+        ],
+        secoes: {
+          indicesClassicos: true,
+          modelosAvancados: true,
+          parecerTecnico: true,
+          achadosCriticos: true,
+        },
+        incluirDadosEmpresa: true,
+        incluirQrCode: true,
+      },
+    })
+
+    expect(csvSemSecoes).not.toContain('=== ANÁLISE DE GARANTIAS E IMÓVEIS ===')
+    expect(csvSemSecoes).not.toContain('Foram vistoriados 3 galpões logísticos livres de ônus.')
+  })
 })

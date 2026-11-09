@@ -981,12 +981,32 @@ export const RelatorioAnaliseEmpresarialA4: React.FC<RelatorioAnaliseEmpresarial
           </div>
         )}
 
+        {/* Seções Customizadas Adicionadas pelo Usuário */}
+        {(customizacao?.incluirSecoesCustomizadas ?? true) &&
+          (customizacao?.secoesCustomizadas || [])
+            .filter((s) => s.ativa !== false && (s.titulo.trim() || s.conteudo.trim()))
+            .sort((a, b) => (a.ordem ?? 0) - (b.ordem ?? 0))
+            .map((secao, idx) => (
+              <div
+                key={secao.id || `secao-custom-${idx}`}
+                className="border-2 border-indigo-900/40 rounded p-3 bg-indigo-50/30 dark:bg-slate-800/40"
+              >
+                <h2 className="text-xs font-black uppercase text-indigo-950 dark:text-indigo-200 border-b border-indigo-200 dark:border-indigo-800 pb-1 mb-1.5 flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-indigo-700 dark:text-indigo-400" />
+                  {secao.titulo.trim() || `Seção Customizada ${idx + 1}`}
+                </h2>
+                <div className="text-[11px] text-slate-800 dark:text-slate-200 leading-relaxed whitespace-pre-wrap">
+                  {secao.conteudo}
+                </div>
+              </div>
+            ))}
+
         {/* Seção de Observações e Considerações Finais Livres */}
         {observacoesFinais && (
           <div className="border-2 border-amber-800/40 rounded p-3 bg-amber-50/50">
             <h2 className="text-xs font-black uppercase text-amber-950 border-b border-amber-300 pb-1 mb-1.5 flex items-center gap-1.5">
               <CheckCircle2 className="w-3.5 h-3.5 text-amber-700" />
-              7. Considerações & Observações Finais Personalizadas
+              Considerações & Observações Finais Personalizadas
             </h2>
             <p className="text-[11px] text-slate-800 leading-relaxed whitespace-pre-wrap">
               {observacoesFinais}

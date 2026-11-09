@@ -22,6 +22,19 @@ export interface SecoesCustomizacaoRelatorio {
   checklistDocumental?: boolean
 }
 
+export interface SecaoCustomizada {
+  /** Identificador único da seção customizada */
+  id: string
+  /** Título da seção (ex: "Análise Setorial e Competitiva", "Garantias Oferecidas", "Parecer de Conformidade ESG") */
+  titulo: string
+  /** Conteúdo textual da seção (livre, multi-linha) */
+  conteudo: string
+  /** Ordem de exibição no relatório (iniciando em 0) */
+  ordem?: number
+  /** Se esta seção individual está ativa (padrão true) */
+  ativa?: boolean
+}
+
 export interface ConfiguracaoRelatorioCustomizado {
   /** Título personalizado do relatório. Se vazio, utiliza o padrão do sistema */
   tituloPersonalizado?: string
@@ -31,6 +44,10 @@ export interface ConfiguracaoRelatorioCustomizado {
   observacoesFinais?: string
   /** Seleção de seções ativas na exportação */
   secoes: SecoesCustomizacaoRelatorio
+  /** Seções customizadas criadas pelo usuário */
+  secoesCustomizadas?: SecaoCustomizada[]
+  /** Chave mestra para incluir ou não as seções customizadas no relatório */
+  incluirSecoesCustomizadas?: boolean
   /** Incluir bloco de identificação cadastral completa da empresa no relatório A4 */
   incluirDadosEmpresa: boolean
   /** Incluir QRCode oficial de autenticidade / verificação no relatório A4 */
@@ -57,6 +74,8 @@ export const CONFIGURACAO_RELATORIO_PADRAO: ConfiguracaoRelatorioCustomizado = {
     agentesEspecialistas: true,
     checklistDocumental: true,
   },
+  secoesCustomizadas: [],
+  incluirSecoesCustomizadas: true,
   incluirDadosEmpresa: true,
   incluirQrCode: true,
   incluirRodapeOficial: true,

@@ -109,4 +109,34 @@ describe('customizacaoRelatorio - Modelos e Persistência de Preferências', () 
     const carregadoOutro = carregarConfiguracaoLocalStorage('98765432000111')
     expect(carregadoOutro.tituloPersonalizado).toBe('Auditoria Específica 12345678000190')
   })
+
+  it('persiste e mescla seções customizadas mantendo ordenação e campos', () => {
+    const parcial: Partial<ConfiguracaoRelatorioCustomizado> = {
+      tituloPersonalizado: 'Relatório com Seções Próprias',
+      incluirSecoesCustomizadas: true,
+      secoesCustomizadas: [
+        {
+          id: 'sec-1',
+          titulo: 'Análise de Riscos ESG',
+          conteudo: 'Empresa com certificação ISO 14001 e baixo passivo ambiental.',
+          ordem: 0,
+          ativa: true,
+        },
+        {
+          id: 'sec-2',
+          titulo: 'Garantias Hipotecárias',
+          conteudo: 'Imóveis avaliados em R$ 12.000.000,00 como garantia de alienação fiduciária.',
+          ordem: 1,
+          ativa: true,
+        },
+      ],
+    }
+
+    const resultado = mesclarComPadrao(parcial)
+    expect(resultado.incluirSecoesCustomizadas).toBe(true)
+    expect(resultado.secoesCustomizadas).toHaveLength(2)
+    expect(resultado.secoesCustomizadas?.[0].titulo).toBe('Análise de Riscos ESG')
+    expect(resultado.secoesCustomizadas?.[1].titulo).toBe('Garantias Hipotecárias')
+    expect(resultado.secoesCustomizadas?.[1].ordem).toBe(1)
+  })
 })
