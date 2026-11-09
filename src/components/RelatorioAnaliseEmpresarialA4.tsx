@@ -27,6 +27,10 @@ import {
   Layers,
 } from 'lucide-react'
 
+import type { ConfiguracaoRelatorioCustomizado } from '@/types/customizacaoRelatorio'
+import { renderQrCodeSvg } from '@/lib/qrCode'
+import { CheckCircle2 } from 'lucide-react'
+
 interface RelatorioAnaliseEmpresarialA4Props {
   dossie: SinteseAnaliseEmpresarial
   indicadoresModelo?: ItemIndicador[]
@@ -37,6 +41,7 @@ interface RelatorioAnaliseEmpresarialA4Props {
   balanco3Anos?: AnaliseBalanco3Exercicios
   regimeTributario?: string
   relatorioAvancado?: RelatorioIndicesAvancados | null
+  customizacao?: ConfiguracaoRelatorioCustomizado | null
   onClose: () => void
 }
 
@@ -50,9 +55,26 @@ export const RelatorioAnaliseEmpresarialA4: React.FC<RelatorioAnaliseEmpresarial
   balanco3Anos,
   regimeTributario,
   relatorioAvancado,
+  customizacao,
   onClose,
 }) => {
   const { cliente, indicadores, parecerEspecialistas, dataAnalise } = dossie
+
+  // Flags de customização com fallbacks seguros (tudo ativo por padrão)
+  const incluirSintese = customizacao?.secoes?.sinteseExecutiva ?? true
+  const incluirBalanco3Anos = customizacao?.secoes?.balanco3Anos ?? true
+  const incluirClassicos = customizacao?.secoes?.indicesClassicos ?? true
+  const incluirAvancados = customizacao?.secoes?.modelosAvancados ?? true
+  const incluirParecer = customizacao?.secoes?.parecerTecnico ?? true
+  const incluirNotas = customizacao?.secoes?.achadosCriticos ?? true
+  const incluirAgentes = customizacao?.secoes?.agentesEspecialistas ?? true
+  const incluirChecklist = customizacao?.secoes?.checklistDocumental ?? true
+  const incluirDadosEmpresa = customizacao?.incluirDadosEmpresa ?? true
+  const incluirQrCode = customizacao?.incluirQrCode ?? true
+  const tituloRelatorio =
+    customizacao?.tituloPersonalizado?.trim() || 'Parecer Técnico & Dossiê Empresarial Integrado'
+  const subtituloRelatorio = customizacao?.subtituloPersonalizado?.trim()
+  const observacoesFinais = customizacao?.observacoesFinais?.trim()
 
   // Obter ou calcular relatório avançado a partir do balanço mais recente
   const avancadoCalculado: RelatorioIndicesAvancados | null = React.useMemo(() => {
@@ -119,160 +141,200 @@ export const RelatorioAnaliseEmpresarialA4: React.FC<RelatorioAnaliseEmpresarial
                 Portal Panorama RT · Módulo de Análises Empresariais
               </p>
               <h1 className="text-base font-black text-slate-950 uppercase tracking-tight">
-                Parecer Técnico & Dossiê Empresarial Integrado
+                {tituloRelatorio}
               </h1>
+              {subtituloRelatorio ? (
+                <p className="text-[11px] text-amber-900 font-bold tracking-tight">
+                  {subtituloRelatorio}
+                </p>
+              ) : null}
             </div>
           </div>
-          <div className="text-right text-[11px] text-slate-600 leading-tight">
-            <p className="font-bold text-slate-900">Emissão: {dataAnalise}</p>
-            <p>Assessoria Contábil e Administrativa</p>
-            <p className="text-[10px] text-amber-800 font-medium">Metodologia Oficial ADECONT</p>
-          </div>
-        </div>
-
-        {/* Identificação do Cliente */}
-        <div className="bg-slate-50 border border-slate-300 rounded p-3">
-          <div className="grid grid-cols-3 gap-2">
-            <div>
-              <p className="text-[10px] font-bold text-slate-500 uppercase">Razão Social</p>
-              <p className="text-xs font-black text-slate-900">
-                {cliente.razao_social || cliente.nome}
-              </p>
-            </div>
-            <div>
-              <p className="text-[10px] font-bold text-slate-500 uppercase">CNPJ / CPF</p>
-              <p className="text-xs font-mono font-bold text-slate-800">
-                {cliente.documento_limpo || cliente.numero_documento}
-              </p>
-            </div>
-            <div>
-              <p className="text-[10px] font-bold text-slate-500 uppercase">Regime Tributário</p>
-              <p className="text-xs font-semibold text-slate-800">
-                {regimeTributario ||
-                  cliente.enquadramento_tributario ||
-                  cliente.regime_tributario ||
-                  'Não Definido'}
-              </p>{' '}
-            </div>
-            <div>
-              <p className="text-[10px] font-bold text-slate-500 uppercase">CNAE Principal</p>
-              <p className="text-xs text-slate-800">
-                {cliente.cnae || 'N/D'} - {cliente.ramo_atividade || 'Ramo não especificado'}
-              </p>
-            </div>
-            <div>
-              <p className="text-[10px] font-bold text-slate-500 uppercase">Localização</p>
-              <p className="text-xs text-slate-800">
-                {cliente.municipio || 'N/D'} - {cliente.uf || 'N/D'}
-              </p>
-            </div>
-            <div>
-              <p className="text-[10px] font-bold text-slate-500 uppercase">Quadro Funcional</p>
-              <p className="text-xs text-slate-800">
-                {cliente.num_funcionarios || 0} colaborador(es) · Folha:{' '}
-                {brl(cliente.folha_salarial_mensal)}
-              </p>
+          <div className="flex items-center gap-3">
+            {incluirQrCode ? (
+              <div
+                className="w-14 h-14 bg-white p-1 rounded border border-slate-300 shrink-0 flex items-center justify-center"
+                title="QRCode de Autenticidade e Rastreabilidade ADECONT"
+                dangerouslySetInnerHTML={{
+                  __html: renderQrCodeSvg(
+                    `ADECONT|DOSSIE|${cliente.documento_limpo || cliente.numero_documento || 'DOC'}|${dataAnalise}`,
+                    52,
+                  ),
+                }}
+              />
+            ) : null}
+            <div className="text-right text-[11px] text-slate-600 leading-tight">
+              <p className="font-bold text-slate-900">Emissão: {dataAnalise}</p>
+              <p>Assessoria Contábil e Administrativa</p>
+              <p className="text-[10px] text-amber-800 font-medium">Metodologia Oficial ADECONT</p>
             </div>
           </div>
         </div>
 
-        {/* Quadro de Síntese Financeira Executiva */}
-        <div className="border border-slate-300 rounded p-2.5 bg-white">
-          <p className="text-[10px] font-black uppercase text-slate-600 tracking-wider mb-1.5">
-            Síntese Financeira & Patrimonial Consolidada
-          </p>
-          <div className="grid grid-cols-4 gap-2 text-center divide-x divide-slate-200">
-            <div className="p-1">
-              <span className="text-[9px] uppercase font-bold text-slate-500 block">
-                Receita Anualizada
-              </span>
-              <span className="text-xs font-mono font-black text-slate-900 block mt-0.5">
-                {brl(indicadores.receitaAnualizada)}
-              </span>
-              <span className="text-[8px] text-slate-400">Projeção anual de faturamento</span>
-            </div>
-            <div className="p-1">
-              <span className="text-[9px] uppercase font-bold text-slate-500 block">
-                Último Mês Faturado
-              </span>
-              <span className="text-xs font-mono font-black text-emerald-800 block mt-0.5">
-                {brl(indicadores.receitaUltimoMes)}
-              </span>
-              <span className="text-[8px] text-slate-400">Ref. contábil mais recente</span>
-            </div>
-            <div className="p-1">
-              <span className="text-[9px] uppercase font-bold text-slate-500 block">
-                Crescimento Médio
-              </span>
-              <span
-                className={`text-xs font-mono font-black block mt-0.5 ${indicadores.crescimentoMedioReceitaPct >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}
-              >
-                {indicadores.crescimentoMedioReceitaPct >= 0 ? '+' : ''}
-                {indicadores.crescimentoMedioReceitaPct.toFixed(1)}%
-              </span>
-              <span className="text-[8px] text-slate-400">Tendência de faturamento</span>
-            </div>
-            <div className="p-1">
-              <span className="text-[9px] uppercase font-bold text-slate-500 block">
-                Patrimônio Líquido
-              </span>
-              <span className="text-xs font-mono font-black text-blue-900 block mt-0.5">
-                {brl(indicadores.patrimonioLiquidoAtual)}
-              </span>
-              <span className="text-[8px] text-slate-400">Base patrimonial</span>
-            </div>
-          </div>
-        </div>
-
-        {/* SEÇÃO 1: PARECER TÉCNICO OFICIAL & RECOMENDAÇÃO DE CRÉDITO */}
-        {parecerFinal && (
-          <div className="border border-slate-300 rounded p-3 bg-slate-50/50">
-            <div className="flex justify-between items-center mb-2 border-b border-slate-200 pb-1.5">
-              <h2 className="text-xs font-black uppercase text-slate-900 flex items-center gap-1.5">
-                <ShieldCheck className="w-3.5 h-3.5 text-primary" />
-                1. Parecer Técnico Oficial & Recomendação de Crédito
-              </h2>
-              <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-slate-200 text-slate-800">
-                Opinião: {parecerFinal.nivelOpiniao}
-              </span>
-            </div>
-            <div className="space-y-2 text-[11px]">
+        {/* Identificação do Cliente (condicionado a incluirDadosEmpresa) */}
+        {incluirDadosEmpresa && (
+          <div className="bg-slate-50 border border-slate-300 rounded p-3">
+            <div className="grid grid-cols-3 gap-2">
               <div>
-                <strong className="text-slate-900">Conclusão Técnica: </strong>
-                <span className="text-slate-700 leading-relaxed">{parecerFinal.conclusao}</span>
+                <p className="text-[10px] font-bold text-slate-500 uppercase">Razão Social</p>
+                <p className="text-xs font-black text-slate-900">
+                  {cliente.razao_social || cliente.nome}
+                </p>
               </div>
-              <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-200">
-                <div>
-                  <strong className="text-emerald-800">Pontos Fortes: </strong>
-                  <span className="text-slate-700">{parecerFinal.pontosFortes}</span>
-                </div>
-                <div>
-                  <strong className="text-amber-800">Pontos de Atenção: </strong>
-                  <span className="text-slate-700">{parecerFinal.pontosAtencao}</span>
-                </div>
+              <div>
+                <p className="text-[10px] font-bold text-slate-500 uppercase">CNPJ / CPF</p>
+                <p className="text-xs font-mono font-bold text-slate-800">
+                  {cliente.documento_limpo || cliente.numero_documento}
+                </p>
               </div>
-              <div className="flex justify-between items-center pt-1 border-t border-slate-200 text-[10px] text-slate-600">
-                <span>
-                  Recomendação de Crédito:{' '}
-                  <strong className="text-slate-900">{parecerFinal.recomendacaoCredito}</strong>
-                </span>
-                <span>
-                  Responsável:{' '}
-                  <strong className="text-slate-900">{parecerFinal.responsavelTecnico}</strong>
-                </span>
+              <div>
+                <p className="text-[10px] font-bold text-slate-500 uppercase">Regime Tributário</p>
+                <p className="text-xs font-semibold text-slate-800">
+                  {regimeTributario ||
+                    cliente.enquadramento_tributario ||
+                    cliente.regime_tributario ||
+                    'Não Definido'}
+                </p>{' '}
               </div>
-              {parecerFinal.achadosCriticos && (
-                <div className="pt-1.5 border-t border-slate-200 text-[10px]">
-                  <strong className="text-slate-900">Achados Críticos e Notas do Cliente: </strong>
-                  <span className="text-slate-700 italic">{parecerFinal.achadosCriticos}</span>
-                </div>
-              )}
+              <div>
+                <p className="text-[10px] font-bold text-slate-500 uppercase">CNAE Principal</p>
+                <p className="text-xs text-slate-800">
+                  {cliente.cnae || 'N/D'} - {cliente.ramo_atividade || 'Ramo não especificado'}
+                </p>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-slate-500 uppercase">Localização</p>
+                <p className="text-xs text-slate-800">
+                  {cliente.municipio || 'N/D'} - {cliente.uf || 'N/D'}
+                </p>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-slate-500 uppercase">Quadro Funcional</p>
+                <p className="text-xs text-slate-800">
+                  {cliente.num_funcionarios || 0} colaborador(es) · Folha:{' '}
+                  {brl(cliente.folha_salarial_mensal)}
+                </p>
+              </div>
             </div>
           </div>
         )}
 
+        {/* Quadro de Síntese Financeira Executiva */}
+        {incluirSintese && (
+          <div className="border border-slate-300 rounded p-2.5 bg-white">
+            <p className="text-[10px] font-black uppercase text-slate-600 tracking-wider mb-1.5">
+              Síntese Financeira & Patrimonial Consolidada
+            </p>
+            <div className="grid grid-cols-4 gap-2 text-center divide-x divide-slate-200">
+              <div className="p-1">
+                <span className="text-[9px] uppercase font-bold text-slate-500 block">
+                  Receita Anualizada
+                </span>
+                <span className="text-xs font-mono font-black text-slate-900 block mt-0.5">
+                  {brl(indicadores.receitaAnualizada)}
+                </span>
+                <span className="text-[8px] text-slate-400">Projeção anual de faturamento</span>
+              </div>
+              <div className="p-1">
+                <span className="text-[9px] uppercase font-bold text-slate-500 block">
+                  Último Mês Faturado
+                </span>
+                <span className="text-xs font-mono font-black text-emerald-800 block mt-0.5">
+                  {brl(indicadores.receitaUltimoMes)}
+                </span>
+                <span className="text-[8px] text-slate-400">Ref. contábil mais recente</span>
+              </div>
+              <div className="p-1">
+                <span className="text-[9px] uppercase font-bold text-slate-500 block">
+                  Crescimento Médio
+                </span>
+                <span
+                  className={`text-xs font-mono font-black block mt-0.5 ${indicadores.crescimentoMedioReceitaPct >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}
+                >
+                  {indicadores.crescimentoMedioReceitaPct >= 0 ? '+' : ''}
+                  {indicadores.crescimentoMedioReceitaPct.toFixed(1)}%
+                </span>
+                <span className="text-[8px] text-slate-400">Tendência de faturamento</span>
+              </div>
+              <div className="p-1">
+                <span className="text-[9px] uppercase font-bold text-slate-500 block">
+                  Patrimônio Líquido
+                </span>
+                <span className="text-xs font-mono font-black text-blue-900 block mt-0.5">
+                  {brl(indicadores.patrimonioLiquidoAtual)}
+                </span>
+                <span className="text-[8px] text-slate-400">Base patrimonial</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* SEÇÃO 1: PARECER TÉCNICO OFICIAL & RECOMENDAÇÃO DE CRÉDITO */}
+        {parecerFinal &&
+          (incluirParecer || (incluirNotas && Boolean(parecerFinal.achadosCriticos))) && (
+            <div className="border border-slate-300 rounded p-3 bg-slate-50/50">
+              <div className="flex justify-between items-center mb-2 border-b border-slate-200 pb-1.5">
+                <h2 className="text-xs font-black uppercase text-slate-900 flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5 text-primary" />
+                  1. Parecer Técnico Oficial & Recomendação de Crédito
+                </h2>
+                {incluirParecer && (
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-slate-200 text-slate-800">
+                    Opinião: {parecerFinal.nivelOpiniao}
+                  </span>
+                )}
+              </div>
+              <div className="space-y-2 text-[11px]">
+                {incluirParecer && (
+                  <>
+                    <div>
+                      <strong className="text-slate-900">Conclusão Técnica: </strong>
+                      <span className="text-slate-700 leading-relaxed">
+                        {parecerFinal.conclusao}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-200">
+                      <div>
+                        <strong className="text-emerald-800">Pontos Fortes: </strong>
+                        <span className="text-slate-700">{parecerFinal.pontosFortes}</span>
+                      </div>
+                      <div>
+                        <strong className="text-amber-800">Pontos de Atenção: </strong>
+                        <span className="text-slate-700">{parecerFinal.pontosAtencao}</span>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center pt-1 border-t border-slate-200 text-[10px] text-slate-600">
+                      <span>
+                        Recomendação de Crédito:{' '}
+                        <strong className="text-slate-900">
+                          {parecerFinal.recomendacaoCredito}
+                        </strong>
+                      </span>
+                      <span>
+                        Responsável:{' '}
+                        <strong className="text-slate-900">
+                          {parecerFinal.responsavelTecnico}
+                        </strong>
+                      </span>
+                    </div>
+                  </>
+                )}
+                {incluirNotas && parecerFinal.achadosCriticos && (
+                  <div
+                    className={`text-[10px] ${incluirParecer ? 'pt-1.5 border-t border-slate-200' : ''}`}
+                  >
+                    <strong className="text-slate-900">
+                      Achados Críticos e Notas do Cliente:{' '}
+                    </strong>
+                    <span className="text-slate-700 italic">{parecerFinal.achadosCriticos}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
         {/* SEÇÃO 2: SÍNTESE PATRIMONIAL & DRE (3 EXERCÍCIOS) */}
-        {balanco3Anos && (
+        {balanco3Anos && incluirBalanco3Anos && (
           <div>
             <h2 className="text-xs font-black uppercase text-slate-800 border-b border-slate-300 pb-1 mb-2 flex items-center gap-1.5">
               <Scale className="w-3.5 h-3.5 text-primary" />
@@ -439,7 +501,7 @@ export const RelatorioAnaliseEmpresarialA4: React.FC<RelatorioAnaliseEmpresarial
         )}
 
         {/* SEÇÃO 3: 25 INDICADORES COM SEMÁFORO & COMPARATIVO DOS 3 EXERCÍCIOS */}
-        {indicadoresModelo && indicadoresModelo.length > 0 && (
+        {indicadoresModelo && indicadoresModelo.length > 0 && incluirClassicos && (
           <div>
             <h2 className="text-xs font-black uppercase text-slate-800 border-b border-slate-300 pb-1 mb-2 flex items-center justify-between">
               <span className="flex items-center gap-1.5">
@@ -540,7 +602,7 @@ export const RelatorioAnaliseEmpresarialA4: React.FC<RelatorioAnaliseEmpresarial
         )}
 
         {/* SEÇÃO 3.1: GRUPOS AVANÇADOS (KANITZ, ALTMAN Z1, ELIZABETSKY, DU PONT, DINÂMICA CDG/NCG/EFEITO TESOURA) */}
-        {avancadoCalculado && (
+        {avancadoCalculado && incluirAvancados && (
           <div className="space-y-2 border border-slate-300 rounded p-2.5 bg-slate-50/40">
             <div className="flex items-center justify-between border-b border-slate-200 pb-1">
               <h2 className="text-xs font-black uppercase text-slate-900 flex items-center gap-1.5">
@@ -763,76 +825,80 @@ export const RelatorioAnaliseEmpresarialA4: React.FC<RelatorioAnaliseEmpresarial
         )}
 
         {/* SEÇÃO 4: SCORE PONDERADO MULTICRITÉRIO & COMPLETUDE DOCUMENTAL */}
-        <div className="grid grid-cols-2 gap-3">
-          {scoreResultado && (
-            <div className="border border-slate-200 rounded p-2.5 bg-white">
-              <h3 className="font-bold text-[11px] text-slate-900 uppercase mb-1.5 flex items-center justify-between">
-                <span className="flex items-center gap-1">
-                  <Award className="w-3 h-3 text-amber-600" />
-                  Score Ponderado (0 a 10)
-                </span>
-                <span className="text-primary font-bold font-mono">
-                  Nota: {scoreResultado.notaFinal.toFixed(2)}
-                </span>
-              </h3>
-              <div className="space-y-1 text-[10px]">
-                {scoreResultado.blocos.map((b) => (
-                  <div
-                    key={b.bloco}
-                    className="flex justify-between border-b border-slate-100 pb-0.5"
-                  >
-                    <span className="text-slate-600">
-                      {b.bloco} ({(b.peso * 100).toFixed(0)}%):
-                    </span>
-                    <span className="font-mono font-bold text-slate-900">
-                      {b.nota.toFixed(1)} (Pond: {b.notaPonderada.toFixed(2)})
-                    </span>
-                  </div>
-                ))}
-                <div className="pt-1 flex justify-between font-bold text-slate-900 text-[11px]">
-                  <span>Classificação:</span>
-                  <span className="text-primary">{scoreResultado.classificacao}</span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <div className="border border-slate-200 rounded p-2.5 bg-white flex flex-col justify-between">
-            <div>
-              <h3 className="font-bold text-[11px] text-slate-900 uppercase mb-1.5 flex items-center gap-1">
-                <FileText className="w-3 h-3 text-blue-600" />
-                Checklist Documental & Due Diligence
-              </h3>
-              <div className="space-y-2 text-[10px]">
-                <div className="flex justify-between border-b border-slate-100 pb-1">
-                  <span className="text-slate-600">Total de Documentos Auditados:</span>
-                  <span className="font-bold text-slate-900">{checklistTotal} itens</span>
-                </div>
-                <div className="flex justify-between border-b border-slate-100 pb-1">
-                  <span className="text-slate-600">Documentos Validados / Entregues:</span>
-                  <span className="font-bold text-emerald-700">{checklistRecebidos} itens</span>
-                </div>
-                <div className="flex justify-between border-b border-slate-100 pb-1">
-                  <span className="text-slate-600">Pendências Documentais:</span>
-                  <span className="font-bold text-amber-700">
-                    {checklistTotal - checklistRecebidos} itens
+        {(incluirSintese || incluirChecklist) && (
+          <div className="grid grid-cols-2 gap-3">
+            {scoreResultado && incluirSintese && (
+              <div className="border border-slate-200 rounded p-2.5 bg-white">
+                <h3 className="font-bold text-[11px] text-slate-900 uppercase mb-1.5 flex items-center justify-between">
+                  <span className="flex items-center gap-1">
+                    <Award className="w-3 h-3 text-amber-600" />
+                    Score Ponderado (0 a 10)
                   </span>
-                </div>
-                <div className="flex justify-between pt-1 font-bold text-[11px]">
-                  <span className="text-slate-900">Taxa de Completude:</span>
-                  <span className="text-primary">{checklistPct.toFixed(1)}%</span>
+                  <span className="text-primary font-bold font-mono">
+                    Nota: {scoreResultado.notaFinal.toFixed(2)}
+                  </span>
+                </h3>
+                <div className="space-y-1 text-[10px]">
+                  {scoreResultado.blocos.map((b) => (
+                    <div
+                      key={b.bloco}
+                      className="flex justify-between border-b border-slate-100 pb-0.5"
+                    >
+                      <span className="text-slate-600">
+                        {b.bloco} ({(b.peso * 100).toFixed(0)}%):
+                      </span>
+                      <span className="font-mono font-bold text-slate-900">
+                        {b.nota.toFixed(1)} (Pond: {b.notaPonderada.toFixed(2)})
+                      </span>
+                    </div>
+                  ))}
+                  <div className="pt-1 flex justify-between font-bold text-slate-900 text-[11px]">
+                    <span>Classificação:</span>
+                    <span className="text-primary">{scoreResultado.classificacao}</span>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div className="mt-2 text-[9px] text-slate-500 italic">
-              Conforme as 8 categorias normativas (Societário, Contábil, Fiscal, Trabalhista,
-              Patrimonial, Financeiro, Operacional e Governança).
-            </div>
+            )}
+
+            {incluirChecklist && (
+              <div className="border border-slate-200 rounded p-2.5 bg-white flex flex-col justify-between">
+                <div>
+                  <h3 className="font-bold text-[11px] text-slate-900 uppercase mb-1.5 flex items-center gap-1">
+                    <FileText className="w-3 h-3 text-blue-600" />
+                    Checklist Documental & Due Diligence
+                  </h3>
+                  <div className="space-y-2 text-[10px]">
+                    <div className="flex justify-between border-b border-slate-100 pb-1">
+                      <span className="text-slate-600">Total de Documentos Auditados:</span>
+                      <span className="font-bold text-slate-900">{checklistTotal} itens</span>
+                    </div>
+                    <div className="flex justify-between border-b border-slate-100 pb-1">
+                      <span className="text-slate-600">Documentos Validados / Entregues:</span>
+                      <span className="font-bold text-emerald-700">{checklistRecebidos} itens</span>
+                    </div>
+                    <div className="flex justify-between border-b border-slate-100 pb-1">
+                      <span className="text-slate-600">Pendências Documentais:</span>
+                      <span className="font-bold text-amber-700">
+                        {checklistTotal - checklistRecebidos} itens
+                      </span>
+                    </div>
+                    <div className="flex justify-between pt-1 font-bold text-[11px]">
+                      <span className="text-slate-900">Taxa de Completude:</span>
+                      <span className="text-primary">{checklistPct.toFixed(1)}%</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-2 text-[9px] text-slate-500 italic">
+                  Conforme as 8 categorias normativas (Societário, Contábil, Fiscal, Trabalhista,
+                  Patrimonial, Financeiro, Operacional e Governança).
+                </div>
+              </div>
+            )}
           </div>
-        </div>
+        )}
 
         {/* SEÇÃO 5: MATRIZ DE ACHADOS (APONTAMENTOS) */}
-        {achados && achados.length > 0 && (
+        {achados && achados.length > 0 && incluirNotas && (
           <div>
             <h2 className="text-xs font-black uppercase text-slate-800 border-b border-slate-300 pb-1 mb-2 flex items-center gap-1.5">
               <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
@@ -880,38 +946,53 @@ export const RelatorioAnaliseEmpresarialA4: React.FC<RelatorioAnaliseEmpresarial
         )}
 
         {/* Pareceres dos 4 Agentes Especialistas Integrados */}
-        <div>
-          <h2 className="text-xs font-black uppercase text-slate-800 border-b border-slate-300 pb-1 mb-2 flex items-center gap-1.5">
-            <ShieldCheck className="w-3.5 h-3.5 text-amber-700" />
-            6. Síntese Técnica dos Agentes Especialistas ADECONT
-          </h2>
-          <div className="grid grid-cols-2 gap-2 text-[10px]">
-            <div className="border border-slate-200 rounded p-2 bg-slate-50/50">
-              <span className="font-bold text-slate-900 block mb-0.5">
-                Parecer Tributário (LC 214/2025):
-              </span>
-              <p className="text-slate-700 line-clamp-3">{parecerEspecialistas.tributario}</p>
-            </div>
-            <div className="border border-slate-200 rounded p-2 bg-slate-50/50">
-              <span className="font-bold text-slate-900 block mb-0.5">
-                Parecer Contábil (Balancetes):
-              </span>
-              <p className="text-slate-700 line-clamp-3">{parecerEspecialistas.contabil}</p>
-            </div>
-            <div className="border border-slate-200 rounded p-2 bg-slate-50/50">
-              <span className="font-bold text-slate-900 block mb-0.5">
-                Parecer Administrativo / Trabalhista:
-              </span>
-              <p className="text-slate-700 line-clamp-3">{parecerEspecialistas.administrativo}</p>
-            </div>
-            <div className="border border-slate-200 rounded p-2 bg-slate-50/50">
-              <span className="font-bold text-slate-900 block mb-0.5">
-                Parecer Macroeconômico de Mercado:
-              </span>
-              <p className="text-slate-700 line-clamp-3">{parecerEspecialistas.economico}</p>
+        {incluirAgentes && (
+          <div>
+            <h2 className="text-xs font-black uppercase text-slate-800 border-b border-slate-300 pb-1 mb-2 flex items-center gap-1.5">
+              <ShieldCheck className="w-3.5 h-3.5 text-amber-700" />
+              6. Síntese Técnica dos Agentes Especialistas ADECONT
+            </h2>
+            <div className="grid grid-cols-2 gap-2 text-[10px]">
+              <div className="border border-slate-200 rounded p-2 bg-slate-50/50">
+                <span className="font-bold text-slate-900 block mb-0.5">
+                  Parecer Tributário (LC 214/2025):
+                </span>
+                <p className="text-slate-700 line-clamp-3">{parecerEspecialistas.tributario}</p>
+              </div>
+              <div className="border border-slate-200 rounded p-2 bg-slate-50/50">
+                <span className="font-bold text-slate-900 block mb-0.5">
+                  Parecer Contábil (Balancetes):
+                </span>
+                <p className="text-slate-700 line-clamp-3">{parecerEspecialistas.contabil}</p>
+              </div>
+              <div className="border border-slate-200 rounded p-2 bg-slate-50/50">
+                <span className="font-bold text-slate-900 block mb-0.5">
+                  Parecer Administrativo / Trabalhista:
+                </span>
+                <p className="text-slate-700 line-clamp-3">{parecerEspecialistas.administrativo}</p>
+              </div>
+              <div className="border border-slate-200 rounded p-2 bg-slate-50/50">
+                <span className="font-bold text-slate-900 block mb-0.5">
+                  Parecer Macroeconômico de Mercado:
+                </span>
+                <p className="text-slate-700 line-clamp-3">{parecerEspecialistas.economico}</p>
+              </div>
             </div>
           </div>
-        </div>
+        )}
+
+        {/* Seção de Observações e Considerações Finais Livres */}
+        {observacoesFinais && (
+          <div className="border-2 border-amber-800/40 rounded p-3 bg-amber-50/50">
+            <h2 className="text-xs font-black uppercase text-amber-950 border-b border-amber-300 pb-1 mb-1.5 flex items-center gap-1.5">
+              <CheckCircle2 className="w-3.5 h-3.5 text-amber-700" />
+              7. Considerações & Observações Finais Personalizadas
+            </h2>
+            <p className="text-[11px] text-slate-800 leading-relaxed whitespace-pre-wrap">
+              {observacoesFinais}
+            </p>
+          </div>
+        )}
 
         {/* Rodapé Oficial com carimbo */}
         <div className="border-t border-slate-300 pt-2 text-[10px] text-slate-500 flex justify-between items-center">

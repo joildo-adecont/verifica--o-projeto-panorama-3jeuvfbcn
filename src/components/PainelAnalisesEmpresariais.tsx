@@ -71,6 +71,13 @@ import {
 import { criarExercicioVazio } from '@/services/motorAnaliseEmpresarial'
 import { useToast } from '@/hooks/use-toast'
 import { getErrorMessage } from '@/lib/pocketbase/errors'
+import type { ConfiguracaoRelatorioCustomizado } from '@/types/customizacaoRelatorio'
+import {
+  carregarConfiguracaoRelatorio,
+  salvarConfiguracaoRelatorio,
+} from '@/services/customizacaoRelatorio'
+import { ModalCustomizacaoRelatorio } from './ModalCustomizacaoRelatorio'
+import { SlidersHorizontal } from 'lucide-react'
 
 interface PainelAnalisesEmpresariaisProps {
   dossie: SinteseAnaliseEmpresarial
@@ -134,6 +141,9 @@ export const PainelAnalisesEmpresariais: React.FC<PainelAnalisesEmpresariaisProp
   const [checklistItens, setChecklistItens] = useState<ItemChecklistDoc[]>([])
   const [achados, setAchados] = useState<AchadoDueDiligence[]>([])
   const [parecerFinal, setParecerFinal] = useState<ParecerFinalAnalise | null>(null)
+  const [customizacaoRelatorio, setCustomizacaoRelatorio] =
+    useState<ConfiguracaoRelatorioCustomizado | null>(null)
+  const [modalCustomizacaoAberto, setModalCustomizacaoAberto] = useState(false)
 
   // Carrega dados persistidos ao trocar de cliente
   useEffect(() => {
@@ -159,15 +169,17 @@ export const PainelAnalisesEmpresariais: React.FC<PainelAnalisesEmpresariaisProp
         setIndicadoresApurados(inds)
         setScoreResultado(score)
 
-        const [checkDocs, achadosList, parecerSalvo] = await Promise.all([
+        const [checkDocs, achadosList, parecerSalvo, customSalva] = await Promise.all([
           carregarChecklistDocumental(docLimpo),
           carregarAchadosDueDiligence(docLimpo),
           carregarParecerFinal(docLimpo),
+          carregarConfiguracaoRelatorio(docLimpo),
         ])
 
         if (!ativo) return
         setChecklistItens(checkDocs)
         setAchados(achadosList)
+        setCustomizacaoRelatorio(customSalva)
 
         if (parecerSalvo) {
           setParecerFinal(parecerSalvo as ParecerFinalAnalise)
@@ -305,12 +317,27 @@ export const PainelAnalisesEmpresariais: React.FC<PainelAnalisesEmpresariaisProp
             clienteDoc={cliente.documento_limpo || cliente.numero_documento}
             regimeTributario={cliente.regime_tributario || cliente.enquadramento_tributario}
             balanco3Anos={balanco3Anos}
-            onAbrirRelatorioPdf={() => setModalRelatorioA4(true)}
+            onAbrirRelatorioPdf={(cfg) => {
+              if (cfg) setCustomizacaoRelatorio(cfg)
+              setModalRelatorioA4(true)
+            }}
             disabled={indicadoresApurados.length === 0}
             motivoDesabilitado="Cliente não possui indicadores contábeis apurados para exportar"
             rotuloBotao="Exportar Relatório"
             parecerFinal={parecerFinal || undefined}
+            customizacaoAtual={customizacaoRelatorio}
+            onCustomizacaoAlterada={(novaCfg) => setCustomizacaoRelatorio(novaCfg)}
           />
+
+          <button
+            type="button"
+            onClick={() => setModalCustomizacaoAberto(true)}
+            className="flex items-center gap-2 px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700 font-bold rounded-lg shadow-2xs text-xs transition-all cursor-pointer border border-slate-300 dark:border-slate-700"
+            title="Personalizar seções, título e observações do relatório antes de exportar"
+          >
+            <SlidersHorizontal className="w-4 h-4 text-amber-600" />
+            Personalizar
+          </button>
 
           <button
             onClick={() => setModalRelatorioA4(true)}
@@ -1134,6 +1161,24 @@ export const PainelAnalisesEmpresariais: React.FC<PainelAnalisesEmpresariaisProp
         </div>
       )}
 
+      {/* Modal de Customização de Relatório */}
+      <ModalCustomizacaoRelatorio
+        aberto={modalCustomizacaoAberto}
+        onFechar={() => setModalCustomizacaoAberto(false)}
+        clienteCnpj={cliente.documento_limpo || cliente.numero_documento}
+        clienteNome={cliente.razao_social || cliente.nome}
+        configInicial={customizacaoRelatorio}
+        onSalvarConfig={(novaCfg) => {
+          setCustomizacaoRelatorio(novaCfg)
+        }}
+        onAplicarEExportar={(novaCfg, formato) => {
+          setCustomizacaoRelatorio(novaCfg)
+          if (formato === 'pdf') {
+            setModalRelatorioA4(true)
+          }
+        }}
+      />
+
       {/* Modal Relatório Técnico A4 Completo */}
       {modalRelatorioA4 && (
         <RelatorioAnaliseEmpresarialA4
@@ -1145,6 +1190,7 @@ export const PainelAnalisesEmpresariais: React.FC<PainelAnalisesEmpresariaisProp
           parecerFinal={parecerFinal || undefined}
           balanco3Anos={balanco3Anos}
           regimeTributario={cliente.regime_tributario || cliente.enquadramento_tributario}
+          customizacao={customizacaoRelatorio || undefined}
           onClose={() => setModalRelatorioA4(false)}
         />
       )}

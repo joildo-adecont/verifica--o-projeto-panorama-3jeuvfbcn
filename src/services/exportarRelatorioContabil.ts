@@ -21,6 +21,7 @@ import {
   type ItemIndiceAvancado,
   type RelatorioIndicesAvancados,
 } from '@/services/indicesAvancadosEmpresariais'
+import type { ConfiguracaoRelatorioCustomizado } from '@/types/customizacaoRelatorio'
 
 export interface ItemExportacaoIndicador {
   grupo: string
@@ -46,6 +47,8 @@ export interface OpcoesExportacaoContabil {
   incluirIndicesAvancados?: boolean
   relatorioAvancado?: RelatorioIndicesAvancados | null
   parecerFinal?: ParecerFinalAnalise | null
+  /** Configuração de customização de relatório escolhida pelo usuário */
+  customizacao?: ConfiguracaoRelatorioCustomizado | null
 }
 
 export const GRUPOS_CONTABEIS_DEFINICAO = [
@@ -196,48 +199,59 @@ export function prepararLinhasExportacao(
   opcoes?: {
     incluirIndicesAvancados?: boolean
     relatorioAvancado?: RelatorioIndicesAvancados | null
+    customizacao?: ConfiguracaoRelatorioCustomizado | null
   },
 ): ItemExportacaoIndicador[] {
+  // Verifica se índices clássicos foram desmarcados na customização
+  const incluirClassicos = opcoes?.customizacao?.secoes?.indicesClassicos ?? true
+
   const indMenos1Map = new Map<string, ItemIndicador>()
   const indMenos2Map = new Map<string, ItemIndicador>()
 
-  if (balanco3Anos?.anoMenos1) {
-    const calcMenos1 = calcular25Indicadores(balanco3Anos.anoMenos1)
-    for (const item of calcMenos1) {
-      indMenos1Map.set(item.id, item)
+  if (incluirClassicos) {
+    if (balanco3Anos?.anoMenos1) {
+      const calcMenos1 = calcular25Indicadores(balanco3Anos.anoMenos1)
+      for (const item of calcMenos1) {
+        indMenos1Map.set(item.id, item)
+      }
+    }
+
+    if (balanco3Anos?.anoMenos2) {
+      const calcMenos2 = calcular25Indicadores(balanco3Anos.anoMenos2)
+      for (const item of calcMenos2) {
+        indMenos2Map.set(item.id, item)
+      }
     }
   }
 
-  if (balanco3Anos?.anoMenos2) {
-    const calcMenos2 = calcular25Indicadores(balanco3Anos.anoMenos2)
-    for (const item of calcMenos2) {
-      indMenos2Map.set(item.id, item)
-    }
-  }
+  const linhasClassicas: ItemExportacaoIndicador[] = incluirClassicos
+    ? indicadores.map((ind) => {
+        const grupo = obterNomeGrupoIndicador(ind.id)
+        const indMenos1 = indMenos1Map.get(ind.id)
+        const indMenos2 = indMenos2Map.get(ind.id)
 
-  const linhasClassicas: ItemExportacaoIndicador[] = indicadores.map((ind) => {
-    const grupo = obterNomeGrupoIndicador(ind.id)
-    const indMenos1 = indMenos1Map.get(ind.id)
-    const indMenos2 = indMenos2Map.get(ind.id)
-
-    return {
-      grupo,
-      indicador: ind.nome,
-      valor: formatarValorIndicadorPtBr(ind.valor, ind.unidade),
-      status: formatarStatusSemaforo(ind.semaforo),
-      anoMenos2: indMenos2 ? formatarValorIndicadorPtBr(indMenos2.valor, ind.unidade) : '—',
-      anoMenos1: indMenos1 ? formatarValorIndicadorPtBr(indMenos1.valor, ind.unidade) : '—',
-      anoAtual: formatarValorIndicadorPtBr(ind.valor, ind.unidade),
-      referencia: ind.referencia || '—',
-      formula: ind.formula || '—',
-      diagnostico: ind.explicacao || '—',
-    }
-  })
+        return {
+          grupo,
+          indicador: ind.nome,
+          valor: formatarValorIndicadorPtBr(ind.valor, ind.unidade),
+          status: formatarStatusSemaforo(ind.semaforo),
+          anoMenos2: indMenos2 ? formatarValorIndicadorPtBr(indMenos2.valor, ind.unidade) : '—',
+          anoMenos1: indMenos1 ? formatarValorIndicadorPtBr(indMenos1.valor, ind.unidade) : '—',
+          anoAtual: formatarValorIndicadorPtBr(ind.valor, ind.unidade),
+          referencia: ind.referencia || '—',
+          formula: ind.formula || '—',
+          diagnostico: ind.explicacao || '—',
+        }
+      })
+    : []
 
   // Se solicitado ou se houver balanço / relatório avançado disponível, inclui os índices avançados
+  const customizacaoAvancados = opcoes?.customizacao?.secoes?.modelosAvancados
   const incluirAvancados =
-    opcoes?.incluirIndicesAvancados ??
-    (Boolean(opcoes?.relatorioAvancado) || Boolean(balanco3Anos?.anoAtual))
+    customizacaoAvancados !== undefined
+      ? customizacaoAvancados
+      : (opcoes?.incluirIndicesAvancados ??
+        (Boolean(opcoes?.relatorioAvancado) || Boolean(balanco3Anos?.anoAtual)))
 
   if (!incluirAvancados) {
     return linhasClassicas
@@ -316,13 +330,17 @@ export function gerarCsvRelatorioContabil(
 
   const linhasCsv: string[] = []
 
-  // Metadados informativos no topo (se houver cliente/regime)
-  if (opcoes?.clienteNome) {
-    linhasCsv.push(
-      escaparCampoCsv(
-        `ADECONT - Assessoria Contábil e Administrativa - Relatório de Indicadores Contábeis`,
-      ),
-    )
+  // Determina título do relatório
+  const tituloRelatorio =
+    opcoes?.customizacao?.tituloPersonalizado?.trim() ||
+    'ADECONT - Assessoria Contábil e Administrativa - Relatório de Indicadores Contábeis'
+
+  // Metadados informativos no topo (se houver cliente/regime ou se dados da empresa estão habilitados)
+  const incluirDadosEmpresa = opcoes?.customizacao?.incluirDadosEmpresa ?? true
+
+  linhasCsv.push(escaparCampoCsv(tituloRelatorio))
+
+  if (opcoes?.clienteNome && incluirDadosEmpresa) {
     linhasCsv.push(
       escaparCampoCsv(
         `Cliente: ${opcoes.clienteNome}${opcoes.clienteDoc ? ` (CNPJ/CPF: ${opcoes.clienteDoc})` : ''}`,
@@ -331,13 +349,14 @@ export function gerarCsvRelatorioContabil(
     if (opcoes.regimeTributario) {
       linhasCsv.push(escaparCampoCsv(`Regime Tributário: ${opcoes.regimeTributario}`))
     }
-    linhasCsv.push(
-      escaparCampoCsv(
-        `Data de Emissão: ${opcoes.dataEmissao || new Date().toLocaleDateString('pt-BR')}`,
-      ),
-    )
-    linhasCsv.push('') // Linha em branco separadora
   }
+
+  linhasCsv.push(
+    escaparCampoCsv(
+      `Data de Emissão: ${opcoes?.dataEmissao || new Date().toLocaleDateString('pt-BR')}`,
+    ),
+  )
+  linhasCsv.push('') // Linha em branco separadora
 
   linhasCsv.push(colunas.map(escaparCampoCsv).join(';'))
 
@@ -357,40 +376,56 @@ export function gerarCsvRelatorioContabil(
     linhasCsv.push(linha.join(';'))
   }
 
-  // Seção de parecer e notas do cliente no CSV
-  if (opcoes?.parecerFinal) {
+  // Seções de parecer técnico e notas do cliente no CSV (respeitando flags de customização)
+  const incluirParecer = opcoes?.customizacao?.secoes?.parecerTecnico ?? true
+  const incluirNotas = opcoes?.customizacao?.secoes?.achadosCriticos ?? true
+
+  if (opcoes?.parecerFinal && (incluirParecer || incluirNotas)) {
     const pf = opcoes.parecerFinal
     linhasCsv.push('')
     linhasCsv.push(escaparCampoCsv('=== PARECER TÉCNICO & NOTAS DO CLIENTE ==='))
-    if (pf.nivelOpiniao) {
-      linhasCsv.push(`${escaparCampoCsv('Nível da Opinião:')};${escaparCampoCsv(pf.nivelOpiniao)}`)
+
+    if (incluirParecer) {
+      if (pf.nivelOpiniao) {
+        linhasCsv.push(
+          `${escaparCampoCsv('Nível da Opinião:')};${escaparCampoCsv(pf.nivelOpiniao)}`,
+        )
+      }
+      if (pf.recomendacaoCredito) {
+        linhasCsv.push(
+          `${escaparCampoCsv('Recomendação de Crédito:')};${escaparCampoCsv(pf.recomendacaoCredito)}`,
+        )
+      }
+      if (pf.responsavelTecnico) {
+        linhasCsv.push(
+          `${escaparCampoCsv('Responsável Técnico:')};${escaparCampoCsv(pf.responsavelTecnico)}`,
+        )
+      }
+      if (pf.conclusao) {
+        linhasCsv.push(`${escaparCampoCsv('Conclusão Técnica:')};${escaparCampoCsv(pf.conclusao)}`)
+      }
+      if (pf.pontosFortes) {
+        linhasCsv.push(`${escaparCampoCsv('Pontos Fortes:')};${escaparCampoCsv(pf.pontosFortes)}`)
+      }
+      if (pf.pontosAtencao) {
+        linhasCsv.push(
+          `${escaparCampoCsv('Pontos de Atenção:')};${escaparCampoCsv(pf.pontosAtencao)}`,
+        )
+      }
     }
-    if (pf.recomendacaoCredito) {
-      linhasCsv.push(
-        `${escaparCampoCsv('Recomendação de Crédito:')};${escaparCampoCsv(pf.recomendacaoCredito)}`,
-      )
-    }
-    if (pf.responsavelTecnico) {
-      linhasCsv.push(
-        `${escaparCampoCsv('Responsável Técnico:')};${escaparCampoCsv(pf.responsavelTecnico)}`,
-      )
-    }
-    if (pf.conclusao) {
-      linhasCsv.push(`${escaparCampoCsv('Conclusão Técnica:')};${escaparCampoCsv(pf.conclusao)}`)
-    }
-    if (pf.pontosFortes) {
-      linhasCsv.push(`${escaparCampoCsv('Pontos Fortes:')};${escaparCampoCsv(pf.pontosFortes)}`)
-    }
-    if (pf.pontosAtencao) {
-      linhasCsv.push(
-        `${escaparCampoCsv('Pontos de Atenção:')};${escaparCampoCsv(pf.pontosAtencao)}`,
-      )
-    }
-    if (pf.achadosCriticos) {
+
+    if (incluirNotas && pf.achadosCriticos) {
       linhasCsv.push(
         `${escaparCampoCsv('Achados Críticos / Notas:')};${escaparCampoCsv(pf.achadosCriticos)}`,
       )
     }
+  }
+
+  // Observações e considerações finais livres personalizadas
+  if (opcoes?.customizacao?.observacoesFinais?.trim()) {
+    linhasCsv.push('')
+    linhasCsv.push(escaparCampoCsv('=== CONSIDERAÇÕES & OBSERVAÇÕES FINAIS ==='))
+    linhasCsv.push(escaparCampoCsv(opcoes.customizacao.observacoesFinais.trim()))
   }
 
   // BOM UTF-8 (\uFEFF) para garantir abertura automática no Microsoft Excel brasileiro
@@ -429,15 +464,20 @@ export function exportarExcelRelatorioContabil(
   const dadosAoa: (string | number)[][] = []
 
   // Bloco de cabeçalho
+  const tituloRelatorio =
+    opcoes?.customizacao?.tituloPersonalizado?.trim() ||
+    'Relatório de Indicadores Contábeis e Financeiros'
+  const incluirDadosEmpresa = opcoes?.customizacao?.incluirDadosEmpresa ?? true
+
   dadosAoa.push(['ADECONT — Assessoria Contábil e Administrativa'])
-  dadosAoa.push(['Relatório de Indicadores Contábeis e Financeiros'])
-  if (opcoes?.clienteNome) {
+  dadosAoa.push([tituloRelatorio])
+  if (opcoes?.clienteNome && incluirDadosEmpresa) {
     dadosAoa.push([
       `Cliente: ${opcoes.clienteNome}${opcoes.clienteDoc ? ` | CNPJ/CPF: ${opcoes.clienteDoc}` : ''}`,
     ])
-  }
-  if (opcoes?.regimeTributario) {
-    dadosAoa.push([`Regime Tributário: ${opcoes.regimeTributario}`])
+    if (opcoes.regimeTributario) {
+      dadosAoa.push([`Regime Tributário: ${opcoes.regimeTributario}`])
+    }
   }
   dadosAoa.push([`Emissão: ${opcoes?.dataEmissao || new Date().toLocaleDateString('pt-BR')}`])
   dadosAoa.push([]) // Linha em branco
@@ -472,32 +512,46 @@ export function exportarExcelRelatorioContabil(
     ])
   }
 
-  // Seção de parecer técnico e notas do cliente
-  if (opcoes?.parecerFinal) {
+  // Seção de parecer técnico e notas do cliente (respeitando flags de customização)
+  const incluirParecer = opcoes?.customizacao?.secoes?.parecerTecnico ?? true
+  const incluirNotas = opcoes?.customizacao?.secoes?.achadosCriticos ?? true
+
+  if (opcoes?.parecerFinal && (incluirParecer || incluirNotas)) {
     const pf = opcoes.parecerFinal
     dadosAoa.push([])
     dadosAoa.push(['=== PARECER TÉCNICO & NOTAS DO CLIENTE ==='])
-    if (pf.nivelOpiniao) {
-      dadosAoa.push(['Nível da Opinião:', pf.nivelOpiniao])
+
+    if (incluirParecer) {
+      if (pf.nivelOpiniao) {
+        dadosAoa.push(['Nível da Opinião:', pf.nivelOpiniao])
+      }
+      if (pf.recomendacaoCredito) {
+        dadosAoa.push(['Recomendação de Crédito:', pf.recomendacaoCredito])
+      }
+      if (pf.responsavelTecnico) {
+        dadosAoa.push(['Responsável Técnico:', pf.responsavelTecnico])
+      }
+      if (pf.conclusao) {
+        dadosAoa.push(['Conclusão Técnica:', pf.conclusao])
+      }
+      if (pf.pontosFortes) {
+        dadosAoa.push(['Pontos Fortes:', pf.pontosFortes])
+      }
+      if (pf.pontosAtencao) {
+        dadosAoa.push(['Pontos de Atenção:', pf.pontosAtencao])
+      }
     }
-    if (pf.recomendacaoCredito) {
-      dadosAoa.push(['Recomendação de Crédito:', pf.recomendacaoCredito])
-    }
-    if (pf.responsavelTecnico) {
-      dadosAoa.push(['Responsável Técnico:', pf.responsavelTecnico])
-    }
-    if (pf.conclusao) {
-      dadosAoa.push(['Conclusão Técnica:', pf.conclusao])
-    }
-    if (pf.pontosFortes) {
-      dadosAoa.push(['Pontos Fortes:', pf.pontosFortes])
-    }
-    if (pf.pontosAtencao) {
-      dadosAoa.push(['Pontos de Atenção:', pf.pontosAtencao])
-    }
-    if (pf.achadosCriticos) {
+
+    if (incluirNotas && pf.achadosCriticos) {
       dadosAoa.push(['Achados Críticos / Notas:', pf.achadosCriticos])
     }
+  }
+
+  // Observações e considerações finais livres personalizadas no Excel
+  if (opcoes?.customizacao?.observacoesFinais?.trim()) {
+    dadosAoa.push([])
+    dadosAoa.push(['=== CONSIDERAÇÕES & OBSERVAÇÕES FINAIS ==='])
+    dadosAoa.push([opcoes.customizacao.observacoesFinais.trim()])
   }
 
   const wb = XLSX.utils.book_new()

@@ -559,4 +559,75 @@ describe('exportarRelatorioContabil - Funções de Formatação e Geração de A
     expect(csv).toContain('Empresa sólida e rentável')
     expect(csv).toContain('Balancete 2024 conferido integralmente sem distorções relevantes')
   })
+
+  it('respeita opções de customização desmarcando seções e aplicando título e observações livres no CSV', () => {
+    const indicadoresTeste: ItemIndicador[] = [
+      {
+        id: 'liq_corrente',
+        nome: 'Liquidez Corrente',
+        valor: 1.85,
+        unidade: 'fator',
+        referencia: '> 1,20x',
+        formula: 'AC / PC',
+        semaforo: 'saudavel',
+        explicacao: 'Excelente liquidez',
+      },
+    ]
+
+    // Customização: apenas modelos avançados (sem clássicos), sem parecer, com notas e título personalizado
+    const linhas = prepararLinhasExportacao(indicadoresTeste, balancoMockGlobal, {
+      customizacao: {
+        tituloPersonalizado: 'Dossiê Executivo de Insolvência e Risco',
+        subtituloPersonalizado: 'Auditoria Especial',
+        observacoesFinais: 'Auditoria concluída sem ressalvas impeditivas.',
+        secoes: {
+          indicesClassicos: false,
+          modelosAvancados: true,
+          parecerTecnico: false,
+          achadosCriticos: true,
+        },
+        incluirDadosEmpresa: false,
+        incluirQrCode: false,
+      },
+    })
+
+    // Como clássicos foram desmarcados, NÃO deve ter a linha de Liquidez Corrente
+    expect(linhas.some((l) => l.indicador === 'Liquidez Corrente')).toBe(false)
+    // E deve conter os avançados
+    expect(linhas.some((l) => l.indicador.includes('Kanitz'))).toBe(true)
+
+    const csv = gerarCsvRelatorioContabil(linhas, {
+      clienteNome: 'Empresa Oculta LTDA',
+      clienteDoc: '99.888.777/0001-66',
+      customizacao: {
+        tituloPersonalizado: 'Dossiê Executivo de Insolvência e Risco',
+        observacoesFinais: 'Auditoria concluída sem ressalvas impeditivas.',
+        secoes: {
+          indicesClassicos: false,
+          modelosAvancados: true,
+          parecerTecnico: false,
+          achadosCriticos: true,
+        },
+        incluirDadosEmpresa: false,
+        incluirQrCode: false,
+      },
+      parecerFinal: {
+        empresaNome: 'Empresa Oculta LTDA',
+        nivelOpiniao: 'Opiniao Qualquer',
+        achadosCriticos: 'Nota Crítica Exibida com Sucesso',
+      } as any,
+    })
+
+    // Título personalizado presente
+    expect(csv).toContain('Dossiê Executivo de Insolvência e Risco')
+    // Observações finais presentes
+    expect(csv).toContain('=== CONSIDERAÇÕES & OBSERVAÇÕES FINAIS ===')
+    expect(csv).toContain('Auditoria concluída sem ressalvas impeditivas.')
+    // Dados da empresa omitidos porque incluirDadosEmpresa = false
+    expect(csv).not.toContain('Empresa Oculta LTDA')
+    // Parecer técnico foi desmarcado, então nível da opinião não deve constar
+    expect(csv).not.toContain('Nível da Opinião:')
+    // Notas foram mantidas, então achados críticos devem constar
+    expect(csv).toContain('Nota Crítica Exibida com Sucesso')
+  })
 })
