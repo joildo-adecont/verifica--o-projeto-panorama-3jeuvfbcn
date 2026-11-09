@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-09T02:13:32.151Z",
+  "generatedAt": "2026-11-09T02:26:50.332Z",
   "collections": [
     {
       "name": "users",
@@ -4529,7 +4529,7 @@
         "list": "",
         "view": "",
         "create": null,
-        "update": null,
+        "update": "",
         "delete": null
       },
       "fields": [
@@ -4800,6 +4800,12 @@
         },
         {
           "name": "documento",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "regime_tributario",
           "type": "text",
           "required": false,
           "system": false

@@ -37,6 +37,13 @@ import {
   atualizarEmpresa,
 } from '@/services/cadastroEmpresas'
 import { inativarCliente, listarEmpresasInativas } from '@/services/cadastroEmpresasInativos'
+import {
+  editarClientesEmMassa,
+  inativarClientesEmMassa,
+  DadosEdicaoEmMassa,
+} from '@/services/cadastroEmpresasMassa'
+import { BarraAcoesMassaClientes } from '@/components/BarraAcoesMassaClientes'
+import { useToast } from '@/hooks/use-toast'
 import { RelatorioClientesImprimivel } from '@/components/RelatorioClientesImprimivel'
 import { BadgeDocumentoCliente } from '@/components/BadgeDocumentoCliente'
 import { SecaoClientesArquivados } from '@/components/SecaoClientesArquivados'
@@ -78,6 +85,12 @@ export default function CadastroClientes() {
   // Tecla individual Ativo/Inativo por linha
   const [inativandoCodigo, setInativandoCodigo] = useState<number | null>(null)
   const [avisoInativacao, setAvisoInativacao] = useState<string | null>(null)
+
+  // Seleção e Ações em Massa
+  const { toast } = useToast()
+  const [selecionadosCodigos, setSelecionadosCodigos] = useState<Set<number>>(new Set())
+  const [processandoMassa, setProcessandoMassa] = useState<boolean>(false)
+
   const [ordenacao, setOrdenacao] = useState<
     'codigo-asc' | 'codigo-desc' | 'nome-asc' | 'nome-desc'
   >('codigo-asc')
@@ -375,6 +388,7 @@ export default function CadastroClientes() {
   // Debounce na busca textual e reset de página quando filtro muda
   useEffect(() => {
     setPaginaAtual(1)
+    setSelecionadosCodigos(new Set())
   }, [termoBusca, filtroTipoDoc, filtroSituacao, filtroRegime, ordenacao, porPagina])
 
   useEffect(() => {
@@ -445,6 +459,129 @@ export default function CadastroClientes() {
       setOrdenacao('codigo-desc')
     } else {
       setOrdenacao('codigo-asc')
+    }
+  }
+
+  // Clientes atualmente selecionados
+  const clientesSelecionados = useMemo(() => {
+    return empresas.filter((emp) => selecionadosCodigos.has(emp.codigo))
+  }, [empresas, selecionadosCodigos])
+
+  const todosPaginaSelecionados =
+    empresas.length > 0 && empresas.every((emp) => selecionadosCodigos.has(emp.codigo))
+
+  const alternarSelecionarTodosPagina = () => {
+    if (todosPaginaSelecionados) {
+      // Desmarca todos da página
+      setSelecionadosCodigos((prev) => {
+        const next = new Set(prev)
+        empresas.forEach((e) => next.delete(e.codigo))
+        return next
+      })
+    } else {
+      // Marca todos da página atual
+      setSelecionadosCodigos((prev) => {
+        const next = new Set(prev)
+        empresas.forEach((e) => next.add(e.codigo))
+        return next
+      })
+    }
+  }
+
+  const alternarSelecaoCliente = (codigo: number) => {
+    setSelecionadosCodigos((prev) => {
+      const next = new Set(prev)
+      if (next.has(codigo)) {
+        next.delete(codigo)
+      } else {
+        next.add(codigo)
+      }
+      return next
+    })
+  }
+
+  const limparSelecao = () => {
+    setSelecionadosCodigos(new Set())
+  }
+
+  // Execução de Edição em Massa
+  const handleExecutarEdicaoEmMassa = async (
+    clientes: EmpresaRecord[],
+    dados: DadosEdicaoEmMassa,
+  ) => {
+    setProcessandoMassa(true)
+    try {
+      const res = await editarClientesEmMassa(clientes, dados, 'cadastro_empresas')
+      if (res.sucessoCount > 0) {
+        toast({
+          title: 'Edição em massa concluída',
+          description: `${res.sucessoCount} ${res.sucessoCount === 1 ? 'cliente atualizado' : 'clientes atualizados'} com sucesso.`,
+        })
+
+        // Atualiza imediatamente o estado da listagem para feedback sem recarregar a página
+        setEmpresas((prev) =>
+          prev.map((emp) => {
+            if (selecionadosCodigos.has(emp.codigo)) {
+              return {
+                ...emp,
+                ...(dados.regime_tributario ? { regime_tributario: dados.regime_tributario } : {}),
+                ...(dados.municipio ? { municipio: dados.municipio } : {}),
+                ...(dados.uf ? { uf: dados.uf } : {}),
+              }
+            }
+            return emp
+          }),
+        )
+
+        limparSelecao()
+        await carregarDados()
+      } else {
+        toast({
+          title: 'Erro na edição em massa',
+          description: 'Nenhum cliente pôde ser atualizado. Verifique a conexão com o banco.',
+          variant: 'destructive',
+        })
+      }
+    } catch (e: any) {
+      console.error('Erro na edição em massa:', e)
+      toast({
+        title: 'Falha ao processar edição',
+        description: e?.message || 'Ocorreu um erro ao atualizar os clientes.',
+        variant: 'destructive',
+      })
+    } finally {
+      setProcessandoMassa(false)
+    }
+  }
+
+  // Execução de Inativação em Massa
+  const handleExecutarInativacaoEmMassa = async (clientes: EmpresaRecord[], motivo?: string) => {
+    setProcessandoMassa(true)
+    try {
+      const res = await inativarClientesEmMassa(clientes, motivo)
+      if (res.sucessoCount > 0) {
+        toast({
+          title: 'Inativação em massa concluída',
+          description: `${res.sucessoCount} ${res.sucessoCount === 1 ? 'cliente inativado' : 'clientes inativados'} e transferidos para o Cadastro de Inativos.`,
+        })
+        limparSelecao()
+        await carregarDados()
+      } else {
+        toast({
+          title: 'Erro na inativação em massa',
+          description: 'Não foi possível inativar os clientes selecionados.',
+          variant: 'destructive',
+        })
+      }
+    } catch (e: any) {
+      console.error('Erro na inativação em massa:', e)
+      toast({
+        title: 'Falha ao inativar clientes',
+        description: e?.message || 'Ocorreu um erro ao inativar os clientes.',
+        variant: 'destructive',
+      })
+    } finally {
+      setProcessandoMassa(false)
     }
   }
 
@@ -750,12 +887,31 @@ export default function CadastroClientes() {
               </div>
             )}
 
+            {/* BARRA DE AÇÕES EM MASSA */}
+            <BarraAcoesMassaClientes
+              clientesSelecionados={clientesSelecionados}
+              modo="ativos"
+              processando={processandoMassa}
+              onLimparSelecao={limparSelecao}
+              onExecutarEdicaoEmMassa={handleExecutarEdicaoEmMassa}
+              onExecutarInativacaoEmMassa={handleExecutarInativacaoEmMassa}
+            />
+
             {/* TABELA ANALÍTICA DE CLIENTES */}
             <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
                     <tr className="bg-[#0F294A] text-white font-medium border-b border-[#0A1D34] select-none">
+                      <th className="py-3 px-2 w-10 text-center">
+                        <input
+                          type="checkbox"
+                          aria-label="Selecionar todos os clientes da página"
+                          checked={todosPaginaSelecionados}
+                          onChange={alternarSelecionarTodosPagina}
+                          className="rounded border-slate-300 text-[#13335A] focus:ring-[#13335A] h-4 w-4 cursor-pointer"
+                        />
+                      </th>
                       <th className="py-3 px-3 w-16 text-center">
                         <button
                           onClick={alternarOrdenacaoCodigo}
@@ -795,6 +951,9 @@ export default function CadastroClientes() {
                     {carregando ? (
                       Array.from({ length: 8 }).map((_, i) => (
                         <tr key={`skel-${i}`} className="animate-pulse">
+                          <td className="py-3.5 px-2 text-center">
+                            <div className="h-4 w-4 bg-slate-200 rounded mx-auto" />
+                          </td>
                           <td className="py-3.5 px-3 text-center">
                             <div className="h-4 w-8 bg-slate-200 rounded mx-auto" />
                           </td>
@@ -830,7 +989,7 @@ export default function CadastroClientes() {
                       ))
                     ) : empresas.length === 0 ? (
                       <tr>
-                        <td colSpan={10} className="py-12 text-center text-slate-500">
+                        <td colSpan={11} className="py-12 text-center text-slate-500">
                           <div className="max-w-xs mx-auto flex flex-col items-center gap-2">
                             <Building2 className="w-8 h-8 text-slate-300" />
                             <span className="font-semibold text-slate-700">
@@ -845,13 +1004,25 @@ export default function CadastroClientes() {
                     ) : (
                       empresas.map((emp) => {
                         const expandido = empresaExpandidaId === emp.codigo
+                        const selecionado = selecionadosCodigos.has(emp.codigo)
                         return (
                           <tr
                             key={emp.codigo}
                             className={`hover:bg-[#F8FAFC] transition-colors ${
-                              expandido ? 'bg-amber-50/30' : ''
+                              selecionado ? 'bg-sky-50/60' : expandido ? 'bg-amber-50/30' : ''
                             }`}
                           >
+                            {/* Checkbox de seleção */}
+                            <td className="py-3 px-2 text-center">
+                              <input
+                                type="checkbox"
+                                aria-label={`Selecionar cliente ${emp.razao_social || emp.codigo}`}
+                                checked={selecionado}
+                                onChange={() => alternarSelecaoCliente(emp.codigo)}
+                                className="rounded border-slate-300 text-[#13335A] focus:ring-[#13335A] h-4 w-4 cursor-pointer"
+                              />
+                            </td>
+
                             {/* Código */}
                             <td className="py-3 px-3 text-center font-mono font-bold text-[#0F294A]">
                               {emp.codigo}
