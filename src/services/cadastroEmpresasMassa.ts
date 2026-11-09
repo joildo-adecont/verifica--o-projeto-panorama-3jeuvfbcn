@@ -10,12 +10,18 @@
 import pb from '@/lib/pocketbase/client'
 import { inativarCliente, reativarCliente } from '@/services/cadastroEmpresasInativos'
 import { registrarAlteracaoRegime } from '@/services/regimeHistoricoService'
-import type { EmpresaRecord } from '@/types/cadastroEmpresas'
+import type { EmpresaRecord, SituacaoCadastroTipo } from '@/types/cadastroEmpresas'
+import { EVENTO_SITUACAO_CLIENTE_ALTERADA } from '@/types/cadastroEmpresas'
 
 export interface DadosEdicaoEmMassa {
   regime_tributario?: string
   municipio?: string
   uf?: string
+}
+
+export interface DadosAlteracaoStatusEmMassa {
+  novaSituacao: SituacaoCadastroTipo | string
+  motivo?: string
 }
 
 export interface ResultadoOperacaoEmMassa {
@@ -93,6 +99,99 @@ export async function editarClientesEmMassa(
         razaoSocial: cliente.razao_social,
         erro: err?.message || 'Falha ao atualizar registro',
       })
+    }
+  }
+
+  return resultado
+}
+
+/**
+ * Altera a situação/status de múltiplos clientes em lote.
+ *
+ * Regras de negócio ADECONT:
+ * - Se colecao for 'cadastro_empresas' e a nova situação for 'Inativa',
+ *   executa a inativação formal (transfere para cadastro_empresas_inativos com motivo).
+ * - Se colecao for 'cadastro_empresas_inativos' e a nova situação for 'Ativa',
+ *   executa a reativação formal (transfere de volta para cadastro_empresas).
+ * - Para demais situações ('Ativa', 'Suspensa', 'Baixada' na coleção ativa,
+ *   ou 'Inativa', 'Suspensa', 'Baixada' na coleção inativa),
+ *   atualiza o campo `situacao` diretamente no registro de cada cliente.
+ * - Dispara evento EVENTO_SITUACAO_CLIENTE_ALTERADA para sincronização em tempo real.
+ */
+export async function alterarStatusClientesEmMassa(
+  clientes: EmpresaRecord[],
+  dados: DadosAlteracaoStatusEmMassa,
+  colecao: 'cadastro_empresas' | 'cadastro_empresas_inativos' = 'cadastro_empresas',
+): Promise<ResultadoOperacaoEmMassa> {
+  const resultado: ResultadoOperacaoEmMassa = {
+    totalSolicitado: clientes.length,
+    sucessoCount: 0,
+    falhaCount: 0,
+    erros: [],
+  }
+
+  const novaSituacao = (dados.novaSituacao || '').trim()
+  if (!novaSituacao) {
+    return resultado
+  }
+
+  const motivo =
+    (dados.motivo || '').trim() || `Alteração em massa de status para "${novaSituacao}"`
+
+  for (const cliente of clientes) {
+    try {
+      // Caso 1: Na carteira ativa, mudar para 'Inativa' -> inativação formal via hook/serviço
+      if (colecao === 'cadastro_empresas' && novaSituacao.toLowerCase() === 'inativa') {
+        await inativarCliente(cliente.codigo, motivo)
+        resultado.sucessoCount++
+        continue
+      }
+
+      // Caso 2: Na carteira inativa, mudar para 'Ativa' -> reativação formal via hook/serviço
+      if (colecao === 'cadastro_empresas_inativos' && novaSituacao.toLowerCase() === 'ativa') {
+        await reativarCliente(cliente.codigo)
+        resultado.sucessoCount++
+        continue
+      }
+
+      // Caso 3: Atualização direta do campo situacao na respectiva coleção
+      let recordId = cliente.id
+      if (!recordId) {
+        const item = await pb.collection(colecao).getFirstListItem(`codigo = ${cliente.codigo}`)
+        recordId = item.id
+      }
+
+      await pb.collection(colecao).update(recordId, { situacao: novaSituacao })
+      resultado.sucessoCount++
+    } catch (err: any) {
+      console.error(
+        `[alterarStatusClientesEmMassa] Erro no cliente ${cliente.codigo} (${cliente.razao_social}):`,
+        err,
+      )
+      resultado.falhaCount++
+      resultado.erros.push({
+        codigo: cliente.codigo,
+        razaoSocial: cliente.razao_social,
+        erro: err?.message || 'Falha ao alterar situação cadastral',
+      })
+    }
+  }
+
+  // Notifica ouvintes locais sobre a alteração de status
+  if (resultado.sucessoCount > 0 && typeof window !== 'undefined') {
+    try {
+      window.dispatchEvent(
+        new CustomEvent(EVENTO_SITUACAO_CLIENTE_ALTERADA, {
+          detail: {
+            novaSituacao,
+            motivo,
+            totalAfetados: resultado.sucessoCount,
+            colecao,
+          },
+        }),
+      )
+    } catch (e) {
+      // Fallback silencioso se o ambiente não suportar CustomEvent
     }
   }
 

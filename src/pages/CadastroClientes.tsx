@@ -40,7 +40,9 @@ import { inativarCliente, listarEmpresasInativas } from '@/services/cadastroEmpr
 import {
   editarClientesEmMassa,
   inativarClientesEmMassa,
+  alterarStatusClientesEmMassa,
   DadosEdicaoEmMassa,
+  DadosAlteracaoStatusEmMassa,
 } from '@/services/cadastroEmpresasMassa'
 import { BarraAcoesMassaClientes } from '@/components/BarraAcoesMassaClientes'
 import { useToast } from '@/hooks/use-toast'
@@ -590,6 +592,63 @@ export default function CadastroClientes() {
     }
   }
 
+  // Execução de Alteração de Status em Massa
+  const handleExecutarAlteracaoStatusEmMassa = async (
+    clientes: EmpresaRecord[],
+    dados: DadosAlteracaoStatusEmMassa,
+  ) => {
+    setProcessandoMassa(true)
+    try {
+      const res = await alterarStatusClientesEmMassa(clientes, dados, 'cadastro_empresas')
+      if (res.sucessoCount > 0) {
+        const novoStatus = dados.novaSituacao
+        const ehInativacao = novoStatus.toLowerCase() === 'inativa'
+
+        toast({
+          title: 'Status em massa atualizado',
+          description: ehInativacao
+            ? `${res.sucessoCount} ${res.sucessoCount === 1 ? 'cliente movido' : 'clientes movidos'} para o Cadastro de Inativos.`
+            : `Status alterado para "${novoStatus}" em ${res.sucessoCount} ${res.sucessoCount === 1 ? 'cliente' : 'clientes'}.`,
+        })
+
+        // Atualização instantânea do estado local sem recarregar a tela
+        const codigosAfetados = new Set(clientes.map((c) => c.codigo))
+        if (ehInativacao) {
+          // Se virou Inativa, remove da listagem ativa imediatamente
+          setEmpresas((prev) => prev.filter((emp) => !codigosAfetados.has(emp.codigo)))
+        } else {
+          // Se mudou para Ativa/Suspensa/Baixada, reflete na coluna de Situação
+          setEmpresas((prev) =>
+            prev.map((emp) => {
+              if (codigosAfetados.has(emp.codigo)) {
+                return { ...emp, situacao: novoStatus }
+              }
+              return emp
+            }),
+          )
+        }
+
+        limparSelecao()
+        await carregarDados()
+      } else {
+        toast({
+          title: 'Erro ao alterar status em massa',
+          description: 'Nenhum cliente pôde ter o status alterado.',
+          variant: 'destructive',
+        })
+      }
+    } catch (e: any) {
+      console.error('Erro na alteração de status em massa:', e)
+      toast({
+        title: 'Falha ao alterar status',
+        description: e?.message || 'Ocorreu um erro ao atualizar a situação dos clientes.',
+        variant: 'destructive',
+      })
+    } finally {
+      setProcessandoMassa(false)
+    }
+  }
+
   // Prepara e abre o relatório A4 com a listagem completa conforme filtros atuais
   const abrirRelatorioA4 = async () => {
     setGerandoRelatorio(true)
@@ -900,6 +959,7 @@ export default function CadastroClientes() {
               onLimparSelecao={limparSelecao}
               onExecutarEdicaoEmMassa={handleExecutarEdicaoEmMassa}
               onExecutarInativacaoEmMassa={handleExecutarInativacaoEmMassa}
+              onExecutarAlteracaoStatusEmMassa={handleExecutarAlteracaoStatusEmMassa}
             />
 
             {/* TABELA ANALÍTICA DE CLIENTES */}

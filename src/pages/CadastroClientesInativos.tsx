@@ -41,7 +41,9 @@ import {
 import {
   editarClientesEmMassa,
   reativarClientesEmMassa,
+  alterarStatusClientesEmMassa,
   type DadosEdicaoEmMassa,
+  type DadosAlteracaoStatusEmMassa,
 } from '@/services/cadastroEmpresasMassa'
 import type { EmpresaRecord } from '@/types/cadastroEmpresas'
 
@@ -207,6 +209,63 @@ export default function CadastroClientesInativos() {
       toast({
         title: 'Falha ao processar edição',
         description: e?.message || 'Ocorreu um erro ao atualizar os clientes.',
+        variant: 'destructive',
+      })
+    } finally {
+      setProcessandoMassa(false)
+    }
+  }
+
+  // Execução de Alteração de Status em Massa
+  const handleExecutarAlteracaoStatusEmMassa = async (
+    clientes: EmpresaRecord[],
+    dados: DadosAlteracaoStatusEmMassa,
+  ) => {
+    setProcessandoMassa(true)
+    try {
+      const res = await alterarStatusClientesEmMassa(clientes, dados, 'cadastro_empresas_inativos')
+      if (res.sucessoCount > 0) {
+        const novoStatus = dados.novaSituacao
+        const ehReativacao = novoStatus.toLowerCase() === 'ativa'
+
+        toast({
+          title: 'Status em massa atualizado',
+          description: ehReativacao
+            ? `${res.sucessoCount} ${res.sucessoCount === 1 ? 'cliente restaurado' : 'clientes restaurados'} no Cadastro Ativo.`
+            : `Status alterado para "${novoStatus}" em ${res.sucessoCount} ${res.sucessoCount === 1 ? 'cliente inativo' : 'clientes inativos'}.`,
+        })
+
+        // Atualização instantânea do estado local sem recarregar a tela
+        const codigosAfetados = new Set(clientes.map((c) => c.codigo))
+        if (ehReativacao) {
+          // Se virou Ativa, remove da listagem de inativos imediatamente
+          setEmpresas((prev) => prev.filter((emp) => !codigosAfetados.has(emp.codigo)))
+        } else {
+          // Atualiza a coluna de Situação dos inativos
+          setEmpresas((prev) =>
+            prev.map((emp) => {
+              if (codigosAfetados.has(emp.codigo)) {
+                return { ...emp, situacao: novoStatus }
+              }
+              return emp
+            }),
+          )
+        }
+
+        limparSelecao()
+        await carregarDados()
+      } else {
+        toast({
+          title: 'Erro ao alterar status em massa',
+          description: 'Nenhum cliente pôde ter o status alterado.',
+          variant: 'destructive',
+        })
+      }
+    } catch (e: any) {
+      console.error('Erro na alteração de status em massa de inativos:', e)
+      toast({
+        title: 'Falha ao alterar status',
+        description: e?.message || 'Ocorreu um erro ao atualizar a situação dos clientes.',
         variant: 'destructive',
       })
     } finally {
@@ -503,6 +562,7 @@ td{border-bottom:1px solid #ddd;padding:3px 5px}
           onLimparSelecao={limparSelecao}
           onExecutarEdicaoEmMassa={handleExecutarEdicaoEmMassa}
           onExecutarReativacaoEmMassa={handleExecutarReativacaoEmMassa}
+          onExecutarAlteracaoStatusEmMassa={handleExecutarAlteracaoStatusEmMassa}
         />
 
         {/* TABELA DE CLIENTES INATIVOS */}

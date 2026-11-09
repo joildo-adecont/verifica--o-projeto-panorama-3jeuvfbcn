@@ -9,8 +9,14 @@ export const OPCOES_REGIME_TRIBUTARIO = [
 
 export type RegimeTributarioTipo = (typeof OPCOES_REGIME_TRIBUTARIO)[number]
 
+// Lista oficial das situações cadastrais reconhecidas no sistema ADECONT
+export const OPCOES_SITUACAO_CADASTRO = ['Ativa', 'Inativa', 'Suspensa', 'Baixada'] as const
+
+export type SituacaoCadastroTipo = (typeof OPCOES_SITUACAO_CADASTRO)[number]
+
 // Nome do evento CustomEvent para sincronização em tempo real entre módulos
 export const EVENTO_REGIME_TRIBUTARIO_ALTERADO = 'adecont:regime_tributario_alterado'
+export const EVENTO_SITUACAO_CLIENTE_ALTERADA = 'adecont:situacao_cliente_alterada'
 
 // Interface completa para os registros da coleção `cadastro_empresas` (PocketBase)
 export interface EmpresaRecord {
