@@ -28,6 +28,7 @@ import { ModalLogin } from '@/components/ModalLogin'
 import { BotaoCadastroClientes } from '@/components/BotaoCadastroClientes'
 import { BotaoDocumentosFiscais } from '@/components/BotaoDocumentosFiscais'
 import { BotaoAnalisesEmpresariais } from '@/components/BotaoAnalisesEmpresariais'
+import { BotaoEmailMarketing } from '@/components/BotaoEmailMarketing'
 import type { SourceStatusItem } from '@/types/panorama'
 
 interface PanoramaHeaderProps {
@@ -281,6 +282,9 @@ export function PanoramaHeader({
 
             {/* Módulo Análises Empresariais ADECONT */}
             <BotaoAnalisesEmpresariais variante="header" />
+
+            {/* Módulo E-mail Marketing Mailchimp */}
+            <BotaoEmailMarketing variante="header" />
 
             <AlternadorTema />
           </div>
@@ -558,6 +562,7 @@ export function PanoramaHeader({
                 variante="mobile"
                 aoClicar={() => setMobileMenuOpen(false)}
               />
+              <BotaoEmailMarketing variante="mobile" aoClicar={() => setMobileMenuOpen(false)} />
             </div>
 
             {NAV_LINKS.map((link) => {

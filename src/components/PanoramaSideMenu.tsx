@@ -6,6 +6,7 @@ import { BotaoSegmentoOficial } from '@/components/ItensSegmentoMenu'
 import { BlocoMenuIndicadores } from '@/components/BlocoMenuIndicadores'
 import { BotaoCadastroClientes } from '@/components/BotaoCadastroClientes'
 import { BotaoAnalisesEmpresariais } from '@/components/BotaoAnalisesEmpresariais'
+import { BotaoEmailMarketing } from '@/components/BotaoEmailMarketing'
 import {
   obterUsuarioAtivoLocal,
   assinarMudancaUsuarioAtivo,
@@ -231,6 +232,7 @@ export function PanoramaSideMenu({
           <div className="bg-slate-50 p-1.5 rounded-xl border border-slate-200/80 space-y-1">
             <BotaoCadastroClientes variante="menu" aoClicar={handleClose} />
             <BotaoAnalisesEmpresariais variante="menu" aoClicar={handleClose} />
+            <BotaoEmailMarketing variante="menu-lateral" aoClicar={handleClose} />
           </div>
 
           {/* Item Página Inicial da Plataforma */}
