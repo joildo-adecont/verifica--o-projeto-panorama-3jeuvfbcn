@@ -21,7 +21,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog'
-import { OPCOES_REGIME_TRIBUTARIO } from '@/services/regimeHistoricoService'
+import { OPCOES_REGIME_TRIBUTARIO } from '@/types/cadastroEmpresas'
 import { UFS_BRASIL } from '@/services/radarMunicipios'
 import type { EmpresaRecord } from '@/types/cadastroEmpresas'
 import type { DadosEdicaoEmMassa } from '@/services/cadastroEmpresasMassa'

@@ -73,13 +73,14 @@ export async function editarClientesEmMassa(
       // Se houve alteração de regime, registra histórico de auditoria
       if (payload.regime_tributario && payload.regime_tributario !== cliente.regime_tributario) {
         registrarAlteracaoRegime({
-          empresa_id: recordId,
-          codigo: cliente.codigo,
-          razao_social: cliente.razao_social,
-          documento_limpo: cliente.documento_limpo,
-          regime_anterior: cliente.regime_tributario || '',
-          regime_novo: payload.regime_tributario,
-          motivo: 'Edição em massa no Cadastro Analítico de Clientes',
+          empresaId: recordId,
+          empresaCodigo: cliente.codigo,
+          empresaNome: cliente.razao_social,
+          empresaDocumento: cliente.documento_limpo || cliente.numero_documento,
+          regimeAnterior: cliente.regime_tributario || '',
+          regimeNovo: payload.regime_tributario,
+          origem: 'listagem',
+          observacao: 'Edição em massa no Cadastro Analítico de Clientes',
         }).catch((err) => {
           console.warn('[editarClientesEmMassa] Erro ao registrar auditoria:', err)
         })

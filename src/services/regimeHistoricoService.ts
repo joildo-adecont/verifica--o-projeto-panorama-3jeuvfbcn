@@ -17,6 +17,8 @@ import type {
   ResumoUltimaAlteracaoRegime,
 } from '../types/regimeHistorico'
 
+export { OPCOES_REGIME_TRIBUTARIO, type RegimeTributarioTipo } from '../types/cadastroEmpresas'
+
 export const EVENTO_REGIME_HISTORICO_ATUALIZADO = 'adecont:regime-historico-atualizado'
 
 const STORAGE_KEY_FALLBACK = 'adecont_regime_historico_cache'

@@ -30,12 +30,20 @@ import {
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { AdecontLogo } from '@/components/AdecontLogo'
+import { BarraAcoesMassaClientes } from '@/components/BarraAcoesMassaClientes'
+import { useToast } from '@/hooks/use-toast'
 import {
   listarEmpresasInativas,
   listarEmpresasInativasParaRelatorio,
   reativarCliente,
   type EmpresaInativa,
 } from '@/services/cadastroEmpresasInativos'
+import {
+  editarClientesEmMassa,
+  reativarClientesEmMassa,
+  type DadosEdicaoEmMassa,
+} from '@/services/cadastroEmpresasMassa'
+import type { EmpresaRecord } from '@/types/cadastroEmpresas'
 
 /**
  * CADASTRO ANALÍTICO DE CLIENTES INATIVOS
@@ -80,6 +88,11 @@ export default function CadastroClientesInativos() {
   const [reativando, setReativando] = useState<number | null>(null)
   const [gerandoRelatorio, setGerandoRelatorio] = useState<boolean>(false)
 
+  // Seleção múltipla para ações em massa
+  const [selecionadosCodigos, setSelecionadosCodigos] = useState<Set<number>>(new Set())
+  const [processandoMassa, setProcessandoMassa] = useState<boolean>(false)
+  const { toast } = useToast()
+
   const carregarDados = useCallback(async () => {
     setCarregando(true)
     setErro(null)
@@ -113,6 +126,123 @@ export default function CadastroClientesInativos() {
 
   const alternarExpansao = (codigo: number) => {
     setEmpresaExpandidaId((prev) => (prev === codigo ? null : codigo))
+  }
+
+  // Clientes selecionados mapeados a partir dos códigos
+  const clientesSelecionados: EmpresaRecord[] = useMemo(() => {
+    return empresas.filter((emp) => selecionadosCodigos.has(emp.codigo))
+  }, [empresas, selecionadosCodigos])
+
+  const todosPaginaSelecionados =
+    empresas.length > 0 && empresas.every((emp) => selecionadosCodigos.has(emp.codigo))
+
+  const alternarSelecionarTodosPagina = () => {
+    setSelecionadosCodigos((prev) => {
+      const next = new Set(prev)
+      if (todosPaginaSelecionados) {
+        empresas.forEach((emp) => next.delete(emp.codigo))
+      } else {
+        empresas.forEach((emp) => next.add(emp.codigo))
+      }
+      return next
+    })
+  }
+
+  const alternarSelecaoCliente = (codigo: number) => {
+    setSelecionadosCodigos((prev) => {
+      const next = new Set(prev)
+      if (next.has(codigo)) {
+        next.delete(codigo)
+      } else {
+        next.add(codigo)
+      }
+      return next
+    })
+  }
+
+  const limparSelecao = () => {
+    setSelecionadosCodigos(new Set())
+  }
+
+  // Execução de Edição em Massa para inativos
+  const handleExecutarEdicaoEmMassa = async (
+    clientes: EmpresaRecord[],
+    dados: DadosEdicaoEmMassa,
+  ) => {
+    setProcessandoMassa(true)
+    try {
+      const res = await editarClientesEmMassa(clientes, dados, 'cadastro_empresas_inativos')
+      if (res.sucessoCount > 0) {
+        toast({
+          title: 'Edição em massa concluída',
+          description: `${res.sucessoCount} ${res.sucessoCount === 1 ? 'cliente inativo atualizado' : 'clientes inativos atualizados'} com sucesso.`,
+        })
+
+        // Atualiza imediatamente o estado da listagem para feedback sem recarregar a página
+        setEmpresas((prev) =>
+          prev.map((emp) => {
+            if (selecionadosCodigos.has(emp.codigo)) {
+              return {
+                ...emp,
+                ...(dados.regime_tributario ? { regime_tributario: dados.regime_tributario } : {}),
+                ...(dados.municipio ? { municipio: dados.municipio } : {}),
+                ...(dados.uf ? { uf: dados.uf } : {}),
+              }
+            }
+            return emp
+          }),
+        )
+
+        limparSelecao()
+        await carregarDados()
+      } else {
+        toast({
+          title: 'Erro na edição em massa',
+          description: 'Nenhum cliente pôde ser atualizado. Verifique a conexão com o banco.',
+          variant: 'destructive',
+        })
+      }
+    } catch (e: any) {
+      console.error('Erro na edição em massa de inativos:', e)
+      toast({
+        title: 'Falha ao processar edição',
+        description: e?.message || 'Ocorreu um erro ao atualizar os clientes.',
+        variant: 'destructive',
+      })
+    } finally {
+      setProcessandoMassa(false)
+    }
+  }
+
+  // Execução de Reativação em Massa
+  const handleExecutarReativacaoEmMassa = async (clientes: EmpresaRecord[]) => {
+    setProcessandoMassa(true)
+    try {
+      const res = await reativarClientesEmMassa(clientes)
+      if (res.sucessoCount > 0) {
+        toast({
+          title: 'Reativação em massa concluída',
+          description: `${res.sucessoCount} ${res.sucessoCount === 1 ? 'cliente reativado' : 'clientes reativados'} e restaurados no Cadastro Analítico de Clientes.`,
+        })
+        limparSelecao()
+        await carregarDados()
+      } else {
+        toast({
+          title: 'Erro na reativação em massa',
+          description: 'Não foi possível reativar os clientes selecionados.',
+          variant: 'destructive',
+        })
+      }
+    } catch (e: any) {
+      console.error('Erro na reativação em massa:', e)
+      toast({
+        title: 'Falha ao reativar clientes',
+        description: e?.message || 'Ocorreu um erro ao reativar os clientes.',
+        variant: 'destructive',
+      })
+    } finally {
+      setProcessandoMassa(false)
+    }
   }
 
   /**
@@ -365,12 +495,31 @@ td{border-bottom:1px solid #ddd;padding:3px 5px}
           </div>
         </section>
 
+        {/* BARRA DE AÇÕES EM MASSA */}
+        <BarraAcoesMassaClientes
+          clientesSelecionados={clientesSelecionados}
+          modo="inativos"
+          processando={processandoMassa}
+          onLimparSelecao={limparSelecao}
+          onExecutarEdicaoEmMassa={handleExecutarEdicaoEmMassa}
+          onExecutarReativacaoEmMassa={handleExecutarReativacaoEmMassa}
+        />
+
         {/* TABELA DE CLIENTES INATIVOS */}
         <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="bg-[#2C3E50] text-white font-medium border-b border-[#1F2D3D] select-none">
+                  <th className="py-3 px-2 w-10 text-center">
+                    <input
+                      type="checkbox"
+                      aria-label="Selecionar todos os clientes da página"
+                      checked={todosPaginaSelecionados}
+                      onChange={alternarSelecionarTodosPagina}
+                      className="rounded border-slate-300 text-[#2C3E50] focus:ring-[#2C3E50] h-4 w-4 cursor-pointer"
+                    />
+                  </th>
                   <th className="py-3 px-3 w-16 text-center">Cód.</th>
                   <th className="py-3 px-4 min-w-[240px]">Razão Social / Nome</th>
                   <th className="py-3 px-3 min-w-[150px]">CNPJ / CPF</th>
@@ -390,6 +539,9 @@ td{border-bottom:1px solid #ddd;padding:3px 5px}
                 {carregando ? (
                   Array.from({ length: 6 }).map((_, i) => (
                     <tr key={`skel-ina-${i}`} className="animate-pulse">
+                      <td className="py-3.5 px-2 text-center">
+                        <div className="h-4 w-4 bg-slate-200 rounded mx-auto" />
+                      </td>
                       <td className="py-3.5 px-3 text-center">
                         <div className="h-4 w-8 bg-slate-200 rounded mx-auto" />
                       </td>
@@ -419,7 +571,7 @@ td{border-bottom:1px solid #ddd;padding:3px 5px}
                   ))
                 ) : empresas.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="py-12 text-center text-slate-500">
+                    <td colSpan={9} className="py-12 text-center text-slate-500">
                       <div className="max-w-xs mx-auto flex flex-col items-center gap-2">
                         <Building2 className="w-8 h-8 text-slate-300" />
                         <span className="font-semibold text-slate-700">
@@ -440,9 +592,24 @@ td{border-bottom:1px solid #ddd;padding:3px 5px}
                       <tr
                         key={`${emp.id}-${emp.codigo}`}
                         className={`hover:bg-slate-50 transition-colors ${
-                          aberto ? 'bg-amber-50/20' : ''
+                          selecionadosCodigos.has(emp.codigo)
+                            ? 'bg-sky-50/60'
+                            : aberto
+                              ? 'bg-amber-50/20'
+                              : ''
                         }`}
                       >
+                        {/* Checkbox de seleção */}
+                        <td className="py-3 px-2 text-center">
+                          <input
+                            type="checkbox"
+                            aria-label={`Selecionar cliente ${emp.razao_social || emp.codigo}`}
+                            checked={selecionadosCodigos.has(emp.codigo)}
+                            onChange={() => alternarSelecaoCliente(emp.codigo)}
+                            className="rounded border-slate-300 text-[#2C3E50] focus:ring-[#2C3E50] h-4 w-4 cursor-pointer"
+                          />
+                        </td>
+
                         {/* Código */}
                         <td className="py-3 px-3 text-center font-mono font-bold text-[#2C3E50]">
                           #{emp.codigo}

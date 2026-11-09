@@ -564,6 +564,11 @@ export default function CadastroClientes() {
           title: 'Inativação em massa concluída',
           description: `${res.sucessoCount} ${res.sucessoCount === 1 ? 'cliente inativado' : 'clientes inativados'} e transferidos para o Cadastro de Inativos.`,
         })
+
+        // Remove imediatamente os clientes inativados da listagem para feedback sem recarregar
+        const codigosInativados = new Set(clientes.map((c) => c.codigo))
+        setEmpresas((prev) => prev.filter((emp) => !codigosInativados.has(emp.codigo)))
+
         limparSelecao()
         await carregarDados()
       } else {
