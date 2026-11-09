@@ -28,6 +28,7 @@ import {
   Loader2,
   Power,
   UserX,
+  FileInput,
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { AdecontLogo } from '@/components/AdecontLogo'
@@ -54,6 +55,7 @@ import { RelatorioClientesImprimivel } from '@/components/RelatorioClientesImpri
 import { ModalFichaClienteDetalhada } from '@/components/ModalFichaClienteDetalhada'
 import { ModalGerenciarCamposPersonalizados } from '@/components/ModalGerenciarCamposPersonalizados'
 import { ModalImportExportMassaClientes } from '@/components/ModalImportExportMassaClientes'
+import { ModalRecepcionarDocumentoCliente } from '@/components/ModalRecepcionarDocumentoCliente'
 import { listarCamposPersonalizados } from '@/services/clienteDadosComplementaresService'
 import type { CampoPersonalizadoDef } from '@/types/clienteDadosComplementares'
 import { Sliders, Upload, Download } from 'lucide-react'
@@ -103,6 +105,10 @@ export default function CadastroClientes() {
   const [camposDef, setCamposDef] = useState<CampoPersonalizadoDef[]>([])
   const [modalGerenciarCamposAberto, setModalGerenciarCamposAberto] = useState<boolean>(false)
   const [modalImportExportAberto, setModalImportExportAberto] = useState<boolean>(false)
+
+  // Atalho "Recepcionar Documento" nesta tela (mesmo fluxo de /analises-empresariais)
+  const [modalRecepcaoAberto, setModalRecepcaoAberto] = useState<boolean>(false)
+  const [avisoRecepcao, setAvisoRecepcao] = useState<string | null>(null)
 
   // Seleção e Ações em Massa
   const { toast } = useToast()
@@ -802,6 +808,15 @@ export default function CadastroClientes() {
           </div>
 
           <div className="flex items-center gap-2 self-stretch sm:self-auto justify-end">
+            <button
+              onClick={() => setModalRecepcaoAberto(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-xs font-bold text-white transition-colors shadow-sm cursor-pointer"
+              title="Recepcionar documento (contrato social, certidão...) e criar ou vincular cliente"
+            >
+              <FileInput className="w-3.5 h-3.5" />
+              <span>Recepcionar Documento</span>
+            </button>
+
             <Link
               to="/"
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-semibold text-slate-100 transition-colors border border-white/10"
@@ -927,6 +942,23 @@ export default function CadastroClientes() {
               Abrir Cadastro de Clientes Inativos
               <ExternalLink className="w-3.5 h-3.5" />
             </Link>
+          </div>
+        )}
+
+        {/* AVISO DE RECEPÇÃO — confirma criação/vínculo do cliente pelo atalho */}
+        {abaAtiva === 'ativos' && avisoRecepcao && (
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-emerald-300 bg-emerald-50 p-3 text-xs text-emerald-900">
+            <span className="inline-flex items-center gap-2">
+              <FileInput className="w-4 h-4 text-emerald-600 shrink-0" />
+              {avisoRecepcao}
+            </span>
+            <button
+              onClick={() => setAvisoRecepcao(null)}
+              className="ml-auto text-emerald-600 hover:text-emerald-800 font-bold px-2"
+              aria-label="Fechar aviso"
+            >
+              ×
+            </button>
           </div>
         )}
 
@@ -1536,6 +1568,26 @@ export default function CadastroClientes() {
         camposDef={camposDef}
         onFechar={() => setModalImportExportAberto(false)}
         onSucessoImportacao={() => {
+          carregarDados()
+        }}
+      />
+
+      {/* MODAL DE RECEPÇÃO DE DOCUMENTO — MESMO FLUXO DE /ANALISES-EMPRESARIAIS */}
+      <ModalRecepcionarDocumentoCliente
+        aberto={modalRecepcaoAberto}
+        aoFechar={() => setModalRecepcaoAberto(false)}
+        onClientePronto={(cliente, criado) => {
+          setAvisoRecepcao(
+            criado
+              ? `Cliente "${cliente.razao_social}" cadastrado (código ${cliente.codigo}) com o documento recepcionado vinculado à ficha.`
+              : `Cliente "${cliente.razao_social}" já existia — documento recepcionado vinculado à ficha.`,
+          )
+          toast({
+            title: criado
+              ? 'Cliente criado com documento recepcionado'
+              : 'Documento vinculado à ficha existente',
+            description: `${cliente.razao_social} (código ${cliente.codigo}).`,
+          })
           carregarDados()
         }}
       />
