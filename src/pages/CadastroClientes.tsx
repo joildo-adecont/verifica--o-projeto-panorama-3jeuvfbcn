@@ -778,9 +778,6 @@ export default function CadastroClientes() {
                       </th>
                       <th className="py-3 px-3 min-w-[170px]">Apelido / Fantasia</th>
                       <th className="py-3 px-3 min-w-[150px]">CNPJ / CPF</th>
-                      <th className="py-3 px-3 min-w-[210px]">Regime Tributário</th>
-                      <th className="py-3 px-3 min-w-[140px]">Município / UF</th>
-                      <th className="py-3 px-3 min-w-[130px]">Contato</th>
                       <th className="py-3 px-3 w-24 text-center">Situação</th>
                       <th className="py-3 px-3 min-w-[130px] text-center bg-[#13335A]/60">
                         <span className="inline-flex items-center gap-1 font-bold text-white tracking-wide">
@@ -788,6 +785,9 @@ export default function CadastroClientes() {
                           <span>Status / Ação</span>
                         </span>
                       </th>
+                      <th className="py-3 px-3 min-w-[210px]">Regime Tributário</th>
+                      <th className="py-3 px-3 min-w-[140px]">Município / UF</th>
+                      <th className="py-3 px-3 min-w-[130px]">Contato</th>
                       <th className="py-3 px-3 w-16 text-center">Ficha</th>
                     </tr>
                   </thead>
@@ -808,20 +808,20 @@ export default function CadastroClientes() {
                           <td className="py-3.5 px-3">
                             <div className="h-4 w-28 bg-slate-200 rounded" />
                           </td>
-                          <td className="py-3.5 px-3">
-                            <div className="h-4 w-24 bg-slate-200 rounded" />
-                          </td>
-                          <td className="py-3.5 px-3">
-                            <div className="h-4 w-24 bg-slate-200 rounded" />
-                          </td>
-                          <td className="py-3.5 px-3">
-                            <div className="h-4 w-24 bg-slate-200 rounded" />
-                          </td>
                           <td className="py-3.5 px-3 text-center">
                             <div className="h-4 w-12 bg-slate-200 rounded mx-auto" />
                           </td>
                           <td className="py-3.5 px-3 text-center">
                             <div className="h-6 w-20 bg-slate-200 rounded mx-auto" />
+                          </td>
+                          <td className="py-3.5 px-3">
+                            <div className="h-4 w-24 bg-slate-200 rounded" />
+                          </td>
+                          <td className="py-3.5 px-3">
+                            <div className="h-4 w-24 bg-slate-200 rounded" />
+                          </td>
+                          <td className="py-3.5 px-3">
+                            <div className="h-4 w-24 bg-slate-200 rounded" />
                           </td>
                           <td className="py-3.5 px-3 text-center">
                             <div className="h-4 w-8 bg-slate-200 rounded mx-auto" />
@@ -891,6 +891,55 @@ export default function CadastroClientes() {
                                   />
                                 </div>
                               </div>
+                            </td>
+
+                            {/* Situação */}
+                            <td className="py-3 px-3 text-center">
+                              <span
+                                className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide ${
+                                  emp.situacao?.toLowerCase() === 'ativa'
+                                    ? 'bg-emerald-100 text-emerald-800'
+                                    : 'bg-slate-100 text-slate-600'
+                                }`}
+                              >
+                                {emp.situacao || 'Ativa'}
+                              </span>
+                            </td>
+
+                            {/* TECLA INDIVIDUAL ATIVO / INATIVO — Pedido do CEO */}
+                            <td className="py-2.5 px-3 text-center whitespace-nowrap bg-slate-50/40">
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleInativar(emp)
+                                }}
+                                disabled={inativandoCodigo === emp.codigo}
+                                title={`Cliente atualmente ATIVO. Clique ou toque para inativar "${emp.razao_social || emp.codigo}" e transferi-lo para o Cadastro de Clientes Inativos.`}
+                                aria-label={`Status Ativo: clique para inativar ${emp.razao_social || emp.codigo}`}
+                                className="group relative inline-flex items-center justify-center gap-1.5 min-w-[92px] px-2.5 py-1 text-[11px] font-bold rounded-full border border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-rose-50 hover:border-rose-300 hover:text-rose-700 active:scale-95 transition-all shadow-xs disabled:opacity-50 disabled:pointer-events-none cursor-pointer select-none touch-manipulation focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/50"
+                              >
+                                {inativandoCodigo === emp.codigo ? (
+                                  <>
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-700 group-hover:text-rose-600 shrink-0" />
+                                    <span className="font-semibold text-[10.5px]">Inativando…</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    {/* Indicador visual de estado Ativo com hover para Inativar */}
+                                    <span className="relative flex h-2 w-2 shrink-0">
+                                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60 group-hover:opacity-0" />
+                                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-600 group-hover:bg-rose-600 transition-colors" />
+                                    </span>
+                                    <UserCheck className="w-3.5 h-3.5 text-emerald-700 group-hover:hidden shrink-0" />
+                                    <UserX className="w-3.5 h-3.5 text-rose-600 hidden group-hover:inline-block shrink-0" />
+                                    <span className="group-hover:hidden font-bold">Ativo</span>
+                                    <span className="hidden group-hover:inline-block font-bold text-rose-700">
+                                      Inativar
+                                    </span>
+                                  </>
+                                )}
+                              </button>
                             </td>
 
                             {/* Regime Tributário (Select Inline com Auto-Save e Badge Visual) */}
@@ -1024,55 +1073,6 @@ export default function CadastroClientes() {
                                   <span className="text-slate-400 italic">—</span>
                                 )}
                               </div>
-                            </td>
-
-                            {/* Situação */}
-                            <td className="py-3 px-3 text-center">
-                              <span
-                                className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide ${
-                                  emp.situacao?.toLowerCase() === 'ativa'
-                                    ? 'bg-emerald-100 text-emerald-800'
-                                    : 'bg-slate-100 text-slate-600'
-                                }`}
-                              >
-                                {emp.situacao || 'Ativa'}
-                              </span>
-                            </td>
-
-                            {/* TECLA INDIVIDUAL ATIVO / INATIVO — Pedido do CEO */}
-                            <td className="py-2.5 px-3 text-center whitespace-nowrap bg-slate-50/40">
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  handleInativar(emp)
-                                }}
-                                disabled={inativandoCodigo === emp.codigo}
-                                title={`Cliente atualmente ATIVO. Clique ou toque para inativar "${emp.razao_social || emp.codigo}" e transferi-lo para o Cadastro de Clientes Inativos.`}
-                                aria-label={`Status Ativo: clique para inativar ${emp.razao_social || emp.codigo}`}
-                                className="group relative inline-flex items-center justify-center gap-1.5 min-w-[92px] px-2.5 py-1 text-[11px] font-bold rounded-full border border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-rose-50 hover:border-rose-300 hover:text-rose-700 active:scale-95 transition-all shadow-xs disabled:opacity-50 disabled:pointer-events-none cursor-pointer select-none touch-manipulation focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/50"
-                              >
-                                {inativandoCodigo === emp.codigo ? (
-                                  <>
-                                    <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-700 group-hover:text-rose-600 shrink-0" />
-                                    <span className="font-semibold text-[10.5px]">Inativando…</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    {/* Indicador visual de estado Ativo com hover para Inativar */}
-                                    <span className="relative flex h-2 w-2 shrink-0">
-                                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60 group-hover:opacity-0" />
-                                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-600 group-hover:bg-rose-600 transition-colors" />
-                                    </span>
-                                    <UserCheck className="w-3.5 h-3.5 text-emerald-700 group-hover:hidden shrink-0" />
-                                    <UserX className="w-3.5 h-3.5 text-rose-600 hidden group-hover:inline-block shrink-0" />
-                                    <span className="group-hover:hidden font-bold">Ativo</span>
-                                    <span className="hidden group-hover:inline-block font-bold text-rose-700">
-                                      Inativar
-                                    </span>
-                                  </>
-                                )}
-                              </button>
                             </td>
 
                             {/* Ficha completa / Detalhes */}

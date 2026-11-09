@@ -374,8 +374,6 @@ td{border-bottom:1px solid #ddd;padding:3px 5px}
                   <th className="py-3 px-3 w-16 text-center">Cód.</th>
                   <th className="py-3 px-4 min-w-[240px]">Razão Social / Nome</th>
                   <th className="py-3 px-3 min-w-[150px]">CNPJ / CPF</th>
-                  <th className="py-3 px-3 min-w-[140px]">Município / UF</th>
-                  <th className="py-3 px-3 min-w-[110px]">CNAE</th>
                   <th className="py-3 px-3 w-24 text-center">Situação</th>
                   <th className="py-3 px-3 min-w-[130px] text-center bg-[#1F2D3D]/80">
                     <span className="inline-flex items-center gap-1 font-bold text-white tracking-wide">
@@ -383,6 +381,8 @@ td{border-bottom:1px solid #ddd;padding:3px 5px}
                       <span>Status / Ação</span>
                     </span>
                   </th>
+                  <th className="py-3 px-3 min-w-[140px]">Município / UF</th>
+                  <th className="py-3 px-3 min-w-[110px]">CNAE</th>
                   <th className="py-3 px-3 w-16 text-center">Ficha</th>
                 </tr>
               </thead>
@@ -400,17 +400,17 @@ td{border-bottom:1px solid #ddd;padding:3px 5px}
                       <td className="py-3.5 px-3">
                         <div className="h-4 w-28 bg-slate-200 rounded" />
                       </td>
-                      <td className="py-3.5 px-3">
-                        <div className="h-4 w-24 bg-slate-200 rounded" />
-                      </td>
-                      <td className="py-3.5 px-3">
-                        <div className="h-4 w-20 bg-slate-200 rounded" />
-                      </td>
                       <td className="py-3.5 px-3 text-center">
                         <div className="h-4 w-12 bg-slate-200 rounded mx-auto" />
                       </td>
                       <td className="py-3.5 px-3 text-center">
                         <div className="h-6 w-20 bg-slate-200 rounded mx-auto" />
+                      </td>
+                      <td className="py-3.5 px-3">
+                        <div className="h-4 w-24 bg-slate-200 rounded" />
+                      </td>
+                      <td className="py-3.5 px-3">
+                        <div className="h-4 w-20 bg-slate-200 rounded" />
                       </td>
                       <td className="py-3.5 px-3 text-center">
                         <div className="h-4 w-8 bg-slate-200 rounded mx-auto" />
@@ -470,26 +470,6 @@ td{border-bottom:1px solid #ddd;padding:3px 5px}
                           {emp.numero_documento || '—'}
                         </td>
 
-                        {/* Município / UF */}
-                        <td className="py-3 px-3 text-slate-600">
-                          {emp.municipio ? (
-                            <span className="inline-flex items-center gap-1">
-                              <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
-                              <span>
-                                {emp.municipio}
-                                {emp.uf ? `/${emp.uf}` : ''}
-                              </span>
-                            </span>
-                          ) : (
-                            <span className="text-slate-400">—</span>
-                          )}
-                        </td>
-
-                        {/* CNAE */}
-                        <td className="py-3 px-3 text-slate-600 font-mono text-[11px]">
-                          {emp.cnae || '—'}
-                        </td>
-
                         {/* Situação */}
                         <td className="py-3 px-3 text-center">
                           <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-200 text-slate-700">
@@ -529,6 +509,26 @@ td{border-bottom:1px solid #ddd;padding:3px 5px}
                               </>
                             )}
                           </button>
+                        </td>
+
+                        {/* Município / UF */}
+                        <td className="py-3 px-3 text-slate-600">
+                          {emp.municipio ? (
+                            <span className="inline-flex items-center gap-1">
+                              <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
+                              <span>
+                                {emp.municipio}
+                                {emp.uf ? `/${emp.uf}` : ''}
+                              </span>
+                            </span>
+                          ) : (
+                            <span className="text-slate-400">—</span>
+                          )}
+                        </td>
+
+                        {/* CNAE */}
+                        <td className="py-3 px-3 text-slate-600 font-mono text-[11px]">
+                          {emp.cnae || '—'}
                         </td>
 
                         {/* Ficha completa / Detalhes */}
