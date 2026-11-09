@@ -124,6 +124,34 @@ export function obterBadgeOrigem(origem?: OrigemAlteracaoRegime | string): Badge
         text: 'text-slate-800',
         border: 'border-slate-300',
       }
+    case 'edicao_em_massa':
+      return {
+        label: 'Edição em Massa',
+        bg: 'bg-purple-50',
+        text: 'text-purple-800',
+        border: 'border-purple-300',
+      }
+    case 'status_inativacao':
+      return {
+        label: 'Inativação de Status',
+        bg: 'bg-rose-50',
+        text: 'text-rose-800',
+        border: 'border-rose-300',
+      }
+    case 'status_reativacao':
+      return {
+        label: 'Reativação de Status',
+        bg: 'bg-emerald-50',
+        text: 'text-emerald-800',
+        border: 'border-emerald-300',
+      }
+    case 'status_individual':
+      return {
+        label: 'Alteração de Status',
+        bg: 'bg-blue-50',
+        text: 'text-blue-800',
+        border: 'border-blue-300',
+      }
     default:
       return {
         label: origem ? String(origem) : 'ADECONT',
@@ -147,6 +175,14 @@ export function formatarOrigemAlteracao(origem: OrigemAlteracaoRegime | string):
       return 'Banner do Diagnóstico Tributário'
     case 'parametrizador':
       return 'Parametrizador Tributário'
+    case 'edicao_em_massa':
+      return 'Edição em Massa'
+    case 'status_inativacao':
+      return 'Inativação Individual de Status'
+    case 'status_reativacao':
+      return 'Reativação Individual de Status'
+    case 'status_individual':
+      return 'Alteração Individual de Status'
     default:
       return origem || 'Sistema ADECONT'
   }

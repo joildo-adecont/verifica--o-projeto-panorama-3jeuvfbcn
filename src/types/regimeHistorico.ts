@@ -8,6 +8,10 @@ export type OrigemAlteracaoRegime =
   | 'ficha_cadastral'
   | 'banner_diagnostico'
   | 'parametrizador'
+  | 'edicao_em_massa'
+  | 'status_inativacao'
+  | 'status_reativacao'
+  | 'status_individual'
 
 export interface RegistroHistoricoRegime {
   id?: string

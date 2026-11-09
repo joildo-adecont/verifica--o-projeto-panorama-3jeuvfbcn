@@ -332,6 +332,9 @@ routerAdd('POST', '/backend/v1/inativos-reativar', (e) => {
     /* marca como reativado em vez de apagar: preserva a história */
     registro.set('reativado', true)
     registro.set('reativado_em', new Date().toISOString())
+    if (corpo && corpo.motivo) {
+      registro.set('motivo_transferencia', 'Reativado: ' + String(corpo.motivo).slice(0, 250))
+    }
     app.save(registro)
 
     return e.json(200, {

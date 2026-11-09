@@ -189,7 +189,10 @@ export async function inativarCliente(
 }
 
 /** Devolve o cliente ao cadastro ativo. */
-export async function reativarCliente(codigo: number): Promise<{ ok: boolean; mensagem?: string }> {
+export async function reativarCliente(
+  codigo: number,
+  motivo?: string,
+): Promise<{ ok: boolean; mensagem?: string }> {
   const backend =
     import.meta.env.VITE_POCKETBASE_URL?.replace(/\/$/, '') ||
     'https://verificacao-projeto-panorama-18549.shrd02.internal.goskip.dev'
@@ -200,7 +203,7 @@ export async function reativarCliente(codigo: number): Promise<{ ok: boolean; me
   const r = await fetch(`${backend}/backend/v1/inativos-reativar`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'X-Painel-Token': token },
-    body: JSON.stringify({ codigo }),
+    body: JSON.stringify({ codigo, motivo }),
   })
   const j = await r.json()
   if (!r.ok) throw new Error(j.erro || `Falha (${r.status})`)
