@@ -28,6 +28,7 @@ import type { EmpresaRecord } from '@/types/cadastroEmpresas'
 import type {
   DadosEdicaoEmMassa,
   DadosAlteracaoStatusEmMassa,
+  DadosAlteracaoRegimeEmMassa,
 } from '@/services/cadastroEmpresasMassa'
 
 export interface BarraAcoesMassaClientesProps {
@@ -42,9 +43,13 @@ export interface BarraAcoesMassaClientesProps {
     clientes: EmpresaRecord[],
     dados: DadosAlteracaoStatusEmMassa,
   ) => Promise<void>
+  onExecutarAlteracaoRegimeEmMassa?: (
+    clientes: EmpresaRecord[],
+    dados: DadosAlteracaoRegimeEmMassa,
+  ) => Promise<void>
 }
 
-type ModalAcao = 'edicao' | 'status' | 'inativar' | 'reativar' | null
+type ModalAcao = 'edicao' | 'regime' | 'status' | 'inativar' | 'reativar' | null
 
 export const BarraAcoesMassaClientes: React.FC<BarraAcoesMassaClientesProps> = ({
   clientesSelecionados,
@@ -55,16 +60,23 @@ export const BarraAcoesMassaClientes: React.FC<BarraAcoesMassaClientesProps> = (
   onExecutarReativacaoEmMassa,
   onExecutarEdicaoEmMassa,
   onExecutarAlteracaoStatusEmMassa,
+  onExecutarAlteracaoRegimeEmMassa,
 }) => {
   const [modalAberto, setModalAberto] = useState<ModalAcao>(null)
 
-  // Estados dos campos de edição em massa
+  // Estados dos campos de edição em massa (campos comuns)
   const [alterarRegime, setAlterarRegime] = useState(false)
   const [novoRegime, setNovoRegime] = useState('')
   const [alterarMunicipio, setAlterarMunicipio] = useState(false)
   const [novoMunicipio, setNovoMunicipio] = useState('')
   const [alterarUf, setAlterarUf] = useState(false)
   const [novaUf, setNovaUf] = useState('')
+
+  // Estados da ação dedicada: Alterar Regime Tributário
+  const [regimeDedicado, setRegimeDedicado] = useState('')
+  const [motivoRegime, setMotivoRegime] = useState('')
+
+  // Estados da ação de status e inativação
   const [novoStatus, setNovoStatus] = useState<string>('')
   const [motivoStatus, setMotivoStatus] = useState('')
   const [motivoInativacao, setMotivoInativacao] = useState('')
@@ -80,6 +92,12 @@ export const BarraAcoesMassaClientes: React.FC<BarraAcoesMassaClientesProps> = (
     setAlterarUf(false)
     setNovaUf('')
     setModalAberto('edicao')
+  }
+
+  const abrirModalRegime = () => {
+    setRegimeDedicado('')
+    setMotivoRegime('')
+    setModalAberto('regime')
   }
 
   const abrirModalStatus = () => {
@@ -103,6 +121,19 @@ export const BarraAcoesMassaClientes: React.FC<BarraAcoesMassaClientesProps> = (
       if (alterarUf && novaUf) dados.uf = novaUf
 
       await onExecutarEdicaoEmMassa(clientesSelecionados, dados)
+      setModalAberto(null)
+    } else if (modalAberto === 'regime' && regimeDedicado) {
+      if (onExecutarAlteracaoRegimeEmMassa) {
+        await onExecutarAlteracaoRegimeEmMassa(clientesSelecionados, {
+          novoRegime: regimeDedicado,
+          motivo: motivoRegime,
+        })
+      } else {
+        // Fallback transparente usando onExecutarEdicaoEmMassa caso a prop dedicada não tenha sido passada
+        await onExecutarEdicaoEmMassa(clientesSelecionados, {
+          regime_tributario: regimeDedicado,
+        })
+      }
       setModalAberto(null)
     } else if (modalAberto === 'status' && onExecutarAlteracaoStatusEmMassa && novoStatus) {
       await onExecutarAlteracaoStatusEmMassa(clientesSelecionados, {
@@ -148,6 +179,19 @@ export const BarraAcoesMassaClientes: React.FC<BarraAcoesMassaClientesProps> = (
         </div>
 
         <div className="flex items-center flex-wrap gap-2">
+          {/* Botão Dedicado: Alterar Regime Tributário em Massa */}
+          <Button
+            type="button"
+            size="sm"
+            onClick={abrirModalRegime}
+            disabled={processando}
+            className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs sm:text-sm h-8 px-3 shadow-sm border border-emerald-400/30"
+            title="Alterar o regime tributário de todos os clientes selecionados"
+          >
+            <Building2 className="w-3.5 h-3.5 mr-1.5" />
+            Alterar Regime
+          </Button>
+
           {/* Botão de Edição de Campos Comuns */}
           <Button
             type="button"
@@ -360,6 +404,101 @@ export const BarraAcoesMassaClientes: React.FC<BarraAcoesMassaClientesProps> = (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   Salvando alterações...
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className="w-4 h-4 mr-2" />
+                  Confirmar e Aplicar ({count})
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal Dedicado: Alterar Regime Tributário em Massa */}
+      <Dialog open={modalAberto === 'regime'} onOpenChange={(open) => !open && fecharModal()}>
+        <DialogContent className="max-w-md bg-white border border-slate-200 text-slate-800 shadow-2xl">
+          <DialogHeader>
+            <div className="flex items-center gap-2">
+              <div className="p-2 rounded-lg bg-emerald-100 text-emerald-800">
+                <Building2 className="w-5 h-5" />
+              </div>
+              <div>
+                <DialogTitle className="text-base sm:text-lg font-bold text-slate-900">
+                  Alterar Regime Tributário em Massa
+                </DialogTitle>
+                <DialogDescription className="text-xs text-slate-500">
+                  Selecione o novo regime para os {count}{' '}
+                  {count === 1 ? 'cliente selecionado' : 'clientes selecionados'}.
+                </DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+
+          <div className="space-y-3.5 py-2 text-xs sm:text-sm">
+            <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-600 flex items-start gap-2">
+              <AlertTriangle className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+              <span>
+                O regime tributário de todos os <strong>{count} clientes selecionados</strong> será
+                atualizado de uma só vez, com registro de histórico para auditoria.
+              </span>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-800 flex items-center gap-1.5">
+                <span>Novo Regime Tributário:</span>
+                <span className="text-rose-500">*</span>
+              </label>
+              <select
+                aria-label="Selecionar novo regime tributário em massa"
+                value={regimeDedicado}
+                onChange={(e) => setRegimeDedicado(e.target.value)}
+                className="w-full text-xs sm:text-sm rounded-md border border-slate-300 bg-white px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-600 font-medium"
+              >
+                <option value="">Selecione o novo regime...</option>
+                {OPCOES_REGIME_TRIBUTARIO.map((reg) => (
+                  <option key={reg} value={reg}>
+                    {reg}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-800">
+                Motivo da alteração de regime (opcional):
+              </label>
+              <Input
+                type="text"
+                value={motivoRegime}
+                onChange={(e) => setMotivoRegime(e.target.value)}
+                placeholder="Ex.: Opção pelo Simples Nacional exercício 2026 / Planejamento Tributário"
+                className="text-xs sm:text-sm h-8"
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-0 pt-2 border-t border-slate-100">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={fecharModal}
+              disabled={processando}
+              className="text-xs sm:text-sm"
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              onClick={handleConfirmarAcao}
+              disabled={processando || !regimeDedicado}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-semibold"
+            >
+              {processando ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Salvando regime...
                 </>
               ) : (
                 <>

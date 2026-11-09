@@ -39,10 +39,12 @@ import {
 import { inativarCliente, listarEmpresasInativas } from '@/services/cadastroEmpresasInativos'
 import {
   editarClientesEmMassa,
+  alterarRegimeClientesEmMassa,
   inativarClientesEmMassa,
   alterarStatusClientesEmMassa,
   DadosEdicaoEmMassa,
   DadosAlteracaoStatusEmMassa,
+  DadosAlteracaoRegimeEmMassa,
 } from '@/services/cadastroEmpresasMassa'
 import { BarraAcoesMassaClientes } from '@/components/BarraAcoesMassaClientes'
 import { useToast } from '@/hooks/use-toast'
@@ -506,7 +508,58 @@ export default function CadastroClientes() {
     setSelecionadosCodigos(new Set())
   }
 
-  // Execução de Edição em Massa
+  // Execução de Edição de Regime em Massa (Ação dedicada)
+  const handleExecutarAlteracaoRegimeEmMassa = async (
+    clientes: EmpresaRecord[],
+    dados: DadosAlteracaoRegimeEmMassa,
+  ) => {
+    setProcessandoMassa(true)
+    try {
+      const res = await alterarRegimeClientesEmMassa(clientes, dados, 'cadastro_empresas')
+      if (res.sucessoCount > 0) {
+        toast({
+          title: 'Regime tributário atualizado em massa',
+          description: `Regime alterado para "${dados.novoRegime}" em ${res.sucessoCount} ${
+            res.sucessoCount === 1 ? 'cliente' : 'clientes'
+          } com sucesso.`,
+        })
+
+        // Atualização otimista imediata na tabela sem recarregar a página
+        const codigosAfetados = new Set(clientes.map((c) => c.codigo))
+        setEmpresas((prev) =>
+          prev.map((emp) => {
+            if (codigosAfetados.has(emp.codigo)) {
+              return {
+                ...emp,
+                regime_tributario: dados.novoRegime,
+              }
+            }
+            return emp
+          }),
+        )
+
+        limparSelecao()
+        await carregarDados()
+      } else {
+        toast({
+          title: 'Erro ao alterar regime em massa',
+          description: 'Nenhum cliente pôde ter o regime alterado.',
+          variant: 'destructive',
+        })
+      }
+    } catch (e: any) {
+      console.error('Erro na alteração de regime em massa:', e)
+      toast({
+        title: 'Falha ao alterar regime',
+        description: e?.message || 'Ocorreu um erro ao atualizar os regimes.',
+        variant: 'destructive',
+      })
+    } finally {
+      setProcessandoMassa(false)
+    }
+  }
+
+  // Execução de Edição em Massa (campos comuns)
   const handleExecutarEdicaoEmMassa = async (
     clientes: EmpresaRecord[],
     dados: DadosEdicaoEmMassa,
@@ -957,6 +1010,7 @@ export default function CadastroClientes() {
               modo="ativos"
               processando={processandoMassa}
               onLimparSelecao={limparSelecao}
+              onExecutarAlteracaoRegimeEmMassa={handleExecutarAlteracaoRegimeEmMassa}
               onExecutarEdicaoEmMassa={handleExecutarEdicaoEmMassa}
               onExecutarInativacaoEmMassa={handleExecutarInativacaoEmMassa}
               onExecutarAlteracaoStatusEmMassa={handleExecutarAlteracaoStatusEmMassa}

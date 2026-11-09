@@ -24,6 +24,11 @@ export interface DadosAlteracaoStatusEmMassa {
   motivo?: string
 }
 
+export interface DadosAlteracaoRegimeEmMassa {
+  novoRegime: string
+  motivo?: string
+}
+
 export interface ResultadoOperacaoEmMassa {
   totalSolicitado: number
   sucessoCount: number
@@ -104,6 +109,76 @@ export async function editarClientesEmMassa(
 
   return resultado
 }
+
+/**
+ * Altera o Regime Tributário de múltiplos clientes em lote como ação dedicada.
+ * Suporta a coleção ativa ('cadastro_empresas') ou inativa ('cadastro_empresas_inativos').
+ * Registra histórico de auditoria em `regime_historico` para cada cliente afetado.
+ */
+export async function alterarRegimeClientesEmMassa(
+  clientes: EmpresaRecord[],
+  dados: DadosAlteracaoRegimeEmMassa,
+  colecao: 'cadastro_empresas' | 'cadastro_empresas_inativos' = 'cadastro_empresas',
+): Promise<ResultadoOperacaoEmMassa> {
+  const resultado: ResultadoOperacaoEmMassa = {
+    totalSolicitado: clientes.length,
+    sucessoCount: 0,
+    falhaCount: 0,
+    erros: [],
+  }
+
+  const novoRegime = (dados.novoRegime || '').trim()
+  if (!novoRegime) {
+    return resultado
+  }
+
+  const motivo = (dados.motivo || '').trim() || 'Alteração de regime tributário em massa'
+
+  for (const cliente of clientes) {
+    try {
+      let recordId = cliente.id
+
+      // Se não temos o ID direto do PB, busca pelo código
+      if (!recordId) {
+        const item = await pb.collection(colecao).getFirstListItem(`codigo = ${cliente.codigo}`)
+        recordId = item.id
+      }
+
+      await pb.collection(colecao).update(recordId, { regime_tributario: novoRegime })
+      resultado.sucessoCount++
+
+      // Registra histórico de auditoria do regime tributário
+      registrarAlteracaoRegime({
+        empresaId: recordId,
+        empresaCodigo: cliente.codigo,
+        empresaNome: cliente.razao_social,
+        empresaDocumento: cliente.documento_limpo || cliente.numero_documento,
+        regimeAnterior: cliente.regime_tributario || '',
+        regimeNovo: novoRegime,
+        origem: 'listagem',
+        observacao: motivo,
+      }).catch((err) => {
+        console.warn('[alterarRegimeClientesEmMassa] Erro ao registrar auditoria:', err)
+      })
+    } catch (err: any) {
+      console.error(
+        `[alterarRegimeClientesEmMassa] Erro no cliente ${cliente.codigo} (${cliente.razao_social}):`,
+        err,
+      )
+      resultado.falhaCount++
+      resultado.erros.push({
+        codigo: cliente.codigo,
+        razaoSocial: cliente.razao_social,
+        erro: err?.message || 'Falha ao alterar regime tributário',
+      })
+    }
+  }
+
+  return resultado
+}
+
+// Alias para flexibilidade de nomenclatura
+export const alterarRegimeEmMassa = alterarRegimeClientesEmMassa
 
 /**
  * Altera a situação/status de múltiplos clientes em lote.

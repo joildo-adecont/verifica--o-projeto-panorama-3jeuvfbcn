@@ -73,6 +73,7 @@ function mapear(r: any): EmpresaInativa {
     responsavel_legal: r.responsavel_legal || '',
     foro_comarca: r.foro_comarca || '',
     duracao_contrato: r.duracao_contrato || '',
+    regime_tributario: r.regime_tributario || '',
     motivo_transferencia: r.motivo_transferencia || '',
     transferido_em: r.transferido_em || '',
     transferido_por: r.transferido_por || '',

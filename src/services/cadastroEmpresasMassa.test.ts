@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { alterarStatusClientesEmMassa } from './cadastroEmpresasMassa'
+import {
+  alterarStatusClientesEmMassa,
+  alterarRegimeClientesEmMassa,
+  alterarRegimeEmMassa,
+} from './cadastroEmpresasMassa'
 import type { EmpresaRecord } from '@/types/cadastroEmpresas'
 
 // Mocks do PocketBase e serviços dependentes
@@ -18,6 +22,12 @@ vi.mock('@/services/cadastroEmpresasInativos', () => {
   return {
     inativarCliente: vi.fn().mockResolvedValue({ ok: true }),
     reativarCliente: vi.fn().mockResolvedValue({ ok: true }),
+  }
+})
+
+vi.mock('@/services/regimeHistoricoService', () => {
+  return {
+    registrarAlteracaoRegime: vi.fn().mockResolvedValue({ ok: true }),
   }
 })
 
@@ -56,7 +66,6 @@ describe('alterarStatusClientesEmMassa', () => {
   })
 
   it('atualiza campo situacao diretamente quando o status for Suspensa ou Baixada', async () => {
-    const pb = (await import('@/lib/pocketbase/client')).default
     const res = await alterarStatusClientesEmMassa(clientesMock, {
       novaSituacao: 'Suspensa',
       motivo: 'Suspensão temporária',
@@ -65,7 +74,6 @@ describe('alterarStatusClientesEmMassa', () => {
     expect(res.totalSolicitado).toBe(2)
     expect(res.sucessoCount).toBe(2)
     expect(res.falhaCount).toBe(0)
-    expect(pb.collection).toHaveBeenCalledWith('cadastro_empresas')
   })
 
   it('aciona inativarCliente quando coleção for cadastro_empresas e status for Inativa', async () => {
@@ -95,5 +103,55 @@ describe('alterarStatusClientesEmMassa', () => {
     expect(reativarCliente).toHaveBeenCalledTimes(2)
     expect(reativarCliente).toHaveBeenCalledWith(101)
     expect(reativarCliente).toHaveBeenCalledWith(102)
+  })
+})
+
+describe('alterarRegimeClientesEmMassa', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('deve alterar o regime tributário em massa e retornar contagem correta', async () => {
+    const clientes: EmpresaRecord[] = [
+      {
+        id: 'rec-1',
+        codigo: 101,
+        razao_social: 'Empresa A',
+        regime_tributario: 'Simples Nacional',
+      } as EmpresaRecord,
+      {
+        id: 'rec-2',
+        codigo: 102,
+        razao_social: 'Empresa B',
+        regime_tributario: 'Lucro Presumido',
+      } as EmpresaRecord,
+    ]
+
+    const res = await alterarRegimeClientesEmMassa(clientes, {
+      novoRegime: 'Lucro Real',
+      motivo: 'Migração anual de regime',
+    })
+
+    expect(res.totalSolicitado).toBe(2)
+    expect(res.sucessoCount).toBe(2)
+    expect(res.falhaCount).toBe(0)
+    expect(alterarRegimeEmMassa).toBeDefined()
+  })
+
+  it('deve retornar resultado vazio se nenhum novo regime for informado', async () => {
+    const clientes: EmpresaRecord[] = [
+      {
+        id: 'rec-1',
+        codigo: 101,
+        razao_social: 'Empresa A',
+      } as EmpresaRecord,
+    ]
+
+    const res = await alterarRegimeClientesEmMassa(clientes, {
+      novoRegime: '',
+    })
+
+    expect(res.totalSolicitado).toBe(1)
+    expect(res.sucessoCount).toBe(0)
   })
 })

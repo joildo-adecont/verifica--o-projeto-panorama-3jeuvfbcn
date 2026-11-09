@@ -40,10 +40,12 @@ import {
 } from '@/services/cadastroEmpresasInativos'
 import {
   editarClientesEmMassa,
+  alterarRegimeClientesEmMassa,
   reativarClientesEmMassa,
   alterarStatusClientesEmMassa,
   type DadosEdicaoEmMassa,
   type DadosAlteracaoStatusEmMassa,
+  type DadosAlteracaoRegimeEmMassa,
 } from '@/services/cadastroEmpresasMassa'
 import type { EmpresaRecord } from '@/types/cadastroEmpresas'
 
@@ -166,6 +168,57 @@ export default function CadastroClientesInativos() {
     setSelecionadosCodigos(new Set())
   }
 
+  // Execução de Edição de Regime em Massa para inativos (Ação dedicada)
+  const handleExecutarAlteracaoRegimeEmMassa = async (
+    clientes: EmpresaRecord[],
+    dados: DadosAlteracaoRegimeEmMassa,
+  ) => {
+    setProcessandoMassa(true)
+    try {
+      const res = await alterarRegimeClientesEmMassa(clientes, dados, 'cadastro_empresas_inativos')
+      if (res.sucessoCount > 0) {
+        toast({
+          title: 'Regime tributário atualizado em massa',
+          description: `Regime alterado para "${dados.novoRegime}" em ${res.sucessoCount} ${
+            res.sucessoCount === 1 ? 'cliente inativo' : 'clientes inativos'
+          } com sucesso.`,
+        })
+
+        // Atualização otimista imediata na tabela sem recarregar a página
+        const codigosAfetados = new Set(clientes.map((c) => c.codigo))
+        setEmpresas((prev) =>
+          prev.map((emp) => {
+            if (codigosAfetados.has(emp.codigo)) {
+              return {
+                ...emp,
+                regime_tributario: dados.novoRegime,
+              }
+            }
+            return emp
+          }),
+        )
+
+        limparSelecao()
+        await carregarDados()
+      } else {
+        toast({
+          title: 'Erro ao alterar regime em massa',
+          description: 'Nenhum cliente inativo pôde ter o regime alterado.',
+          variant: 'destructive',
+        })
+      }
+    } catch (e: any) {
+      console.error('Erro na alteração de regime de inativos:', e)
+      toast({
+        title: 'Falha ao alterar regime',
+        description: e?.message || 'Ocorreu um erro ao atualizar os regimes.',
+        variant: 'destructive',
+      })
+    } finally {
+      setProcessandoMassa(false)
+    }
+  }
+
   // Execução de Edição em Massa para inativos
   const handleExecutarEdicaoEmMassa = async (
     clientes: EmpresaRecord[],
@@ -177,10 +230,10 @@ export default function CadastroClientesInativos() {
       if (res.sucessoCount > 0) {
         toast({
           title: 'Edição em massa concluída',
-          description: `${res.sucessoCount} ${res.sucessoCount === 1 ? 'cliente inativo atualizado' : 'clientes inativos atualizados'} com sucesso.`,
+          description: `${res.sucessoCount} ${res.sucessoCount === 1 ? 'cliente atualizado' : 'clientes atualizados'} com sucesso.`,
         })
 
-        // Atualiza imediatamente o estado da listagem para feedback sem recarregar a página
+        // Atualização otimista imediata na tabela
         setEmpresas((prev) =>
           prev.map((emp) => {
             if (selecionadosCodigos.has(emp.codigo)) {
@@ -200,7 +253,7 @@ export default function CadastroClientesInativos() {
       } else {
         toast({
           title: 'Erro na edição em massa',
-          description: 'Nenhum cliente pôde ser atualizado. Verifique a conexão com o banco.',
+          description: 'Nenhum cliente pôde ser atualizado.',
           variant: 'destructive',
         })
       }
@@ -215,7 +268,6 @@ export default function CadastroClientesInativos() {
       setProcessandoMassa(false)
     }
   }
-
   // Execução de Alteração de Status em Massa
   const handleExecutarAlteracaoStatusEmMassa = async (
     clientes: EmpresaRecord[],
@@ -560,6 +612,7 @@ td{border-bottom:1px solid #ddd;padding:3px 5px}
           modo="inativos"
           processando={processandoMassa}
           onLimparSelecao={limparSelecao}
+          onExecutarAlteracaoRegimeEmMassa={handleExecutarAlteracaoRegimeEmMassa}
           onExecutarEdicaoEmMassa={handleExecutarEdicaoEmMassa}
           onExecutarReativacaoEmMassa={handleExecutarReativacaoEmMassa}
           onExecutarAlteracaoStatusEmMassa={handleExecutarAlteracaoStatusEmMassa}
@@ -590,6 +643,7 @@ td{border-bottom:1px solid #ddd;padding:3px 5px}
                       <span>Status / Ação</span>
                     </span>
                   </th>
+                  <th className="py-3 px-3 min-w-[180px]">Regime Tributário</th>
                   <th className="py-3 px-3 min-w-[140px]">Município / UF</th>
                   <th className="py-3 px-3 min-w-[110px]">CNAE</th>
                   <th className="py-3 px-3 w-16 text-center">Ficha</th>
@@ -631,7 +685,7 @@ td{border-bottom:1px solid #ddd;padding:3px 5px}
                   ))
                 ) : empresas.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="py-12 text-center text-slate-500">
+                    <td colSpan={10} className="py-12 text-center text-slate-500">
                       <div className="max-w-xs mx-auto flex flex-col items-center gap-2">
                         <Building2 className="w-8 h-8 text-slate-300" />
                         <span className="font-semibold text-slate-700">
@@ -736,6 +790,17 @@ td{border-bottom:1px solid #ddd;padding:3px 5px}
                               </>
                             )}
                           </button>
+                        </td>
+
+                        {/* Regime Tributário */}
+                        <td className="py-3 px-3">
+                          {emp.regime_tributario ? (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                              {emp.regime_tributario}
+                            </span>
+                          ) : (
+                            <span className="text-slate-400 italic text-[11px]">Não informado</span>
+                          )}
                         </td>
 
                         {/* Município / UF */}
