@@ -46,11 +46,37 @@ export interface TitulosSecoesCustomizacao {
   checklistDocumental?: string
 }
 
+/**
+ * Subtítulos customizados opcionais para cada seção do relatório.
+ * Se preenchido, é exibido logo abaixo do título da seção no relatório A4 e nas exportações XLSX e CSV.
+ * Se vazio ou não informado, nada adicional é exibido.
+ */
+export interface SubtitulosSecoesCustomizacao {
+  /** Subtítulo para Índices Clássicos */
+  indicesClassicos?: string
+  /** Subtítulo para Modelos Avançados */
+  modelosAvancados?: string
+  /** Subtítulo para Parecer Técnico */
+  parecerTecnico?: string
+  /** Subtítulo para Notas e Achados Críticos */
+  achadosCriticos?: string
+  /** Subtítulo para Síntese Executiva / Score Ponderado */
+  sinteseExecutiva?: string
+  /** Subtítulo para Balanço & DRE Comparativo 3 Anos */
+  balanco3Anos?: string
+  /** Subtítulo para Agentes Especialistas */
+  agentesEspecialistas?: string
+  /** Subtítulo para Checklist Documental */
+  checklistDocumental?: string
+}
+
 export interface SecaoCustomizada {
   /** Identificador único da seção customizada */
   id: string
   /** Título da seção (ex: "Análise Setorial e Competitiva", "Garantias Oferecidas", "Parecer de Conformidade ESG") */
   titulo: string
+  /** Subtítulo opcional da seção */
+  subtitulo?: string
   /** Conteúdo textual da seção (livre, multi-linha) */
   conteudo: string
   /** Ordem de exibição no relatório (iniciando em 0) */
@@ -70,6 +96,8 @@ export interface ConfiguracaoRelatorioCustomizado {
   secoes: SecoesCustomizacaoRelatorio
   /** Títulos customizados/renomeados de cada seção do relatório */
   titulosSecoes?: TitulosSecoesCustomizacao
+  /** Subtítulos customizados opcionais de cada seção do relatório */
+  subtitulosSecoes?: SubtitulosSecoesCustomizacao
   /** Seções customizadas criadas pelo usuário */
   secoesCustomizadas?: SecaoCustomizada[]
   /** Chave mestra para incluir ou não as seções customizadas no relatório */
@@ -112,6 +140,7 @@ export const CONFIGURACAO_RELATORIO_PADRAO: ConfiguracaoRelatorioCustomizado = {
     checklistDocumental: true,
   },
   titulosSecoes: {},
+  subtitulosSecoes: {},
   secoesCustomizadas: [],
   incluirSecoesCustomizadas: true,
   incluirDadosEmpresa: true,

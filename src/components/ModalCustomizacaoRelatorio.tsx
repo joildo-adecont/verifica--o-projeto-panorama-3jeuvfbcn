@@ -85,6 +85,7 @@ export const ModalCustomizacaoRelatorio: React.FC<ModalCustomizacaoRelatorioProp
   // Estado para nova seção em edição / criação rápida
   const [editandoSecaoId, setEditandoSecaoId] = useState<string | null>(null)
   const [novoTitulo, setNovoTitulo] = useState('')
+  const [novoSubtitulo, setNovoSubtitulo] = useState('')
   const [novoConteudo, setNovoConteudo] = useState('')
   const [mostrarFormNovaSecao, setMostrarFormNovaSecao] = useState(false)
 
@@ -97,6 +98,7 @@ export const ModalCustomizacaoRelatorio: React.FC<ModalCustomizacaoRelatorioProp
       setEditandoSecaoId(null)
       setMostrarFormNovaSecao(false)
       setNovoTitulo('')
+      setNovoSubtitulo('')
       setNovoConteudo('')
     }
   }, [aberto, configuracaoAtual, configInicial])
@@ -124,6 +126,19 @@ export const ModalCustomizacaoRelatorio: React.FC<ModalCustomizacaoRelatorioProp
     }))
   }
 
+  const handleAlterarSubtituloSecao = (
+    chave: keyof import('@/types/customizacaoRelatorio').SubtitulosSecoesCustomizacao,
+    valor: string,
+  ) => {
+    setConfig((anterior) => ({
+      ...anterior,
+      subtitulosSecoes: {
+        ...(anterior.subtitulosSecoes || {}),
+        [chave]: valor,
+      },
+    }))
+  }
+
   const handleRestaurarPadrao = () => {
     setConfig(criarConfiguracaoPadrao())
     setMostrarFormNovaSecao(false)
@@ -133,9 +148,10 @@ export const ModalCustomizacaoRelatorio: React.FC<ModalCustomizacaoRelatorioProp
   // --- Gerenciador de Seções Customizadas ---
   const handleAdicionarOuAtualizarSecao = () => {
     const tituloLimpo = novoTitulo.trim()
+    const subtituloLimpo = novoSubtitulo.trim()
     const conteudoLimpo = novoConteudo.trim()
 
-    if (!tituloLimpo && !conteudoLimpo) {
+    if (!tituloLimpo && !subtituloLimpo && !conteudoLimpo) {
       return
     }
 
@@ -149,6 +165,7 @@ export const ModalCustomizacaoRelatorio: React.FC<ModalCustomizacaoRelatorioProp
             return {
               ...s,
               titulo: tituloLimpo || 'Seção Sem Título',
+              subtitulo: subtituloLimpo,
               conteudo: conteudoLimpo,
             }
           }
@@ -161,6 +178,7 @@ export const ModalCustomizacaoRelatorio: React.FC<ModalCustomizacaoRelatorioProp
       const nova: SecaoCustomizada = {
         id: `secao-custom-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
         titulo: tituloLimpo || `Nova Seção ${listaAtual.length + 1}`,
+        subtitulo: subtituloLimpo,
         conteudo: conteudoLimpo,
         ordem: listaAtual.length,
         ativa: true,
@@ -175,6 +193,7 @@ export const ModalCustomizacaoRelatorio: React.FC<ModalCustomizacaoRelatorioProp
 
     // Limpa formulário
     setNovoTitulo('')
+    setNovoSubtitulo('')
     setNovoConteudo('')
     setEditandoSecaoId(null)
     setMostrarFormNovaSecao(false)
@@ -183,6 +202,7 @@ export const ModalCustomizacaoRelatorio: React.FC<ModalCustomizacaoRelatorioProp
   const handleIniciarEdicao = (secao: SecaoCustomizada) => {
     setEditandoSecaoId(secao.id)
     setNovoTitulo(secao.titulo)
+    setNovoSubtitulo(secao.subtitulo || '')
     setNovoConteudo(secao.conteudo)
     setMostrarFormNovaSecao(true)
   }
@@ -198,6 +218,7 @@ export const ModalCustomizacaoRelatorio: React.FC<ModalCustomizacaoRelatorioProp
       setEditandoSecaoId(null)
       setMostrarFormNovaSecao(false)
       setNovoTitulo('')
+      setNovoSubtitulo('')
       setNovoConteudo('')
     }
   }
@@ -458,16 +479,33 @@ export const ModalCustomizacaoRelatorio: React.FC<ModalCustomizacaoRelatorioProp
                   />
                 </div>
                 {config.secoes.indicesClassicos && (
-                  <div className="pt-2 border-t border-blue-200/60 dark:border-blue-800/50 space-y-1">
-                    <label className="text-[10px] font-semibold text-slate-600 dark:text-slate-400 block">
-                      Título personalizado da seção:
-                    </label>
-                    <Input
-                      value={config.titulosSecoes?.indicesClassicos || ''}
-                      onChange={(e) => handleAlterarTituloSecao('indicesClassicos', e.target.value)}
-                      placeholder="Padrão: Índices Clássicos"
-                      className="text-xs h-7.5 bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700"
-                    />
+                  <div className="pt-2 border-t border-blue-200/60 dark:border-blue-800/50 space-y-2">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-semibold text-slate-600 dark:text-slate-400 block">
+                        Título personalizado da seção:
+                      </label>
+                      <Input
+                        value={config.titulosSecoes?.indicesClassicos || ''}
+                        onChange={(e) =>
+                          handleAlterarTituloSecao('indicesClassicos', e.target.value)
+                        }
+                        placeholder="Padrão: Índices Clássicos"
+                        className="text-xs h-7.5 bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-semibold text-slate-600 dark:text-slate-400 block">
+                        Subtítulo opcional da seção:
+                      </label>
+                      <Input
+                        value={config.subtitulosSecoes?.indicesClassicos || ''}
+                        onChange={(e) =>
+                          handleAlterarSubtituloSecao('indicesClassicos', e.target.value)
+                        }
+                        placeholder="Ex.: Indicadores de Liquidez, Endividamento e Rentabilidade"
+                        className="text-xs h-7.5 bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700"
+                      />
+                    </div>
                   </div>
                 )}
               </div>
@@ -505,16 +543,33 @@ export const ModalCustomizacaoRelatorio: React.FC<ModalCustomizacaoRelatorioProp
                   />
                 </div>
                 {config.secoes.modelosAvancados && (
-                  <div className="pt-2 border-t border-amber-200/60 dark:border-amber-800/50 space-y-1">
-                    <label className="text-[10px] font-semibold text-slate-600 dark:text-slate-400 block">
-                      Título personalizado da seção:
-                    </label>
-                    <Input
-                      value={config.titulosSecoes?.modelosAvancados || ''}
-                      onChange={(e) => handleAlterarTituloSecao('modelosAvancados', e.target.value)}
-                      placeholder="Padrão: Modelos Avançados"
-                      className="text-xs h-7.5 bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700"
-                    />
+                  <div className="pt-2 border-t border-amber-200/60 dark:border-amber-800/50 space-y-2">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-semibold text-slate-600 dark:text-slate-400 block">
+                        Título personalizado da seção:
+                      </label>
+                      <Input
+                        value={config.titulosSecoes?.modelosAvancados || ''}
+                        onChange={(e) =>
+                          handleAlterarTituloSecao('modelosAvancados', e.target.value)
+                        }
+                        placeholder="Padrão: Modelos Avançados"
+                        className="text-xs h-7.5 bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-semibold text-slate-600 dark:text-slate-400 block">
+                        Subtítulo opcional da seção:
+                      </label>
+                      <Input
+                        value={config.subtitulosSecoes?.modelosAvancados || ''}
+                        onChange={(e) =>
+                          handleAlterarSubtituloSecao('modelosAvancados', e.target.value)
+                        }
+                        placeholder="Ex.: Análise Preditiva de Solvência, Du Pont e Modelo Dinâmico Fleuriet"
+                        className="text-xs h-7.5 bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700"
+                      />
+                    </div>
                   </div>
                 )}
               </div>
@@ -551,16 +606,31 @@ export const ModalCustomizacaoRelatorio: React.FC<ModalCustomizacaoRelatorioProp
                   />
                 </div>
                 {config.secoes.parecerTecnico && (
-                  <div className="pt-2 border-t border-emerald-200/60 dark:border-emerald-800/50 space-y-1">
-                    <label className="text-[10px] font-semibold text-slate-600 dark:text-slate-400 block">
-                      Título personalizado da seção:
-                    </label>
-                    <Input
-                      value={config.titulosSecoes?.parecerTecnico || ''}
-                      onChange={(e) => handleAlterarTituloSecao('parecerTecnico', e.target.value)}
-                      placeholder="Padrão: Parecer Técnico Oficial"
-                      className="text-xs h-7.5 bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700"
-                    />
+                  <div className="pt-2 border-t border-emerald-200/60 dark:border-emerald-800/50 space-y-2">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-semibold text-slate-600 dark:text-slate-400 block">
+                        Título personalizado da seção:
+                      </label>
+                      <Input
+                        value={config.titulosSecoes?.parecerTecnico || ''}
+                        onChange={(e) => handleAlterarTituloSecao('parecerTecnico', e.target.value)}
+                        placeholder="Padrão: Parecer Técnico Oficial"
+                        className="text-xs h-7.5 bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-semibold text-slate-600 dark:text-slate-400 block">
+                        Subtítulo opcional da seção:
+                      </label>
+                      <Input
+                        value={config.subtitulosSecoes?.parecerTecnico || ''}
+                        onChange={(e) =>
+                          handleAlterarSubtituloSecao('parecerTecnico', e.target.value)
+                        }
+                        placeholder="Ex.: Conclusão Executiva e Recomendação para Comitê de Crédito"
+                        className="text-xs h-7.5 bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700"
+                      />
+                    </div>
                   </div>
                 )}
               </div>
@@ -597,16 +667,33 @@ export const ModalCustomizacaoRelatorio: React.FC<ModalCustomizacaoRelatorioProp
                   />
                 </div>
                 {config.secoes.achadosCriticos && (
-                  <div className="pt-2 border-t border-rose-200/60 dark:border-rose-800/50 space-y-1">
-                    <label className="text-[10px] font-semibold text-slate-600 dark:text-slate-400 block">
-                      Título personalizado da seção:
-                    </label>
-                    <Input
-                      value={config.titulosSecoes?.achadosCriticos || ''}
-                      onChange={(e) => handleAlterarTituloSecao('achadosCriticos', e.target.value)}
-                      placeholder="Padrão: Notas & Achados Críticos"
-                      className="text-xs h-7.5 bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700"
-                    />
+                  <div className="pt-2 border-t border-rose-200/60 dark:border-rose-800/50 space-y-2">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-semibold text-slate-600 dark:text-slate-400 block">
+                        Título personalizado da seção:
+                      </label>
+                      <Input
+                        value={config.titulosSecoes?.achadosCriticos || ''}
+                        onChange={(e) =>
+                          handleAlterarTituloSecao('achadosCriticos', e.target.value)
+                        }
+                        placeholder="Padrão: Notas & Achados Críticos"
+                        className="text-xs h-7.5 bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-semibold text-slate-600 dark:text-slate-400 block">
+                        Subtítulo opcional da seção:
+                      </label>
+                      <Input
+                        value={config.subtitulosSecoes?.achadosCriticos || ''}
+                        onChange={(e) =>
+                          handleAlterarSubtituloSecao('achadosCriticos', e.target.value)
+                        }
+                        placeholder="Ex.: Matriz de Riscos, Auditoria Contábil e Apontamentos"
+                        className="text-xs h-7.5 bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700"
+                      />
+                    </div>
                   </div>
                 )}
               </div>
@@ -643,16 +730,33 @@ export const ModalCustomizacaoRelatorio: React.FC<ModalCustomizacaoRelatorioProp
                   />
                 </div>
                 {config.secoes.sinteseExecutiva && (
-                  <div className="pt-2 border-t border-indigo-200/60 dark:border-indigo-800/50 space-y-1">
-                    <label className="text-[10px] font-semibold text-slate-600 dark:text-slate-400 block">
-                      Título personalizado da seção:
-                    </label>
-                    <Input
-                      value={config.titulosSecoes?.sinteseExecutiva || ''}
-                      onChange={(e) => handleAlterarTituloSecao('sinteseExecutiva', e.target.value)}
-                      placeholder="Padrão: Síntese Executiva & Score Ponderado"
-                      className="text-xs h-7.5 bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700"
-                    />
+                  <div className="pt-2 border-t border-indigo-200/60 dark:border-indigo-800/50 space-y-2">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-semibold text-slate-600 dark:text-slate-400 block">
+                        Título personalizado da seção:
+                      </label>
+                      <Input
+                        value={config.titulosSecoes?.sinteseExecutiva || ''}
+                        onChange={(e) =>
+                          handleAlterarTituloSecao('sinteseExecutiva', e.target.value)
+                        }
+                        placeholder="Padrão: Síntese Executiva & Score Ponderado"
+                        className="text-xs h-7.5 bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-semibold text-slate-600 dark:text-slate-400 block">
+                        Subtítulo opcional da seção:
+                      </label>
+                      <Input
+                        value={config.subtitulosSecoes?.sinteseExecutiva || ''}
+                        onChange={(e) =>
+                          handleAlterarSubtituloSecao('sinteseExecutiva', e.target.value)
+                        }
+                        placeholder="Ex.: Resumo Executivo e Avaliação Multicritério Global"
+                        className="text-xs h-7.5 bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700"
+                      />
+                    </div>
                   </div>
                 )}
               </div>
@@ -689,18 +793,33 @@ export const ModalCustomizacaoRelatorio: React.FC<ModalCustomizacaoRelatorioProp
                   />
                 </div>
                 {config.secoes.agentesEspecialistas && (
-                  <div className="pt-2 border-t border-purple-200/60 dark:border-purple-800/50 space-y-1">
-                    <label className="text-[10px] font-semibold text-slate-600 dark:text-slate-400 block">
-                      Título personalizado da seção:
-                    </label>
-                    <Input
-                      value={config.titulosSecoes?.agentesEspecialistas || ''}
-                      onChange={(e) =>
-                        handleAlterarTituloSecao('agentesEspecialistas', e.target.value)
-                      }
-                      placeholder="Padrão: Síntese Técnica dos Agentes Especialistas"
-                      className="text-xs h-7.5 bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700"
-                    />
+                  <div className="pt-2 border-t border-purple-200/60 dark:border-purple-800/50 space-y-2">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-semibold text-slate-600 dark:text-slate-400 block">
+                        Título personalizado da seção:
+                      </label>
+                      <Input
+                        value={config.titulosSecoes?.agentesEspecialistas || ''}
+                        onChange={(e) =>
+                          handleAlterarTituloSecao('agentesEspecialistas', e.target.value)
+                        }
+                        placeholder="Padrão: Síntese Técnica dos Agentes Especialistas"
+                        className="text-xs h-7.5 bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-semibold text-slate-600 dark:text-slate-400 block">
+                        Subtítulo opcional da seção:
+                      </label>
+                      <Input
+                        value={config.subtitulosSecoes?.agentesEspecialistas || ''}
+                        onChange={(e) =>
+                          handleAlterarSubtituloSecao('agentesEspecialistas', e.target.value)
+                        }
+                        placeholder="Ex.: Recomendações dos Especialistas Contábil, Tributário e Jurídico"
+                        className="text-xs h-7.5 bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700"
+                      />
+                    </div>
                   </div>
                 )}
               </div>
@@ -870,6 +989,18 @@ export const ModalCustomizacaoRelatorio: React.FC<ModalCustomizacaoRelatorioProp
 
                 <div className="space-y-1">
                   <Label className="text-[11px] font-semibold text-slate-700 dark:text-slate-300">
+                    Subtítulo da Seção (opcional)
+                  </Label>
+                  <Input
+                    value={novoSubtitulo}
+                    onChange={(e) => setNovoSubtitulo(e.target.value)}
+                    placeholder="Ex.: Contexto de Mercado, Avaliação de Colaterais e Due Diligence"
+                    className="text-xs h-8 bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-[11px] font-semibold text-slate-700 dark:text-slate-300">
                     Conteúdo / Texto Livre (multi-linha)
                   </Label>
                   <Textarea
@@ -890,6 +1021,7 @@ export const ModalCustomizacaoRelatorio: React.FC<ModalCustomizacaoRelatorioProp
                       setMostrarFormNovaSecao(false)
                       setEditandoSecaoId(null)
                       setNovoTitulo('')
+                      setNovoSubtitulo('')
                       setNovoConteudo('')
                     }}
                     className="h-7 text-xs"
@@ -899,7 +1031,7 @@ export const ModalCustomizacaoRelatorio: React.FC<ModalCustomizacaoRelatorioProp
                   <Button
                     type="button"
                     size="sm"
-                    disabled={!novoTitulo.trim() && !novoConteudo.trim()}
+                    disabled={!novoTitulo.trim() && !novoSubtitulo.trim() && !novoConteudo.trim()}
                     onClick={handleAdicionarOuAtualizarSecao}
                     className="h-7 text-xs gap-1 bg-primary text-primary-foreground font-semibold"
                   >
@@ -955,9 +1087,16 @@ export const ModalCustomizacaoRelatorio: React.FC<ModalCustomizacaoRelatorioProp
                           >
                             #{idx + 1}
                           </Badge>
-                          <span className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate">
-                            {secao.titulo || 'Seção Sem Título'}
-                          </span>
+                          <div className="min-w-0">
+                            <span className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate block">
+                              {secao.titulo || 'Seção Sem Título'}
+                            </span>
+                            {secao.subtitulo && (
+                              <span className="text-[10px] text-slate-500 dark:text-slate-400 italic truncate block">
+                                {secao.subtitulo}
+                              </span>
+                            )}
+                          </div>
                         </div>
 
                         <div className="flex items-center gap-1 shrink-0">
