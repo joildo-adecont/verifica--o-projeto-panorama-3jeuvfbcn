@@ -309,6 +309,7 @@ export const PainelAnalisesEmpresariais: React.FC<PainelAnalisesEmpresariaisProp
             disabled={indicadoresApurados.length === 0}
             motivoDesabilitado="Cliente não possui indicadores contábeis apurados para exportar"
             rotuloBotao="Exportar Relatório"
+            parecerFinal={parecerFinal || undefined}
           />
 
           <button

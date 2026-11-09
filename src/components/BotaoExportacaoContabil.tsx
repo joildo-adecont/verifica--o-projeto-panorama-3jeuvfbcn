@@ -10,7 +10,12 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { Download, FileText, FileSpreadsheet, Table, Loader2 } from 'lucide-react'
-import type { ItemIndicador, AnaliseBalanco3Exercicios } from '@/types/analisesEmpresariaisModel'
+import type {
+  ItemIndicador,
+  AnaliseBalanco3Exercicios,
+  ParecerFinalAnalise,
+} from '@/types/analisesEmpresariaisModel'
+import type { RelatorioIndicesAvancados } from '@/services/indicesAvancadosEmpresariais'
 import {
   prepararLinhasExportacao,
   gerarCsvRelatorioContabil,
@@ -30,6 +35,8 @@ interface BotaoExportacaoContabilProps {
   motivoDesabilitado?: string
   className?: string
   rotuloBotao?: string
+  relatorioAvancado?: RelatorioIndicesAvancados | null
+  parecerFinal?: ParecerFinalAnalise | null
 }
 
 export const BotaoExportacaoContabil: React.FC<BotaoExportacaoContabilProps> = ({
@@ -43,6 +50,8 @@ export const BotaoExportacaoContabil: React.FC<BotaoExportacaoContabilProps> = (
   motivoDesabilitado = 'Nenhum indicador contábil apurado para exportar',
   className = '',
   rotuloBotao = 'Exportar',
+  relatorioAvancado,
+  parecerFinal,
 }) => {
   const [exportando, setExportando] = useState<string | null>(null)
 
@@ -59,6 +68,9 @@ export const BotaoExportacaoContabil: React.FC<BotaoExportacaoContabilProps> = (
     rotuloMenos2: balanco3Anos?.anoMenos2?.rotulo || 'Ano -2',
     rotuloMenos1: balanco3Anos?.anoMenos1?.rotulo || 'Ano -1',
     rotuloAtual: balanco3Anos?.anoAtual?.rotulo || 'Ano Atual',
+    incluirIndicesAvancados: true,
+    relatorioAvancado,
+    parecerFinal,
   }
 
   const sanitizarNome = (str: string) =>
@@ -74,7 +86,10 @@ export const BotaoExportacaoContabil: React.FC<BotaoExportacaoContabilProps> = (
     if (semDados) return
     try {
       setExportando('csv')
-      const linhas = prepararLinhasExportacao(indicadores, balanco3Anos)
+      const linhas = prepararLinhasExportacao(indicadores, balanco3Anos, {
+        incluirIndicesAvancados: true,
+        relatorioAvancado,
+      })
       const conteudoCsv = gerarCsvRelatorioContabil(linhas, opcoes)
       baixarArquivoCsv(conteudoCsv, `${prefixoArquivo}.csv`)
     } finally {
@@ -86,7 +101,10 @@ export const BotaoExportacaoContabil: React.FC<BotaoExportacaoContabilProps> = (
     if (semDados) return
     try {
       setExportando('xlsx')
-      const linhas = prepararLinhasExportacao(indicadores, balanco3Anos)
+      const linhas = prepararLinhasExportacao(indicadores, balanco3Anos, {
+        incluirIndicesAvancados: true,
+        relatorioAvancado,
+      })
       exportarExcelRelatorioContabil(linhas, opcoes, `${prefixoArquivo}.xlsx`)
     } finally {
       setExportando(null)

@@ -11,6 +11,10 @@ import type {
 } from '@/types/analisesEmpresariaisModel'
 import { calcular25Indicadores } from '@/services/motorAnaliseEmpresarial'
 import {
+  calcularTodosIndicesAvancados,
+  type RelatorioIndicesAvancados,
+} from '@/services/indicesAvancadosEmpresariais'
+import {
   Printer,
   X,
   TrendingUp,
@@ -19,6 +23,8 @@ import {
   FileText,
   AlertTriangle,
   Award,
+  Activity,
+  Layers,
 } from 'lucide-react'
 
 interface RelatorioAnaliseEmpresarialA4Props {
@@ -30,6 +36,7 @@ interface RelatorioAnaliseEmpresarialA4Props {
   parecerFinal?: ParecerFinalAnalise | null
   balanco3Anos?: AnaliseBalanco3Exercicios
   regimeTributario?: string
+  relatorioAvancado?: RelatorioIndicesAvancados | null
   onClose: () => void
 }
 
@@ -42,9 +49,23 @@ export const RelatorioAnaliseEmpresarialA4: React.FC<RelatorioAnaliseEmpresarial
   parecerFinal,
   balanco3Anos,
   regimeTributario,
+  relatorioAvancado,
   onClose,
 }) => {
   const { cliente, indicadores, parecerEspecialistas, dataAnalise } = dossie
+
+  // Obter ou calcular relatório avançado a partir do balanço mais recente
+  const avancadoCalculado: RelatorioIndicesAvancados | null = React.useMemo(() => {
+    if (relatorioAvancado) return relatorioAvancado
+    if (balanco3Anos?.anoAtual) {
+      try {
+        return calcularTodosIndicesAvancados(balanco3Anos.anoAtual)
+      } catch {
+        return null
+      }
+    }
+    return null
+  }, [relatorioAvancado, balanco3Anos?.anoAtual])
 
   const brl = (v?: number | null) =>
     Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
@@ -240,6 +261,12 @@ export const RelatorioAnaliseEmpresarialA4: React.FC<RelatorioAnaliseEmpresarial
                   <strong className="text-slate-900">{parecerFinal.responsavelTecnico}</strong>
                 </span>
               </div>
+              {parecerFinal.achadosCriticos && (
+                <div className="pt-1.5 border-t border-slate-200 text-[10px]">
+                  <strong className="text-slate-900">Achados Críticos e Notas do Cliente: </strong>
+                  <span className="text-slate-700 italic">{parecerFinal.achadosCriticos}</span>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -506,6 +533,229 @@ export const RelatorioAnaliseEmpresarialA4: React.FC<RelatorioAnaliseEmpresarial
                       )
                     })
                   })()}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* SEÇÃO 3.1: GRUPOS AVANÇADOS (KANITZ, ALTMAN Z1, ELIZABETSKY, DU PONT, DINÂMICA CDG/NCG/EFEITO TESOURA) */}
+        {avancadoCalculado && (
+          <div className="space-y-2 border border-slate-300 rounded p-2.5 bg-slate-50/40">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-1">
+              <h2 className="text-xs font-black uppercase text-slate-900 flex items-center gap-1.5">
+                <Layers className="w-3.5 h-3.5 text-amber-600" />
+                3.1 Modelos de Insolvência, Decomposição Du Pont & Dinâmica Financeira
+              </h2>
+              <span className="text-[10px] font-bold text-slate-600 bg-white px-2 py-0.5 rounded border border-slate-200">
+                Ref.: {avancadoCalculado.exercicioRotulo}
+              </span>
+            </div>
+
+            {/* Destaque dos 4 Modelos Canônicos de Insolvência e Retorno */}
+            <div className="grid grid-cols-4 gap-2 text-[10px]">
+              {/* Kanitz */}
+              <div className="bg-white border border-slate-200 rounded p-2 flex flex-col justify-between">
+                <div>
+                  <span className="text-[9px] font-bold uppercase text-slate-500 block">
+                    Termômetro de Kanitz
+                  </span>
+                  <span className="text-xs font-mono font-black text-slate-900 block mt-0.5">
+                    {avancadoCalculado.kanitz.fatorInsolvencia.toFixed(4).replace('.', ',')}
+                  </span>
+                  <span
+                    className={`inline-block px-1.5 py-0.2 mt-1 rounded font-bold text-[8px] ${
+                      avancadoCalculado.kanitz.faixa === 'solvente'
+                        ? 'bg-emerald-100 text-emerald-800'
+                        : avancadoCalculado.kanitz.faixa === 'penumbra'
+                          ? 'bg-amber-100 text-amber-800'
+                          : 'bg-red-100 text-red-800'
+                    }`}
+                  >
+                    {avancadoCalculado.kanitz.faixaTexto.toUpperCase()}
+                  </span>
+                </div>
+                <p className="text-[8px] text-slate-500 mt-1">Stephen Charles Kanitz (USP, 1974)</p>
+              </div>
+
+              {/* Altman Z1 */}
+              <div className="bg-white border border-slate-200 rounded p-2 flex flex-col justify-between">
+                <div>
+                  <span className="text-[9px] font-bold uppercase text-slate-500 block">
+                    Altman Z1 (Emergentes)
+                  </span>
+                  <span className="text-xs font-mono font-black text-slate-900 block mt-0.5">
+                    {avancadoCalculado.altmanZ1.zScore.toFixed(4).replace('.', ',')}
+                  </span>
+                  <span
+                    className={`inline-block px-1.5 py-0.2 mt-1 rounded font-bold text-[8px] ${
+                      avancadoCalculado.altmanZ1.faixa === 'segura'
+                        ? 'bg-emerald-100 text-emerald-800'
+                        : avancadoCalculado.altmanZ1.faixa === 'cinzenta'
+                          ? 'bg-amber-100 text-amber-800'
+                          : 'bg-red-100 text-red-800'
+                    }`}
+                  >
+                    {avancadoCalculado.altmanZ1.faixaTexto.toUpperCase()}
+                  </span>
+                </div>
+                <p className="text-[8px] text-slate-500 mt-1">Edward I. Altman (NYU, 1968/1983)</p>
+              </div>
+
+              {/* Elizabetsky */}
+              <div className="bg-white border border-slate-200 rounded p-2 flex flex-col justify-between">
+                <div>
+                  <span className="text-[9px] font-bold uppercase text-slate-500 block">
+                    Fator Elizabetsky
+                  </span>
+                  <span className="text-xs font-mono font-black text-slate-900 block mt-0.5">
+                    {avancadoCalculado.elizabetsky.fator.toFixed(4).replace('.', ',')}
+                  </span>
+                  <span
+                    className={`inline-block px-1.5 py-0.2 mt-1 rounded font-bold text-[8px] ${
+                      avancadoCalculado.elizabetsky.faixa === 'solvente'
+                        ? 'bg-emerald-100 text-emerald-800'
+                        : avancadoCalculado.elizabetsky.faixa === 'indefinida'
+                          ? 'bg-amber-100 text-amber-800'
+                          : 'bg-red-100 text-red-800'
+                    }`}
+                  >
+                    {avancadoCalculado.elizabetsky.faixaTexto.toUpperCase()}
+                  </span>
+                </div>
+                <p className="text-[8px] text-slate-500 mt-1">Roberto Elizabetsky (USP, 1976)</p>
+              </div>
+
+              {/* Du Pont */}
+              <div className="bg-white border border-slate-200 rounded p-2 flex flex-col justify-between">
+                <div>
+                  <span className="text-[9px] font-bold uppercase text-slate-500 block">
+                    Decomposição Du Pont (ROA)
+                  </span>
+                  <span className="text-xs font-mono font-black text-slate-900 block mt-0.5">
+                    {avancadoCalculado.duPont.retornoAtivo.toFixed(4).replace('.', ',')}{' '}
+                    <span className="text-[9px] text-slate-500">
+                      ({(avancadoCalculado.duPont.retornoAtivo * 100).toFixed(2).replace('.', ',')}
+                      %)
+                    </span>
+                  </span>
+                  <span className="text-[8px] text-slate-700 block mt-1">
+                    Margem: {avancadoCalculado.duPont.margemLiquida.toFixed(2).replace('.', ',')}% ×
+                    Giro: {avancadoCalculado.duPont.giroAtivo.toFixed(4).replace('.', ',')}x
+                  </span>
+                </div>
+                <p className="text-[8px] text-slate-500 mt-1">
+                  Du Pont (1914) · ROE:{' '}
+                  {avancadoCalculado.duPont.retornoPatrimonioLiquido.toFixed(2).replace('.', ',')}%
+                </p>
+              </div>
+            </div>
+
+            {/* Dinâmica Financeira Modelo Fleuriet (CDG / NCG / Efeito Tesoura / Saldo de Tesouraria) */}
+            <div className="border border-slate-200 rounded bg-white p-2 text-[10px]">
+              <div className="flex justify-between items-center mb-1">
+                <span className="font-bold uppercase text-slate-700 text-[9px] flex items-center gap-1">
+                  <Activity className="w-3 h-3 text-emerald-700" />
+                  Dinâmica Financeira e Capital de Giro (Modelo Fleuriet)
+                </span>
+                <span
+                  className={`px-1.5 py-0.2 rounded font-bold text-[8px] ${
+                    avancadoCalculado.dinamica.efeitoTesoura
+                      ? 'bg-rose-100 text-rose-800'
+                      : 'bg-emerald-100 text-emerald-800'
+                  }`}
+                >
+                  {avancadoCalculado.dinamica.efeitoTesoura
+                    ? 'EFEITO TESOURA ATIVO'
+                    : 'EQUILÍBRIO FINANCEIRO ADEQUADO'}
+                </span>
+              </div>
+              <div className="grid grid-cols-4 gap-2 text-center divide-x divide-slate-100">
+                <div>
+                  <span className="text-[8px] uppercase text-slate-500 block">
+                    Capital de Giro (CDG)
+                  </span>
+                  <span className="font-mono font-bold text-slate-900 block mt-0.5">
+                    {brl(avancadoCalculado.dinamica.cdg)}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-[8px] uppercase text-slate-500 block">
+                    Nec. Capital Giro (NCG)
+                  </span>
+                  <span className="font-mono font-bold text-slate-900 block mt-0.5">
+                    {brl(avancadoCalculado.dinamica.ncg)}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-[8px] uppercase text-slate-500 block">
+                    Saldo Tesouraria (ST)
+                  </span>
+                  <span
+                    className={`font-mono font-bold block mt-0.5 ${
+                      avancadoCalculado.dinamica.saldoTesouraria >= 0
+                        ? 'text-emerald-700'
+                        : 'text-rose-700'
+                    }`}
+                  >
+                    {brl(avancadoCalculado.dinamica.saldoTesouraria)}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-[8px] uppercase text-slate-500 block">
+                    Classificação Fleuriet
+                  </span>
+                  <span className="text-[9px] font-semibold text-slate-800 block mt-0.5 truncate px-1">
+                    {avancadoCalculado.dinamica.classificacaoFleuriet}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Tabela dos Grupos Avançados (Estrutura, Liquidez, Atividade, Rentabilidade e Insolvência) */}
+            <div className="border border-slate-200 rounded overflow-hidden">
+              <table className="w-full text-[9px] text-left">
+                <thead className="bg-slate-100 border-b border-slate-200 text-slate-700 font-bold uppercase">
+                  <tr>
+                    <th className="p-1">Grupo Avançado</th>
+                    <th className="p-1">Índice / Sigla</th>
+                    <th className="p-1 text-center">Fórmula / Fonte Acadêmica</th>
+                    <th className="p-1 text-right">Valor Apurado</th>
+                    <th className="p-1 text-center">Referência</th>
+                    <th className="p-1 text-center">Situação</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {avancadoCalculado.indices.map((ind) => (
+                    <tr key={ind.id} className="hover:bg-slate-50">
+                      <td className="p-1 font-bold text-slate-700">{ind.grupoTitulo}</td>
+                      <td className="p-1 font-semibold text-slate-900">
+                        {ind.sigla ? `${ind.sigla} - ${ind.nome}` : ind.nome}
+                      </td>
+                      <td className="p-1 text-center text-slate-500 text-[8px] max-w-[150px] truncate">
+                        {ind.formula}
+                      </td>
+                      <td className="p-1 text-right font-mono font-bold text-slate-900">
+                        {ind.valorFormatado}
+                      </td>
+                      <td className="p-1 text-center text-slate-500 text-[8px]">
+                        {ind.referencia}
+                      </td>
+                      <td className="p-1 text-center">
+                        <span
+                          className={`px-1.5 py-0.2 rounded font-bold text-[8px] ${
+                            ind.semaforo === 'saudavel'
+                              ? 'bg-emerald-100 text-emerald-800'
+                              : ind.semaforo === 'atencao'
+                                ? 'bg-amber-100 text-amber-800'
+                                : 'bg-red-100 text-red-800'
+                          }`}
+                        >
+                          {ind.faixaInterpretada || ind.semaforo.toUpperCase()}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>

@@ -9,6 +9,183 @@ import {
 } from './exportarRelatorioContabil'
 import type { ItemIndicador, AnaliseBalanco3Exercicios } from '@/types/analisesEmpresariaisModel'
 
+const balancoMockGlobal: AnaliseBalanco3Exercicios = {
+  anoMenos2: {
+    rotulo: '2023',
+    ativoCirculante: {
+      caixaEquivalentes: 20000,
+      aplicacoesFinanceiras: 0,
+      contasReceber: 50000,
+      estoques: 30000,
+      tributosRecuperar: 0,
+      outrosAtivosCirculantes: 0,
+    },
+    ativoNaoCirculante: {
+      realizavelLongoPrazo: 10000,
+      investimentos: 0,
+      imobilizado: 35000,
+      intangivel: 5000,
+    },
+    passivoCirculante: {
+      fornecedores: 40000,
+      emprestimosCP: 20000,
+      obrigacoesTrabalhistas: 10000,
+      obrigacoesTributarias: 5000,
+      adiantamentosClientes: 0,
+      outrasObrigacoesCP: 5000,
+    },
+    passivoNaoCirculante: {
+      emprestimosLP: 15000,
+      outrasObrigacoesLP: 5000,
+      provisoesCPC25: 0,
+      tributosParcelados: 0,
+    },
+    patrimonioLiquido: {
+      capitalSocial: 40000,
+      reservasLucros: 10000,
+      ajustesAvaliacaoPatrimonial: 0,
+      prejuizosAcumulados: 0,
+    },
+    dre: {
+      receitaBruta: 300000,
+      deducoesImpostos: -30000,
+      cmv: -150000,
+      despesasVendas: -20000,
+      despesasAdministrativas: -30000,
+      outrasDespesasOperacionais: 0,
+      depreciacaoAmortizacao: 5000,
+      resultadoFinanceiro: -5000,
+      irCsll: -10000,
+    },
+    complementares: {
+      depreciacao: 5000,
+      despesaJuros: 5000,
+      compras: 100000,
+      numEmpregados: 10,
+      folhaBruta: 30000,
+      encargos: 8000,
+      capex: 10000,
+      amortizacaoDividas: 5000,
+    },
+  },
+  anoMenos1: {
+    rotulo: '2024',
+    ativoCirculante: {
+      caixaEquivalentes: 30000,
+      aplicacoesFinanceiras: 0,
+      contasReceber: 55000,
+      estoques: 35000,
+      tributosRecuperar: 0,
+      outrosAtivosCirculantes: 0,
+    },
+    ativoNaoCirculante: {
+      realizavelLongoPrazo: 10000,
+      investimentos: 0,
+      imobilizado: 45000,
+      intangivel: 5000,
+    },
+    passivoCirculante: {
+      fornecedores: 45000,
+      emprestimosCP: 25000,
+      obrigacoesTrabalhistas: 10000,
+      obrigacoesTributarias: 5000,
+      adiantamentosClientes: 0,
+      outrasObrigacoesCP: 5000,
+    },
+    passivoNaoCirculante: {
+      emprestimosLP: 20000,
+      outrasObrigacoesLP: 5000,
+      provisoesCPC25: 0,
+      tributosParcelados: 0,
+    },
+    patrimonioLiquido: {
+      capitalSocial: 40000,
+      reservasLucros: 25000,
+      ajustesAvaliacaoPatrimonial: 0,
+      prejuizosAcumulados: 0,
+    },
+    dre: {
+      receitaBruta: 350000,
+      deducoesImpostos: -35000,
+      cmv: -170000,
+      despesasVendas: -25000,
+      despesasAdministrativas: -35000,
+      outrasDespesasOperacionais: 0,
+      depreciacaoAmortizacao: 6000,
+      resultadoFinanceiro: -6000,
+      irCsll: -12000,
+    },
+    complementares: {
+      depreciacao: 6000,
+      despesaJuros: 6000,
+      compras: 120000,
+      numEmpregados: 12,
+      folhaBruta: 35000,
+      encargos: 9000,
+      capex: 15000,
+      amortizacaoDividas: 6000,
+    },
+  },
+  anoAtual: {
+    rotulo: '2025',
+    ativoCirculante: {
+      caixaEquivalentes: 45000,
+      aplicacoesFinanceiras: 0,
+      contasReceber: 60000,
+      estoques: 40000,
+      tributosRecuperar: 0,
+      outrosAtivosCirculantes: 0,
+    },
+    ativoNaoCirculante: {
+      realizavelLongoPrazo: 15000,
+      investimentos: 0,
+      imobilizado: 55000,
+      intangivel: 5000,
+    },
+    passivoCirculante: {
+      fornecedores: 50000,
+      emprestimosCP: 30000,
+      obrigacoesTrabalhistas: 12000,
+      obrigacoesTributarias: 6000,
+      adiantamentosClientes: 0,
+      outrasObrigacoesCP: 6000,
+    },
+    passivoNaoCirculante: {
+      emprestimosLP: 25000,
+      outrasObrigacoesLP: 5000,
+      provisoesCPC25: 0,
+      tributosParcelados: 0,
+    },
+    patrimonioLiquido: {
+      capitalSocial: 40000,
+      reservasLucros: 46000,
+      ajustesAvaliacaoPatrimonial: 0,
+      prejuizosAcumulados: 0,
+    },
+    dre: {
+      receitaBruta: 400000,
+      deducoesImpostos: -40000,
+      cmv: -190000,
+      despesasVendas: -30000,
+      despesasAdministrativas: -40000,
+      outrasDespesasOperacionais: 0,
+      depreciacaoAmortizacao: 7000,
+      resultadoFinanceiro: -7000,
+      irCsll: -15000,
+    },
+    complementares: {
+      depreciacao: 7000,
+      despesaJuros: 7000,
+      compras: 140000,
+      numEmpregados: 14,
+      folhaBruta: 40000,
+      encargos: 10000,
+      capex: 20000,
+      amortizacaoDividas: 7000,
+    },
+  },
+}
+
 describe('exportarRelatorioContabil - Funções de Formatação e Geração de Arquivos', () => {
   it('escapa campos CSV corretamente com aspas duplas e sem quebras de linha', () => {
     expect(escaparCampoCsv('Texto simples')).toBe('"Texto simples"')
@@ -308,5 +485,78 @@ describe('exportarRelatorioContabil - Funções de Formatação e Geração de A
     // Deve conter as colunas separadas por ';'
     expect(csv).toContain('"Grupo";"Índice";"Valor";"Status";"2023";"2024";"2025"')
     expect(csv).toContain('"1. Liquidez";"Liquidez Corrente";"1,85x";"Saudável"')
+  })
+
+  it('inclui índices avançados (Kanitz, Altman Z1, Elizabetsky, Du Pont, CDG/NCG/Efeito Tesoura) quando solicitado ou presente no balanço', () => {
+    const indicadoresTeste: ItemIndicador[] = [
+      {
+        id: 'liq_corrente',
+        nome: 'Liquidez Corrente',
+        valor: 1.85,
+        unidade: 'fator',
+        referencia: '> 1,20x',
+        formula: 'AC / PC',
+        semaforo: 'saudavel',
+        explicacao: 'Excelente liquidez',
+      },
+    ]
+
+    const linhas = prepararLinhasExportacao(indicadoresTeste, balancoMockGlobal, {
+      incluirIndicesAvancados: true,
+    })
+
+    // Deve conter mais linhas além da 1 clássica
+    expect(linhas.length).toBeGreaterThan(1)
+
+    // Verifica a presença dos modelos avançados obrigatórios
+    const nomes = linhas.map((l) => l.indicador)
+    const grupos = linhas.map((l) => l.grupo)
+
+    expect(nomes.some((n) => n.includes('Termômetro de Insolvência de Kanitz'))).toBe(true)
+    expect(nomes.some((n) => n.includes('Altman Z1'))).toBe(true)
+    expect(nomes.some((n) => n.includes('Elizabetsky'))).toBe(true)
+    expect(nomes.some((n) => n.includes('Du Pont'))).toBe(true)
+    expect(nomes.some((n) => n.includes('Efeito Tesoura') || n.includes('Dinâmica'))).toBe(true)
+
+    expect(grupos.some((g) => g.includes('Modelo de Kanitz'))).toBe(true)
+    expect(grupos.some((g) => g.includes('Modelo de Altman Z1'))).toBe(true)
+    expect(grupos.some((g) => g.includes('Elizabetsky'))).toBe(true)
+    expect(grupos.some((g) => g.includes('Du Pont'))).toBe(true)
+    expect(grupos.some((g) => g.includes('Fleuriet'))).toBe(true)
+  })
+
+  it('inclui parecer e notas do cliente no CSV quando fornecido', () => {
+    const csv = gerarCsvRelatorioContabil([], {
+      clienteNome: 'Cliente Com Parecer',
+      parecerFinal: {
+        empresaNome: 'Cliente Com Parecer',
+        cnpj: '12.345.678/0001-90',
+        periodo: '2022-2024',
+        escopo: 'Contábil e Financeiro',
+        indicadoresChave: {
+          liquidezCorrente: 1.85,
+          margemLiquida: 12.5,
+          roe: 25.0,
+          dividaLiquidaEbitda: 1.2,
+          cicloFinanceiro: 45,
+          dscr: 1.8,
+          scoreFinal: 8.5,
+        },
+        nivelOpiniao: 'Sem ressalvas',
+        recomendacaoCredito: 'Aprovado até R$ 500.000,00',
+        responsavelTecnico: 'Contador Responsável CRC/PR',
+        conclusao: 'Empresa sólida e rentável',
+        pontosFortes: 'Excelente liquidez',
+        pontosAtencao: 'Prazos de recebimento',
+        achadosCriticos: 'Balancete 2024 conferido integralmente sem distorções relevantes',
+        data: '2024-12-31',
+      },
+    })
+
+    expect(csv).toContain('=== PARECER TÉCNICO & NOTAS DO CLIENTE ===')
+    expect(csv).toContain('Sem ressalvas')
+    expect(csv).toContain('Aprovado até R$ 500.000,00')
+    expect(csv).toContain('Empresa sólida e rentável')
+    expect(csv).toContain('Balancete 2024 conferido integralmente sem distorções relevantes')
   })
 })
