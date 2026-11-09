@@ -45,6 +45,7 @@ export interface OpcoesExportacaoContabil {
   rotuloMenos1?: string
   rotuloAtual?: string
   incluirIndicesAvancados?: boolean
+  incluirIndicesClassicos?: boolean
   relatorioAvancado?: RelatorioIndicesAvancados | null
   parecerFinal?: ParecerFinalAnalise | null
   /** Configuração de customização de relatório escolhida pelo usuário */
@@ -198,12 +199,17 @@ export function prepararLinhasExportacao(
   balanco3Anos?: AnaliseBalanco3Exercicios,
   opcoes?: {
     incluirIndicesAvancados?: boolean
+    incluirIndicesClassicos?: boolean
     relatorioAvancado?: RelatorioIndicesAvancados | null
     customizacao?: ConfiguracaoRelatorioCustomizado | null
   },
 ): ItemExportacaoIndicador[] {
-  // Verifica se índices clássicos foram desmarcados na customização
-  const incluirClassicos = opcoes?.customizacao?.secoes?.indicesClassicos ?? true
+  // Verifica se índices clássicos foram desmarcados na customização ou nas opções
+  const customizacaoClassicos = opcoes?.customizacao?.secoes?.indicesClassicos
+  const incluirClassicos =
+    customizacaoClassicos !== undefined
+      ? customizacaoClassicos
+      : (opcoes?.incluirIndicesClassicos ?? true)
 
   const indMenos1Map = new Map<string, ItemIndicador>()
   const indMenos2Map = new Map<string, ItemIndicador>()

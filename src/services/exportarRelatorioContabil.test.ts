@@ -596,6 +596,14 @@ describe('exportarRelatorioContabil - Funções de Formatação e Geração de A
     // E deve conter os avançados
     expect(linhas.some((l) => l.indicador.includes('Kanitz'))).toBe(true)
 
+    // Teste também passando via flag direta incluirIndicesClassicos: false
+    const linhasSemClassicosDireto = prepararLinhasExportacao(indicadoresTeste, balancoMockGlobal, {
+      incluirIndicesClassicos: false,
+      incluirIndicesAvancados: true,
+    })
+    expect(linhasSemClassicosDireto.some((l) => l.indicador === 'Liquidez Corrente')).toBe(false)
+    expect(linhasSemClassicosDireto.some((l) => l.indicador.includes('Kanitz'))).toBe(true)
+
     const csv = gerarCsvRelatorioContabil(linhas, {
       clienteNome: 'Empresa Oculta LTDA',
       clienteDoc: '99.888.777/0001-66',

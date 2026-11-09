@@ -38,13 +38,20 @@ import { criarConfiguracaoPadrao } from '@/services/customizacaoRelatorio'
 interface ModalCustomizacaoRelatorioProps {
   aberto: boolean
   onFechar: () => void
-  configuracaoAtual: ConfiguracaoRelatorioCustomizado
-  onSalvarConfiguracao: (novaConfig: ConfiguracaoRelatorioCustomizado) => Promise<void> | void
+  configuracaoAtual?: ConfiguracaoRelatorioCustomizado | null
+  configInicial?: ConfiguracaoRelatorioCustomizado | null
+  onSalvarConfiguracao?: (novaConfig: ConfiguracaoRelatorioCustomizado) => Promise<void> | void
+  onSalvarConfig?: (novaConfig: ConfiguracaoRelatorioCustomizado) => Promise<void> | void
   clienteNome?: string
+  clienteCnpj?: string
   totalIndicadores?: number
   onExportarDiretoAposSalvar?: (
     tipo: 'pdf' | 'xlsx' | 'csv',
     config: ConfiguracaoRelatorioCustomizado,
+  ) => void
+  onAplicarEExportar?: (
+    config: ConfiguracaoRelatorioCustomizado,
+    formato?: 'pdf' | 'xlsx' | 'csv',
   ) => void
   formatoPendente?: 'pdf' | 'xlsx' | 'csv' | null
 }
@@ -53,23 +60,29 @@ export const ModalCustomizacaoRelatorio: React.FC<ModalCustomizacaoRelatorioProp
   aberto,
   onFechar,
   configuracaoAtual,
+  configInicial,
   onSalvarConfiguracao,
+  onSalvarConfig,
   clienteNome = '',
+  clienteCnpj: _clienteCnpj,
   totalIndicadores = 0,
   onExportarDiretoAposSalvar,
+  onAplicarEExportar,
   formatoPendente = null,
 }) => {
-  const [config, setConfig] = useState<ConfiguracaoRelatorioCustomizado>(configuracaoAtual)
+  const cfgEfetiva = configInicial || configuracaoAtual || criarConfiguracaoPadrao()
+  const [config, setConfig] = useState<ConfiguracaoRelatorioCustomizado>(cfgEfetiva)
   const [salvando, setSalvando] = useState(false)
   const [sucessoSalvo, setSucessoSalvo] = useState(false)
 
   // Sincroniza estado quando modal abre ou configuração externa muda
   useEffect(() => {
     if (aberto) {
-      setConfig(JSON.parse(JSON.stringify(configuracaoAtual)))
+      const fonte = configInicial || configuracaoAtual || criarConfiguracaoPadrao()
+      setConfig(JSON.parse(JSON.stringify(fonte)))
       setSucessoSalvo(false)
     }
-  }, [aberto, configuracaoAtual])
+  }, [aberto, configuracaoAtual, configInicial])
 
   const alternarSecao = (chave: keyof ConfiguracaoRelatorioCustomizado['secoes']) => {
     setConfig((anterior) => ({
@@ -85,15 +98,27 @@ export const ModalCustomizacaoRelatorio: React.FC<ModalCustomizacaoRelatorioProp
     setConfig(criarConfiguracaoPadrao())
   }
 
+  const salvarEfetivo = async (novaCfg: ConfiguracaoRelatorioCustomizado) => {
+    if (onSalvarConfiguracao) {
+      await onSalvarConfiguracao(novaCfg)
+    } else if (onSalvarConfig) {
+      await onSalvarConfig(novaCfg)
+    }
+  }
+
   const handleSalvarAplicar = async (tipoAcao?: 'salvar' | 'exportar') => {
     try {
       setSalvando(true)
-      await onSalvarConfiguracao(config)
+      await salvarEfetivo(config)
       setSucessoSalvo(true)
       setTimeout(() => setSucessoSalvo(false), 2000)
 
-      if (tipoAcao === 'exportar' && formatoPendente && onExportarDiretoAposSalvar) {
-        onExportarDiretoAposSalvar(formatoPendente, config)
+      if (tipoAcao === 'exportar') {
+        if (formatoPendente && onExportarDiretoAposSalvar) {
+          onExportarDiretoAposSalvar(formatoPendente, config)
+        } else if (onAplicarEExportar) {
+          onAplicarEExportar(config, formatoPendente || undefined)
+        }
         onFechar()
       } else {
         onFechar()
@@ -575,7 +600,7 @@ export const ModalCustomizacaoRelatorio: React.FC<ModalCustomizacaoRelatorioProp
               <span>Salvar Preferências</span>
             </Button>
 
-            {formatoPendente ? (
+            {formatoPendente || onAplicarEExportar ? (
               <Button
                 onClick={() => handleSalvarAplicar('exportar')}
                 disabled={salvando}
@@ -583,8 +608,9 @@ export const ModalCustomizacaoRelatorio: React.FC<ModalCustomizacaoRelatorioProp
               >
                 <CheckCircle2 className="w-3.5 h-3.5" />
                 <span>
-                  Salvar e Exportar{' '}
-                  {formatoPendente === 'pdf' ? 'A4' : formatoPendente === 'xlsx' ? 'Excel' : 'CSV'}
+                  {formatoPendente
+                    ? `Salvar e Exportar ${formatoPendente === 'pdf' ? 'A4' : formatoPendente === 'xlsx' ? 'Excel' : 'CSV'}`
+                    : 'Salvar e Aplicar'}
                 </span>
               </Button>
             ) : null}

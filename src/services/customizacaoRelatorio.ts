@@ -260,3 +260,18 @@ export async function salvarConfiguracaoRelatorioPocketBase(
     return false
   }
 }
+
+/**
+ * Atalho conveniente unificado para salvar configuração de relatório
+ * (sincroniza localStorage e tenta PocketBase se houver CNPJ)
+ */
+export async function salvarConfiguracaoRelatorio(
+  cnpj: string | null | undefined,
+  configuracao: ConfiguracaoRelatorioCustomizado,
+  notasTextoAtuais = '',
+): Promise<boolean> {
+  const docLimpo = normalizarDocumento(cnpj)
+  salvarConfiguracaoLocalStorage(docLimpo, configuracao)
+  if (!docLimpo) return true
+  return salvarConfiguracaoRelatorioPocketBase(docLimpo, configuracao, notasTextoAtuais)
+}
