@@ -5,6 +5,7 @@ import {
   identificarClientePorNome,
   filtrarPdfsValidos,
   processarAnexosEmMassa,
+  sinalizarItensClienteFixado,
   LIMITE_MAXIMO_ANEXO_MASSA,
   type ItemAnexoMassa,
 } from './anexoPdfMassaClientes'
@@ -185,5 +186,73 @@ describe('processarAnexosEmMassa', () => {
     })
     expect(res.falhas).toBe(1)
     expect(res.itens[0].motivo).toContain('storage cheio')
+  })
+})
+
+describe('sinalizarItensClienteFixado (modo cliente fixado na ficha)', () => {
+  const alvo = {
+    codigo: 94109,
+    razao_social: 'CARDOSO & SIX LTDA',
+    documento_limpo: '11222333000144',
+  }
+
+  it('sinaliza título já anexado à ficha como duplicado', async () => {
+    const svc = await import('@/services/clienteDadosComplementaresService')
+    ;(svc.listarArquivosCliente as any).mockResolvedValueOnce([{ titulo: 'Contrato Social' }])
+
+    const sinalizados = await sinalizarItensClienteFixado(
+      [item({ id: 'x', nomeOriginal: 'contrato.pdf', titulo: 'Contrato Social' })],
+      alvo as any,
+    )
+    expect(sinalizados[0].motivo).toContain('Duplicado')
+  })
+
+  it('sinaliza títulos repetidos dentro do lote', async () => {
+    const svc = await import('@/services/clienteDadosComplementaresService')
+    ;(svc.listarArquivosCliente as any).mockResolvedValueOnce([])
+
+    const sinalizados = await sinalizarItensClienteFixado(
+      [
+        item({ id: 'a', nomeOriginal: 'proc-1.pdf', titulo: 'Procuração' }),
+        item({ id: 'b', nomeOriginal: 'proc-2.pdf', titulo: 'Procuração' }),
+      ],
+      alvo as any,
+    )
+    expect(sinalizados[0].motivo).toContain('repetido')
+    expect(sinalizados[1].motivo).toContain('repetido')
+  })
+
+  it('sinaliza nome de arquivo sem título legível', async () => {
+    const svc = await import('@/services/clienteDadosComplementaresService')
+    ;(svc.listarArquivosCliente as any).mockResolvedValueOnce([])
+
+    const sinalizados = await sinalizarItensClienteFixado(
+      [item({ id: 'n', nomeOriginal: '2024-01-31.pdf', titulo: '2024-01-31' })],
+      alvo as any,
+    )
+    expect(sinalizados[0].motivo).toContain('sem título legível')
+  })
+
+  it('não sinaliza item com título legível e inédito', async () => {
+    const svc = await import('@/services/clienteDadosComplementaresService')
+    ;(svc.listarArquivosCliente as any).mockResolvedValueOnce([{ titulo: 'Contrato Social' }])
+
+    const sinalizados = await sinalizarItensClienteFixado(
+      [item({ id: 'y', nomeOriginal: 'procuracao-2026.pdf', titulo: 'Procuração 2026' })],
+      alvo as any,
+    )
+    expect(sinalizados[0].motivo).toBeUndefined()
+  })
+
+  it('não trava quando a listagem de arquivos falha', async () => {
+    const svc = await import('@/services/clienteDadosComplementaresService')
+    ;(svc.listarArquivosCliente as any).mockRejectedValueOnce(new Error('rede fora'))
+
+    const sinalizados = await sinalizarItensClienteFixado(
+      [item({ id: 'z', nomeOriginal: 'doc.pdf', titulo: 'Doc' })],
+      alvo as any,
+    )
+    expect(sinalizados).toHaveLength(1)
+    expect(sinalizados[0].status).toBe('pronto')
   })
 })
