@@ -177,6 +177,66 @@ export function filtrarPdfsValidos(arquivos: File[]): {
 }
 
 /**
+ * Sinaliza itens do modo CLIENTE FIXADO ANTES do processamento (etapa de revisão):
+ *  - título já anexado à ficha do cliente fixado → sinaliza `duplicado` (o
+ *    processamento ignora, nunca substitui o anexo existente);
+ *  - títulos repetidos dentro do próprio lote → ambos ficam sinalizados (o
+ *    primeiro anexa, o seguinte será ignorado como duplicado pelo serviço);
+ *  - nome de arquivo sem título legível → sinalizado com motivo, sem travar o lote.
+ *
+ * Não altera status dos itens — apenas preenche `motivo` e `pista` para exibição.
+ */
+export async function sinalizarItensClienteFixado(
+  itens: ItemAnexoMassa[],
+  cliente: AlvoClienteMassa,
+): Promise<ItemAnexoMassa[]> {
+  // Títulos já anexados à ficha do cliente
+  let titulosJaAnexados = new Set<string>()
+  try {
+    const existentes = await listarArquivosCliente(
+      cliente.documento_limpo || String(cliente.codigo),
+      cliente.codigo,
+    )
+    titulosJaAnexados = new Set(
+      (existentes as { titulo?: string }[]).map((a) => (a.titulo || '').trim().toLowerCase()),
+    )
+  } catch {
+    // Sem relação de existentes: sem sinalização prévia, o processamento continua protegendo
+  }
+
+  // Contagem de títulos repetidos dentro do lote
+  const contagemNoLote = new Map<string, number>()
+  for (const it of itens) {
+    const chave = it.titulo.trim().toLowerCase()
+    contagemNoLote.set(chave, (contagemNoLote.get(chave) || 0) + 1)
+  }
+
+  return itens.map((it) => {
+    const tituloChave = it.titulo.trim().toLowerCase()
+    let motivo = it.motivo
+
+    if (titulosJaAnexados.has(tituloChave)) {
+      motivo = 'Duplicado: já existe anexo com este título na ficha deste cliente.'
+    } else if (contagemNoLote.get(tituloChave)! > 1) {
+      motivo = 'Atenção: título repetido dentro do lote — apenas um será anexado.'
+    } else if (!nomeLegivel(it.nomeOriginal)) {
+      motivo = 'Nome de arquivo sem título legível — verifique antes de anexar.'
+    }
+
+    return { ...it, motivo }
+  })
+}
+
+/** Nome de arquivo considerado sem título legível (vazio, só números/data ou sem extensão pdf removida) */
+function nomeLegivel(nome: string): boolean {
+  const base = nome.replace(/\.pdf$/i, '').trim()
+  if (!base) return false
+  // Só dígitos, separadores e datas (ex.: "2024-01-31", "123456")
+  if (!/\p{L}/u.test(base)) return false
+  return true
+}
+
+/**
  * Processa a lista de itens sequencialmente (sem travar a interface):
  *  - item sem cliente → pendência (status `sem_cliente`), não anexa;
  *  - título já anexado ao mesmo cliente → `duplicado`, ignora;

@@ -12,6 +12,11 @@
  *  4. Resumo: anexados, duplicados (mesmo título para o mesmo cliente),
  *     pendências (sem cliente) e falhas com motivo.
  *
+ * Variante "cliente fixado" (aberto de dentro da ficha do cliente): todos os
+ * PDFs vão para aquele único cliente, sem identificação por nome de arquivo;
+ * a revisão apenas lista os arquivos e sinaliza duplicados / nome sem título
+ * legível; a listagem da ficha recarrega ao concluir.
+ *
  * Persistência pela MESMA coleção/serviço do anexo individual
  * (`cliente_arquivos` / `uploadArquivoCliente`).
  */
@@ -29,6 +34,8 @@ import {
   Loader2,
   Trash2,
   Link2,
+  RefreshCw,
+  Info,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -39,6 +46,7 @@ import {
   identificarClientePorNome,
   construirIndiceClientes,
   processarAnexosEmMassa,
+  sinalizarItensClienteFixado,
   tituloPadraoDoArquivo,
   type ItemAnexoMassa,
   type StatusItemAnexoMassa,
@@ -56,6 +64,8 @@ interface ModalAnexarPdfEmMassaProps {
     pendentes: number
     falhas: number
   }) => void
+  /** Recarga imediata da listagem de arquivos da ficha (usado no modo cliente fixado) */
+  onClienteFixoAtualizado?: () => void
 }
 
 const CATEGORIAS = [
@@ -88,6 +98,7 @@ export function ModalAnexarPdfEmMassa({
   clienteFixo = null,
   onFechar,
   onConcluido,
+  onClienteFixoAtualizado,
 }: ModalAnexarPdfEmMassaProps) {
   const { toast } = useToast()
 
@@ -99,6 +110,7 @@ export function ModalAnexarPdfEmMassa({
   const [itemAtribuindo, setItemAtribuindo] = useState<string | null>(null)
   const [aplicarTodosCliente, setAplicarTodosCliente] = useState<EmpresaRecord | null>(null)
   const [progresso, setProgresso] = useState({ concluidos: 0, total: 0 })
+  const [itensCarregando, setItensCarregando] = useState(false)
   const [resumo, setResumo] = useState<{
     anexados: number
     duplicados: number
@@ -109,6 +121,7 @@ export function ModalAnexarPdfEmMassa({
   const inputArquivosRef = useRef<HTMLInputElement>(null)
   const processamentoIniciadoRef = useRef(false)
 
+  const modoClienteFixado = Boolean(clienteFixo)
   const indice = useMemo(() => construirIndiceClientes(empresas), [empresas])
   const resultadosBusca = useMemo(() => {
     const q = busca.trim().toLowerCase()
@@ -136,6 +149,7 @@ export function ModalAnexarPdfEmMassa({
       setBusca('')
       setItemAtribuindo(null)
       setAplicarTodosCliente(null)
+      setItensCarregando(false)
       processamentoIniciadoRef.current = false
     }
   }, [aberto])
@@ -182,6 +196,21 @@ export function ModalAnexarPdfEmMassa({
 
     setItens((prev) => [...prev, ...novos])
     setRejeitados((prev) => [...prev, ...rejeit])
+
+    // Modo cliente fixado: sinaliza duplicados/nome ilegível na própria seleção
+    if (clienteFixo && novos.length > 0) {
+      setItensCarregando(true)
+      setItens((prevAtual) =>
+        prevAtual.map((i) => {
+          const novo = novos.find((n) => n.id === i.id)
+          return novo ?? i
+        }),
+      )
+      sinalizarItensClienteFixado([...itens, ...novos], clienteFixo)
+        .then((sinalizados) => setItens(sinalizados))
+        .catch(() => {})
+        .finally(() => setItensCarregando(false))
+    }
 
     if (rejeit.length > 0 || limiteEstourado) {
       toast({
@@ -286,9 +315,16 @@ export function ModalAnexarPdfEmMassa({
               <h2 className="font-serif font-bold text-base sm:text-lg leading-tight">
                 Anexar PDFs em Massa
               </h2>
-              <p className="text-[11px] text-[#D4AF37] font-semibold tracking-wider uppercase">
-                Vínculo automático por CNPJ/CPF ou código no nome do arquivo
-              </p>
+              {modoClienteFixado ? (
+                <p className="text-[11px] text-[#D4AF37] font-semibold tracking-wider uppercase">
+                  Cliente fixado:{' '}
+                  {clienteFixo.razao_social || clienteFixo.nome || `cód. ${clienteFixo.codigo}`}
+                </p>
+              ) : (
+                <p className="text-[11px] text-[#D4AF37] font-semibold tracking-wider uppercase">
+                  Vínculo automático por CNPJ/CPF ou código no nome do arquivo
+                </p>
+              )}
             </div>
           </div>
           <button
@@ -304,6 +340,19 @@ export function ModalAnexarPdfEmMassa({
           {/* ---------- ETAPA 1: SELEÇÃO ---------- */}
           {etapa === 'selecao' && (
             <>
+              {modoClienteFixado && (
+                <div className="p-3 rounded-xl bg-blue-50 border border-blue-200 text-blue-800 flex items-start gap-2">
+                  <Paperclip className="w-4 h-4 shrink-0 mt-0.5" />
+                  <span>
+                    Todos os PDFs selecionados serão anexados à ficha de{' '}
+                    <strong>
+                      {clienteFixo.razao_social || clienteFixo.nome || `cód. ${clienteFixo.codigo}`}
+                    </strong>{' '}
+                    (cód. {clienteFixo.codigo}) — sem identificação pelo nome do arquivo.
+                  </span>
+                </div>
+              )}
+
               <div
                 onDragOver={(e) => {
                   e.preventDefault()
@@ -425,6 +474,11 @@ export function ModalAnexarPdfEmMassa({
                             <span className="block font-bold text-slate-800 truncate">
                               {item.nomeOriginal}
                             </span>
+                            {item.motivo && (
+                              <span className="block text-[11px] text-amber-600 font-semibold truncate">
+                                {item.motivo}
+                              </span>
+                            )}
                             <span className="block text-[11px] text-slate-400 truncate">
                               {item.cliente
                                 ? `→ ${item.cliente.razao_social} (cód. ${item.cliente.codigo})${item.pista ? ` • ${item.pista}` : ''}`
@@ -435,12 +489,14 @@ export function ModalAnexarPdfEmMassa({
                         <div className="flex items-center gap-1.5 shrink-0">
                           <span
                             className={`text-[10px] px-2 py-0.5 rounded border font-semibold ${
-                              item.cliente
-                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                : 'bg-amber-50 text-amber-700 border-amber-200'
+                              !item.cliente
+                                ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                : item.motivo
+                                  ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                  : 'bg-emerald-50 text-emerald-700 border-emerald-200'
                             }`}
                           >
-                            {item.cliente ? 'Identificado' : 'Pendente'}
+                            {!item.cliente ? 'Pendente' : item.motivo ? 'Atenção' : 'Pronto'}
                           </span>
                           <button
                             onClick={() => removerItem(item.id)}
@@ -461,16 +517,31 @@ export function ModalAnexarPdfEmMassa({
           {/* ---------- ETAPA 2: REVISÃO ---------- */}
           {etapa === 'revisao' && (
             <div className="flex flex-col gap-3">
-              <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between">
-                <span className="text-slate-600">
-                  <strong className="text-[#0F294A]">{clienteFechadoCount}</strong> identificado(s)
-                  automaticamente • <strong className="text-amber-600">{semClienteCount}</strong>{' '}
-                  aguardando definição
-                </span>
-                <span className="text-[11px] text-slate-400 font-mono">
-                  {itens.length} arquivo(s) no lote
-                </span>
-              </div>
+              {modoClienteFixado ? (
+                <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between">
+                  <span className="text-slate-600">
+                    Confira a lista antes de anexar a{' '}
+                    <strong className="text-[#0F294A]">
+                      {clienteFixo.razao_social || clienteFixo.nome || `cód. ${clienteFixo.codigo}`}
+                    </strong>
+                  </span>
+                  <span className="text-[11px] text-slate-400 font-mono">
+                    {itens.length} arquivo(s) no lote
+                  </span>
+                </div>
+              ) : (
+                <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between">
+                  <span className="text-slate-600">
+                    <strong className="text-[#0F294A]">{clienteFechadoCount}</strong>{' '}
+                    identificado(s) automaticamente •{' '}
+                    <strong className="text-amber-600">{semClienteCount}</strong> aguardando
+                    definição
+                  </span>
+                  <span className="text-[11px] text-slate-400 font-mono">
+                    {itens.length} arquivo(s) no lote
+                  </span>
+                </div>
+              )}
 
               <div className="border border-slate-200 rounded-xl divide-y divide-slate-100 overflow-hidden max-h-80 overflow-y-auto">
                 {itens.map((item) => (
@@ -482,6 +553,11 @@ export function ModalAnexarPdfEmMassa({
                           <span className="block font-bold text-slate-800 truncate">
                             {item.nomeOriginal}
                           </span>
+                          {modoClienteFixado && item.motivo && (
+                            <span className="block text-[11px] text-amber-600 font-semibold truncate">
+                              {item.motivo}
+                            </span>
+                          )}
                           <span className="block text-[11px] text-slate-400 truncate">
                             {item.cliente
                               ? `→ ${item.cliente.razao_social} (cód. ${item.cliente.codigo})${item.pista ? ` • ${item.pista}` : ''}`
@@ -490,27 +566,41 @@ export function ModalAnexarPdfEmMassa({
                         </div>
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
-                        <span
-                          className={`text-[10px] px-2 py-0.5 rounded border font-semibold ${
-                            item.cliente
-                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                              : 'bg-amber-50 text-amber-700 border-amber-200'
-                          }`}
-                        >
-                          {item.cliente ? 'Identificado' : 'Pendente'}
-                        </span>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-7 text-[11px] cursor-pointer"
-                          onClick={() => {
-                            setItemAtribuindo(itemAtribuindo === item.id ? null : item.id)
-                            setBusca('')
-                          }}
-                        >
-                          <Search className="w-3 h-3" />
-                          {item.cliente ? 'Alterar' : 'Definir'}
-                        </Button>
+                        {modoClienteFixado ? (
+                          <span
+                            className={`text-[10px] px-2 py-0.5 rounded border font-semibold ${
+                              item.motivo
+                                ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                            }`}
+                          >
+                            {item.motivo ? 'Atenção' : 'Pronto'}
+                          </span>
+                        ) : (
+                          <>
+                            <span
+                              className={`text-[10px] px-2 py-0.5 rounded border font-semibold ${
+                                item.cliente
+                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                  : 'bg-amber-50 text-amber-700 border-amber-200'
+                              }`}
+                            >
+                              {item.cliente ? 'Identificado' : 'Pendente'}
+                            </span>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-7 text-[11px] cursor-pointer"
+                              onClick={() => {
+                                setItemAtribuindo(itemAtribuindo === item.id ? null : item.id)
+                                setBusca('')
+                              }}
+                            >
+                              <Search className="w-3 h-3" />
+                              {item.cliente ? 'Alterar' : 'Definir'}
+                            </Button>
+                          </>
+                        )}
                         <button
                           onClick={() => removerItem(item.id)}
                           className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
@@ -521,8 +611,8 @@ export function ModalAnexarPdfEmMassa({
                       </div>
                     </div>
 
-                    {/* Busca de cliente para este item */}
-                    {itemAtribuindo === item.id && (
+                    {/* Busca de cliente para este item — desativada no modo cliente fixado */}
+                    {itemAtribuindo === item.id && !modoClienteFixado && (
                       <div className="pl-8 flex flex-col gap-1.5">
                         <Input
                           autoFocus
@@ -558,12 +648,29 @@ export function ModalAnexarPdfEmMassa({
                 ))}
               </div>
 
-              {semClienteCount > 0 && (
+              {!modoClienteFixado && semClienteCount > 0 && (
                 <div className="p-3 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-[11px] flex items-start gap-2">
                   <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
                   <span>
                     {semClienteCount} arquivo(s) sem cliente definido ficarão na lista de pendências
                     e NÃO serão anexados — os demais seguem normalmente.
+                  </span>
+                </div>
+              )}
+
+              {modoClienteFixado && itensCarregando && (
+                <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 text-slate-600 text-[11px] flex items-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin shrink-0" />
+                  <span>Conferindo duplicidades na ficha do cliente…</span>
+                </div>
+              )}
+
+              {modoClienteFixado && !itensCarregando && (
+                <div className="p-3 rounded-lg bg-blue-50 border border-blue-200 text-blue-800 text-[11px] flex items-start gap-2">
+                  <Info className="w-4 h-4 shrink-0 mt-0.5" />
+                  <span>
+                    Duplicados (mesmo título já anexado à ficha) serão ignorados — o anexo existente
+                    permanece intacto. O restante será anexado normalmente.
                   </span>
                 </div>
               )}
@@ -715,7 +822,7 @@ export function ModalAnexarPdfEmMassa({
                   className="bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer"
                 >
                   <Upload className="w-3.5 h-3.5" />
-                  Anexar {clienteFechadoCount} arquivo(s)
+                  Anexar {modoClienteFixado ? itens.length : clienteFechadoCount} arquivo(s)
                 </Button>
               </>
             )}
@@ -733,6 +840,20 @@ export function ModalAnexarPdfEmMassa({
                   Novo lote
                 </Button>
               </>
+            )}
+            {etapa === 'resumo' && modoClienteFixado && (resumo?.anexados ?? 0) > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  onClienteFixoAtualizado?.()
+                  onFechar()
+                }}
+                className="bg-emerald-50 border-emerald-300 text-emerald-700 hover:bg-emerald-100 cursor-pointer"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                Recarregar ficha
+              </Button>
             )}
             {etapa === 'resumo' && (
               <Button

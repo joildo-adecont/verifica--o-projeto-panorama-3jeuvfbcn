@@ -24,6 +24,7 @@ import {
   Paperclip,
   Share2,
   Save,
+  Layers,
 } from 'lucide-react'
 import { EmpresaRecord } from '@/types/cadastroEmpresas'
 import {
@@ -40,8 +41,10 @@ import {
   uploadArquivoCliente,
   excluirArquivoCliente,
   sanitizarDoc,
+  listarArquivosCliente,
 } from '@/services/clienteDadosComplementaresService'
 import { BotaoCanalContato } from './BotaoCanalContato'
+import { ModalAnexarPdfEmMassa } from './ModalAnexarPdfEmMassa'
 import { useToast } from '@/hooks/use-toast'
 
 interface ModalFichaClienteDetalhadaProps {
@@ -88,6 +91,18 @@ export const ModalFichaClienteDetalhada: React.FC<ModalFichaClienteDetalhadaProp
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const docLimpo = empresa ? sanitizarDoc(empresa.documento_limpo || empresa.numero_documento) : ''
+  const [modalAnexoMassaAberto, setModalAnexoMassaAberto] = useState(false)
+
+  // Recarrega a listagem de arquivos da ficha na hora (após anexo em massa)
+  const recarregarArquivos = async () => {
+    if (!empresa) return
+    try {
+      const lista = await listarArquivosCliente(docLimpo, empresa.codigo)
+      setArquivos(lista as ClienteArquivo[])
+    } catch (e: any) {
+      console.warn('Falha ao recarregar arquivos da ficha:', e)
+    }
+  }
 
   // Carrega dados complementares ao abrir a ficha do cliente
   useEffect(() => {
@@ -862,7 +877,14 @@ export const ModalFichaClienteDetalhada: React.FC<ModalFichaClienteDetalhadaProp
                   </div>
                 </div>
 
-                <div className="flex justify-end pt-1">
+                <div className="flex justify-end pt-1 gap-2">
+                  <button
+                    onClick={() => setModalAnexoMassaAberto(true)}
+                    className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-white border border-[#0F294A]/20 text-[#0F294A] text-xs font-bold hover:bg-slate-100 transition-colors shadow-sm cursor-pointer"
+                  >
+                    <Layers className="w-3.5 h-3.5 text-[#D4AF37]" />
+                    <span>Anexar em massa</span>
+                  </button>
                   <button
                     onClick={handleUploadArquivo}
                     disabled={enviandoArquivo || !arquivoUpload}
@@ -935,6 +957,22 @@ export const ModalFichaClienteDetalhada: React.FC<ModalFichaClienteDetalhadaProp
             </div>
           )}
         </div>
+
+        {/* MODAL DE ANEXO EM MASSA COM O CLIENTE FIXADO (ABRE DA FICHA) */}
+        <ModalAnexarPdfEmMassa
+          aberto={modalAnexoMassaAberto}
+          empresas={[]}
+          clienteFixo={
+            {
+              id: empresa.id,
+              codigo: empresa.codigo,
+              razao_social: empresa.razao_social,
+              documento_limpo: empresa.documento_limpo,
+            } as EmpresaRecord
+          }
+          onFechar={() => setModalAnexoMassaAberto(false)}
+          onClienteFixoAtualizado={recarregarArquivos}
+        />
 
         {/* RODAPÉ */}
         <div className="bg-slate-50 px-6 py-3 border-t border-slate-200 flex items-center justify-between">
