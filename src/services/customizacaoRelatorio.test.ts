@@ -6,6 +6,7 @@ import {
   codificarNotasComAjustes,
   salvarConfiguracaoLocalStorage,
   carregarConfiguracaoLocalStorage,
+  obterSubtituloSecao,
 } from './customizacaoRelatorio'
 import type { ConfiguracaoRelatorioCustomizado } from '@/types/customizacaoRelatorio'
 
@@ -165,6 +166,68 @@ describe('customizacaoRelatorio - Modelos e Persistência de Preferências', () 
     )
     expect(decodificado.configuracao?.titulosSecoes?.achadosCriticos).toBe(
       'Apontamentos Relevantes',
+    )
+  })
+
+  it('obterSubtituloSecao retorna subtítulo quando definido e vazio quando ausente/em branco', () => {
+    const config: ConfiguracaoRelatorioCustomizado = {
+      ...criarConfiguracaoPadrao(),
+      subtitulosSecoes: {
+        parecerTecnico: 'Conclusão técnica fundamentada no balanço e DRE',
+        indicesClassicos: '   ', // Apenas espaços
+        modelosAvancados: 'Termômetro de Insolvência e Decomposição Du Pont',
+      },
+    }
+
+    expect(obterSubtituloSecao(config, 'parecerTecnico')).toBe(
+      'Conclusão técnica fundamentada no balanço e DRE',
+    )
+    expect(obterSubtituloSecao(config, 'modelosAvancados')).toBe(
+      'Termômetro de Insolvência e Decomposição Du Pont',
+    )
+    // Seção com espaços em branco deve retornar string vazia
+    expect(obterSubtituloSecao(config, 'indicesClassicos')).toBe('')
+    // Seção não informada no objeto
+    expect(obterSubtituloSecao(config, 'balanco3Anos')).toBe('')
+    // Chamada com config nula ou indefinida
+    expect(obterSubtituloSecao(null, 'parecerTecnico')).toBe('')
+    expect(obterSubtituloSecao(undefined, 'parecerTecnico')).toBe('')
+  })
+
+  it('persiste e decodifica subtítulos para seções padrão e customizadas', () => {
+    const configComSubtitulos: ConfiguracaoRelatorioCustomizado = {
+      ...criarConfiguracaoPadrao(),
+      subtituloPersonalizado: 'Subtítulo Geral do Relatório Contábil',
+      subtitulosSecoes: {
+        indicesClassicos: 'Avaliação dos 25 índices padrão CFC',
+        parecerTecnico: 'Opinião do perito contador responsável',
+      },
+      secoesCustomizadas: [
+        {
+          id: 'sec-custom-1',
+          titulo: 'Análise de Endividamento Setorial',
+          subtitulo: 'Comparativo contra pares da indústria automotiva',
+          conteudo: 'A alavancagem financeira está alinhada ao quartil superior.',
+          ordem: 0,
+          ativa: true,
+        },
+      ],
+    }
+
+    const notas = codificarNotasComAjustes('Observações gerais', configComSubtitulos)
+    const decodificado = decodificarNotasEAjustes(notas)
+
+    expect(decodificado.configuracao?.subtituloPersonalizado).toBe(
+      'Subtítulo Geral do Relatório Contábil',
+    )
+    expect(decodificado.configuracao?.subtitulosSecoes?.indicesClassicos).toBe(
+      'Avaliação dos 25 índices padrão CFC',
+    )
+    expect(decodificado.configuracao?.subtitulosSecoes?.parecerTecnico).toBe(
+      'Opinião do perito contador responsável',
+    )
+    expect(decodificado.configuracao?.secoesCustomizadas?.[0].subtitulo).toBe(
+      'Comparativo contra pares da indústria automotiva',
     )
   })
 })

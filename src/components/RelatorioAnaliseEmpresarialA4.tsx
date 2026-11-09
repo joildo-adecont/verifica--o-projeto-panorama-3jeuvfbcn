@@ -28,6 +28,7 @@ import {
 } from 'lucide-react'
 
 import type { ConfiguracaoRelatorioCustomizado } from '@/types/customizacaoRelatorio'
+import { obterSubtituloSecao } from '@/services/customizacaoRelatorio'
 import { renderQrCodeSvg } from '@/lib/qrCode'
 import { CheckCircle2 } from 'lucide-react'
 
@@ -80,21 +81,36 @@ export const RelatorioAnaliseEmpresarialA4: React.FC<RelatorioAnaliseEmpresarial
   const titulos = customizacao?.titulosSecoes
   const tituloSecaoParecer =
     titulos?.parecerTecnico?.trim() || '1. Parecer Técnico Oficial & Recomendação de Crédito'
+  const subtituloSecaoParecer = obterSubtituloSecao(customizacao, 'parecerTecnico')
+
   const tituloSecaoBalanco =
     titulos?.balanco3Anos?.trim() || '2. Balanço Patrimonial & DRE Comparativo (3 Exercícios)'
+  const subtituloSecaoBalanco = obterSubtituloSecao(customizacao, 'balanco3Anos')
+
   const tituloSecaoClassicos =
     titulos?.indicesClassicos?.trim() ||
     '3. Matriz dos Indicadores Contábeis com Semáforo & Comparativo Trienal'
+  const subtituloSecaoClassicos = obterSubtituloSecao(customizacao, 'indicesClassicos')
+
   const tituloSecaoAvancados =
     titulos?.modelosAvancados?.trim() ||
     '3.1 Modelos de Insolvência, Decomposição Du Pont & Dinâmica Financeira'
+  const subtituloSecaoAvancados = obterSubtituloSecao(customizacao, 'modelosAvancados')
+
   const tituloSecaoScore = titulos?.sinteseExecutiva?.trim() || 'Score Ponderado (0 a 10)'
+  const subtituloSecaoScore = obterSubtituloSecao(customizacao, 'sinteseExecutiva')
+
   const tituloSecaoChecklist =
     titulos?.checklistDocumental?.trim() || 'Checklist Documental & Due Diligence'
+  const subtituloSecaoChecklist = obterSubtituloSecao(customizacao, 'checklistDocumental')
+
   const tituloSecaoAchados =
     titulos?.achadosCriticos?.trim() || '5. Matriz de Achados e Recomendações (Due Diligence)'
+  const subtituloSecaoAchados = obterSubtituloSecao(customizacao, 'achadosCriticos')
+
   const tituloSecaoAgentes =
     titulos?.agentesEspecialistas?.trim() || '6. Síntese Técnica dos Agentes Especialistas ADECONT'
+  const subtituloSecaoAgentes = obterSubtituloSecao(customizacao, 'agentesEspecialistas')
 
   // Obter ou calcular relatório avançado a partir do balanço mais recente
   const avancadoCalculado: RelatorioIndicesAvancados | null = React.useMemo(() => {
@@ -293,13 +309,20 @@ export const RelatorioAnaliseEmpresarialA4: React.FC<RelatorioAnaliseEmpresarial
         {parecerFinal &&
           (incluirParecer || (incluirNotas && Boolean(parecerFinal.achadosCriticos))) && (
             <div className="border border-slate-300 rounded p-3 bg-slate-50/50">
-              <div className="flex justify-between items-center mb-2 border-b border-slate-200 pb-1.5">
-                <h2 className="text-xs font-black uppercase text-slate-900 flex items-center gap-1.5">
-                  <ShieldCheck className="w-3.5 h-3.5 text-primary" />
-                  {tituloSecaoParecer}
-                </h2>
+              <div className="flex justify-between items-start mb-2 border-b border-slate-200 pb-1.5">
+                <div>
+                  <h2 className="text-xs font-black uppercase text-slate-900 flex items-center gap-1.5">
+                    <ShieldCheck className="w-3.5 h-3.5 text-primary" />
+                    {tituloSecaoParecer}
+                  </h2>
+                  {subtituloSecaoParecer ? (
+                    <p className="text-[10px] text-slate-500 font-medium mt-0.5">
+                      {subtituloSecaoParecer}
+                    </p>
+                  ) : null}
+                </div>
                 {incluirParecer && (
-                  <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-slate-200 text-slate-800">
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-slate-200 text-slate-800 shrink-0">
                     Opinião: {parecerFinal.nivelOpiniao}
                   </span>
                 )}
@@ -356,10 +379,17 @@ export const RelatorioAnaliseEmpresarialA4: React.FC<RelatorioAnaliseEmpresarial
         {/* SEÇÃO 2: SÍNTESE PATRIMONIAL & DRE (3 EXERCÍCIOS) */}
         {balanco3Anos && incluirBalanco3Anos && (
           <div>
-            <h2 className="text-xs font-black uppercase text-slate-800 border-b border-slate-300 pb-1 mb-2 flex items-center gap-1.5">
-              <Scale className="w-3.5 h-3.5 text-primary" />
-              {tituloSecaoBalanco}
-            </h2>
+            <div className="border-b border-slate-300 pb-1 mb-2">
+              <h2 className="text-xs font-black uppercase text-slate-800 flex items-center gap-1.5">
+                <Scale className="w-3.5 h-3.5 text-primary" />
+                {tituloSecaoBalanco}
+              </h2>
+              {subtituloSecaoBalanco ? (
+                <p className="text-[10px] text-slate-500 font-medium mt-0.5">
+                  {subtituloSecaoBalanco}
+                </p>
+              ) : null}
+            </div>
             <div className="border border-slate-200 rounded overflow-hidden">
               <table className="w-full text-[9px] text-left">
                 <thead className="bg-slate-100 border-b border-slate-200 text-slate-700 font-bold uppercase">
@@ -523,17 +553,24 @@ export const RelatorioAnaliseEmpresarialA4: React.FC<RelatorioAnaliseEmpresarial
         {/* SEÇÃO 3: 25 INDICADORES COM SEMÁFORO & COMPARATIVO DOS 3 EXERCÍCIOS */}
         {indicadoresModelo && indicadoresModelo.length > 0 && incluirClassicos && (
           <div>
-            <h2 className="text-xs font-black uppercase text-slate-800 border-b border-slate-300 pb-1 mb-2 flex items-center justify-between">
-              <span className="flex items-center gap-1.5">
-                <TrendingUp className="w-3.5 h-3.5 text-emerald-700" />
-                {tituloSecaoClassicos}
-              </span>
-              <span className="text-[10px] text-slate-500 font-normal">
-                Exercícios: {balanco3Anos?.anoMenos2?.rotulo || 'Ano -2'} •{' '}
-                {balanco3Anos?.anoMenos1?.rotulo || 'Ano -1'} •{' '}
-                {balanco3Anos?.anoAtual?.rotulo || 'Ano Atual'}
-              </span>
-            </h2>
+            <div className="border-b border-slate-300 pb-1 mb-2">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xs font-black uppercase text-slate-800 flex items-center gap-1.5">
+                  <TrendingUp className="w-3.5 h-3.5 text-emerald-700" />
+                  {tituloSecaoClassicos}
+                </h2>
+                <span className="text-[10px] text-slate-500 font-normal">
+                  Exercícios: {balanco3Anos?.anoMenos2?.rotulo || 'Ano -2'} •{' '}
+                  {balanco3Anos?.anoMenos1?.rotulo || 'Ano -1'} •{' '}
+                  {balanco3Anos?.anoAtual?.rotulo || 'Ano Atual'}
+                </span>
+              </div>
+              {subtituloSecaoClassicos ? (
+                <p className="text-[10px] text-slate-500 font-medium mt-0.5">
+                  {subtituloSecaoClassicos}
+                </p>
+              ) : null}
+            </div>
             <div className="border border-slate-200 rounded overflow-hidden">
               <table className="w-full text-[9px] text-left">
                 <thead className="bg-slate-100 border-b border-slate-200 text-slate-700 font-bold uppercase">
@@ -624,14 +661,21 @@ export const RelatorioAnaliseEmpresarialA4: React.FC<RelatorioAnaliseEmpresarial
         {/* SEÇÃO 3.1: GRUPOS AVANÇADOS (KANITZ, ALTMAN Z1, ELIZABETSKY, DU PONT, DINÂMICA CDG/NCG/EFEITO TESOURA) */}
         {avancadoCalculado && incluirAvancados && (
           <div className="space-y-2 border border-slate-300 rounded p-2.5 bg-slate-50/40">
-            <div className="flex items-center justify-between border-b border-slate-200 pb-1">
-              <h2 className="text-xs font-black uppercase text-slate-900 flex items-center gap-1.5">
-                <Layers className="w-3.5 h-3.5 text-amber-600" />
-                {tituloSecaoAvancados}
-              </h2>
-              <span className="text-[10px] font-bold text-slate-600 bg-white px-2 py-0.5 rounded border border-slate-200">
-                Ref.: {avancadoCalculado.exercicioRotulo}
-              </span>
+            <div className="border-b border-slate-200 pb-1">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xs font-black uppercase text-slate-900 flex items-center gap-1.5">
+                  <Layers className="w-3.5 h-3.5 text-amber-600" />
+                  {tituloSecaoAvancados}
+                </h2>
+                <span className="text-[10px] font-bold text-slate-600 bg-white px-2 py-0.5 rounded border border-slate-200">
+                  Ref.: {avancadoCalculado.exercicioRotulo}
+                </span>
+              </div>
+              {subtituloSecaoAvancados ? (
+                <p className="text-[10px] text-slate-500 font-medium mt-0.5">
+                  {subtituloSecaoAvancados}
+                </p>
+              ) : null}
             </div>
 
             {/* Destaque dos 4 Modelos Canônicos de Insolvência e Retorno */}
@@ -849,15 +893,22 @@ export const RelatorioAnaliseEmpresarialA4: React.FC<RelatorioAnaliseEmpresarial
           <div className="grid grid-cols-2 gap-3">
             {scoreResultado && incluirSintese && (
               <div className="border border-slate-200 rounded p-2.5 bg-white">
-                <h3 className="font-bold text-[11px] text-slate-900 uppercase mb-1.5 flex items-center justify-between">
-                  <span className="flex items-center gap-1">
-                    <Award className="w-3 h-3 text-amber-600" />
-                    {tituloSecaoScore}
-                  </span>
-                  <span className="text-primary font-bold font-mono">
-                    Nota: {scoreResultado.notaFinal.toFixed(2)}
-                  </span>
-                </h3>
+                <div className="mb-1.5">
+                  <h3 className="font-bold text-[11px] text-slate-900 uppercase flex items-center justify-between">
+                    <span className="flex items-center gap-1">
+                      <Award className="w-3 h-3 text-amber-600" />
+                      {tituloSecaoScore}
+                    </span>
+                    <span className="text-primary font-bold font-mono">
+                      Nota: {scoreResultado.notaFinal.toFixed(2)}
+                    </span>
+                  </h3>
+                  {subtituloSecaoScore ? (
+                    <p className="text-[9px] text-slate-500 font-medium mt-0.5">
+                      {subtituloSecaoScore}
+                    </p>
+                  ) : null}
+                </div>
                 <div className="space-y-1 text-[10px]">
                   {scoreResultado.blocos.map((b) => (
                     <div
@@ -883,10 +934,17 @@ export const RelatorioAnaliseEmpresarialA4: React.FC<RelatorioAnaliseEmpresarial
             {incluirChecklist && (
               <div className="border border-slate-200 rounded p-2.5 bg-white flex flex-col justify-between">
                 <div>
-                  <h3 className="font-bold text-[11px] text-slate-900 uppercase mb-1.5 flex items-center gap-1">
-                    <FileText className="w-3 h-3 text-blue-600" />
-                    {tituloSecaoChecklist}
-                  </h3>
+                  <div className="mb-1.5">
+                    <h3 className="font-bold text-[11px] text-slate-900 uppercase flex items-center gap-1">
+                      <FileText className="w-3 h-3 text-blue-600" />
+                      {tituloSecaoChecklist}
+                    </h3>
+                    {subtituloSecaoChecklist ? (
+                      <p className="text-[9px] text-slate-500 font-medium mt-0.5">
+                        {subtituloSecaoChecklist}
+                      </p>
+                    ) : null}
+                  </div>
                   <div className="space-y-2 text-[10px]">
                     <div className="flex justify-between border-b border-slate-100 pb-1">
                       <span className="text-slate-600">Total de Documentos Auditados:</span>
@@ -920,10 +978,17 @@ export const RelatorioAnaliseEmpresarialA4: React.FC<RelatorioAnaliseEmpresarial
         {/* SEÇÃO 5: MATRIZ DE ACHADOS (APONTAMENTOS) */}
         {achados && achados.length > 0 && incluirNotas && (
           <div>
-            <h2 className="text-xs font-black uppercase text-slate-800 border-b border-slate-300 pb-1 mb-2 flex items-center gap-1.5">
-              <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
-              {tituloSecaoAchados}
-            </h2>
+            <div className="border-b border-slate-300 pb-1 mb-2">
+              <h2 className="text-xs font-black uppercase text-slate-800 flex items-center gap-1.5">
+                <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+                {tituloSecaoAchados}
+              </h2>
+              {subtituloSecaoAchados ? (
+                <p className="text-[10px] text-slate-500 font-medium mt-0.5">
+                  {subtituloSecaoAchados}
+                </p>
+              ) : null}
+            </div>
             <div className="border border-slate-200 rounded overflow-hidden">
               <table className="w-full text-[9px] text-left">
                 <thead className="bg-slate-100 border-b border-slate-200 text-slate-700 font-bold uppercase">
@@ -968,10 +1033,17 @@ export const RelatorioAnaliseEmpresarialA4: React.FC<RelatorioAnaliseEmpresarial
         {/* Pareceres dos 4 Agentes Especialistas Integrados */}
         {incluirAgentes && (
           <div>
-            <h2 className="text-xs font-black uppercase text-slate-800 border-b border-slate-300 pb-1 mb-2 flex items-center gap-1.5">
-              <ShieldCheck className="w-3.5 h-3.5 text-amber-700" />
-              {tituloSecaoAgentes}
-            </h2>
+            <div className="border-b border-slate-300 pb-1 mb-2">
+              <h2 className="text-xs font-black uppercase text-slate-800 flex items-center gap-1.5">
+                <ShieldCheck className="w-3.5 h-3.5 text-amber-700" />
+                {tituloSecaoAgentes}
+              </h2>
+              {subtituloSecaoAgentes ? (
+                <p className="text-[10px] text-slate-500 font-medium mt-0.5">
+                  {subtituloSecaoAgentes}
+                </p>
+              ) : null}
+            </div>
             <div className="grid grid-cols-2 gap-2 text-[10px]">
               <div className="border border-slate-200 rounded p-2 bg-slate-50/50">
                 <span className="font-bold text-slate-900 block mb-0.5">
@@ -1004,22 +1076,35 @@ export const RelatorioAnaliseEmpresarialA4: React.FC<RelatorioAnaliseEmpresarial
         {/* Seções Customizadas Adicionadas pelo Usuário */}
         {(customizacao?.incluirSecoesCustomizadas ?? true) &&
           (customizacao?.secoesCustomizadas || [])
-            .filter((s) => s.ativa !== false && (s.titulo.trim() || s.conteudo.trim()))
+            .filter(
+              (s) =>
+                s.ativa !== false && (s.titulo.trim() || s.conteudo.trim() || s.subtitulo?.trim()),
+            )
             .sort((a, b) => (a.ordem ?? 0) - (b.ordem ?? 0))
-            .map((secao, idx) => (
-              <div
-                key={secao.id || `secao-custom-${idx}`}
-                className="border-2 border-indigo-900/40 rounded p-3 bg-indigo-50/30 dark:bg-slate-800/40"
-              >
-                <h2 className="text-xs font-black uppercase text-indigo-950 dark:text-indigo-200 border-b border-indigo-200 dark:border-indigo-800 pb-1 mb-1.5 flex items-center gap-1.5">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-indigo-700 dark:text-indigo-400" />
-                  {secao.titulo.trim() || `Seção Customizada ${idx + 1}`}
-                </h2>
-                <div className="text-[11px] text-slate-800 dark:text-slate-200 leading-relaxed whitespace-pre-wrap">
-                  {secao.conteudo}
+            .map((secao, idx) => {
+              const subtituloSecaoCustom = secao.subtitulo?.trim()
+              return (
+                <div
+                  key={secao.id || `secao-custom-${idx}`}
+                  className="border-2 border-indigo-900/40 rounded p-3 bg-indigo-50/30 dark:bg-slate-800/40"
+                >
+                  <div className="border-b border-indigo-200 dark:border-indigo-800 pb-1 mb-1.5">
+                    <h2 className="text-xs font-black uppercase text-indigo-950 dark:text-indigo-200 flex items-center gap-1.5">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-indigo-700 dark:text-indigo-400" />
+                      {secao.titulo.trim() || `Seção Customizada ${idx + 1}`}
+                    </h2>
+                    {subtituloSecaoCustom ? (
+                      <p className="text-[10px] text-indigo-800 dark:text-indigo-300 font-medium mt-0.5">
+                        {subtituloSecaoCustom}
+                      </p>
+                    ) : null}
+                  </div>
+                  <div className="text-[11px] text-slate-800 dark:text-slate-200 leading-relaxed whitespace-pre-wrap">
+                    {secao.conteudo}
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
 
         {/* Seção de Observações e Considerações Finais Livres */}
         {observacoesFinais && (

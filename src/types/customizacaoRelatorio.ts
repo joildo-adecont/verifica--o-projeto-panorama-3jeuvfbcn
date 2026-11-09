@@ -70,6 +70,13 @@ export interface SubtitulosSecoesCustomizacao {
   checklistDocumental?: string
 }
 
+/** Chave de identificação das seções que suportam subtítulo */
+export type ChaveSecaoSubtitulo = keyof SubtitulosSecoesCustomizacao
+
+/** Alias para compatibilidade com nomenclaturas de relatórios */
+export type SubtitulosSecoesRelatorio = SubtitulosSecoesCustomizacao
+export type TitulosSecoesRelatorio = TitulosSecoesCustomizacao
+
 export interface SecaoCustomizada {
   /** Identificador único da seção customizada */
   id: string

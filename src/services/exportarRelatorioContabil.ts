@@ -22,6 +22,7 @@ import {
   type RelatorioIndicesAvancados,
 } from '@/services/indicesAvancadosEmpresariais'
 import type { ConfiguracaoRelatorioCustomizado } from '@/types/customizacaoRelatorio'
+import { obterSubtituloSecao } from '@/services/customizacaoRelatorio'
 
 export interface ItemExportacaoIndicador {
   grupo: string
@@ -356,11 +357,15 @@ export function gerarCsvRelatorioContabil(
   const tituloRelatorio =
     opcoes?.customizacao?.tituloPersonalizado?.trim() ||
     'ADECONT - Assessoria Contábil e Administrativa - Relatório de Indicadores Contábeis'
+  const subtituloGeral = opcoes?.customizacao?.subtituloPersonalizado?.trim()
 
   // Metadados informativos no topo (se houver cliente/regime ou se dados da empresa estão habilitados)
   const incluirDadosEmpresa = opcoes?.customizacao?.incluirDadosEmpresa ?? true
 
   linhasCsv.push(escaparCampoCsv(tituloRelatorio))
+  if (subtituloGeral) {
+    linhasCsv.push(escaparCampoCsv(subtituloGeral))
+  }
 
   if (opcoes?.clienteNome && incluirDadosEmpresa) {
     linhasCsv.push(
@@ -421,6 +426,21 @@ export function gerarCsvRelatorioContabil(
 
     linhasCsv.push(escaparCampoCsv(`=== ${tituloCabecalhoParecer} ===`))
 
+    const subParecerCsv = obterSubtituloSecao(opcoes.customizacao, 'parecerTecnico')
+    const subNotasCsv = obterSubtituloSecao(opcoes.customizacao, 'achadosCriticos')
+    const subtituloCabecalhoParecer =
+      incluirParecer && incluirNotas
+        ? subParecerCsv && subNotasCsv
+          ? `${subParecerCsv} | ${subNotasCsv}`
+          : subParecerCsv || subNotasCsv
+        : incluirParecer
+          ? subParecerCsv
+          : subNotasCsv
+
+    if (subtituloCabecalhoParecer) {
+      linhasCsv.push(escaparCampoCsv(subtituloCabecalhoParecer))
+    }
+
     if (incluirParecer) {
       if (pf.nivelOpiniao) {
         linhasCsv.push(
@@ -471,6 +491,9 @@ export function gerarCsvRelatorioContabil(
       linhasCsv.push(
         escaparCampoCsv(`=== ${secao.titulo.trim().toUpperCase() || 'SEÇÃO PERSONALIZADA'} ===`),
       )
+      if (secao.subtitulo?.trim()) {
+        linhasCsv.push(escaparCampoCsv(secao.subtitulo.trim()))
+      }
       if (secao.conteudo.trim()) {
         const linhasConteudo = secao.conteudo.trim().split(/\r?\n/)
         for (const linha of linhasConteudo) {
@@ -526,10 +549,14 @@ export function exportarExcelRelatorioContabil(
   const tituloRelatorio =
     opcoes?.customizacao?.tituloPersonalizado?.trim() ||
     'Relatório de Indicadores Contábeis e Financeiros'
+  const subtituloGeralExcel = opcoes?.customizacao?.subtituloPersonalizado?.trim()
   const incluirDadosEmpresa = opcoes?.customizacao?.incluirDadosEmpresa ?? true
 
   dadosAoa.push(['ADECONT — Assessoria Contábil e Administrativa'])
   dadosAoa.push([tituloRelatorio])
+  if (subtituloGeralExcel) {
+    dadosAoa.push([subtituloGeralExcel])
+  }
   if (opcoes?.clienteNome && incluirDadosEmpresa) {
     dadosAoa.push([
       `Cliente: ${opcoes.clienteNome}${opcoes.clienteDoc ? ` | CNPJ/CPF: ${opcoes.clienteDoc}` : ''}`,
@@ -594,6 +621,21 @@ export function exportarExcelRelatorioContabil(
 
     dadosAoa.push([`=== ${tituloCabecalhoParecerExcel} ===`])
 
+    const subParecerExcel = obterSubtituloSecao(opcoes.customizacao, 'parecerTecnico')
+    const subNotasExcel = obterSubtituloSecao(opcoes.customizacao, 'achadosCriticos')
+    const subtituloCabecalhoParecerExcel =
+      incluirParecer && incluirNotas
+        ? subParecerExcel && subNotasExcel
+          ? `${subParecerExcel} | ${subNotasExcel}`
+          : subParecerExcel || subNotasExcel
+        : incluirParecer
+          ? subParecerExcel
+          : subNotasExcel
+
+    if (subtituloCabecalhoParecerExcel) {
+      dadosAoa.push([subtituloCabecalhoParecerExcel])
+    }
+
     if (incluirParecer) {
       if (pf.nivelOpiniao) {
         dadosAoa.push(['Nível da Opinião:', pf.nivelOpiniao])
@@ -634,6 +676,9 @@ export function exportarExcelRelatorioContabil(
     for (const secao of secoesAtivas) {
       dadosAoa.push([])
       dadosAoa.push([`=== ${secao.titulo.trim().toUpperCase() || 'SEÇÃO PERSONALIZADA'} ===`])
+      if (secao.subtitulo?.trim()) {
+        dadosAoa.push([secao.subtitulo.trim()])
+      }
       if (secao.conteudo.trim()) {
         const linhasConteudo = secao.conteudo.trim().split(/\r?\n/)
         for (const linha of linhasConteudo) {

@@ -880,4 +880,152 @@ describe('exportarRelatorioContabil - Funções de Formatação e Geração de A
     expect(grupos).not.toContain('Índices Clássicos')
     expect(grupos).toContain('Modelos Ativos Customizados')
   })
+
+  it('inclui subtítulo no CSV logo abaixo do título de seção e respeita ausência de subtítulo', () => {
+    const configComSubtitulos = {
+      tituloPersonalizado: 'Relatório Contábil Alfa',
+      subtituloPersonalizado: 'Demonstrações Financeiras Auditadas',
+      titulosSecoes: {
+        parecerTecnico: 'Parecer Técnico Especializado',
+        achadosCriticos: 'Apontamentos Relevantes',
+      },
+      subtitulosSecoes: {
+        parecerTecnico: 'Fundamentado nas NBC TG e IFRS',
+        achadosCriticos: 'Resumo dos riscos tributários e trabalhistas',
+      },
+      secoes: {
+        indicesClassicos: true,
+        modelosAvancados: true,
+        parecerTecnico: true,
+        achadosCriticos: true,
+      },
+      incluirSecoesCustomizadas: true,
+      secoesCustomizadas: [
+        {
+          id: 'custom-1',
+          titulo: 'Análise Setorial e Concorrencial',
+          subtitulo: 'Benchmark com as 5 maiores empresas do ramo',
+          conteudo: 'A empresa mantém liquidez 20% superior à média setorial.',
+          ordem: 0,
+          ativa: true,
+        },
+      ],
+      incluirDadosEmpresa: true,
+      incluirQrCode: true,
+    }
+
+    const indicadoresTesteLocal: ItemIndicador[] = [
+      {
+        id: 'liq_corrente',
+        nome: 'Liquidez Corrente',
+        valor: 1.85,
+        unidade: 'fator',
+        referencia: '> 1,20x',
+        formula: 'AC / PC',
+        semaforo: 'saudavel',
+        explicacao: 'Excelente liquidez',
+      },
+    ]
+
+    const linhas = prepararLinhasExportacao(indicadoresTesteLocal, balancoMockGlobal, {
+      customizacao: configComSubtitulos as any,
+    })
+
+    const csv = gerarCsvRelatorioContabil(linhas, {
+      clienteNome: 'Empresa Teste Subtítulos',
+      customizacao: configComSubtitulos as any,
+      parecerFinal: {
+        nivelOpiniao: 'Sem Ressalvas',
+        conclusao: 'Empresa em situação regular.',
+        achadosCriticos: 'Nenhum passivo relevante identificado.',
+      } as any,
+    })
+
+    // Subtítulo geral do relatório
+    expect(csv).toContain('Demonstrações Financeiras Auditadas')
+    // Subtítulo da seção de parecer / notas
+    expect(csv).toContain(
+      'Fundamentado nas NBC TG e IFRS | Resumo dos riscos tributários e trabalhistas',
+    )
+    // Subtítulo da seção customizada
+    expect(csv).toContain('Benchmark com as 5 maiores empresas do ramo')
+  })
+
+  it('não inclui linha de subtítulo no CSV quando subtítulo for vazio ou não informado', () => {
+    const configSemSubtitulos = {
+      tituloPersonalizado: 'Relatório Sem Subtítulos',
+      titulosSecoes: {
+        parecerTecnico: 'Parecer Técnico Oficial',
+      },
+      secoes: {
+        parecerTecnico: true,
+        achadosCriticos: false,
+      },
+      incluirSecoesCustomizadas: true,
+      secoesCustomizadas: [
+        {
+          id: 'custom-2',
+          titulo: 'Seção Sem Subtítulo',
+          conteudo: 'Conteúdo descritivo direto sem subtítulo.',
+          ordem: 0,
+          ativa: true,
+        },
+      ],
+      incluirDadosEmpresa: true,
+    }
+
+    const csv = gerarCsvRelatorioContabil([], {
+      clienteNome: 'Empresa Teste Sem Subtítulo',
+      customizacao: configSemSubtitulos as any,
+      parecerFinal: {
+        nivelOpiniao: 'Sem Ressalvas',
+        conclusao: 'Tudo aprovado.',
+      } as any,
+    })
+
+    // Não deve conter linhas vazias de subtítulo ou separadores "|" espúrios
+    expect(csv).toContain('=== PARECER TÉCNICO OFICIAL ===')
+    expect(csv).not.toContain('=== PARECER TÉCNICO OFICIAL ===\r\n""')
+    expect(csv).toContain('=== SEÇÃO SEM SUBTÍTULO ===')
+  })
+
+  it('seção desmarcada omite tanto título quanto subtítulo na exportação CSV', () => {
+    const configSecaoDesmarcada = {
+      titulosSecoes: {
+        parecerTecnico: 'Parecer Técnico Secreto',
+      },
+      subtitulosSecoes: {
+        parecerTecnico: 'Subtítulo Oculto Que Não Deve Sair',
+      },
+      secoes: {
+        parecerTecnico: false, // DESMARCADA
+        achadosCriticos: false,
+      },
+      incluirSecoesCustomizadas: false, // CUSTOMIZADAS DESMARCADAS
+      secoesCustomizadas: [
+        {
+          id: 'custom-3',
+          titulo: 'Customizada Oculta',
+          subtitulo: 'Subtítulo Customizado Oculto',
+          conteudo: 'Conteúdo oculto',
+          ordem: 0,
+          ativa: true,
+        },
+      ],
+    }
+
+    const csv = gerarCsvRelatorioContabil([], {
+      clienteNome: 'Empresa Teste Omissão',
+      customizacao: configSecaoDesmarcada as any,
+      parecerFinal: {
+        nivelOpiniao: 'Sem Ressalvas',
+        conclusao: 'Não deve sair no CSV pois seção está desmarcada.',
+      } as any,
+    })
+
+    expect(csv).not.toContain('Parecer Técnico Secreto')
+    expect(csv).not.toContain('Subtítulo Oculto Que Não Deve Sair')
+    expect(csv).not.toContain('Customizada Oculta')
+    expect(csv).not.toContain('Subtítulo Customizado Oculto')
+  })
 })

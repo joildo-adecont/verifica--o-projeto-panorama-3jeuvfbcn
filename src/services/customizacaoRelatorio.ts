@@ -12,8 +12,22 @@ import pb from '@/lib/pocketbase/client'
 import { normalizarDocumento } from './analisesEmpresariais'
 import {
   type ConfiguracaoRelatorioCustomizado,
+  type ChaveSecaoSubtitulo,
   CONFIGURACAO_RELATORIO_PADRAO,
 } from '@/types/customizacaoRelatorio'
+
+/**
+ * Retorna o subtítulo customizado de uma seção, ou string vazia se ausente/apenas espaços.
+ */
+export function obterSubtituloSecao(
+  configuracao: ConfiguracaoRelatorioCustomizado | null | undefined,
+  chave: ChaveSecaoSubtitulo,
+): string {
+  if (!configuracao?.subtitulosSecoes) return ''
+  const sub = configuracao.subtitulosSecoes[chave]
+  if (typeof sub !== 'string') return ''
+  return sub.trim()
+}
 
 const PREFIXO_LOCAL_STORAGE = 'adecont_relatorio_custom_'
 const CHAVE_LOCAL_STORAGE_GLOBAL = 'adecont_relatorio_custom_global'
