@@ -8,6 +8,7 @@ import {
   Loader2,
   AlertCircle,
   FileCheck,
+  FileInput,
 } from 'lucide-react'
 import { PanoramaHeader } from '@/components/PanoramaHeader'
 import { PanoramaFooter } from '@/components/PanoramaFooter'
@@ -29,6 +30,7 @@ import type { EmpresaRecord } from '@/types/cadastroEmpresas'
 import { ImportadorDocumentosEmpresariais } from '@/components/ImportadorDocumentosEmpresariais'
 import { BadgeDocumentoCliente } from '@/components/BadgeDocumentoCliente'
 import { PainelAnalisesEmpresariais } from '@/components/PainelAnalisesEmpresariais'
+import { ModalRecepcionarDocumentoCliente } from '@/components/ModalRecepcionarDocumentoCliente'
 
 export const AnalisesEmpresariais: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('')
@@ -45,6 +47,8 @@ export const AnalisesEmpresariais: React.FC = () => {
   const [indicadoresSetoriais, setIndicadoresSetoriais] = useState<ItemIndicadorSetorial[]>([])
   const [carregandoSetoriais, setCarregandoSetoriais] = useState(false)
   const [atualizadoSetoriaisEm, setAtualizadoSetoriaisEm] = useState<string>('')
+  const [modalRecepcaoAberto, setModalRecepcaoAberto] = useState(false)
+  const [avisoRecepcao, setAvisoRecepcao] = useState<string>('')
 
   // Carrega a lista real de clientes
   const carregarListaClientes = async () => {
@@ -179,6 +183,13 @@ export const AnalisesEmpresariais: React.FC = () => {
                   Seleção de Cliente (Segregação de Resultados)
                 </h2>
               </div>
+              <button
+                onClick={() => setModalRecepcaoAberto(true)}
+                className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition-colors cursor-pointer"
+              >
+                <FileInput className="w-3.5 h-3.5" />
+                Recepcionar Documento / Criar Cliente
+              </button>
               <div className="relative min-w-[260px]">
                 <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
                 <input
@@ -241,6 +252,20 @@ export const AnalisesEmpresariais: React.FC = () => {
             )}
           </div>
 
+          {avisoRecepcao && (
+            <div className="flex items-start gap-2 text-xs text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-lg p-3">
+              <FileInput className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+              <span>{avisoRecepcao}</span>
+              <button
+                onClick={() => setAvisoRecepcao('')}
+                className="ml-auto text-emerald-600 hover:text-emerald-800 font-bold"
+                aria-label="Fechar aviso"
+              >
+                ×
+              </button>
+            </div>
+          )}
+
           {/* Exibição condicional da Análise do Cliente Selecionado */}
           {clienteSelecionado && (
             <div className="space-y-6">
@@ -291,6 +316,23 @@ export const AnalisesEmpresariais: React.FC = () => {
 
         <PanoramaFooter />
       </div>
+
+      {/* Modal de Recepção de Documento e Criação de Cliente */}
+      <ModalRecepcionarDocumentoCliente
+        aberto={modalRecepcaoAberto}
+        aoFechar={() => setModalRecepcaoAberto(false)}
+        onClientePronto={async (cliente, criado) => {
+          setAvisoRecepcao(
+            criado
+              ? `Cliente "${cliente.razao_social}" cadastrado (código ${cliente.codigo}) com o documento recepcionado vinculado à ficha. Ele já aparece na seleção acima e em /cadastro-clientes.`
+              : `Cliente "${cliente.razao_social}" já existia — documento recepcionado vinculado à ficha.`,
+          )
+          await carregarListaClientes()
+          if (clienteSelecionado?.id !== cliente.id) {
+            setClienteSelecionado(cliente)
+          }
+        }}
+      />
     </div>
   )
 }
