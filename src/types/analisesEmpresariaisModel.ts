@@ -65,6 +65,23 @@ export interface DadosComplementaresExercicio {
   amortizacaoDividas: number
 }
 
+export type GrupoContaDinamica =
+  | 'ativoCirculante'
+  | 'ativoNaoCirculante'
+  | 'passivoCirculante'
+  | 'passivoNaoCirculante'
+  | 'patrimonioLiquido'
+  | 'dre'
+  | 'outros'
+
+export interface ContaDinamicaExercicio {
+  id: string
+  nome: string
+  valor: number
+  grupo: GrupoContaDinamica
+  origem?: string
+}
+
 export interface ExercicioFinanceiroCompleto {
   rotulo: string // 'Ano -2' | 'Ano -1' | 'Ano Atual'
   anoCalendario?: string
@@ -75,6 +92,7 @@ export interface ExercicioFinanceiroCompleto {
   patrimonioLiquido: BalancoPatrimonioLiquido
   dre: EstruturaDRE
   complementares: DadosComplementaresExercicio
+  contasDinamicas?: ContaDinamicaExercicio[]
 }
 
 export interface BalancoDRECalculado {

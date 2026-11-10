@@ -70,6 +70,7 @@ export interface DadosRelatorioAnaliseAnexos {
   }>
   classicosPorExercicio: Record<string, any[]>
   avancadosPorExercicio: Record<string, any>
+  dadosPorExercicio?: Record<string, any>
   parecerTexto?: string
 }
 
@@ -84,6 +85,26 @@ function secaoIndicadoresClássicos(exercicio: string, inds: any[]): string[] {
   }
   for (const i of inds) {
     out.push(coluna(` ${i.nome}`, `${i.valor.toFixed(2)} [${(i.semaforo || '').toUpperCase()}]`))
+  }
+  out.push('')
+  return out
+}
+
+function secaoDemaisContas(exercicio: string, dadosEx?: any): string[] {
+  const out: string[] = []
+  const contasExtras = (dadosEx?.contasDinamicas || []) as Array<{
+    nome: string
+    valor: number
+    grupo: string
+  }>
+  if (!contasExtras || contasExtras.length === 0) return out
+
+  out.push(linhaSeparadora('-'))
+  out.push(`DEMAIS CONTAS DAS DEMONSTRACOES — EXERCICIO ${exercicio}`)
+  out.push(linhaSeparadora('-'))
+  for (const c of contasExtras) {
+    const grp = c.grupo ? `[${c.grupo.toUpperCase()}]` : ''
+    out.push(coluna(` ${c.nome} ${grp}`.trim(), fmtBRL(c.valor)))
   }
   out.push('')
   return out
@@ -160,6 +181,9 @@ export function gerarPdfTextoRelatorio(dados: DadosRelatorioAnaliseAnexos): Uint
   for (const e of dados.exercicios) {
     L.push(...secaoIndicadoresClássicos(e.exercicio, dados.classicosPorExercicio[e.exercicio]))
     L.push(...secaoModelosAvancados(e.exercicio, dados.avancadosPorExercicio[e.exercicio]))
+    if (dados.dadosPorExercicio?.[e.exercicio]) {
+      L.push(...secaoDemaisContas(e.exercicio, dados.dadosPorExercicio[e.exercicio]))
+    }
   }
 
   if (dados.parecerTexto && dados.parecerTexto.trim()) {

@@ -234,6 +234,20 @@ export function FerramentaAnaliseBalancosAnexados({ empresa }: Props) {
               // Mescla campos lidos do arquivo nos dados cumulativos deste exercício
               // (ex.: DRE traz campos de dre; Balanço traz ativo/passivo/pl)
               const novosDados = res.leitura.dados
+
+              // Mescla também as contas dinâmicas capturadas
+              const contasExistentes = dadosMesclados.contasDinamicas || []
+              const contasNovas = novosDados.contasDinamicas || []
+              const mapaContas = new Map<string, any>()
+              contasExistentes.forEach((c) => mapaContas.set(c.nome.toLowerCase().trim(), c))
+              contasNovas.forEach((c) => {
+                const k = c.nome.toLowerCase().trim()
+                if (!mapaContas.has(k) || (mapaContas.get(k).valor === 0 && c.valor !== 0)) {
+                  mapaContas.set(k, c)
+                }
+              })
+              const contasMescladas = Array.from(mapaContas.values())
+
               dadosMesclados = {
                 ...dadosMesclados,
                 ativoCirculante: {
@@ -274,6 +288,7 @@ export function FerramentaAnaliseBalancosAnexados({ empresa }: Props) {
                     Object.entries(novosDados.dre || {}).filter(([, v]) => v !== 0),
                   ),
                 },
+                contasDinamicas: contasMescladas.length > 0 ? contasMescladas : undefined,
               }
 
               const scoreAtual = res.leitura.scoreConsistencia ?? 50
@@ -365,6 +380,13 @@ export function FerramentaAnaliseBalancosAnexados({ empresa }: Props) {
     if (!resultado || !empresa?.codigo) return
     setGravando(resultado.tipo + ':' + resultado.exercicios.map((e) => e.exercicio).join('-'))
     try {
+      const dadosPorExercicio: Record<string, any> = {}
+      for (const e of resultado.exercicios) {
+        if (refEstado.current[e.exercicio]?.dados) {
+          dadosPorExercicio[e.exercicio] = refEstado.current[e.exercicio].dados
+        }
+      }
+
       const bytes = gerarPdfTextoRelatorio({
         tipo: resultado.tipo,
         titulo: `Análise — ${resultado.titulo}`,
@@ -375,6 +397,7 @@ export function FerramentaAnaliseBalancosAnexados({ empresa }: Props) {
         exercicios: resultado.exercicios,
         classicosPorExercicio: resultado.classicosPorExercicio as any,
         avancadosPorExercicio: resultado.avancadosPorExercicio as any,
+        dadosPorExercicio,
       })
       let binario = ''
       for (const b of bytes) binario += String.fromCharCode(b)
@@ -552,35 +575,108 @@ export function FerramentaAnaliseBalancosAnexados({ empresa }: Props) {
               },
               { titulo: 'Patrimônio Líquido', campos: CAMPOS_PL, grupo: 'patrimonioLiquido' },
               { titulo: 'DRE', campos: CAMPOS_DRE, grupo: 'dre' },
-            ].map((b) => (
-              <div key={b.titulo} className="rounded-lg border p-3">
-                <p className="mb-2 text-xs font-bold">{b.titulo}</p>
-                <div className="space-y-1.5">
-                  {b.campos.map((c) => (
-                    <div key={c.chave} className="flex items-center justify-between gap-2">
-                      <Label className="text-[11px] text-muted-foreground">{c.rotulo}</Label>
-                      {campoNumerico(
-                        (estado[selecionados[0]].dados as any)[b.grupo]?.[c.chave],
-                        (v: number) =>
-                          setEstado((prev) => ({
-                            ...prev,
-                            [selecionados[0]]: {
-                              ...prev[selecionados[0]],
-                              dados: {
-                                ...prev[selecionados[0]].dados,
-                                [b.grupo]: {
-                                  ...(prev[selecionados[0]].dados as any)[b.grupo],
-                                  [c.chave]: v,
+              {
+                titulo: 'Demais Contas do Balanço / DRE',
+                campos: [],
+                grupo: 'outros',
+              },
+            ].map((b) => {
+              const contasExtrasGrupo = (
+                estado[selecionados[0]].dados.contasDinamicas || []
+              ).filter((c) => {
+                const grp = String(c.grupo)
+                if (b.grupo === 'outros') {
+                  return (
+                    grp === 'outros' ||
+                    grp === 'balanceteOutros' ||
+                    ![
+                      'ativoCirculante',
+                      'ativoNaoCirculante',
+                      'passivoCirculante',
+                      'passivoNaoCirculante',
+                      'patrimonioLiquido',
+                      'dre',
+                    ].includes(grp)
+                  )
+                }
+                return grp === b.grupo
+              })
+
+              return (
+                <div key={b.titulo} className="rounded-lg border p-3">
+                  <div className="mb-2 flex items-center justify-between">
+                    <p className="text-xs font-bold">{b.titulo}</p>
+                    {contasExtrasGrupo.length > 0 && (
+                      <Badge
+                        variant="outline"
+                        className="text-[10px] text-sky-600 dark:text-sky-400"
+                      >
+                        +{contasExtrasGrupo.length} dinâmico(s)
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="space-y-1.5">
+                    {b.campos.map((c) => (
+                      <div key={c.chave} className="flex items-center justify-between gap-2">
+                        <Label className="text-[11px] text-muted-foreground">{c.rotulo}</Label>
+                        {campoNumerico(
+                          (estado[selecionados[0]].dados as any)[b.grupo]?.[c.chave],
+                          (v: number) =>
+                            setEstado((prev) => ({
+                              ...prev,
+                              [selecionados[0]]: {
+                                ...prev[selecionados[0]],
+                                dados: {
+                                  ...prev[selecionados[0]].dados,
+                                  [b.grupo]: {
+                                    ...(prev[selecionados[0]].dados as any)[b.grupo],
+                                    [c.chave]: v,
+                                  },
                                 },
                               },
-                            },
-                          })),
-                      )}
-                    </div>
-                  ))}
+                            })),
+                        )}
+                      </div>
+                    ))}
+
+                    {/* Contas dinâmicas capturadas do PDF que pertencem a este grupo */}
+                    {contasExtrasGrupo.map((cExtra) => (
+                      <div
+                        key={cExtra.id}
+                        className="flex items-center justify-between gap-2 rounded bg-muted/30 px-1 py-0.5"
+                      >
+                        <Label
+                          className="truncate text-[11px] font-medium text-foreground"
+                          title={cExtra.nome}
+                        >
+                          <span className="mr-1 inline-block h-1.5 w-1.5 rounded-full bg-sky-500"></span>
+                          {cExtra.nome}
+                        </Label>
+                        {campoNumerico(cExtra.valor, (novoV: number) => {
+                          setEstado((prev) => {
+                            const ex = prev[selecionados[0]]
+                            if (!ex) return prev
+                            const list = (ex.dados.contasDinamicas || []).map((c) =>
+                              c.id === cExtra.id ? { ...c, valor: novoV } : c,
+                            )
+                            return {
+                              ...prev,
+                              [selecionados[0]]: {
+                                ...ex,
+                                dados: {
+                                  ...ex.dados,
+                                  contasDinamicas: list,
+                                },
+                              },
+                            }
+                          })
+                        })}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </CardContent>
         </Card>
       )}

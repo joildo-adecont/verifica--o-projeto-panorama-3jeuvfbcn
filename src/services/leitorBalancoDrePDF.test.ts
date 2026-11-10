@@ -271,4 +271,24 @@ describe('parsearBalancoDREDeTexto e exemploBalancoReal', () => {
     expect(res.dados.ativoCirculante.contasReceber).toBe(90000)
     expect(res.dados.ativoCirculante.estoques).toBe(50000)
   })
+
+  it('cria campos dinâmicos para contas dos demonstrativos que não constam na grade fixa', () => {
+    const md = `
+| ATIVO CIRCULANTE | 150.000,00 |
+| Caixa e Equivalentes | 10.000,00 |
+| Aplicações Financeiras | 40.000,00 |
+| Créditos com Terceiros e Outros Direitos | 25.000,00 |
+| Adiantamento a Diretores | 15.000,00 |
+| Estoques | 60.000,00 |
+| TOTAL DO ATIVO | 150.000,00 |
+`
+    const res = parsearBalancoDREDeTexto(md)
+    expect(res.dados.ativoCirculante.caixaEquivalentes).toBe(10000)
+    expect(res.dados.ativoCirculante.aplicacoesFinanceiras).toBe(40000)
+    expect(res.dados.ativoCirculante.estoques).toBe(60000)
+    expect(res.contasDinamicas).toBeDefined()
+    expect(res.contasDinamicas!.length).toBeGreaterThan(0)
+    const nomes = res.contasDinamicas!.map((c) => c.nome)
+    expect(nomes.some((n) => /adiantamento a diretores/i.test(n))).toBe(true)
+  })
 })

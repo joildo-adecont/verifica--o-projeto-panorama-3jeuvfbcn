@@ -39,7 +39,11 @@
  */
 
 import pb from '@/lib/pocketbase/client'
-import type { ExercicioFinanceiroCompleto } from '@/types/analisesEmpresariaisModel'
+import type {
+  ExercicioFinanceiroCompleto,
+  ContaDinamicaExercicio,
+  GrupoContaDinamica,
+} from '@/types/analisesEmpresariaisModel'
 import { criarExercicioVazio } from './motorAnaliseEmpresarial'
 import { ALVOS_TOTAIS, ALVOS_DETALHE } from './leitorBalancoRotulos'
 
@@ -493,6 +497,8 @@ export interface LeituraExercicio {
   lidos: string[]
   /** Campos ambíguos ou com traço/ausentes (chave 'grupo.campo'). */
   naoLidos: string[]
+  /** Contas dinâmicas capturadas que não casaram com nenhum campo padrão fixo */
+  contasDinamicas?: ContaDinamicaExercicio[]
   /** Avisos específicos de leitura (campos ambíguos, traço, divergências) */
   aviso?: string
   /** Pontuação de consistência (0 a 100) para escolha entre arquivos */
@@ -613,8 +619,100 @@ export function parseLeitura(
     }
   }
 
+  // 3) CAMPOS DINÂMICOS: contas não mapeadas para os campos padrão
+  const contasDinamicas: ContaDinamicaExercicio[] = []
+  linhas.forEach((linha, idx) => {
+    if (usadas.has(idx)) return
+    const rot = linha.rotulo.trim()
+    if (!rot || rot.length < 2) return
+
+    // Ignora linhas que são claramente metadados, títulos isolados ou totais de controle
+    const rotNorm = linha.rotuloNorm
+    if (
+      /^(folha|pagina|exercicio|periodo|balanco\s*patrimonial|demonstracao|dre|balancete|cnpj|cpf|data|assinatura)/i.test(
+        rotNorm,
+      )
+    ) {
+      return
+    }
+
+    const extraido = extrairValorDaColuna(linha, indiceColuna)
+    if (extraido.valor === null && !extraido.ehTraco) {
+      return
+    }
+
+    const valFinal =
+      extraido.valor !== null ? Math.round(extraido.valor * fatorEscala * 100) / 100 : 0
+
+    // Inferir o grupo com base na posição nas linhas e no conteúdo do rótulo
+    const grupo = inferirGrupoLinha(idx, linhas, rotNorm)
+    const idSlug = `cd_${idx}_${rotNorm.replace(/[^a-z0-9]/g, '_').slice(0, 30)}`
+
+    contasDinamicas.push({
+      id: idSlug,
+      grupo,
+      nome: rot,
+      valor: valFinal,
+      origem: 'pdf',
+    })
+  })
+
+  // Se houver contas dinâmicas, anexa aos dados do exercício
+  if (contasDinamicas.length > 0) {
+    dados.contasDinamicas = contasDinamicas
+  }
+
   const aviso = montarAviso(totais, lidos, naoLidos, camposComTraco)
-  return { dados, lidos, naoLidos, aviso }
+  return { dados, lidos, naoLidos, contasDinamicas, aviso }
+}
+
+/**
+ * Infere o grupo contábil de uma linha não mapeada com base no contexto das linhas vizinhas
+ * e no próprio texto do rótulo.
+ */
+export function inferirGrupoLinha(
+  indiceLinha: number,
+  linhas: LinhaConta[],
+  rotuloNorm: string,
+): GrupoContaDinamica {
+  // Pistas explícitas no rótulo
+  if (
+    /\b(receita|vendas?|cmv|cpv|csp|lucro|prejuizo|deducoes|despesas?\s*(admin|comerc|vendas?|operac)|irpj|csll)\b/i.test(
+      rotuloNorm,
+    )
+  ) {
+    return 'dre'
+  }
+  if (
+    /\b(capital\s*social|lucros?\s*acumulados?|prejuizos?\s*acumulados?|reservas?)\b/i.test(
+      rotuloNorm,
+    )
+  ) {
+    return 'patrimonioLiquido'
+  }
+  if (/\b(imobilizado|intangivel|investimentos?|deprec|exaustao)\b/i.test(rotuloNorm)) {
+    return 'ativoNaoCirculante'
+  }
+  if (/\b(fornecedores?|ordenados|salarios|inss|fgts|das|simples)\b/i.test(rotuloNorm)) {
+    return 'passivoCirculante'
+  }
+  if (/\b(caixa|bancos?|aplicac|clientes?|duplicatas|estoques?)\b/i.test(rotuloNorm)) {
+    return 'ativoCirculante'
+  }
+
+  // Pista por seção precedente (varre para trás procurando o último cabeçalho de grupo)
+  for (let i = indiceLinha - 1; i >= 0; i--) {
+    const r = linhas[i].rotuloNorm
+    if (/^demonstracao\s*do\s*resultado|^dre\b/i.test(r)) return 'dre'
+    if (/^patrimonio\s*liquido\b/i.test(r)) return 'patrimonioLiquido'
+    if (/^passivo\s*nao\s*circulante\b|^exigivel\s*a\s*longo\s*prazo\b/i.test(r))
+      return 'passivoNaoCirculante'
+    if (/^passivo\s*circulante\b/i.test(r)) return 'passivoCirculante'
+    if (/^ativo\s*nao\s*circulante\b|^permanente\b/i.test(r)) return 'ativoNaoCirculante'
+    if (/^ativo\s*circulante\b|^circulante\b/i.test(r)) return 'ativoCirculante'
+  }
+
+  return 'outros'
 }
 
 // ─────────────────────── Cruzamentos de Consistência ───────────────────────
