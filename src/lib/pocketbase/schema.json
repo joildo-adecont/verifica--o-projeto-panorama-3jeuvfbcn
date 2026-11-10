@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-10T00:21:06.785Z",
+  "generatedAt": "2026-11-10T01:22:03.209Z",
   "collections": [
     {
       "name": "users",
@@ -6351,6 +6351,64 @@
         "CREATE INDEX idx_cli_arquivos_cnpj ON cliente_arquivos (cliente_cnpj)",
         "CREATE INDEX idx_cli_arquivos_codigo ON cliente_arquivos (cliente_codigo)",
         "CREATE INDEX idx_cli_arquivos_categoria ON cliente_arquivos (categoria)"
+      ]
+    },
+    {
+      "name": "analises_exercicios_conferidos",
+      "type": "base",
+      "apiRules": {
+        "list": "",
+        "view": "",
+        "create": "",
+        "update": "",
+        "delete": null
+      },
+      "fields": [
+        {
+          "name": "cliente_chave",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "exercicio",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "conferido",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "origem_arquivos",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "data_base",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "dados_json",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "atualizado_em",
+          "type": "text",
+          "required": false,
+          "system": false
+        }
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX idx_analises_exercicios_chave ON analises_exercicios_conferidos (cliente_chave, exercicio)"
       ]
     }
   ]
