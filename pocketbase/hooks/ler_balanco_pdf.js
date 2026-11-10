@@ -23,7 +23,7 @@ routerAdd('GET', '/backend/v1/ler-balanco-pdf', (e) => {
     const { markdown, truncated } = $documents.toMarkdown({ record, field: 'arquivo' })
     const titulo = record.getString('titulo')
     console.log(
-      `[ler-balanco-pdf] Sucesso para id=${recordId} (${titulo}): ${markdown.length} chars`,
+      `[ler-balanco-pdf] Sucesso para id=${recordId} (${titulo}): ${markdown.length} chars. Preview: ${markdown.slice(0, 300).replace(/\n/g, ' ')}`,
     )
     return e.json(200, { ok: true, titulo, markdown, truncated })
   } catch (err) {

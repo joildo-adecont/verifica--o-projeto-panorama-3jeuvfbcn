@@ -299,6 +299,10 @@ export function FerramentaAnaliseBalancosAnexados({ empresa }: Props) {
             ...prev,
             [exercicio]: { ...prev[exercicio], dados: dadosMesclados },
           }))
+          // Seleciona o exercício aberto para que a grade exiba imediatamente os valores importados
+          setSelecionados((prev) =>
+            prev.includes(exercicio) ? prev : [exercicio, ...prev.filter((e) => e !== exercicio)],
+          )
         }
         setAvisosLeitura((prev) => ({
           ...prev,

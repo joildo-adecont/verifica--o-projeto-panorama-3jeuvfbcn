@@ -229,8 +229,16 @@ export function normalizarRotulo(descricao: string): string {
     .replace(/\(/g, '')
     .replace(/\)/g, '')
 
+  // Remove asteriscos e marcadores de total tipo "*** Total"
+  d = d.replace(/^\*+\s*(total\s*)?/i, '')
+
   // Remove códigos de conta contábil no início da linha (ex.: "1.", "1.1.", "1.1.01", "2.01.01.001 -")
   d = d.replace(/^[\d.\-/]+\s*[-–—]?\s*/, '')
+
+  // Colapsa letras espaçadas do cabeçalho contábil (ex.: "r e c e i t a" -> "receita")
+  d = d.replace(/\b([a-z])\s+([a-z])\s+([a-z])\s+([a-z])(?:\s+([a-z]))*\b/g, (match) =>
+    match.replace(/\s+/g, ''),
+  )
 
   return d.replace(/\s+/g, ' ').trim().toLowerCase()
 }
@@ -252,6 +260,8 @@ export function repararTokensLinha(linha: string): string {
   s = s.replace(/(^|\s)-\s+([\d.]+,\d{2})/g, '$1-$2')
   // Conserta parênteses com espaço: "( 1.234,56 )" → "(1.234,56)"
   s = s.replace(/\(\s+([\d.,]+)\s+\)/g, '($1)')
+  // Conserta parênteses invertidos ou soltos de OCR/markdown: ") (1.234,56" ou "(1.234,56 )"
+  s = s.replace(/\)\s*\(\s*([\d.,]+)/g, '($1')
   return s.replace(/\s+/g, ' ').trim()
 }
 
@@ -549,7 +559,23 @@ export function parseLeitura(
     }
     const g = (dados as any)[grupo]
     if (g && campo in g) {
-      g[campo] = val
+      // Se a conta de DRE deve ser negativa e veio positiva (ou vice-versa), ajusta o sinal
+      let ajustado = val
+      if (
+        grupo === 'dre' &&
+        [
+          'deducoesImpostos',
+          'cmv',
+          'despesasVendas',
+          'despesasAdministrativas',
+          'outrasDespesasOperacionais',
+          'irCsll',
+        ].includes(campo) &&
+        ajustado > 0
+      ) {
+        ajustado = -ajustado
+      }
+      g[campo] = ajustado
       lidos.push(chave)
     }
   }
@@ -763,6 +789,8 @@ export function normalizarLinhasDeTextoOuMarkdown(linhas: string[]): string[] {
       if (!s) return ''
       // Se for linha de tabela markdown, remove pipes delimitadores e converte em espaços
       if (s.includes('|')) {
+        // Remove pipes duplicados ou quebrados no final de números tipo "(21.931,00|)|"
+        s = s.replace(/\|\s*\)/g, ')').replace(/\(\s*\|/g, '(')
         s = s
           .replace(/^\|/, '')
           .replace(/\|$/, '')
@@ -806,7 +834,8 @@ async function tentarLeituraPeloBackend(
   exercicioDesejado?: string,
 ): Promise<{ tentado: boolean; resultado?: ResultadoLeituraExercicio }> {
   try {
-    const url = `/backend/v1/ler-balanco-pdf?id=${encodeURIComponent(recordId)}`
+    const base = import.meta.env.VITE_POCKETBASE_URL?.replace(/\/$/, '') || ''
+    const url = `${base}/backend/v1/ler-balanco-pdf?id=${encodeURIComponent(recordId)}`
     const resp = await fetch(url)
     if (resp.status === 422) {
       return {
@@ -825,14 +854,14 @@ async function tentarLeituraPeloBackend(
       return { tentado: false }
     }
     const leitura = parsearBalancoDREDeTexto(data.markdown, exercicioDesejado)
-    if (leitura.lidos.length === 0) {
-      return { tentado: false }
-    }
     return {
       tentado: true,
       resultado: {
-        ok: true,
-        aviso: leitura.aviso,
+        ok: leitura.lidos.length > 0,
+        aviso:
+          leitura.lidos.length > 0
+            ? leitura.aviso
+            : 'Nenhum valor contábil reconhecido no texto do demonstrativo — confira manualmente.',
         leitura,
       },
     }
