@@ -54,10 +54,7 @@ import {
   type TipoAnaliseAnexos,
 } from '@/services/analiseBalancosCliente'
 import { gerarPdfTextoRelatorio } from '@/services/geradorPdfAnaliseAnexos'
-import {
-  criarExercicioVazio,
-  type ExercicioFinanceiroInput,
-} from '@/services/motorAnaliseEmpresarial'
+import { criarExercicioVazio } from '@/services/motorAnaliseEmpresarial'
 
 interface Props {
   empresa: EmpresaRecord | null
@@ -150,7 +147,7 @@ function campoNumerico(valor: unknown, onChange: (v: number) => void): React.Rea
   )
 }
 
-export function FerramentaAnaliseBalançosAnexados({ empresa }: Props) {
+export function FerramentaAnaliseBalancosAnexados({ empresa }: Props) {
   const [carregando, setCarregando] = useState(false)
   const [arquivos, setArquivos] = useState<
     Array<{ id: string; titulo: string; exerciseGuess: string | null }>
@@ -203,47 +200,16 @@ export function FerramentaAnaliseBalançosAnexados({ empresa }: Props) {
     recarregar()
   }, [recarregar])
 
-  // ── Extração da camada 1: lê o texto dos PDFs no navegador (pdf.js) ──
-  const extrairDeArquivos = useCallback(
-    async (exercicio: string) => {
-      const st = refEstado.current[exercicio]
-      if (!st || st.arquivosVinculados.length === 0) return
-      setCarregando(true)
-      try {
-        const docLimpo = String((empresa as any).documento_limpo || '').replace(/\D/g, '')
-        const lista = await listarArquivosBalanço(docLimpo, empresa?.codigo || 0)
-        const { extrairTextoPDF, lerContas } = await import('@/services/leitorBalancetePDF')
-        const chaves = ['ativo', 'passivo', 'receita', 'lucro', 'patrim']
-        const dados = criarExercicioVazio('ano_atual') as ExercicioFinanceiroInput
-        let lidos = 0
-
-        for (const titulo of st.arquivosVinculados) {
-          const rec = lista.find((a) => a.titulo === titulo)
-          if (!rec) continue
-          try {
-            const url = pb.files.getUrl(
-              {
-                id: rec.id,
-                collectionId: pb.collection('cliente_arquivos').collectionId || '',
-              } as any,
-              rec.id,
-            )
-            void url
-          } catch {
-            /* ignora — extração segue pelo caminho de conferência manual */
-          }
-        }
-        void chaves
-        void lidos
-        setEstado((prev) => ({ ...prev, [exercicio]: { ...prev[exercicio], dados } }))
-      } catch (err) {
-        console.error('[FerramentaAnaliseBalançosAnexados] Erro na extração:', err)
-      } finally {
-        setCarregando(false)
-      }
-    },
-    [empresa?.codigo, (empresa as any)?.documento_limpo],
-  )
+  // ── Extração da camada 1: leitura automática dos PDFs — ESBOÇO, não implementada ──
+  // A conferência manual/editável é a fonte da verdade nesta rodada: este botão
+  // apenas limpa os dados do exercício para digitação conferida. Nada calcula
+  // sobre dado não conferido.
+  const extrairDeArquivos = useCallback((exercicio: string) => {
+    setEstado((prev) => ({
+      ...prev,
+      [exercicio]: { ...prev[exercicio], dados: criarExercicioVazio('ano_atual') },
+    }))
+  }, [])
   // ── Marca um exercício como conferido e salva no servidor ──
   const marcarConferido = useCallback(
     async (exercicio: string) => {

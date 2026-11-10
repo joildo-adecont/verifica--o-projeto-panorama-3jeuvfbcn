@@ -9,6 +9,9 @@ import {
   AlertCircle,
   FileCheck,
   FileInput,
+  Scale,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react'
 import { PanoramaHeader } from '@/components/PanoramaHeader'
 import { PanoramaFooter } from '@/components/PanoramaFooter'
@@ -31,6 +34,7 @@ import { ImportadorDocumentosEmpresariais } from '@/components/ImportadorDocumen
 import { BadgeDocumentoCliente } from '@/components/BadgeDocumentoCliente'
 import { PainelAnalisesEmpresariais } from '@/components/PainelAnalisesEmpresariais'
 import { ModalRecepcionarDocumentoCliente } from '@/components/ModalRecepcionarDocumentoCliente'
+import { FerramentaAnaliseBalancosAnexados } from '@/components/FerramentaAnaliseBalancosAnexados'
 
 export const AnalisesEmpresariais: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('')
@@ -266,10 +270,13 @@ export const AnalisesEmpresariais: React.FC = () => {
             </div>
           )}
 
+          {/* Área 2: Análise de Balanços Anexados (4 análises — individual/tri-anual/balancete) */}
+          <FerramentaAnaliseBalancosAnexados empresa={clienteSelecionado} />
+
           {/* Exibição condicional da Análise do Cliente Selecionado */}
           {clienteSelecionado && (
             <div className="space-y-6">
-              {/* Área 2: Importador de Balanços, DRE e Documentos Empresariais */}
+              {/* Área 3: Importador de Balanços, DRE e Documentos Empresariais */}
               <ImportadorDocumentosEmpresariais
                 cliente={clienteSelecionado}
                 onDocumentoImportado={() => carregarAnaliseDoCliente(clienteSelecionado)}
