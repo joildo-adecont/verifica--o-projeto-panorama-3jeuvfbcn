@@ -50,15 +50,13 @@ import {
   salvarExercicioConferido,
   chaveCliente,
   type AnaliseAnexosResultado,
+  type ArquivoAnexoRef,
   type ExercicioConferidoRecord,
   type TipoAnaliseAnexos,
 } from '@/services/analiseBalancosCliente'
 import { gerarPdfTextoRelatorio } from '@/services/geradorPdfAnaliseAnexos'
 import { criarExercicioVazio } from '@/services/motorAnaliseEmpresarial'
-import {
-  lerExercicioDoAnexo,
-  type LeituraExercicio,
-} from '@/services/leitorBalancoDrePDF'
+import { lerExercicioDoAnexo, type LeituraExercicio } from '@/services/leitorBalancoDrePDF'
 
 interface Props {
   empresa: EmpresaRecord | null
@@ -153,9 +151,7 @@ function campoNumerico(valor: unknown, onChange: (v: number) => void): React.Rea
 
 export function FerramentaAnaliseBalancosAnexados({ empresa }: Props) {
   const [carregando, setCarregando] = useState(false)
-  const [arquivos, setArquivos] = useState<
-    Array<{ id: string; titulo: string; exerciseGuess: string | null }>
-  >([])
+  const [arquivos, setArquivos] = useState<ArquivoAnexoRef[]>([])
   const [estado, setEstado] = useState<Record<string, EstadoExercicio>>({})
   const [tipoSelecionado, setTipoSelecionado] = useState<TipoAnaliseAnexos>('individual')
   const [selecionados, setSelecionados] = useState<string[]>([])
@@ -417,7 +413,9 @@ export function FerramentaAnaliseBalancosAnexados({ empresa }: Props) {
                       <Button
                         size="sm"
                         variant="outline"
-                        disabled={carregando || !!lendo[ex.exercicio] || st.arquivosVinculados.length === 0}
+                        disabled={
+                          carregando || !!lendo[ex.exercicio] || st.arquivosVinculados.length === 0
+                        }
                         onClick={() => extrairDeArquivos(ex.exercicio)}
                         title="Ler automaticamente os valores dos PDFs anexados (pdf.js)"
                       >
@@ -446,6 +444,14 @@ export function FerramentaAnaliseBalancosAnexados({ empresa }: Props) {
                   {st.arquivosVinculados.length > 0 && (
                     <p className="mt-1 text-[11px] text-muted-foreground">
                       {st.arquivosVinculados.join(' · ')}
+                    </p>
+                  )}
+                  {/* Aviso da leitura automática deste exercício (PDF escaneado,
+                     com senha, corrompido etc.) — discreto, jamais bloqueia */}
+                  {avisosLeitura[ex.exercicio] && (
+                    <p className="mt-1 flex items-start gap-1 text-[11px] text-amber-700">
+                      <TriangleAlert className="mt-0.5 h-3 w-3 shrink-0" />
+                      <span>{avisosLeitura[ex.exercicio]}</span>
                     </p>
                   )}
                 </div>
