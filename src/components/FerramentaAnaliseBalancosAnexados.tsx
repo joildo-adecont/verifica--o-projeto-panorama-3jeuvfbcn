@@ -223,9 +223,23 @@ export function FerramentaAnaliseBalancosAnexados({ empresa }: Props) {
               id: arq.id,
               arquivo: arq.arquivo,
               titulo: arq.titulo,
+              exercicioDesejado: exercicio,
             })
-            if (res.leitura && (!melhor || res.leitura.lidos.length > melhor.lidos.length)) {
-              melhor = res.leitura
+            if (res.leitura) {
+              const scoreAtual = res.leitura.scoreConsistencia ?? 50
+              const scoreMelhor = melhor?.scoreConsistencia ?? 50
+              // Critério de escolha entre arquivos do mesmo exercício:
+              // 1. Mais campos lidos quando consistência for similar
+              // 2. Ou maior score de consistência quando houver empate/diferença relevante
+              if (
+                !melhor ||
+                (res.leitura.lidos.length > melhor.lidos.length &&
+                  scoreAtual >= scoreMelhor - 15) ||
+                (scoreAtual > scoreMelhor + 25 &&
+                  res.leitura.lidos.length >= melhor.lidos.length * 0.7)
+              ) {
+                melhor = res.leitura
+              }
             }
             if (res.aviso) avisos.push(`${arq.titulo}: ${res.aviso}`)
           } catch (err) {

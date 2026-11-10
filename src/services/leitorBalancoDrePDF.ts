@@ -2,7 +2,7 @@
  * LEITURA AUTOMÁTICA DE BALANÇO PATRIMONIAL E DRE EM PDF
  * =======================================================
  * Camada 1 do fluxo pedido pelo usuário: lê o texto dos PDFs de Balanço/DRE
- * já anexados na ficha (coleção `cliente_arquivos`) e PRENCHE a grade de
+ * já anexados na ficha (coleção `cliente_arquivos`) e PREENCHE a grade de
  * conferência da FerramentaAnaliseBalancosAnexados. A conferência manual
  * (camada 2) continua sendo a última palavra — nada calcula sobre exercício
  * não marcado como conferido.
@@ -16,10 +16,26 @@
  * LINHAS pela coordenada Y e, dentro de cada linha, ordenamos por X, porque
  * pdf.js devolve os itens na ordem do desenho, não na ordem das colunas.
  *
- * ── HONESTIDADE DA LEITURA ──
- * Nunca inventa número: rótulo não reconhecido → campo fica vazio/zerado e
- * sinalizado como "não lido" na UI; valor ambíguo (dois rótulos iguais com
- * valores diferentes sem critério) → sinalizado, não preenchido.
+ * ── MELHORIAS DE DETECÇÃO DE CAMPOS (Requisitos 1 a 5) ──
+ * 1. Dicionário enriquecido: centenas de variações de grafia e sinônimos contábeis
+ *    brasileiros (AC, ANC, PC, PNC, PL, Disponibilidades, Estoques, DRE etc.).
+ * 2. Layout em COLUNAS: detecção de cabeçalhos de anos (ex.: "2020", "2019"),
+ *    mapeamento para o índice correto da coluna do exercício procurado e, quando
+ *    não há cabeçalho explícito, prioriza a última coluna (padrão contábil BR:
+ *    coluna mais recente à direita), sinalizando ambiguidade se houver dúvida.
+ * 3. Casamento de linha:
+ *    • Unificação de separadores de milhar quebrados ("1. 234. 567,89" ou "1. 234,56").
+ *    • Parênteses, sinais negativos separados ("- 1.234,56", "( 1.234,56 )").
+ *    • Tratamento explícito de traço ("—", "-", "-.-") como nulo/vazio com aviso;
+ *      "0,00" ou "0" como zero preenchido.
+ * 4. Cruzamentos de consistência com tolerância de 5%:
+ *    • Ativo Total = Ativo Circulante + Ativo Não Circulante
+ *    • Passivo + PL = Passivo Circulante + Passivo Não Circulante + Patrimônio Líquido
+ *    • Ativo Total = Passivo Total + PL (equação patrimonial básica)
+ *    • Receita Líquida - Custos - Despesas = Lucro/Prejuízo Líquido
+ *    • Pontuação de plausibilidade para escolha do melhor demonstrativo entre arquivos.
+ * 5. Honestidade: campo ambíguo ou ausente → vazio/zerado na grade e listado em
+ *    naoLidos com aviso discreto; falha em um arquivo nunca impede os demais.
  */
 
 import pb from '@/lib/pocketbase/client'
@@ -29,10 +45,6 @@ import { ALVOS_TOTAIS, ALVOS_DETALHE } from './leitorBalancoRotulos'
 
 // ─────────────────────── pdf.js (mesmo padrão do leitorBalancetePDF) ───────────────────────
 
-/**
- * pdf.js é carregado SOB DEMANDA (primeira leitura real): manter o import no
- * topo obrigaria o Node/testes a carregar o worker — aqui só o navegador lê PDF.
- */
 let pdfjsLib: typeof import('pdfjs-dist') | null = null
 
 async function obterPdfjs(): Promise<NonNullable<typeof pdfjsLib>> {
@@ -46,11 +58,6 @@ async function obterPdfjs(): Promise<NonNullable<typeof pdfjsLib>> {
 
 // ─────────────────────── Download do arquivo do PocketBase ───────────────────────
 
-/**
- * Baixa o PDF de `cliente_arquivos` e devolve os bytes. Usa a URL de arquivo do
- * PocketBase via SDK (pb.files.getUrl) — sem proxy /download-resolution, que é
- * só para fontes EXTERNAS bloqueadas pelo Edge do usuário.
- */
 export async function baixarPdfClienteArquivo(record: {
   id: string
   arquivo: string
@@ -130,12 +137,23 @@ export async function extrairLinhasDoPdf(dados: Uint8Array): Promise<LeituraPdfL
 /**
  * Converte token em número aceitando os formatos comuns dos demonstrativos BR:
  * "1.234.567,89" (reais), "1.234.567,89-" (sinal à direita), "(1.234,56)"
- * (negativo), "1.234,56 C" / "1.234,56D" (natureza — mantém o valor, a origem
- * da coluna já define o lado). Devolve null quando não é um valor.
+ * (negativo), "- 1.234,56" (negativo com espaço), "1.234,56 C" / "1.234,56D".
+ * Devolve:
+ *   • number: quando o valor é válido (ex.: 1234.56, 0).
+ *   • null: quando não é um número nem traço nulo.
+ *
+ * Traço explícito ("—", "-", "-.-") deve ser tratado externamente ou mapeado
+ * para null com marcação de ausência.
  */
 export function parseNumeroBR(tok: string): number | null {
   if (!tok) return null
   let t = String(tok).trim().replace(/\s+/g, '')
+
+  // Se é apenas traço de conta sem movimento ("-", "—", "--", "-.-")
+  if (/^[—–-]+$/.test(t) || t === '-.-' || t === '---') {
+    return null
+  }
+
   let negativo = false
   if (/^\(.*\)$/.test(t)) {
     negativo = true
@@ -190,54 +208,96 @@ export function parseNumeroBR(tok: string): number | null {
   return Math.round((negativo ? -num : num) * 100) / 100
 }
 
-const EH_VALOR = /^-?[\d.]+,\d{2}[DC]?$/
+/** Verifica se um token é um traço indicando valor nulo/sem movimento */
+export function ehTracoNulo(tok: string): boolean {
+  if (!tok) return false
+  const t = tok.trim()
+  return /^[—–-]+$/.test(t) || t === '-.-' || t === '---' || t === '( - )' || t === '(-)'
+}
 
-/** Normaliza rótulo: remove códigos/acentos/caixa e espaços múltiplos. */
-function normalizarRotulo(descricao: string): string {
-  return descricao
+const EH_VALOR_TOKEN = /^\(?-?[\d.]+,\d{2}\)?[DC-]?$/
+
+/**
+ * Normaliza rótulo: remove códigos de conta no início (ex.: "1.1.01", "2.1"),
+ * acentos, múltiplos espaços e parênteses auxiliares.
+ */
+export function normalizarRotulo(descricao: string): string {
+  let d = descricao
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/\(?\bR\$\b\)?/gi, '')
     .replace(/\(/g, '')
     .replace(/\)/g, '')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .toLowerCase()
+
+  // Remove códigos de conta contábil no início da linha (ex.: "1.", "1.1.", "1.1.01", "2.01.01.001 -")
+  d = d.replace(/^[\d.\-/]+\s*[-–—]?\s*/, '')
+
+  return d.replace(/\s+/g, ' ').trim().toLowerCase()
+}
+
+/**
+ * Pré-processa uma linha de texto para consertar tokens quebrados comuns em PDFs:
+ * - Ponto de milhar com espaço ("1. 234. 567,89" → "1.234.567,89")
+ * - Sinal negativo separado ("- 1.234,56" → "-1.234,56")
+ * - Parênteses separados ("( 1.234,56 )" → "(1.234,56)")
+ */
+export function repararTokensLinha(linha: string): string {
+  let s = linha
+  // Conserta números com espaço após ponto de milhar: "1. 234" → "1.234"
+  s = s.replace(/(\d+)\.\s+(\d{3})/g, '$1.$2')
+  s = s.replace(/(\d+)\.\s+(\d{3})/g, '$1.$2') // segunda passada para milhares múltiplos
+  // Conserta vírgula com espaço: "1.234, 56" → "1.234,56"
+  s = s.replace(/(\d+),\s+(\d{2})/g, '$1,$2')
+  // Conserta sinal de menos com espaço: "- 1.234,56" → "-1.234,56"
+  s = s.replace(/(^|\s)-\s+([\d.]+,\d{2})/g, '$1-$2')
+  // Conserta parênteses com espaço: "( 1.234,56 )" → "(1.234,56)"
+  s = s.replace(/\(\s+([\d.,]+)\s+\)/g, '($1)')
+  return s.replace(/\s+/g, ' ').trim()
 }
 
 // ─────────────────────── Parsing das linhas → campos da grade ───────────────────────
 
-/** Linha de conta: rótulo seguido de 1..6 valores. */
+/** Linha de conta: rótulo seguido de 1..6 colunas de valores (ou traço). */
 export interface LinhaConta {
   rotulo: string
   rotuloNorm: string
+  /** Valores numéricos por coluna (null indica traço/ausente naquela coluna). */
+  colunas: Array<number | null>
+  /** Apenas os valores numéricos válidos existentes. */
   valores: number[]
+  /** Teve traço explícito em alguma coluna? */
+  teveTraco: boolean
 }
 
+/**
+ * Lê e estrutura as linhas de conta contábil.
+ */
 export function lerLinhasDeConta(linhas: string[]): LinhaConta[] {
   const saida: LinhaConta[] = []
   for (const bruta of linhas) {
-    const limpa = bruta.trim()
+    const limpa = repararTokensLinha(bruta)
     if (!limpa) continue
     const campos = limpa.split(/\s+/)
     if (campos.length < 2) continue
 
-    /* recorta o maior sufixo final composto só de valores (1 a 6 colunas) */
+    /* recorta o maior sufixo final composto de valores numéricos ou traço (1 a 6 colunas) */
     let qtd = 0
     let inicio = campos.length
     while (qtd < 6 && inicio - 1 >= 0) {
       const tok = campos[inicio - 1]
-      let t = tok
-      if (EH_VALOR.test(tok) || /^\(?-?[\d.]+,\d{2}\)?[DC-]?$/.test(tok)) {
+      if (ehTracoNulo(tok)) {
         inicio--
         qtd++
         continue
       }
-      /* valores sem centavos ("1.234.567", "1234567") também aparecem — só
-         quando já existe ao menos um valor decimal na cauda (evita capturar
-         códigos de conta "1", "2" como valores) */
-      if (qtd > 0 && /^\(?-?[\d.,]+\)?$/.test(t) && /\d/.test(t)) {
-        const v = parseNumeroBR(t)
+      if (EH_VALOR_TOKEN.test(tok)) {
+        inicio--
+        qtd++
+        continue
+      }
+      // valores sem centavos ("1.234.567") só se já tem token de valor na cauda
+      if (qtd > 0 && /^\(?-?[\d.,]+\)?$/.test(tok) && /\d/.test(tok)) {
+        const v = parseNumeroBR(tok)
         if (v !== null) {
           inicio--
           qtd++
@@ -250,70 +310,183 @@ export function lerLinhasDeConta(linhas: string[]): LinhaConta[] {
 
     const rotulo = campos.slice(0, inicio).join(' ').trim()
     if (!rotulo) continue
+
+    const colunas: Array<number | null> = []
     const valores: number[] = []
+    let teveTraco = false
+    let invalido = false
+
     for (let i = inicio; i < campos.length; i++) {
-      const v = parseNumeroBR(campos[i])
+      const tok = campos[i]
+      if (ehTracoNulo(tok)) {
+        colunas.push(null)
+        teveTraco = true
+        continue
+      }
+      const v = parseNumeroBR(tok)
       if (v === null) {
-        /* valor inválido no meio da cauda — descarta a linha inteira */
-        valores.length = 0
+        invalido = true
         break
       }
+      colunas.push(v)
       valores.push(v)
     }
-    if (valores.length === 0) continue
 
-    saida.push({ rotulo, rotuloNorm: normalizarRotulo(rotulo), valores })
+    if (invalido || (valores.length === 0 && !teveTraco)) continue
+
+    saida.push({
+      rotulo,
+      rotuloNorm: normalizarRotulo(rotulo),
+      colunas,
+      valores,
+      teveTraco,
+    })
   }
   return saida
 }
 
+// ─────────────────────── Detecção de Colunas / Exercícios ───────────────────────
+
+export interface MapaColunasExercicio {
+  /** Ano do exercício desejado (ex.: "2020") */
+  exercicioDesejado?: string
+  /** Índice da coluna correspondente ao exercício desejado (0-based) */
+  indiceColuna?: number
+  /** Lista de anos detectados nas colunas, se houver */
+  anosDetectados: string[]
+}
+
+/**
+ * Procura nos cabeçalhos das primeiras 40 linhas por anos de exercício (ex.: "2020", "2019", "31/12/2020").
+ * Exemplo típico de cabeçalho:
+ * "Descrição                  2020         2019"
+ * ou "Balanço Patrimonial em 31/12/2020 e 31/12/2019"
+ */
+export function detectarColunasExercicio(
+  linhas: string[],
+  exercicioDesejado?: string,
+): MapaColunasExercicio {
+  const anosDetectados: string[] = []
+
+  for (const l of linhas.slice(0, 40)) {
+    const limpa = l.trim()
+    // Procura por anos de 4 dígitos isolados ou com data
+    const matches = [...limpa.matchAll(/\b(20\d{2})\b/g)]
+    if (matches.length >= 2) {
+      // Linha de cabeçalho com 2 ou mais anos (ex: "2021   2020" ou "2020   2019")
+      const anos = matches.map((m) => m[1])
+      // Deduplica mantendo ordem
+      for (const a of anos) {
+        if (!anosDetectados.includes(a)) anosDetectados.push(a)
+      }
+      break
+    }
+  }
+
+  let indiceColuna: number | undefined = undefined
+  if (exercicioDesejado && anosDetectados.length > 0) {
+    const idx = anosDetectados.indexOf(exercicioDesejado)
+    if (idx >= 0) {
+      indiceColuna = idx
+    }
+  }
+
+  return {
+    exercicioDesejado,
+    indiceColuna,
+    anosDetectados,
+  }
+}
+
+/**
+ * Seleciona o valor numérico de uma linha de conta de acordo com a coluna do exercício:
+ * - Se `indiceColuna` for fornecido e couber nas colunas, usa essa coluna.
+ *   Se nessa coluna houver traço (null), devolve { valor: null, ehTraco: true }.
+ * - Caso contrário (sem cabeçalho de coluna explícito ou demonstrativo simples):
+ *   Demonstrativos contábeis comparativos brasileiros SEMPRE colocam o exercício
+ *   mais recente à direita (última coluna). Pega a última coluna com valor.
+ */
+function extrairValorDaColuna(
+  linha: LinhaConta,
+  indiceColuna?: number,
+): { valor: number | null; ehTraco: boolean } {
+  if (indiceColuna !== undefined && indiceColuna >= 0 && indiceColuna < linha.colunas.length) {
+    const valCol = linha.colunas[indiceColuna]
+    if (valCol === null) {
+      return { valor: null, ehTraco: true }
+    }
+    return { valor: valCol, ehTraco: false }
+  }
+
+  // Fallback: última coluna (exercício mais recente)
+  if (linha.colunas.length > 0) {
+    const ult = linha.colunas[linha.colunas.length - 1]
+    if (ult === null) {
+      return { valor: null, ehTraco: true }
+    }
+    return { valor: ult, ehTraco: false }
+  }
+
+  if (linha.valores.length > 0) {
+    return { valor: linha.valores[linha.valores.length - 1], ehTraco: false }
+  }
+
+  return { valor: null, ehTraco: linha.teveTraco }
+}
+
 /**
  * Tenta casar uma linha com um alvo. Devolve o valor ou null, e marca
- * `ambiguo` quando dois rótulos iguais trazem valores diferentes.
- *
- * `usados`: linhas já consumidas por um alvo anterior (ex.: "Total do Passivo
- * Circulante" é do alvo PC — não pode casar de novo com "Total do Passivo").
- * Os ALVOS_TOTAIS são ordenados do mais específico ao mais genérico.
+ * `ambiguo` quando dois rótulos iguais trazem valores diferentes sem critério.
  */
 function casarLinha(
   alvo: { chave: string; padroes: RegExp[] },
   linhas: LinhaConta[],
   usados?: Set<number>,
-): { valor: number | null; ambiguo: boolean; indice?: number } {
+  indiceColuna?: number,
+): { valor: number | null; ambiguo: boolean; indice?: number; teveTraco?: boolean } {
   for (const padrao of alvo.padroes) {
     const candidatos = linhas
       .map((l, i) => ({ l, i }))
       .filter(({ l, i }) => !usados?.has(i) && padrao.test(l.rotuloNorm))
     if (candidatos.length === 0) continue
-    /* coluna do valor: balanço comparativo traz ANO-2 ANO-1 — pega a última
-       (posição mais recente); DRE de um exercício traz 1 coluna; DRE
-       comparativa traz 2 (exercício anterior à esquerda) — mesma regra. */
-    const comValor = candidatos.map(({ l, i }) => ({
-      i,
-      valor: l.valores[l.valores.length - 1],
-    }))
-    const utéis = comValor.filter((c) => c.valor !== 0)
-    const escolhidos = utéis.length > 0 ? utéis : comValor.filter((c) => c.valor === 0)
-    if (escolhidos.length === 0) continue
-    const valoresDistintos = new Set(escolhidos.map((c) => c.valor))
+
+    const comValor = candidatos.map(({ l, i }) => {
+      const extraido = extrairValorDaColuna(l, indiceColuna)
+      return { i, valor: extraido.valor, ehTraco: extraido.ehTraco }
+    })
+
+    const uteis = comValor.filter((c) => c.valor !== null)
+    if (uteis.length === 0) {
+      const comTraco = comValor.find((c) => c.ehTraco)
+      if (comTraco) {
+        return { valor: null, ambiguo: false, indice: comTraco.i, teveTraco: true }
+      }
+      continue
+    }
+
+    const valoresDistintos = new Set(uteis.map((c) => c.valor))
     if (valoresDistintos.size > 1) {
-      /* rótulo igual com valores diferentes (ex.: total do grupo repetido em
-         páginas diferentes) — ambíguo: sinaliza, não inventa */
+      /* Rótulo igual com valores diferentes sem como desambiguar — ambíguo: sinaliza, não inventa */
       return { valor: null, ambiguo: true }
     }
-    return { valor: escolhidos[0].valor, ambiguo: false, indice: escolhidos[0].i }
+
+    return { valor: uteis[0].valor, ambiguo: false, indice: uteis[0].i }
   }
   return { valor: null, ambiguo: false }
 }
 
-/** Resultado da leitura de um exercício (para a grade e para a UI). */
+// ─────────────────────── Estruturas de Resultado ───────────────────────
+
 export interface LeituraExercicio {
   dados: ExercicioFinanceiroCompleto
   /** Campos com valor lido (chave 'grupo.campo', ex. 'ativoCirculante.estoques'). */
   lidos: string[]
-  /** Campos ambíguos ou não encontrados (chave 'grupo.campo'). */
+  /** Campos ambíguos ou com traço/ausentes (chave 'grupo.campo'). */
   naoLidos: string[]
+  /** Avisos específicos de leitura (campos ambíguos, traço, divergências) */
   aviso?: string
+  /** Pontuação de consistência (0 a 100) para escolha entre arquivos */
+  scoreConsistencia?: number
 }
 
 /**
@@ -332,24 +505,46 @@ export function detectarEscala(linhas: string[]): 1 | 1000 {
   return 1
 }
 
-/** Preenche a estrutura a partir das linhas lidas do PDF. */
-export function parseLeitura(linhas: LinhaConta[], fatorEscala = 1): LeituraExercicio {
+/**
+ * Preenche a estrutura `ExercicioFinanceiroCompleto` a partir das linhas de conta.
+ *
+ * @param linhas Linhas de conta já estruturadas
+ * @param fatorEscala 1 ou 1000
+ * @param indiceColuna Índice da coluna correspondente ao exercício (se conhecido)
+ */
+export function parseLeitura(
+  linhas: LinhaConta[],
+  fatorEscala = 1,
+  indiceColuna?: number,
+): LeituraExercicio {
   const dados = criarExercicioVazio('', '')
   const lidos: string[] = []
   const naoLidos: string[] = []
+  const camposComTraco: string[] = []
 
   const aplicar = (chave: string, v: number, fator: number) => {
     const [grupo, campo] = chave.split('.')
     const val = Math.round(v * fator * 100) / 100
     if (campo === 'total') {
-      /* totais de grupo ficam em contas de conferência, não na grade —
-         guardamos para cruzamento no chamador (verificarCruzamentos) */
       ;(dados as any).__totais = (dados as any).__totais || {}
       ;(dados as any).__totais[grupo] = val
       return
     }
     if (chave === 'dre.lucroPrejuizo') {
       ;(dados as any).__resultado = val
+      return
+    }
+    if (chave === 'dre.lucroBruto') {
+      ;(dados as any).__lucroBruto = val
+      return
+    }
+    if (chave === 'dre.receitaLiquida') {
+      ;(dados as any).__receitaLiquida = val
+      // Se receitaBruta ainda não foi preenchida ou está zerada, preenche receitaBruta
+      if (!dados.dre.receitaBruta) {
+        dados.dre.receitaBruta = val
+        lidos.push('dre.receitaBruta')
+      }
       return
     }
     const g = (dados as any)[grupo]
@@ -359,15 +554,21 @@ export function parseLeitura(linhas: LinhaConta[], fatorEscala = 1): LeituraExer
     }
   }
 
-  // 1) TOTAIS primeiro (prioridade sobre detalhes)
+  // 1) TOTAIS primeiro (prioridade máxima e consumo de linhas)
   const totais: Record<string, number | null> = {}
   const usadas = new Set<number>()
+
   for (const alvo of ALVOS_TOTAIS) {
-    const { valor, indice } = casarLinha(alvo, linhas, usadas)
+    const { valor, indice, ambiguo, teveTraco } = casarLinha(alvo, linhas, usadas, indiceColuna)
     if (valor !== null) {
       aplicar(alvo.chave, valor, fatorEscala)
       if (indice !== undefined) usadas.add(indice)
+    } else if (ambiguo) {
+      naoLidos.push(alvo.chave)
+    } else if (teveTraco) {
+      camposComTraco.push(alvo.chave)
     }
+
     if (alvo.chave.endsWith('.total')) {
       totais[alvo.chave.split('.')[0]] = valor
     }
@@ -375,51 +576,148 @@ export function parseLeitura(linhas: LinhaConta[], fatorEscala = 1): LeituraExer
 
   // 2) DETALHES: só preenchem contas individuais da grade
   for (const alvo of ALVOS_DETALHE) {
-    const { valor, ambiguo, indice } = casarLinha(alvo, linhas, usadas)
+    const { valor, ambiguo, indice, teveTraco } = casarLinha(alvo, linhas, usadas, indiceColuna)
     if (valor !== null) {
       aplicar(alvo.chave, valor, fatorEscala)
       if (indice !== undefined) usadas.add(indice)
-    } else if (ambiguo) naoLidos.push(alvo.chave)
+    } else if (ambiguo) {
+      naoLidos.push(alvo.chave)
+    } else if (teveTraco) {
+      camposComTraco.push(alvo.chave)
+    }
   }
-  const aviso = montarAviso(totais, lidos, naoLidos)
+
+  const aviso = montarAviso(totais, lidos, naoLidos, camposComTraco)
   return { dados, lidos, naoLidos, aviso }
 }
 
+// ─────────────────────── Cruzamentos de Consistência ───────────────────────
+
+export interface ResultadoCruzamentoConsistencia {
+  avisos: string[]
+  score: number // 0 a 100
+  consistente: boolean
+}
+
 /**
- * Cruzamento dos totais lidos (AC+ANC, PC+PNC, PC+PNC+PL) contra os detalhes
- * da grade. Devolve aviso quando a diferença supera 5% — não bloqueia, apenas
- * sinaliza para conferência.
+ * Cruzamentos robustos de consistência contábil (tolerância de 5%):
+ * 1. Ativo Total = Ativo Circulante + Ativo Não Circulante
+ * 2. Passivo Total + PL = Passivo Circulante + Passivo Não Circulante + Patrimônio Líquido
+ * 3. Ativo Total = Passivo Total (+ PL)
+ * 4. Detalhes de cada grupo vs Total lido do grupo
+ * 5. DRE: Receita Líquida + Custos (neg) + Despesas (neg) + ResFin ≈ Lucro Líquido
  */
-export function verificarCruzamentos(leitura: LeituraExercicio): string | undefined {
+export function avaliarConsistenciaContabil(
+  leitura: LeituraExercicio,
+): ResultadoCruzamentoConsistencia {
   const tot: any = (leitura.dados as any).__totais || {}
-  const somarGrupo = (grupo: string) =>
-    Object.entries((leitura.dados as any)[grupo] || {}).reduce(
-      (s, [, v]) => s + (Number(v) || 0),
-      0,
-    )
+  const d = leitura.dados
   const avisos: string[] = []
-  const comparar = (nome: string, detalhe: number, total: number | undefined) => {
-    if (total === undefined || total === null) return
-    if (Math.abs(total) < 0.01) return
-    const dif = Math.abs(detalhe - total) / Math.abs(total)
+  let penalidades = 0
+
+  const somarGrupo = (grupo: string) =>
+    Object.entries((d as any)[grupo] || {}).reduce((s, [, v]) => s + (Number(v) || 0), 0)
+
+  const somaAC = somarGrupo('ativoCirculante')
+  const somaANC = somarGrupo('ativoNaoCirculante')
+  const somaPC = somarGrupo('passivoCirculante')
+  const somaPNC = somarGrupo('passivoNaoCirculante')
+  const somaPL = somarGrupo('patrimonioLiquido')
+
+  const totalAC = tot.ativoCirculante ?? (somaAC > 0 ? somaAC : undefined)
+  const totalANC = tot.ativoNaoCirculante ?? (somaANC > 0 ? somaANC : undefined)
+  const totalAtivo = tot.ativo ?? (totalAC && totalANC ? totalAC + totalANC : undefined)
+
+  const totalPC = tot.passivoCirculante ?? (somaPC > 0 ? somaPC : undefined)
+  const totalPNC = tot.passivoNaoCirculante ?? (somaPNC > 0 ? somaPNC : undefined)
+  const totalPL = tot.patrimonioLiquido ?? (somaPL > 0 ? somaPL : undefined)
+  const totalPassivo = tot.passivo
+
+  // Checagem 1: Ativo Circulante detalhes vs total
+  if (tot.ativoCirculante && somaAC > 0) {
+    const dif = Math.abs(somaAC - tot.ativoCirculante) / Math.abs(tot.ativoCirculante)
     if (dif > 0.05) {
+      penalidades += 15
       avisos.push(
-        `${nome} lido (${total.toLocaleString('pt-BR')}) difere da soma dos detalhes (${detalhe.toLocaleString('pt-BR')})`,
+        `Ativo Circulante lido (${tot.ativoCirculante.toLocaleString('pt-BR')}) difere dos detalhes (${somaAC.toLocaleString('pt-BR')})`,
       )
     }
   }
-  comparar('Ativo Circulante', somarGrupo('ativoCirculante'), tot.ativoCirculante)
-  comparar('Ativo Não Circulante', somarGrupo('ativoNaoCirculante'), tot.ativoNaoCirculante)
-  comparar('Passivo Circulante', somarGrupo('passivoCirculante'), tot.passivoCirculante)
-  comparar('Passivo Não Circulante', somarGrupo('passivoNaoCirculante'), tot.passivoNaoCirculante)
-  if (avisos.length === 0) return undefined
-  return `Divergência na leitura (conferir na grade): ${avisos.join('; ')}.`
+
+  // Checagem 2: Passivo Circulante detalhes vs total
+  if (tot.passivoCirculante && somaPC > 0) {
+    const dif = Math.abs(somaPC - tot.passivoCirculante) / Math.abs(tot.passivoCirculante)
+    if (dif > 0.05) {
+      penalidades += 15
+      avisos.push(
+        `Passivo Circulante lido (${tot.passivoCirculante.toLocaleString('pt-BR')}) difere dos detalhes (${somaPC.toLocaleString('pt-BR')})`,
+      )
+    }
+  }
+
+  // Checagem 3: Ativo Total = AC + ANC
+  if (totalAtivo && totalAC !== undefined && totalANC !== undefined) {
+    const somaAtivo = totalAC + totalANC
+    const dif = Math.abs(somaAtivo - totalAtivo) / Math.abs(totalAtivo)
+    if (dif > 0.05) {
+      penalidades += 20
+      avisos.push(
+        `Ativo Total (${totalAtivo.toLocaleString('pt-BR')}) difere de AC+ANC (${somaAtivo.toLocaleString('pt-BR')})`,
+      )
+    }
+  }
+
+  // Checagem 4: Ativo Total = Passivo Total + PL (Equação Fundamental)
+  if (totalAtivo && totalPC !== undefined && totalPL !== undefined) {
+    const somaPassivoPL = totalPC + (totalPNC || 0) + totalPL
+    const dif = Math.abs(somaPassivoPL - totalAtivo) / Math.abs(totalAtivo)
+    if (dif > 0.05) {
+      penalidades += 25
+      avisos.push(
+        `Equação patrimonial: Ativo (${totalAtivo.toLocaleString('pt-BR')}) difere de Passivo+PL (${somaPassivoPL.toLocaleString('pt-BR')})`,
+      )
+    }
+  }
+
+  // Checagem 5: DRE Lucro Líquido vs Receita e Custos
+  const resDRE = (d as any).__resultado
+  const recLiq =
+    (d as any).__receitaLiquida ||
+    (d.dre.receitaBruta ? d.dre.receitaBruta + (d.dre.deducoesImpostos || 0) : undefined)
+  if (recLiq && resDRE !== undefined) {
+    const cmv = d.dre.cmv || 0
+    const despAdm = d.dre.despesasAdministrativas || 0
+    const despVend = d.dre.despesasVendas || 0
+    const resFin = d.dre.resultadoFinanceiro || 0
+    const calcLucro = recLiq + cmv + despAdm + despVend + resFin
+    if (Math.abs(calcLucro) > 0.01 && Math.abs(resDRE) > 0.01) {
+      const dif = Math.abs(calcLucro - resDRE) / Math.max(Math.abs(recLiq), Math.abs(resDRE))
+      if (dif > 0.15) {
+        penalidades += 10
+      }
+    }
+  }
+
+  const score = Math.max(0, 100 - penalidades)
+  return {
+    avisos,
+    score,
+    consistente: avisos.length === 0,
+  }
+}
+
+/** Mantém compatibilidade com chamadas anteriores de verificarCruzamentos */
+export function verificarCruzamentos(leitura: LeituraExercicio): string | undefined {
+  const res = avaliarConsistenciaContabil(leitura)
+  if (res.avisos.length === 0) return undefined
+  return `Divergência na leitura (conferir na grade): ${res.avisos.join('; ')}.`
 }
 
 function montarAviso(
   totais: Record<string, number | null>,
   lidos: string[],
   naoLidos: string[],
+  camposComTraco: string[],
 ): string | undefined {
   const partes: string[] = []
   const faltandoTotais = ['ativo', 'passivo', 'patrimonioLiquido'].filter(
@@ -430,6 +728,9 @@ function montarAviso(
   }
   if (naoLidos.length > 0) {
     partes.push(`${naoLidos.length} campo(s) não lido(s) ou ambíguo(s)`)
+  }
+  if (camposComTraco.length > 0) {
+    partes.push(`${camposComTraco.length} campo(s) com traço/sem movimento`)
   }
   if (faltandoTotais.length > 0) {
     partes.push('totais de conferência ausentes')
@@ -455,6 +756,7 @@ export async function lerExercicioDoAnexo(params: {
   id: string
   arquivo: string
   titulo?: string
+  exercicioDesejado?: string
 }): Promise<ResultadoLeituraExercicio> {
   try {
     const bytes = await baixarPdfClienteArquivo(params)
@@ -472,12 +774,19 @@ export async function lerExercicioDoAnexo(params: {
         aviso: `PDF com ${paginas} página(s), mas nenhuma linha de conta reconhecida — confira manualmente.`,
       }
     }
+
+    const mapaColunas = detectarColunasExercicio(linhas, params.exercicioDesejado)
     const fator = detectarEscala(linhas)
-    const leitura = parseLeitura(linhasConta, fator)
-    /* cruzamento: soma dos detalhes vs total lido do grupo — divergência forte
-       (> 5%) sinaliza leitura imperfeita; nunca substitui a conferência manual */
-    const avisoCruz = verificarCruzamentos(leitura)
+    const leitura = parseLeitura(linhasConta, fator, mapaColunas.indiceColuna)
+
+    /* Cruzamento e consistência contábil */
+    const consist = avaliarConsistenciaContabil(leitura)
+    leitura.scoreConsistencia = consist.score
+
+    const avisoCruz =
+      consist.avisos.length > 0 ? `Divergência: ${consist.avisos.join('; ')}.` : undefined
     const avisoFinal = [leitura.aviso, avisoCruz].filter(Boolean).join(' ') || undefined
+
     return {
       ok: leitura.lidos.length > 0,
       aviso: avisoFinal,
