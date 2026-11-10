@@ -549,8 +549,16 @@ export async function uploadArquivoCliente(params: {
   enviadoPor?: string
 }): Promise<ClienteArquivo> {
   const docLimpo = sanitizarDoc(params.clienteCnpj)
+  // Campo obrigatório na coleção: cliente sem CNPJ/CPF preenchido (ex.:
+  // cadastro por recepção de documento) usa o CÓDIGO de cliente como chave de
+  // vínculo — mesmo padrão do anexo que já grava com sucesso (sanitizarDoc
+  // reduz "COD94109" a "94109") e do fluxo de recepção.
+  const chaveVinculo = docLimpo || (params.clienteCodigo ? String(params.clienteCodigo) : '')
+  if (!chaveVinculo) {
+    throw new Error('Cliente sem CNPJ/CPF e sem código — não é possível vincular o anexo à ficha.')
+  }
   const formData = new FormData()
-  formData.append('cliente_cnpj', docLimpo)
+  formData.append('cliente_cnpj', chaveVinculo)
   if (params.clienteCodigo) {
     formData.append('cliente_codigo', String(params.clienteCodigo))
   }

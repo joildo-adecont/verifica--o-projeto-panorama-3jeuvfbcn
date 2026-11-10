@@ -10,6 +10,7 @@ import {
   salvarContatoCliente,
   listarContatosCliente,
   excluirContatoCliente,
+  uploadArquivoCliente,
 } from './clienteDadosComplementaresService'
 import pb from '@/lib/pocketbase/client'
 
@@ -34,6 +35,14 @@ vi.mock('@/lib/pocketbase/client', () => {
         create: vi.fn(async (data: any) => {
           const id = `mock_${Date.now()}_${Math.random()}`
           const item = { ...data, id, created: new Date().toISOString() }
+          if (typeof FormData !== 'undefined' && data instanceof FormData) {
+            // FormData não pode ser espalhado — converte para objeto simples
+            const plain: Record<string, any> = {}
+            data.forEach((valor: any, chave: string) => {
+              plain[chave] = valor
+            })
+            Object.assign(item, plain)
+          }
           store[name] = store[name] || []
           store[name].push(item)
           return item
@@ -153,5 +162,49 @@ describe('clienteDadosComplementaresService', () => {
       const ok = await excluirContatoCliente(c1.id)
       expect(ok).toBe(true)
     }
+  })
+
+  // REGRESSÃO do bug do anexo em massa com cliente fixado (ficha do cliente):
+  // cliente cadastrado por recepção sem CNPJ/CPF — o campo cliente_cnpj é
+  // obrigatório na coleção e vinha vazio, causando "Failed to create record."
+  it('uploadArquivoCliente usa o CÓDIGO como chave de vínculo quando o cliente não tem documento', async () => {
+    const file = new File([new Uint8Array([1, 2, 3])], 'Balancete 2026.pdf', {
+      type: 'application/pdf',
+    })
+
+    const anexo = await uploadArquivoCliente({
+      clienteCnpj: '', // CARDOSO & SIX LTDA (cód. 94109): documento_limpo vazio
+      clienteCodigo: 94109,
+      titulo: 'Balancete 2026',
+      categoria: 'Contrato',
+      file,
+      enviadoPor: 'ADECONT Operador',
+    })
+
+    expect(anexo.cliente_cnpj).toBe('94109')
+    expect(anexo.cliente_codigo).toBe(94109)
+    expect(anexo.titulo).toBe('Balancete 2026')
+    expect(anexo.tipo_mime).toBe('application/pdf')
+    expect(anexo.tamanho_bytes).toBe(3)
+    expect(anexo.nome_original).toBe('Balancete 2026.pdf')
+  })
+
+  it('uploadArquivoCliente recusa gravação sem documento e sem código', async () => {
+    const file = new File([new Uint8Array([1])], 'x.pdf', { type: 'application/pdf' })
+    await expect(
+      uploadArquivoCliente({ clienteCnpj: '', titulo: 'Sem vínculo', file }),
+    ).rejects.toThrow('não é possível vincular')
+  })
+
+  it('uploadArquivoCliente mantém o documento como chave quando existe', async () => {
+    const file = new File([new Uint8Array([1])], 'contrato.pdf', { type: 'application/pdf' })
+    const anexo = await uploadArquivoCliente({
+      clienteCnpj: '11.222.333/0001-44',
+      clienteCodigo: 777,
+      titulo: 'Contrato Social',
+      file,
+    })
+    expect(anexo.cliente_cnpj).toBe('11222333000144')
+    expect(anexo.cliente_codigo).toBe(777)
   })
 })
