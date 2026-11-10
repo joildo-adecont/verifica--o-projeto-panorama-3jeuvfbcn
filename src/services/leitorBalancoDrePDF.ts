@@ -752,12 +752,117 @@ export interface ResultadoLeituraExercicio {
  * grade. Nunca lança — devolve `ok:false` + aviso (padrão do projeto: a tela
  * nunca fica em estado de erro total).
  */
+/**
+ * Converte linhas de texto bruto ou markdown (ex.: tabelas markdown `|CONTA|VALOR1|VALOR2|`)
+ * em linhas limpas reconhecíveis por `lerLinhasDeConta`.
+ */
+export function normalizarLinhasDeTextoOuMarkdown(linhas: string[]): string[] {
+  return linhas
+    .map((l) => {
+      let s = l.trim()
+      if (!s) return ''
+      // Se for linha de tabela markdown, remove pipes delimitadores e converte em espaços
+      if (s.includes('|')) {
+        s = s
+          .replace(/^\|/, '')
+          .replace(/\|$/, '')
+          .split('|')
+          .map((col) => col.trim())
+          .filter((col) => !/^[-:]+$/.test(col)) // ignora separador markdown |---|---|
+          .join(' ')
+      }
+      return s.trim()
+    })
+    .filter((l) => l.length > 0)
+}
+
+/**
+ * Extrai e estrutura dados de Balanço Patrimonial e DRE a partir de um texto puro
+ * ou Markdown (ex.: texto extraído do PDF via pdf.js ou $documents.toMarkdown).
+ */
+export function parsearBalancoDREDeTexto(
+  texto: string,
+  exercicioDesejado?: string,
+): LeituraExercicio {
+  const linhasBrutas = String(texto || '').split(/\r?\n/)
+  const linhasLimpos = normalizarLinhasDeTextoOuMarkdown(linhasBrutas)
+  const linhasConta = lerLinhasDeConta(linhasLimpos)
+  const mapaColunas = detectarColunasExercicio(linhasLimpos, exercicioDesejado)
+  const fator = detectarEscala(linhasLimpos)
+  const leitura = parseLeitura(linhasConta, fator, mapaColunas.indiceColuna)
+  const consist = avaliarConsistenciaContabil(leitura)
+  leitura.scoreConsistencia = consist.score
+  return leitura
+}
+
+/**
+ * Tenta ler o anexo PDF pelo backend (via rota /backend/v1/ler-balanco-pdf com $documents.toMarkdown).
+ * Se o backend retornar sucesso com o markdown, parseia o texto diretamente.
+ * Se retornar 422 (escaneado), devolve aviso imediato sem tentar pdf.js.
+ * Se falhar com outro erro de rede, devolve null para que o fallback pdf.js seja usado.
+ */
+async function tentarLeituraPeloBackend(
+  recordId: string,
+  exercicioDesejado?: string,
+): Promise<{ tentado: boolean; resultado?: ResultadoLeituraExercicio }> {
+  try {
+    const url = `/backend/v1/ler-balanco-pdf?id=${encodeURIComponent(recordId)}`
+    const resp = await fetch(url)
+    if (resp.status === 422) {
+      return {
+        tentado: true,
+        resultado: {
+          ok: false,
+          aviso: 'PDF sem texto extraível (provavelmente imagem escaneada) — confira manualmente.',
+        },
+      }
+    }
+    if (!resp.ok) {
+      return { tentado: false }
+    }
+    const data = await resp.json()
+    if (!data?.ok || !data?.markdown) {
+      return { tentado: false }
+    }
+    const leitura = parsearBalancoDREDeTexto(data.markdown, exercicioDesejado)
+    if (leitura.lidos.length === 0) {
+      return { tentado: false }
+    }
+    return {
+      tentado: true,
+      resultado: {
+        ok: true,
+        aviso: leitura.aviso,
+        leitura,
+      },
+    }
+  } catch {
+    return { tentado: false }
+  }
+}
+
+/**
+ * Lê um anexo PDF de `cliente_arquivos` e devolve os valores prontos para a
+ * grade. Prioriza a rota do servidor /backend/v1/ler-balanco-pdf ($documents.toMarkdown)
+ * com fallback transparente para o leitor cliente pdf.js.
+ * Nunca lança — devolve `ok:false` + aviso (padrão do projeto: a tela
+ * nunca fica em estado de erro total).
+ */
 export async function lerExercicioDoAnexo(params: {
   id: string
   arquivo: string
   titulo?: string
   exercicioDesejado?: string
 }): Promise<ResultadoLeituraExercicio> {
+  // 1) Tenta via backend ($documents.toMarkdown) se id estiver disponível
+  if (params.id) {
+    const backend = await tentarLeituraPeloBackend(params.id, params.exercicioDesejado)
+    if (backend.tentado && backend.resultado) {
+      return backend.resultado
+    }
+  }
+
+  // 2) Fallback via pdf.js no navegador
   try {
     const bytes = await baixarPdfClienteArquivo(params)
     const { linhas, paginas, caracteres } = await extrairLinhasDoPdf(bytes)
@@ -767,7 +872,8 @@ export async function lerExercicioDoAnexo(params: {
         aviso: 'PDF sem texto extraível (provavelmente imagem escaneada) — confira manualmente.',
       }
     }
-    const linhasConta = lerLinhasDeConta(linhas)
+    const linhasLimpos = normalizarLinhasDeTextoOuMarkdown(linhas)
+    const linhasConta = lerLinhasDeConta(linhasLimpos)
     if (linhasConta.length === 0) {
       return {
         ok: false,
@@ -775,8 +881,8 @@ export async function lerExercicioDoAnexo(params: {
       }
     }
 
-    const mapaColunas = detectarColunasExercicio(linhas, params.exercicioDesejado)
-    const fator = detectarEscala(linhas)
+    const mapaColunas = detectarColunasExercicio(linhasLimpos, params.exercicioDesejado)
+    const fator = detectarEscala(linhasLimpos)
     const leitura = parseLeitura(linhasConta, fator, mapaColunas.indiceColuna)
 
     /* Cruzamento e consistência contábil */

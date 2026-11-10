@@ -23,7 +23,9 @@ import {
   detectarColunasExercicio,
   repararTokensLinha,
   ehTracoNulo,
+  parsearBalancoDREDeTexto,
 } from './leitorBalancoDrePDF'
+import { testarParseExemplo } from './exemploBalancoReal'
 
 describe('parseNumeroBR e repararTokensLinha', () => {
   it('lê milhar com ponto e centavos com vírgula', () => {
@@ -239,5 +241,34 @@ describe('Consistência Contábil e Cruzamentos', () => {
     expect(avaliacao.consistente).toBe(false)
     expect(avaliacao.score).toBeLessThan(70)
     expect(avaliacao.avisos.length).toBeGreaterThan(0)
+  })
+})
+
+describe('parsearBalancoDREDeTexto e exemploBalancoReal', () => {
+  it('parseia texto bruto e preenche a grade de exemplo', () => {
+    const res = testarParseExemplo()
+    expect(res.lidos.length).toBeGreaterThan(0)
+    expect(res.dados.ativoCirculante.caixaEquivalentes).toBe(12500)
+    expect(res.dados.ativoCirculante.contasReceber).toBe(85000)
+    expect(res.dados.ativoCirculante.estoques).toBe(52730)
+    expect(res.dados.ativoNaoCirculante.imobilizado).toBe(190000)
+    expect(res.dados.passivoCirculante.fornecedores).toBe(45000)
+    expect(res.dados.patrimonioLiquido.capitalSocial).toBe(100000)
+    expect(res.dados.dre.receitaBruta).toBe(500000)
+    expect(res.dados.dre.cmv).toBe(-250000)
+  })
+
+  it('parseia tabelas markdown vindas do $documents.toMarkdown', () => {
+    const md = `
+| ATIVO CIRCULANTE | 150.000,00 | 120.000,00 |
+| Caixa e Equivalentes | 10.000,00 | 8.000,00 |
+| Duplicatas a Receber | 90.000,00 | 70.000,00 |
+| Estoques | 50.000,00 | 42.000,00 |
+| TOTAL DO ATIVO | 350.000,00 | 300.000,00 |
+`
+    const res = parsearBalancoDREDeTexto(md)
+    expect(res.dados.ativoCirculante.caixaEquivalentes).toBe(10000)
+    expect(res.dados.ativoCirculante.contasReceber).toBe(90000)
+    expect(res.dados.ativoCirculante.estoques).toBe(50000)
   })
 })

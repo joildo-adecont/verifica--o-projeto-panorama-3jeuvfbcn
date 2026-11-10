@@ -217,6 +217,10 @@ export function FerramentaAnaliseBalancosAnexados({ empresa }: Props) {
       try {
         let melhor: LeituraExercicio | null = null
         const avisos: string[] = []
+        // Dados cumulativos para mesclar Balanço e DRE quando forem arquivos separados
+        let dadosMesclados = { ...refEstado.current[exercicio]?.dados }
+        let teveLeituraValida = false
+
         for (const arq of arqs) {
           try {
             const res = await lerExercicioDoAnexo({
@@ -225,12 +229,55 @@ export function FerramentaAnaliseBalancosAnexados({ empresa }: Props) {
               titulo: arq.titulo,
               exercicioDesejado: exercicio,
             })
-            if (res.leitura) {
+            if (res.leitura && res.leitura.lidos.length > 0) {
+              teveLeituraValida = true
+              // Mescla campos lidos do arquivo nos dados cumulativos deste exercício
+              // (ex.: DRE traz campos de dre; Balanço traz ativo/passivo/pl)
+              const novosDados = res.leitura.dados
+              dadosMesclados = {
+                ...dadosMesclados,
+                ativoCirculante: {
+                  ...dadosMesclados.ativoCirculante,
+                  ...Object.fromEntries(
+                    Object.entries(novosDados.ativoCirculante || {}).filter(([, v]) => v !== 0),
+                  ),
+                },
+                ativoNaoCirculante: {
+                  ...dadosMesclados.ativoNaoCirculante,
+                  ...Object.fromEntries(
+                    Object.entries(novosDados.ativoNaoCirculante || {}).filter(([, v]) => v !== 0),
+                  ),
+                },
+                passivoCirculante: {
+                  ...dadosMesclados.passivoCirculante,
+                  ...Object.fromEntries(
+                    Object.entries(novosDados.passivoCirculante || {}).filter(([, v]) => v !== 0),
+                  ),
+                },
+                passivoNaoCirculante: {
+                  ...dadosMesclados.passivoNaoCirculante,
+                  ...Object.fromEntries(
+                    Object.entries(novosDados.passivoNaoCirculante || {}).filter(
+                      ([, v]) => v !== 0,
+                    ),
+                  ),
+                },
+                patrimonioLiquido: {
+                  ...dadosMesclados.patrimonioLiquido,
+                  ...Object.fromEntries(
+                    Object.entries(novosDados.patrimonioLiquido || {}).filter(([, v]) => v !== 0),
+                  ),
+                },
+                dre: {
+                  ...dadosMesclados.dre,
+                  ...Object.fromEntries(
+                    Object.entries(novosDados.dre || {}).filter(([, v]) => v !== 0),
+                  ),
+                },
+              }
+
               const scoreAtual = res.leitura.scoreConsistencia ?? 50
               const scoreMelhor = melhor?.scoreConsistencia ?? 50
-              // Critério de escolha entre arquivos do mesmo exercício:
-              // 1. Mais campos lidos quando consistência for similar
-              // 2. Ou maior score de consistência quando houver empate/diferença relevante
               if (
                 !melhor ||
                 (res.leitura.lidos.length > melhor.lidos.length &&
@@ -247,10 +294,10 @@ export function FerramentaAnaliseBalancosAnexados({ empresa }: Props) {
             avisos.push(`${arq.titulo}: falha na leitura — confira manualmente.`)
           }
         }
-        if (melhor) {
+        if (teveLeituraValida) {
           setEstado((prev) => ({
             ...prev,
-            [exercicio]: { ...prev[exercicio], dados: melhor!.dados },
+            [exercicio]: { ...prev[exercicio], dados: dadosMesclados },
           }))
         }
         setAvisosLeitura((prev) => ({
