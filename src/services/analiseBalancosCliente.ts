@@ -105,7 +105,7 @@ export async function listarArquivosBalanço(
   const chave = chaveCliente(docLimpo, codigo)
   try {
     const records = await pb.collection('cliente_arquivos').getFullList({
-      filter: `cliente_cnpj = '${chave}'`,
+      filter: `cliente_cnpj = '${chave}' || cliente_codigo = ${codigo} || cliente_cnpj = '${codigo}'`,
       batch: 200,
     })
     return records
