@@ -55,6 +55,10 @@ import {
 } from '@/services/analiseBalancosCliente'
 import { gerarPdfTextoRelatorio } from '@/services/geradorPdfAnaliseAnexos'
 import { criarExercicioVazio } from '@/services/motorAnaliseEmpresarial'
+import {
+  lerExercicioDoAnexo,
+  type LeituraExercicio,
+} from '@/services/leitorBalancoDrePDF'
 
 interface Props {
   empresa: EmpresaRecord | null
@@ -158,6 +162,8 @@ export function FerramentaAnaliseBalancosAnexados({ empresa }: Props) {
   const [resultado, setResultado] = useState<AnaliseAnexosResultado | null>(null)
   const [gravando, setGravando] = useState<string | null>(null)
   const [gravadas, setGravadas] = useState<Record<string, string>>({})
+  const [lendo, setLendo] = useState<Record<string, boolean>>({})
+  const [avisosLeitura, setAvisosLeitura] = useState<Record<string, string | undefined>>({})
   const refEstado = useRef(estado)
   refEstado.current = estado
 
@@ -189,6 +195,7 @@ export function FerramentaAnaliseBalancosAnexados({ empresa }: Props) {
       setSelecionados([])
       setResultado(null)
       setGravadas({})
+      setAvisosLeitura({})
     } catch (err) {
       console.error('[FerramentaAnaliseBalançosAnexados] Erro ao recarregar:', err)
     } finally {
@@ -200,16 +207,56 @@ export function FerramentaAnaliseBalancosAnexados({ empresa }: Props) {
     recarregar()
   }, [recarregar])
 
-  // ── Extração da camada 1: leitura automática dos PDFs — ESBOÇO, não implementada ──
-  // A conferência manual/editável é a fonte da verdade nesta rodada: este botão
-  // apenas limpa os dados do exercício para digitação conferida. Nada calcula
-  // sobre dado não conferido.
-  const extrairDeArquivos = useCallback((exercicio: string) => {
-    setEstado((prev) => ({
-      ...prev,
-      [exercicio]: { ...prev[exercicio], dados: criarExercicioVazio('ano_atual') },
-    }))
-  }, [])
+  // ── Extração da camada 1: leitura automática do texto dos PDFs (pdf.js) ──
+  // Baixa cada PDF anexado ao exercício do PocketBase, extrai o texto e faz o
+  // parse dos rótulos do Balanço/DRE. Nunca inventa valor: campo não lido
+  // fica vazio e sinalizado. A CONFERÊNCIA manual segue sendo a última
+  // palavra — nada calcula sobre exercício não marcado como conferido.
+  const lerExercicio = useCallback(
+    async (exercicio: string) => {
+      const arqs = arquivos.filter((a) => a.exerciseGuess === exercicio)
+      if (arqs.length === 0) return
+      setLendo((prev) => ({ ...prev, [exercicio]: true }))
+      setAvisosLeitura((prev) => ({ ...prev, [exercicio]: undefined }))
+      try {
+        let melhor: LeituraExercicio | null = null
+        const avisos: string[] = []
+        for (const arq of arqs) {
+          try {
+            const res = await lerExercicioDoAnexo({
+              id: arq.id,
+              arquivo: arq.arquivo,
+              titulo: arq.titulo,
+            })
+            if (res.leitura && (!melhor || res.leitura.lidos.length > melhor.lidos.length)) {
+              melhor = res.leitura
+            }
+            if (res.aviso) avisos.push(`${arq.titulo}: ${res.aviso}`)
+          } catch (err) {
+            console.error('[FerramentaAnaliseBalançosAnexados] Erro ao ler arquivo:', err)
+            avisos.push(`${arq.titulo}: falha na leitura — confira manualmente.`)
+          }
+        }
+        if (melhor) {
+          setEstado((prev) => ({
+            ...prev,
+            [exercicio]: { ...prev[exercicio], dados: melhor!.dados },
+          }))
+        }
+        setAvisosLeitura((prev) => ({
+          ...prev,
+          [exercicio]: avisos.length > 0 ? avisos.join(' | ') : undefined,
+        }))
+      } finally {
+        setLendo((prev) => ({ ...prev, [exercicio]: false }))
+      }
+    },
+    [arquivos],
+  )
+
+  // "Re-extrair" agora é o gatilho real da leitura automática (mantém o nome
+  // do botão da versão anterior para não quebrar nada).
+  const extrairDeArquivos = lerExercicio
   // ── Marca um exercício como conferido e salva no servidor ──
   const marcarConferido = useCallback(
     async (exercicio: string) => {
@@ -370,11 +417,16 @@ export function FerramentaAnaliseBalancosAnexados({ empresa }: Props) {
                       <Button
                         size="sm"
                         variant="outline"
-                        disabled={carregando || st.arquivosVinculados.length === 0}
+                        disabled={carregando || !!lendo[ex.exercicio] || st.arquivosVinculados.length === 0}
                         onClick={() => extrairDeArquivos(ex.exercicio)}
-                        title="Re-extrair valores dos PDFs anexados"
+                        title="Ler automaticamente os valores dos PDFs anexados (pdf.js)"
                       >
-                        <FileDown className="h-3.5 w-3.5" /> Re-extrair
+                        {lendo[ex.exercicio] ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <FileDown className="h-3.5 w-3.5" />
+                        )}
+                        Ler PDFs
                       </Button>
                       <Button
                         size="sm"

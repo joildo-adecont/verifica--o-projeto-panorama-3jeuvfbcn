@@ -88,6 +88,8 @@ export function chaveCliente(docLimpo: string, codigo: number): string {
 export interface ArquivoAnexoRef {
   id: string
   titulo: string
+  /** Nome do arquivo no storage do PocketBase (para a URL de download). */
+  arquivo: string
   exerciseGuess: string | null
 }
 
@@ -116,6 +118,7 @@ export async function listarArquivosBalanço(
       .map((r: any) => ({
         id: r.id,
         titulo: r.titulo || '',
+        arquivo: r.arquivo || '',
         exerciseGuess: adivinharExercicio(r.titulo || ''),
       }))
   } catch (err) {
