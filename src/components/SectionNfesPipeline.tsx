@@ -15,6 +15,10 @@ import {
   Building2,
   TrendingDown,
   TrendingUp,
+  XCircle,
+  Link2,
+  Link2Off,
+  CalendarRange,
 } from 'lucide-react'
 import { AdecontLogo } from '@/components/AdecontLogo'
 import { UploadNfeLote } from '@/components/UploadNfeLote'
@@ -29,6 +33,11 @@ export const SectionNfesPipeline: React.FC = () => {
   const [carregando, setCarregando] = useState(false)
   const [filtroTipo, setFiltroTipo] = useState<'todos' | 'compra' | 'venda'>('todos')
   const [buscaTexto, setBuscaTexto] = useState('')
+  const [dataInicio, setDataInicio] = useState('')
+  const [dataFim, setDataFim] = useState('')
+  const [filtroStatus, setFiltroStatus] = useState('')
+  const [filtroVinculo, setFiltroVinculo] = useState('')
+  const [totalFiltrado, setTotalFiltrado] = useState(0)
   const [nfeSelecionadaParaAnalise, setNfeSelecionadaParaAnalise] = useState<NfeRecord | null>(null)
 
   const carregarNfes = useCallback(async () => {
@@ -37,21 +46,42 @@ export const SectionNfesPipeline: React.FC = () => {
       const res = await listarNfes({
         tipo: filtroTipo === 'todos' ? '' : filtroTipo,
         busca: buscaTexto,
+        data_inicio: dataInicio,
+        data_fim: dataFim,
+        status: filtroStatus,
+        vinculo: filtroVinculo,
         limite: 100,
       })
       if (res.success && res.nfes) {
         setNfes(res.nfes)
+        setTotalFiltrado(res.total_filtrado ?? res.nfes.length)
         // Se ainda não tiver selecionado uma para análise, seleciona a primeira
-        if (!nfeSelecionadaParaAnalise && res.nfes.length > 0) {
-          setNfeSelecionadaParaAnalise(res.nfes[0])
-        }
+        setNfeSelecionadaParaAnalise((prev) => prev ?? res.nfes?.[0] ?? null)
       }
     } catch (err) {
       console.error('Erro ao carregar NFes:', err)
     } finally {
       setCarregando(false)
     }
-  }, [filtroTipo, buscaTexto, nfeSelecionadaParaAnalise])
+  }, [filtroTipo, buscaTexto, dataInicio, dataFim, filtroStatus, filtroVinculo])
+
+  // Botão único que restaura a listagem completa (todos os filtros combináveis)
+  const limparFiltros = () => {
+    setBuscaTexto('')
+    setFiltroTipo('todos')
+    setDataInicio('')
+    setDataFim('')
+    setFiltroStatus('')
+    setFiltroVinculo('')
+  }
+
+  const filtrosAtivos =
+    buscaTexto !== '' ||
+    filtroTipo !== 'todos' ||
+    dataInicio !== '' ||
+    dataFim !== '' ||
+    filtroStatus !== '' ||
+    filtroVinculo !== ''
 
   useEffect(() => {
     carregarNfes()
@@ -204,7 +234,7 @@ export const SectionNfesPipeline: React.FC = () => {
                   <div className="relative w-full">
                     <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                     <Input
-                      placeholder="Buscar por número, chave de 44 dígitos, cliente ou CNPJ..."
+                      placeholder="Buscar por emitente ou destinatário (razão social, CNPJ/CPF/CAEPF), número ou chave..."
                       value={buscaTexto}
                       onChange={(e) => setBuscaTexto(e.target.value)}
                       className="pl-9 text-xs h-9"
@@ -248,6 +278,82 @@ export const SectionNfesPipeline: React.FC = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Filtros combináveis: período de emissão, status da análise e vínculo de cliente */}
+              <div className="flex flex-col lg:flex-row lg:items-end gap-3 mt-3 pt-3 border-t border-border/40">
+                <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+                  <CalendarRange className="w-4 h-4" />
+                  <span className="uppercase tracking-wide text-[10px]">Período de emissão</span>
+                </div>
+                <div className="flex items-center gap-2 flex-1 flex-wrap">
+                  <Input
+                    type="date"
+                    aria-label="Data de emissão inicial"
+                    value={dataInicio}
+                    onChange={(e) => setDataInicio(e.target.value)}
+                    className="text-xs h-9 w-[150px]"
+                  />
+                  <span className="text-xs text-muted-foreground">até</span>
+                  <Input
+                    type="date"
+                    aria-label="Data de emissão final"
+                    value={dataFim}
+                    onChange={(e) => setDataFim(e.target.value)}
+                    className="text-xs h-9 w-[150px]"
+                  />
+
+                  <select
+                    aria-label="Status da análise"
+                    value={filtroStatus}
+                    onChange={(e) => setFiltroStatus(e.target.value)}
+                    className="h-9 rounded-md border border-border bg-background px-2.5 text-xs text-foreground"
+                  >
+                    <option value="">Status: todos</option>
+                    <option value="pendente">Pendente de análise</option>
+                    <option value="analisado">Analisada pelos agentes</option>
+                    <option value="erro">Erro na análise</option>
+                  </select>
+
+                  <select
+                    aria-label="Vínculo com cliente"
+                    value={filtroVinculo}
+                    onChange={(e) => setFiltroVinculo(e.target.value)}
+                    className="h-9 rounded-md border border-border bg-background px-2.5 text-xs text-foreground"
+                  >
+                    <option value="">Vínculo: todos</option>
+                    <option value="vinculado">Com cliente vinculado</option>
+                    <option value="sem_vinculo">Sem vínculo de cliente</option>
+                  </select>
+
+                  {filtrosAtivos && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={limparFiltros}
+                      className="text-xs h-9 text-destructive hover:text-destructive"
+                    >
+                      <XCircle className="w-3.5 h-3.5 mr-1" />
+                      Limpar filtros
+                    </Button>
+                  )}
+                </div>
+                <div className="text-xs text-muted-foreground flex items-center gap-3 lg:justify-end">
+                  <span>
+                    Mostrando <strong className="text-foreground">{nfes.length}</strong> de{' '}
+                    <strong className="text-foreground">{totalFiltrado}</strong> NFes
+                  </span>
+                  {filtroVinculo === 'vinculado' && (
+                    <span className="flex items-center gap-1 text-emerald-600">
+                      <Link2 className="w-3.5 h-3.5" />
+                    </span>
+                  )}
+                  {filtroVinculo === 'sem_vinculo' && (
+                    <span className="flex items-center gap-1 text-amber-600">
+                      <Link2Off className="w-3.5 h-3.5" />
+                    </span>
+                  )}
+                </div>
+              </div>
             </CardHeader>
           </Card>
 
@@ -258,11 +364,19 @@ export const SectionNfesPipeline: React.FC = () => {
                 <FileText className="w-12 h-12 mx-auto text-muted-foreground/30" />
                 <div>
                   <p className="text-sm font-medium text-foreground">
-                    Nenhuma Nota Fiscal encontrada com os filtros atuais
+                    {filtrosAtivos
+                      ? 'Nenhuma Nota Fiscal encontrada com os filtros atuais'
+                      : 'Nenhuma Nota Fiscal importada ainda'}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Utilize a aba <strong>Upload em Lote</strong> para processar novos XMLs de
-                    compra ou venda.
+                    {filtrosAtivos ? (
+                      'Ajuste ou limpe os filtros para ampliar a busca.'
+                    ) : (
+                      <>
+                        Utilize a aba <strong>Upload em Lote</strong> para processar novos XMLs de
+                        compra ou venda.
+                      </>
+                    )}
                   </p>
                 </div>
               </CardContent>

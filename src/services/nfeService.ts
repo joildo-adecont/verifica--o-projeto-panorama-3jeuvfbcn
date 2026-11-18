@@ -5,6 +5,14 @@ export interface ListarNfesParams {
   cliente_id?: string
   tipo?: 'compra' | 'venda' | ''
   busca?: string
+  /** AAAA-MM-DD (data de emissão, inclusiva) */
+  data_inicio?: string
+  /** AAAA-MM-DD (data de emissão, inclusiva) */
+  data_fim?: string
+  /** analise_status do registro: pendente / analisado / erro */
+  status?: string
+  /** 'vinculado' | 'sem_vinculo' */
+  vinculo?: string
   limite?: number
   offset?: number
   nfe_id?: string
@@ -13,6 +21,8 @@ export interface ListarNfesParams {
 export interface ListarNfesResponse {
   success: boolean
   total_retornado: number
+  /** Total de registros que atendem aos filtros, independente da paginação */
+  total_filtrado?: number
   nfes: NfeRecord[]
   itens?: NfeItem[]
   error?: string
@@ -63,6 +73,10 @@ export async function listarNfes(params: ListarNfesParams = {}): Promise<ListarN
   if (params.cliente_id) query.set('cliente_id', params.cliente_id)
   if (params.tipo) query.set('tipo', params.tipo)
   if (params.busca) query.set('busca', params.busca)
+  if (params.data_inicio) query.set('data_inicio', params.data_inicio)
+  if (params.data_fim) query.set('data_fim', params.data_fim)
+  if (params.status) query.set('status', params.status)
+  if (params.vinculo) query.set('vinculo', params.vinculo)
   if (params.limite) query.set('limite', String(params.limite))
   if (params.offset) query.set('offset', String(params.offset))
   if (params.nfe_id) query.set('nfe_id', params.nfe_id)

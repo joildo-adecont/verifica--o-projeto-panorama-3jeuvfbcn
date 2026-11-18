@@ -28,6 +28,10 @@ routerAdd('GET', '/backend/v1/nfe-listar', (e) => {
     var clienteId = String(q.cliente_id || '').trim()
     var tipo = String(q.tipo || '').trim() // 'compra', 'venda' ou ''
     var busca = String(q.busca || '').trim()
+    var dataInicio = String(q.data_inicio || '').trim() // AAAA-MM-DD
+    var dataFim = String(q.data_fim || '').trim() // AAAA-MM-DD
+    var status = String(q.status || '').trim() // analise_status: pendente/analisado/erro
+    var vinculo = String(q.vinculo || '').trim() // 'vinculado' | 'sem_vinculo'
     var limite = parseInt(q.limite, 10) || 50
     if (limite > 200) limite = 200
     var offset = parseInt(q.offset, 10) || 0
@@ -57,9 +61,37 @@ routerAdd('GET', '/backend/v1/nfe-listar', (e) => {
           '")',
       )
     }
+    if (dataInicio) {
+      filtros.push('data_emissao >= "' + dataInicio + '"')
+    }
+    if (dataFim) {
+      // data_emissao é ISO com timezone (ex.: 2026-01-16T10:00:00-03:00):
+      // sufixo "~" (0x7E > 'T') garante inclusão do dia final na comparação de strings.
+      filtros.push('data_emissao <= "' + dataFim + '~"')
+    }
+    if (status) {
+      filtros.push('analise_status = "' + status.replace(/"/g, '') + '"')
+    }
+    if (vinculo === 'vinculado') {
+      filtros.push('vinculo_cliente_status = "vinculado"')
+    } else if (vinculo === 'sem_vinculo') {
+      filtros.push('vinculo_cliente_status != "vinculado"')
+    }
 
     var filtroSql = filtros.join(' && ')
     var recs = $app.findRecordsByFilter('nfes', filtroSql, '-data_emissao', limite, offset)
+
+    // Total de registros que atendem ao filtro (independe da paginação)
+    var totalFiltrado = recs.length
+    try {
+      if (filtroSql !== '') {
+        totalFiltrado = $app.countRecords('nfes', filtroSql)
+      } else {
+        totalFiltrado = $app.countRecords('nfes')
+      }
+    } catch (errCount) {
+      console.log('Falha ao contar NFes filtradas:', errCount)
+    }
 
     var lista = []
     for (var i = 0; i < recs.length; i++) {
@@ -155,6 +187,7 @@ routerAdd('GET', '/backend/v1/nfe-listar', (e) => {
     return e.json(200, {
       success: true,
       total_retornado: lista.length,
+      total_filtrado: totalFiltrado,
       nfes: lista,
       itens: itensDetalhe,
     })
