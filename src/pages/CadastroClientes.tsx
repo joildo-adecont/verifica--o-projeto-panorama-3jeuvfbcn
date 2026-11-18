@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import {
   Search,
   Building2,
@@ -50,6 +50,7 @@ import {
   DadosAlteracaoRegimeEmMassa,
 } from '@/services/cadastroEmpresasMassa'
 import { BarraAcoesMassaClientes } from '@/components/BarraAcoesMassaClientes'
+import { BarraRolagemHorizontalFixa } from '@/components/BarraRolagemHorizontalFixa'
 import { useToast } from '@/hooks/use-toast'
 import { RelatorioClientesImprimivel } from '@/components/RelatorioClientesImprimivel'
 import { ModalFichaClienteDetalhada } from '@/components/ModalFichaClienteDetalhada'
@@ -121,6 +122,10 @@ export default function CadastroClientes() {
   const [ordenacao, setOrdenacao] = useState<
     'codigo-asc' | 'codigo-desc' | 'nome-asc' | 'nome-desc'
   >('codigo-asc')
+
+  // Ref do container de rolagem horizontal da tabela de clientes (overflow-x-auto),
+  // controlado pela barra de rolagem horizontal FIXA no rodapé da viewport
+  const refScrollHorizontalTabela = useRef<HTMLDivElement | null>(null)
 
   // Item selecionado para expansão / detalhes
   const [empresaExpandidaId, setEmpresaExpandidaId] = useState<number | null>(null)
@@ -1133,7 +1138,7 @@ export default function CadastroClientes() {
 
             {/* TABELA ANALÍTICA DE CLIENTES */}
             <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-              <div className="overflow-x-auto">
+              <div ref={refScrollHorizontalTabela} className="overflow-x-auto">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
                     <tr className="bg-[#0F294A] text-white font-medium border-b border-[#0A1D34] select-none">
@@ -1557,6 +1562,14 @@ export default function CadastroClientes() {
                 </div>
               </div>
             </section>
+
+            {/* BARRA DE ROLAGEM HORIZONTAL FIXA (rodapé da viewport): espelha o scroll
+                horizontal da tabela durante toda a rolagem vertical da página, com
+                sincronização bidirecional e recalculo em paginação/filtros/resize */}
+            <BarraRolagemHorizontalFixa
+              alvoRef={refScrollHorizontalTabela}
+              chaveRecalculo={`${abaAtiva}|${paginaAtual}|${porPagina}|${empresas.length}|${termoBusca}|${filtroTipoDoc}|${filtroSituacao}|${filtroRegime}|${ordenacao}`}
+            />
           </>
         )}
       </main>
