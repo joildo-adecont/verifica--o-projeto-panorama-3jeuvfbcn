@@ -311,7 +311,7 @@ export const ModalFichaClienteDetalhada: React.FC<ModalFichaClienteDetalhadaProp
                   CÓD. {empresa.codigo}
                 </span>
                 <span className="text-[11px] px-2 py-0.5 rounded bg-white/10 text-slate-200">
-                  {empresa.tipo_documento || 'DOC'}
+                  {tipoDocResolvido || empresa.tipo_documento || 'DOC'}
                 </span>
                 <span
                   className={`text-[11px] px-2 py-0.5 rounded font-bold ${

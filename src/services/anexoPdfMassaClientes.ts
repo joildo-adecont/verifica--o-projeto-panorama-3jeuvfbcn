@@ -10,8 +10,9 @@
  *  - Limite unificado do sistema: 10.000 arquivos por lote (mesmo padrão de
  *    UploadNfeLote / ParametrizadorLote);
  *  - Tipos aceitos: somente PDF;
- *  - Identificação do cliente por CNPJ/CPF no nome do arquivo (com ou sem
- *    máscara) ou por código de cliente (ex.: COD94109);
+ *  - Identificação do cliente por CNPJ/CPF/CAEPF no nome do arquivo (com ou
+ *    sem máscara) ou por código de cliente (ex.: COD94109) — a amarração de
+ *    14 dígitos (tenta CNPJ, então CAEPF) reusa validarDocumentoCadastral;
  *  - Duplicidade: arquivo com MESMO título já anexado ao mesmo cliente é
  *    IGNORADO (não duplica) e reportado no resumo.
  */
@@ -19,6 +20,7 @@ import {
   listarArquivosCliente,
   uploadArquivoCliente,
 } from '@/services/clienteDadosComplementaresService'
+import { validarDocumentoCadastral } from '@/services/validacaoDocumento'
 
 export const LIMITE_MAXIMO_ANEXO_MASSA = 10000
 
@@ -122,11 +124,15 @@ export function identificarClientePorNome(
 ): { cliente: AlvoClienteMassa | null; pista: string } {
   const { documentos, codigo } = extrairChavesDeNomeArquivo(nome)
 
-  // 1) Documento (CNPJ/CPF) tem prioridade
+  // 1) Documento (CNPJ/CPF/CAEPF) tem prioridade — amarração central:
+  // 14 dígitos válidos tentam CNPJ primeiro e, não conferindo, CAEPF
+  // (mesma lógica de validarDocumentoCadastral).
   for (const doc of documentos) {
     const c = indice.porDocumento.get(doc)
     if (c) {
-      const tipo = doc.length === 14 ? 'CNPJ' : 'CPF'
+      const res = validarDocumentoCadastral(doc)
+      const tipo =
+        res.tipoEsperado === 'INDEFINIDO' ? (doc.length === 14 ? 'CNPJ' : 'CPF') : res.tipoEsperado
       return { cliente: alvoDe(c), pista: `${tipo} no nome do arquivo` }
     }
   }

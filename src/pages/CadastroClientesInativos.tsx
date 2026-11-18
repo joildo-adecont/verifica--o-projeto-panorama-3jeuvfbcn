@@ -704,7 +704,7 @@ td{border-bottom:1px solid #ddd;padding:3px 5px}
                   </th>
                   <th className="py-3 px-3 w-16 text-center">Cód.</th>
                   <th className="py-3 px-4 min-w-[240px]">Razão Social / Nome</th>
-                  <th className="py-3 px-3 min-w-[150px]">CNPJ / CPF</th>
+                  <th className="py-3 px-3 min-w-[150px]">CNPJ / CPF / CAEPF</th>
                   <th className="py-3 px-3 w-24 text-center">Situação</th>
                   <th className="py-3 px-3 min-w-[130px] text-center bg-[#1F2D3D]/80">
                     <span className="inline-flex items-center gap-1 font-bold text-white tracking-wide">

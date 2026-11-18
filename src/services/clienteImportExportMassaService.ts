@@ -48,7 +48,7 @@ export async function exportarPlanilhaComplementarMassa(
   // Cabeçalho
   const cabecalho = [
     'Código',
-    'CNPJ / CPF',
+    'CNPJ / CPF / CAEPF',
     'Razão Social / Nome',
     'Apelido / Fantasia',
     'Situação',
@@ -211,7 +211,7 @@ export async function processarArquivoImportacaoMassa(
 
   if (colCnpj === -1 && colCodigo === -1) {
     throw new Error(
-      'Não foi possível identificar a coluna de CNPJ/CPF ou de Código na planilha para vinculação dos clientes.',
+      'Não foi possível identificar a coluna de CNPJ/CPF/CAEPF ou de Código na planilha para vinculação dos clientes.',
     )
   }
 
@@ -266,7 +266,7 @@ export async function processarArquivoImportacaoMassa(
         linha: numLinha,
         cnpj: docLimpo || (Number.isNaN(rawCodigo) ? 'Não informado' : `Cód ${rawCodigo}`),
         sucesso: false,
-        mensagem: 'Cliente não localizado na base de dados por CNPJ/CPF ou Código.',
+        mensagem: 'Cliente não localizado na base de dados por CNPJ/CPF/CAEPF ou Código.',
       })
       continue
     }

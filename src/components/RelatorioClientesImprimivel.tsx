@@ -13,6 +13,7 @@ import {
   Filter,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { formatarCAEPF, validarDocumentoCadastral } from '@/services/validacaoDocumento'
 
 export interface RelatorioClientesImprimivelProps {
   empresas: EmpresaRecord[]
@@ -151,7 +152,8 @@ export const RelatorioClientesImprimivel: React.FC<RelatorioClientesImprimivelPr
   ).length
   const totalCnpj = empresas.filter((e) => e.tipo_documento === 'CNPJ').length
   const totalCpf = empresas.filter((e) => e.tipo_documento === 'CPF').length
-  const totalOutros = total - totalCnpj - totalCpf
+  const totalCaepf = empresas.filter((e) => e.tipo_documento === 'CAEPF').length
+  const totalOutros = total - totalCnpj - totalCpf - totalCaepf
 
   // Descrição amigável dos filtros ativos
   const filtrosDescricao: string[] = []
@@ -246,7 +248,8 @@ export const RelatorioClientesImprimivel: React.FC<RelatorioClientesImprimivelPr
 
           {/* QUADRO DE RESUMO E FILTROS ATIVOS */}
           <div className="bloco-resumo-a4 bg-slate-50 border border-slate-200 rounded-lg p-2.5 space-y-2 text-[10.5px]">
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-center">
+            <div className="grid grid-cols-2 sm:grid-cols-6 gap-2 text-center">
+              {/* CAEPF entra como 6º cartão; grid ajustado de 5 para 6 colunas */}
               <div className="bg-white p-1.5 rounded border border-slate-200">
                 <span className="text-[9px] text-slate-500 uppercase block font-semibold">
                   Listados no Relatório
@@ -276,6 +279,12 @@ export const RelatorioClientesImprimivel: React.FC<RelatorioClientesImprimivelPr
                   Pessoas Físicas / Outros
                 </span>
                 <span className="text-sm font-black text-amber-800">{totalCpf + totalOutros}</span>
+              </div>
+              <div className="bg-white p-1.5 rounded border border-slate-200">
+                <span className="text-[9px] text-emerald-700 uppercase block font-semibold">
+                  Produtores Rurais (CAEPF)
+                </span>
+                <span className="text-sm font-black text-emerald-800">{totalCaepf}</span>
               </div>
             </div>
 
@@ -326,6 +335,14 @@ export const RelatorioClientesImprimivel: React.FC<RelatorioClientesImprimivelPr
                     const isAtiva = (empresa.situacao || '').toLowerCase() === 'ativa'
                     const localidade =
                       [empresa.municipio, empresa.uf].filter(Boolean).join(' / ') || '—'
+                    const resDoc = validarDocumentoCadastral(
+                      empresa.numero_documento,
+                      empresa.tipo_documento,
+                    )
+                    const isCaepf = resDoc.tipoEsperado === 'CAEPF'
+                    const docExibicao = isCaepf
+                      ? formatarCAEPF(empresa.numero_documento || '')
+                      : empresa.numero_documento || '—'
 
                     return (
                       <tr
@@ -340,11 +357,15 @@ export const RelatorioClientesImprimivel: React.FC<RelatorioClientesImprimivelPr
                         {/* Documento */}
                         <td className="py-1.5 px-2.5">
                           <div className="font-mono font-semibold text-slate-900 leading-tight">
-                            {empresa.numero_documento || '—'}
+                            {docExibicao}
                           </div>
                           {empresa.tipo_documento && (
-                            <span className="text-[8.5px] uppercase font-bold text-slate-500">
-                              {empresa.tipo_documento}
+                            <span
+                              className={`text-[8.5px] uppercase font-bold ${
+                                isCaepf ? 'text-emerald-700' : 'text-slate-500'
+                              }`}
+                            >
+                              {isCaepf ? 'CAEPF' : empresa.tipo_documento}
                             </span>
                           )}
                         </td>

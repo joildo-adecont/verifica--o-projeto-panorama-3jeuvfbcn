@@ -17,6 +17,7 @@ import {
 } from './ui/dialog'
 import { Button } from './ui/button'
 import { UserX, UserCheck, Loader2, Building2, AlertCircle } from 'lucide-react'
+import { formatarCAEPF, validarDocumentoCadastral } from '@/services/validacaoDocumento'
 
 export interface ClienteStatusAlvo {
   codigo: number
@@ -57,7 +58,13 @@ export const ModalConfirmarStatusCliente: React.FC<ModalConfirmarStatusClientePr
 
   const ehInativar = acao === 'inativar'
   const nomeCliente = cliente.razao_social || `Cliente #${cliente.codigo}`
-  const docCliente = cliente.cpf_cnpj || cliente.numero_documento || 'Não informado'
+  const docBruto = cliente.cpf_cnpj || cliente.numero_documento || ''
+  // Reconhecimento de CAEPF (14 dígitos, amarração tenta-CNPJ-então-CAEPF)
+  const resDoc = validarDocumentoCadastral(docBruto)
+  const docCliente =
+    resDoc.tipoEsperado === 'CAEPF'
+      ? `${formatarCAEPF(docBruto)} (CAEPF)`
+      : docBruto || 'Não informado'
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
