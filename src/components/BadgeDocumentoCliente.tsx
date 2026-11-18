@@ -1,6 +1,6 @@
 import React from 'react'
-import { AlertTriangle, CheckCircle2 } from 'lucide-react'
-import { validarDocumentoCadastral } from '@/services/validacaoDocumento'
+import { AlertTriangle, BadgeCheck } from 'lucide-react'
+import { formatarCAEPF, validarDocumentoCadastral } from '@/services/validacaoDocumento'
 
 interface BadgeDocumentoClienteProps {
   documento?: string
@@ -9,6 +9,12 @@ interface BadgeDocumentoClienteProps {
   mostrarMotivo?: boolean
 }
 
+/**
+ * Badge de documento do cliente na coluna CNPJ/CPF.
+ * Quando o número é reconhecido como CAEPF (declarado ou por amarração de
+ * dígitos verificadores), exibe o selo "CAEPF" ao lado do número formatado
+ * em vez de marcar o cliente como documento inválido.
+ */
 export const BadgeDocumentoCliente: React.FC<BadgeDocumentoClienteProps> = ({
   documento,
   tipoDocumento,
@@ -16,13 +22,26 @@ export const BadgeDocumentoCliente: React.FC<BadgeDocumentoClienteProps> = ({
   mostrarMotivo = false,
 }) => {
   const res = validarDocumentoCadastral(documento, tipoDocumento)
+  const isCaepf = res.tipoEsperado === 'CAEPF'
+  const valorExibicao = isCaepf ? formatarCAEPF(documento || '') : documento
 
   if (res.valido) {
     return (
       <span
         className={`inline-flex items-center gap-1 font-mono text-[11px] text-slate-700 ${className}`}
+        title={
+          isCaepf && tipoDocumento?.toUpperCase().trim() !== 'CAEPF'
+            ? 'CAEPF reconhecido automaticamente (mesma validação de dígitos do CNPJ)'
+            : undefined
+        }
       >
-        <span>{documento || '—'}</span>
+        {valorExibicao || '—'}
+        {isCaepf && (
+          <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold font-sans bg-emerald-100 text-emerald-800 border border-emerald-300">
+            <BadgeCheck className="w-3 h-3 shrink-0" />
+            <span>CAEPF</span>
+          </span>
+        )}
       </span>
     )
   }

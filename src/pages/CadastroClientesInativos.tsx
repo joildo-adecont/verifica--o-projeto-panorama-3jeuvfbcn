@@ -39,6 +39,7 @@ import {
   type EmpresaInativa,
 } from '@/services/cadastroEmpresasInativos'
 import { ModalConfirmarStatusCliente } from '@/components/ModalConfirmarStatusCliente'
+import { BadgeDocumentoCliente } from '@/components/BadgeDocumentoCliente'
 import { registrarAuditoriaStatus } from '@/services/statusAuditoriaService'
 import { ModalFichaClienteDetalhada } from '@/components/ModalFichaClienteDetalhada'
 import { ModalGerenciarCamposPersonalizados } from '@/components/ModalGerenciarCamposPersonalizados'
@@ -816,7 +817,10 @@ td{border-bottom:1px solid #ddd;padding:3px 5px}
 
                         {/* Documento */}
                         <td className="py-3 px-3 font-mono text-[11px] text-slate-700">
-                          {emp.numero_documento || '—'}
+                          <BadgeDocumentoCliente
+                            documento={emp.numero_documento}
+                            tipoDocumento={emp.tipo_documento}
+                          />
                         </td>
 
                         {/* Situação */}

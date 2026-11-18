@@ -1,14 +1,23 @@
 /**
- * UTILITÁRIO DE VALIDAÇÃO DE DOCUMENTOS (CPF / CNPJ / CEI)
- * ========================================================
+ * UTILITÁRIO DE VALIDAÇÃO DE DOCUMENTOS (CPF / CNPJ / CAEPF / CEI)
+ * ================================================================
  * Usado para sinalização visual na interface ADECONT conforme
  * diretriz de Limpeza Segura (nunca altera o documento automaticamente,
  * apenas sinaliza na listagem e nos seletores).
+ *
+ * CAEPF (Cadastro de Atividades Econômicas da Pessoa Física):
+ * inscrição de 14 dígitos da RFB para produtores rurais pessoa física,
+ * formato 000.000.000/000-00 — base de 9 dígitos do CPF + sequencial de
+ * 3 dígitos + 2 dígitos verificadores. Os DVs usam os pesos do módulo 11
+ * do CNPJ (ciclo 2..9, dv = 0 se resto < 2, senão 11 - resto) e o par
+ * resultante é deslocado em +12 com volta ao chegar a 100. Vetores de
+ * conferência: SERPRO 00000002500171 → 71 e validation-br
+ * 411422600001 → 01.
  */
 
 export interface ValidacaoDocumentoResultado {
   valido: boolean
-  tipoEsperado: 'CPF' | 'CNPJ' | 'CEI' | 'INDEFINIDO'
+  tipoEsperado: 'CPF' | 'CNPJ' | 'CAEPF' | 'CEI' | 'INDEFINIDO'
   motivoInvalido?: string
   limpo: string
 }
@@ -78,7 +87,80 @@ export function validarCNPJ(cnpj: string): boolean {
 }
 
 /**
- * Validação geral de documento cadastral (CPF, CNPJ, CEI ou vazio)
+ * Validação com dígitos verificadores para CAEPF (14 dígitos)
+ * Pesos do módulo 11 do CNPJ + deslocamento de +12 no par de DVs.
+ */
+export function validarCAEPF(caepf: string): boolean {
+  const limpo = (caepf || '').replace(/\D/g, '')
+  if (limpo.length !== 14) return false
+  // Base de 12 dígitos com todos os dígitos iguais é rejeitada
+  if (/^(\d)\1{11}\d{2}$/.test(limpo)) return false
+
+  const calcularDvCnpj = (base: string): number => {
+    let soma = 0
+    let peso = 2
+    for (let i = base.length - 1; i >= 0; i--) {
+      soma += parseInt(base.charAt(i), 10) * peso
+      peso = peso === 9 ? 2 : peso + 1
+    }
+    const resto = soma % 11
+    return resto < 2 ? 0 : 11 - resto
+  }
+
+  const base = limpo.substring(0, 12)
+  const dv1Calc = calcularDvCnpj(base)
+  const dv2Calc = calcularDvCnpj(base + String(dv1Calc))
+
+  let par = dv1Calc * 10 + dv2Calc + 12
+  if (par > 99) par -= 100
+
+  const dv1 = parseInt(limpo.charAt(12), 10)
+  const dv2 = parseInt(limpo.charAt(13), 10)
+  return dv1 === Math.floor(par / 10) && dv2 === par % 10
+}
+
+/**
+ * Formata um CAEPF na máscara 000.000.000/000-00 (até onde os dígitos vão)
+ */
+export function formatarCAEPF(valor: string): string {
+  const limpo = (valor || '').replace(/\D/g, '').slice(0, 14)
+  let out = limpo
+  if (limpo.length > 9)
+    out = `${limpo.slice(0, 3)}.${limpo.slice(3, 6)}.${limpo.slice(6, 9)}/${limpo.slice(9)}`
+  else if (limpo.length > 6) out = `${limpo.slice(0, 3)}.${limpo.slice(3, 6)}.${limpo.slice(6)}`
+  else if (limpo.length > 3) out = `${limpo.slice(0, 3)}.${limpo.slice(3)}`
+  return out
+}
+
+/**
+ * Máscara progressiva por tipo de documento declarado
+ */
+export function mascararDocumentoCadastral(
+  tipoDeclarado: string | undefined,
+  valor: string,
+): string {
+  const tipo = (tipoDeclarado || '').toUpperCase().trim()
+  const limpo = (valor || '').replace(/\D/g, '')
+  if (tipo === 'CPF' && limpo.length <= 11) {
+    return limpo
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d{1,2})$/, '$1-$2')
+  }
+  if (tipo === 'CAEPF') return formatarCAEPF(valor)
+  if (tipo === 'CNPJ') {
+    return limpo
+      .slice(0, 14)
+      .replace(/(\d{2})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d)/, '$1/$2')
+      .replace(/(\d{4})(\d{1,2})$/, '$1-$2')
+  }
+  return valor
+}
+
+/**
+ * Validação geral de documento cadastral (CPF, CNPJ, CAEPF, CEI ou vazio)
  */
 export function validarDocumentoCadastral(
   numeroDoc?: string,
@@ -116,6 +198,24 @@ export function validarDocumentoCadastral(
     }
   }
 
+  if (tipo === 'CAEPF') {
+    if (limpo.length !== 14) {
+      return {
+        valido: false,
+        tipoEsperado: 'CAEPF',
+        motivoInvalido: `CAEPF com ${limpo.length} dígitos (esperado 14)`,
+        limpo,
+      }
+    }
+    const ok = validarCAEPF(limpo)
+    return {
+      valido: ok,
+      tipoEsperado: 'CAEPF',
+      motivoInvalido: ok ? undefined : 'Dígito verificador de CAEPF inválido',
+      limpo,
+    }
+  }
+
   if (limpo.length === 14 || tipo === 'CNPJ') {
     if (limpo.length !== 14) {
       return {
@@ -125,11 +225,26 @@ export function validarDocumentoCadastral(
         limpo,
       }
     }
-    const ok = validarCNPJ(limpo)
+    // Reconhecimento com amarração: 14 dígitos podem ser CNPJ ou CAEPF.
+    // Tenta CNPJ primeiro; se falhar, tenta CAEPF (produtores rurais PF)
+    // antes de marcar como inválido.
+    const okCnpj = validarCNPJ(limpo)
+    if (okCnpj) {
+      return { valido: true, tipoEsperado: 'CNPJ', limpo }
+    }
+    const okCaepf = validarCAEPF(limpo)
+    if (okCaepf) {
+      return {
+        valido: true,
+        tipoEsperado: 'CAEPF',
+        motivoInvalido: undefined,
+        limpo,
+      }
+    }
     return {
-      valido: ok,
-      tipoEsperado: 'CNPJ',
-      motivoInvalido: ok ? undefined : 'Dígito verificador de CNPJ inválido',
+      valido: false,
+      tipoEsperado: tipo === 'CNPJ' ? 'CNPJ' : 'INDEFINIDO',
+      motivoInvalido: 'Dígito verificador inválido (não é CNPJ nem CAEPF válido)',
       limpo,
     }
   }

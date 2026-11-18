@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest'
-import { validarCPF, validarCNPJ, validarDocumentoCadastral } from './validacaoDocumento'
+import {
+  formatarCAEPF,
+  validarCAEPF,
+  validarCNPJ,
+  validarCPF,
+  validarDocumentoCadastral,
+} from './validacaoDocumento'
 
 describe('validacaoDocumento', () => {
   it('valida CPF correto e rejeita inválido', () => {
@@ -25,6 +31,45 @@ describe('validacaoDocumento', () => {
     expect(validarCNPJ('291804090001194')).toBe(false) // 15 dígitos
   })
 
+  it('valida CAEPF (14 dígitos, DVs com pesos do CNPJ e deslocamento +12)', () => {
+    // Exemplo oficial do SERPRO
+    expect(validarCAEPF('00000002500171')).toBe(true)
+    // Exemplo do validation-br (checksum de 411422600001 = 01)
+    expect(validarCAEPF('411.422.600/001-01')).toBe(true)
+    expect(validarCAEPF('293.118.610/001-84')).toBe(true)
+    // DV errado é rejeitado
+    expect(validarCAEPF('29311861000185')).toBe(false)
+    expect(validarCAEPF('00000002500170')).toBe(false)
+    // Base com todos os dígitos iguais é rejeitada
+    expect(validarCAEPF('00000000000012')).toBe(false)
+    // Tamanho errado é rejeitado
+    expect(validarCAEPF('2931186100018')).toBe(false)
+    // Formatação da máscara 000.000.000/000-00
+    expect(formatarCAEPF('29311861000184')).toBe('293.118.610/001-84')
+    expect(formatarCAEPF('293118')).toBe('293.118')
+  })
+
+  it('validarDocumentoCadastral reconhece CAEPF declarado e por amarração de 14 dígitos', () => {
+    // Tipo declarado CAEPF: válido com DVs corretos
+    const caepfDeclarado = validarDocumentoCadastral('009.435.480/001-87', 'CAEPF')
+    expect(caepfDeclarado.valido).toBe(true)
+    expect(caepfDeclarado.tipoEsperado).toBe('CAEPF')
+
+    // 14 dígitos sem tipo declarado: primeiro tenta CNPJ, depois CAEPF
+    const caepfAmarrado = validarDocumentoCadastral('232.603.270/001-18', '')
+    expect(caepfAmarrado.valido).toBe(true)
+    expect(caepfAmarrado.tipoEsperado).toBe('CAEPF')
+
+    // 14 dígitos que não são CNPJ nem CAEPF continuam inválidos
+    const nenhum = validarDocumentoCadastral('29180409000119', '')
+    expect(nenhum.valido).toBe(false)
+
+    // CAEPF declarado com DV errado continua inválido
+    const caepfRuim = validarDocumentoCadastral('009.435.480/001-88', 'CAEPF')
+    expect(caepfRuim.valido).toBe(false)
+    expect(caepfRuim.motivoInvalido).toContain('CAEPF')
+  })
+
   it('validarDocumentoCadastral detecta documentos malformados ou vazios para sinalização visual', () => {
     const semDoc = validarDocumentoCadastral('', 'CNPJ')
     expect(semDoc.valido).toBe(false)
@@ -40,5 +85,11 @@ describe('validacaoDocumento', () => {
 
     const cnpjOk = validarDocumentoCadastral('08.003.213/0001-89', 'CNPJ')
     expect(cnpjOk.valido).toBe(true)
+  })
+
+  it('CEI continua validado como antes (12 dígitos)', () => {
+    const cei = validarDocumentoCadastral('192261133509', 'CEI')
+    expect(cei.valido).toBe(true)
+    expect(cei.tipoEsperado).toBe('CEI')
   })
 })

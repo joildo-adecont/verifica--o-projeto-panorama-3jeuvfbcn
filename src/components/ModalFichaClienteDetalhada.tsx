@@ -44,6 +44,7 @@ import {
   listarArquivosCliente,
 } from '@/services/clienteDadosComplementaresService'
 import { BotaoCanalContato } from './BotaoCanalContato'
+import { formatarCAEPF, validarDocumentoCadastral } from '@/services/validacaoDocumento'
 import { ModalAnexarPdfEmMassa } from './ModalAnexarPdfEmMassa'
 import { useToast } from '@/hooks/use-toast'
 
@@ -91,6 +92,18 @@ export const ModalFichaClienteDetalhada: React.FC<ModalFichaClienteDetalhadaProp
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const docLimpo = empresa ? sanitizarDoc(empresa.documento_limpo || empresa.numero_documento) : ''
+  // Reconhecimento de CAEPF por amarração: quando o número de 14 dígitos não
+  // é um CNPJ válido mas passa na validação de CAEPF, rotula como CAEPF.
+  const tipoDocResolvido = (() => {
+    if (!empresa) return ''
+    const declarado = (empresa.tipo_documento || '').toUpperCase().trim()
+    if (declarado) return declarado
+    const res = validarDocumentoCadastral(
+      empresa.numero_documento || empresa.documento_limpo || '',
+      '',
+    )
+    return res.tipoEsperado === 'INDEFINIDO' ? '' : res.tipoEsperado
+  })()
   const [modalAnexoMassaAberto, setModalAnexoMassaAberto] = useState(false)
 
   // Recarrega a listagem de arquivos da ficha na hora (após anexo em massa)
@@ -445,10 +458,17 @@ export const ModalFichaClienteDetalhada: React.FC<ModalFichaClienteDetalhadaProp
 
                 <div className="p-3 bg-white border border-slate-200 rounded-xl">
                   <span className="text-[10px] uppercase font-bold text-slate-400 block">
-                    CNPJ / CPF
+                    {tipoDocResolvido === 'CAEPF' ? 'CAEPF' : 'CNPJ / CPF'}
                   </span>
-                  <span className="text-xs font-mono font-bold text-slate-800">
-                    {empresa.numero_documento || empresa.documento_limpo || '—'}
+                  <span className="text-xs font-mono font-bold text-slate-800 inline-flex items-center gap-1.5">
+                    {tipoDocResolvido === 'CAEPF'
+                      ? formatarCAEPF(empresa.numero_documento || empresa.documento_limpo || '')
+                      : empresa.numero_documento || empresa.documento_limpo || '—'}
+                    {tipoDocResolvido === 'CAEPF' && (
+                      <span className="px-1.5 py-0.5 rounded text-[9px] font-bold font-sans bg-emerald-100 text-emerald-800 border border-emerald-300">
+                        CAEPF
+                      </span>
+                    )}
                   </span>
                 </div>
 
