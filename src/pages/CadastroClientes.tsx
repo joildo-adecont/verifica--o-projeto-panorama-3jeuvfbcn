@@ -97,6 +97,8 @@ export default function CadastroClientes() {
   const [filtroSituacao, setFiltroSituacao] = useState<string>('TODOS')
   const [filtroRegime, setFiltroRegime] = useState<string>('TODOS')
   const [abaAtiva, setAbaAtiva] = useState<'ativos' | 'arquivados' | 'inativos-link'>('ativos')
+  // COLUNAS CONGELADAS (0.0.765): checkbox + código + razão social ficam sticky
+  // (position: sticky left) enquanto as demais colunas deslizam por baixo delas.
   const [totalArquivadosContador, setTotalArquivadosContador] = useState<number>(0)
   const [totalInativosContador, setTotalInativosContador] = useState<number>(0)
   // Tecla individual Ativo/Inativo por linha com Modal e Campo de Motivo
@@ -1143,12 +1145,17 @@ export default function CadastroClientes() {
               <div
                 ref={refScrollHorizontalTabela}
                 data-barra-rolagem-propria
-                className="overflow-x-auto"
+                className="overflow-x-auto relative"
               >
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
                     <tr className="bg-[#0F294A] text-white font-medium border-b border-[#0A1D34] select-none">
-                      <th className="py-3 px-2 w-10 text-center">
+                      {/* COLUNAS CONGELADAS (0.0.765 — estilo "congelar painéis" do Excel):
+                          checkbox + código + razão social ficam sticky à esquerda
+                          enquanto as demais colunas deslizam por baixo. z-30 acima
+                          das células do corpo (z-20). Separador via box-shadow
+                          interno (border-collapse derruba border em células sticky). */}
+                      <th className="py-3 px-2 w-10 text-center sticky left-0 z-30">
                         <input
                           type="checkbox"
                           aria-label="Selecionar todos os clientes da página"
@@ -1157,7 +1164,7 @@ export default function CadastroClientes() {
                           className="rounded border-slate-300 text-[#13335A] focus:ring-[#13335A] h-4 w-4 cursor-pointer"
                         />
                       </th>
-                      <th className="py-3 px-3 w-16 text-center">
+                      <th className="py-3 px-3 w-16 text-center sticky left-10 z-30 shadow-[inset_-1px_0_0_0_#254468] max-[640px]:shadow-none">
                         <button
                           onClick={alternarOrdenacaoCodigo}
                           className="inline-flex items-center gap-1 text-slate-200 hover:text-white font-bold"
@@ -1167,7 +1174,7 @@ export default function CadastroClientes() {
                           <ArrowUpDown className="w-3 h-3 text-[#D4AF37]" />
                         </button>
                       </th>
-                      <th className="py-3 px-4 min-w-[260px]">
+                      <th className="py-3 px-4 min-w-[260px] sticky left-[6.5rem] z-30 shadow-[inset_-1px_0_0_0_#254468] max-[640px]:shadow-none">
                         <button
                           onClick={alternarOrdenacaoNome}
                           className="inline-flex items-center gap-1 text-slate-200 hover:text-white font-bold"
@@ -1253,12 +1260,12 @@ export default function CadastroClientes() {
                         return (
                           <tr
                             key={emp.codigo}
-                            className={`hover:bg-[#F8FAFC] transition-colors ${
+                            className={`group/row hover:bg-[#F8FAFC] transition-colors ${
                               selecionado ? 'bg-sky-50/60' : expandido ? 'bg-amber-50/30' : ''
                             }`}
                           >
-                            {/* Checkbox de seleção */}
-                            <td className="py-3 px-2 text-center">
+                            {/* Checkbox de seleção (CONGELADA 0.0.765) */}
+                            <td className="py-3 px-2 text-center sticky left-0 z-20 bg-white group-hover/row:bg-[#F8FAFC] max-[640px]:bg-transparent group-hover/row:max-[640px]:bg-transparent">
                               <input
                                 type="checkbox"
                                 aria-label={`Selecionar cliente ${emp.razao_social || emp.codigo}`}
@@ -1268,13 +1275,13 @@ export default function CadastroClientes() {
                               />
                             </td>
 
-                            {/* Código */}
-                            <td className="py-3 px-3 text-center font-mono font-bold text-[#0F294A]">
+                            {/* Código (CONGELADA 0.0.765) */}
+                            <td className="py-3 px-3 text-center font-mono font-bold text-[#0F294A] sticky left-10 z-20 bg-white group-hover/row:bg-[#F8FAFC] max-[640px]:bg-transparent group-hover/row:max-[640px]:bg-transparent shadow-[inset_-1px_0_0_0_rgba(15,41,74,0.10)] max-[640px]:shadow-none">
                               {emp.codigo}
                             </td>
 
-                            {/* Razão Social / Nome */}
-                            <td className="py-3 px-4">
+                            {/* Razão Social / Nome (CONGELADA 0.0.765) */}
+                            <td className="py-3 px-4 sticky left-[6.5rem] z-20 bg-white group-hover/row:bg-[#F8FAFC] max-[640px]:bg-transparent group-hover/row:max-[640px]:bg-transparent shadow-[inset_-1px_0_0_0_rgba(15,41,74,0.10)] max-[640px]:shadow-none">
                               <div className="flex flex-col">
                                 <span className="font-semibold text-slate-900 leading-snug">
                                   {emp.razao_social || '—'}
