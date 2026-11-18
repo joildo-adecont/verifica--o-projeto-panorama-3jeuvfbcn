@@ -46,6 +46,7 @@ import {
 import { BotaoCanalContato } from './BotaoCanalContato'
 import { formatarCAEPF, validarDocumentoCadastral } from '@/services/validacaoDocumento'
 import { ModalAnexarPdfEmMassa } from './ModalAnexarPdfEmMassa'
+import { TrilhaFichaCliente } from './TrilhaFichaCliente'
 import { useToast } from '@/hooks/use-toast'
 
 interface ModalFichaClienteDetalhadaProps {
@@ -300,7 +301,16 @@ export const ModalFichaClienteDetalhada: React.FC<ModalFichaClienteDetalhadaProp
         onClick={(e) => e.stopPropagation()}
       >
         {/* CABEÇALHO DA FICHA */}
-        <div className="bg-[#0F294A] text-white px-6 py-4 flex items-center justify-between border-b border-[#0A1D34]">
+        <div className="bg-[#0F294A] text-white px-6 py-4 flex items-center justify-between border-b border-[#0A1D34] gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            {/* Trilha de volta: Clientes › razão social — cliques fecham a ficha
+                e retornam à listagem (posição/aba/filtros preservados) */}
+            <TrilhaFichaCliente
+              nomeCliente={empresa.razao_social || empresa.nome || 'Cliente Sem Nome'}
+              rotuloListagem={empresa.situacao === 'Inativa' ? 'Clientes Inativos' : 'Clientes'}
+              aoVoltar={onFechar}
+            />
+          </div>
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-[#D4AF37]">
               <Building2 className="w-5 h-5" />

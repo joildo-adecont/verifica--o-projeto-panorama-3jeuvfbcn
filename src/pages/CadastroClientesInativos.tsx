@@ -42,6 +42,7 @@ import { ModalConfirmarStatusCliente } from '@/components/ModalConfirmarStatusCl
 import { BadgeDocumentoCliente } from '@/components/BadgeDocumentoCliente'
 import { registrarAuditoriaStatus } from '@/services/statusAuditoriaService'
 import { ModalFichaClienteDetalhada } from '@/components/ModalFichaClienteDetalhada'
+import { TrilhaNavegacao } from '@/components/TrilhaNavegacao'
 import { ModalGerenciarCamposPersonalizados } from '@/components/ModalGerenciarCamposPersonalizados'
 import { ModalImportExportMassaClientes } from '@/components/ModalImportExportMassaClientes'
 import { listarCamposPersonalizados } from '@/services/clienteDadosComplementaresService'
@@ -562,6 +563,9 @@ td{border-bottom:1px solid #ddd;padding:3px 5px}
       </header>
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-5 flex flex-col gap-4">
+        {/* TRILHA DE NAVEGAÇÃO + TROCA RÁPIDA DE MÓDULOS (padrão de todas as
+            páginas de rota dedicada) */}
+        <TrilhaNavegacao />
         {/* faixa de contexto: deixa claro o que esta tela é */}
         <div className="rounded-xl border border-slate-300 bg-white p-3">
           <div className="flex flex-wrap items-center justify-between gap-2">

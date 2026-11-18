@@ -18,6 +18,7 @@ import {
   Filter,
 } from 'lucide-react'
 import { AdecontLogo } from '@/components/AdecontLogo'
+import { TrilhaNavegacao } from '@/components/TrilhaNavegacao'
 import { ConnectorButton } from '@/components/skip/ConnectorButton'
 import { listConnectors, type ConnectorStatus } from '@/lib/skipConnectors'
 import { listarEmpresasParaRelatorio } from '@/services/cadastroEmpresas'
@@ -313,6 +314,8 @@ export default function EmailMarketing() {
 
       {/* Conteúdo Principal */}
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 space-y-6">
+        {/* TRILHA DE NAVEGAÇÃO + TROCA RÁPIDA DE MÓDULOS (padrão das rotas dedicadas) */}
+        <TrilhaNavegacao />
         {/* Banner Informativo de Modo "Conta de Cada Usuário" */}
         <div className="bg-gradient-to-r from-sky-900 to-slate-900 text-white rounded-xl p-4 sm:p-5 shadow-sm border border-sky-800/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1">

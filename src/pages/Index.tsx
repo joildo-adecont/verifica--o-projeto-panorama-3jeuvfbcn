@@ -65,6 +65,14 @@ export default function Index() {
   const rotaAtiva: RotaAba | null = useMemo(() => resolverRota(hash), [hash])
   const viz = useMemo(() => (rotaAtiva ? vizinhas(rotaAtiva.id) : null), [rotaAtiva])
 
+  // Título de página consistente com as rotas dedicadas (padrão "X — ADECONT"):
+  // a home não renderiza TrilhaNavegacao, então define o próprio título aqui.
+  useEffect(() => {
+    document.title = rotaAtiva
+      ? `${rotaAtiva.titulo} — ADECONT`
+      : 'Panorama RT — ADECONT Assessoria Contábil e Administrativa'
+  }, [rotaAtiva])
+
   // Filtra normas com base no termo de busca digitado no header
   const normasFiltradas = useMemo(() => {
     if (!searchTerm.trim()) return norms

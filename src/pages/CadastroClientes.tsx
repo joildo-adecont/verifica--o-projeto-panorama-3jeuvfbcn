@@ -79,6 +79,7 @@ import {
 import type { RegimeHistoricoItem } from '@/types/regimeHistorico'
 import { History } from 'lucide-react'
 import { seedAnexoContratoSocialCardoso } from '@/services/seedAnexoContratoSocialCardoso'
+import { TrilhaNavegacao } from '@/components/TrilhaNavegacao'
 
 export { OPCOES_REGIME_TRIBUTARIO, type RegimeTributarioTipo }
 
@@ -895,6 +896,9 @@ export default function CadastroClientes() {
 
       {/* CONTEÚDO PRINCIPAL */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-5 flex flex-col gap-4">
+        {/* TRILHA DE NAVEGAÇÃO + TROCA RÁPIDA DE MÓDULOS (não-sticky para não
+            interferir com colunas congeladas e barra de rolagem fixa) */}
+        <TrilhaNavegacao />
         {/* SELETOR DE ABAS: CLIENTES ATIVOS / CLIENTES ARQUIVADOS (LIMPEZA SEGURA) */}
         <div className="flex items-center gap-2 border-b border-slate-200 pb-1">
           <button

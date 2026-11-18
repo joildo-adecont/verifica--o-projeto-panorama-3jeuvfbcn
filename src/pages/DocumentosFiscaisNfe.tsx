@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { ArrowLeft, ExternalLink } from 'lucide-react'
 import { AdecontLogo } from '@/components/AdecontLogo'
 import { SectionNfesPipeline } from '@/components/SectionNfesPipeline'
+import { TrilhaNavegacao } from '@/components/TrilhaNavegacao'
 
 export const DocumentosFiscaisNfePage: React.FC = () => {
   return (
@@ -45,6 +46,8 @@ export const DocumentosFiscaisNfePage: React.FC = () => {
 
       {/* Conteúdo principal */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6">
+        {/* TRILHA DE NAVEGAÇÃO + TROCA RÁPIDA DE MÓDULOS (padrão das rotas dedicadas) */}
+        <TrilhaNavegacao />
         <SectionNfesPipeline />
       </main>
 

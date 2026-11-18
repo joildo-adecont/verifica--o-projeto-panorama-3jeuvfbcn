@@ -16,6 +16,7 @@ import {
 import { PanoramaHeader } from '@/components/PanoramaHeader'
 import { PanoramaFooter } from '@/components/PanoramaFooter'
 import { PanoramaSideMenu } from '@/components/PanoramaSideMenu'
+import { TrilhaNavegacao } from '@/components/TrilhaNavegacao'
 import {
   carregarDossieCompletoCliente,
   type SinteseAnaliseEmpresarial,
@@ -149,6 +150,8 @@ export const AnalisesEmpresariais: React.FC = () => {
       <div className="flex-1 flex flex-col lg:pl-60">
         {/* Conteúdo Central */}
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+          {/* TRILHA DE NAVEGAÇÃO + TROCA RÁPIDA DE MÓDULOS (padrão das rotas dedicadas) */}
+          <TrilhaNavegacao />
           {/* Banner do Módulo */}
           <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 text-white rounded-2xl p-6 shadow-md border border-slate-800 flex flex-wrap items-center justify-between gap-4">
             <div className="space-y-1">

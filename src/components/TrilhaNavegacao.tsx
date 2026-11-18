@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { ChevronRight, Home } from 'lucide-react'
 
 /**
@@ -37,7 +37,7 @@ export const MODULOS_ROTA: ModuloRotaInfo[] = [
   },
   {
     id: 'inativos',
-    path: '/clientes-inativos',
+    path: '/cadastro-clientes-inativos',
     label: 'Clientes Inativos',
     descricao: 'Carteira inativa e arquivados',
     cor: 'bg-slate-500',
@@ -65,15 +65,28 @@ export const MODULOS_ROTA: ModuloRotaInfo[] = [
   },
 ]
 
-/** Resolve o módulo ativo a partir do pathname atual (prefixo exato de 1 nível). */
+/** Alias de rota por módulo (mesma página, caminhos diferentes). */
+const ALIASES_ROTA: Record<string, string> = {
+  '/nfes': '/documentos-fiscais',
+}
+
+/** Resolve o módulo ativo a partir do pathname atual (prefixo de 1 nível).
+ *  Usa a correspondência MAIS LONGA primeiro: /cadastro-clientes-inativos
+ *  também é prefixo-casado por /cadastro-clientes, e sem isso a listagem de
+ *  inativos apareceria com o módulo errado em destaque. */
 export function moduloRotaAtual(pathname: string): ModuloRotaInfo {
-  const achado = MODULOS_ROTA.find((m) => m.path !== '/' && pathname.startsWith(m.path))
-  return achado ?? MODULOS_ROTA[0]
+  const normalizado = ALIASES_ROTA[pathname] ?? pathname
+  const candidatos = MODULOS_ROTA.filter(
+    (m) => m.path !== '/' && (normalizado === m.path || normalizado.startsWith(m.path + '/')),
+  ).sort((a, b) => b.path.length - a.path.length)
+  return candidatos[0] ?? MODULOS_ROTA[0]
 }
 
 interface TrilhaNavegacaoProps {
-  /** id do módulo atual dentro de MODULOS_ROTA */
-  atual: string
+  /** id do módulo atual dentro de MODULOS_ROTA — opcional: quando omitido,
+      o módulo é resolvido automaticamente do pathname da rota (padrão usado
+      nas páginas de módulo, que só renderizam <TrilhaNavegacao />) */
+  atual?: string
   /** Rótulo opcional do contexto atual (ex.: nome do cliente na ficha) */
   rotuloExtra?: string
 }
@@ -86,8 +99,9 @@ interface TrilhaNavegacaoProps {
  * Barra simples no topo do conteúdo — não é sticky, para não interferir
  * com as barras de rolagem fixas e colunas congeladas das listagens.
  */
-export function TrilhaNavegacao({ atual, rotuloExtra }: TrilhaNavegacaoProps) {
+export function TrilhaNavegacao({ rotuloExtra }: TrilhaNavegacaoProps) {
   const location = useLocation()
+  const navigate = useNavigate()
   const moduloAtual = moduloRotaAtual(location.pathname)
 
   // Título da página consistente: "Módulo — ADECONT" (com contexto opcional)
@@ -134,6 +148,31 @@ export function TrilhaNavegacao({ atual, rotuloExtra }: TrilhaNavegacaoProps) {
             </>
           )}
         </nav>
+
+        {/* Troca rápida de módulos (mobile/tablet: seletor nativo, sem depender do menu do portal) */}
+        <div className="lg:hidden w-full flex items-center gap-2 pt-1">
+          <label
+            htmlFor="troca-modulo-rapida"
+            className="text-[10px] font-bold uppercase tracking-wider text-slate-400 shrink-0"
+          >
+            Módulo:
+          </label>
+          <select
+            id="troca-modulo-rapida"
+            value={moduloAtual.id}
+            onChange={(e) => {
+              const destino = MODULOS_ROTA.find((m) => m.id === e.target.value)
+              if (destino) navigate(destino.path)
+            }}
+            className="w-full max-w-[280px] text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-md px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-slate-400 cursor-pointer"
+          >
+            {MODULOS_ROTA.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.label}
+              </option>
+            ))}
+          </select>
+        </div>
 
         {/* Troca rápida de módulos (desktop) */}
         <div className="hidden lg:flex items-center gap-1 ml-auto" aria-label="Trocar de módulo">
