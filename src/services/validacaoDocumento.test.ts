@@ -6,6 +6,7 @@ import {
   validarCPF,
   validarDocumentoCadastral,
 } from './validacaoDocumento'
+import { rotularDocumentoFiscal } from './nfeDocumentoExibicao'
 
 describe('validacaoDocumento', () => {
   it('valida CPF correto e rejeita inválido', () => {
@@ -36,6 +37,7 @@ describe('validacaoDocumento', () => {
     expect(validarCAEPF('00000002500171')).toBe(true)
     // Exemplo do validation-br (checksum de 411422600001 = 01)
     expect(validarCAEPF('411.422.600/001-01')).toBe(true)
+    // Exemplo passo a passo do cálculo (gist valida-formata-CAEPF)
     expect(validarCAEPF('293.118.610/001-84')).toBe(true)
     // DV errado é rejeitado
     expect(validarCAEPF('29311861000185')).toBe(false)
@@ -56,7 +58,7 @@ describe('validacaoDocumento', () => {
     expect(caepfDeclarado.tipoEsperado).toBe('CAEPF')
 
     // 14 dígitos sem tipo declarado: primeiro tenta CNPJ, depois CAEPF
-    const caepfAmarrado = validarDocumentoCadastral('232.603.270/001-18', '')
+    const caepfAmarrado = validarDocumentoCadastral('293.118.610/001-84', '')
     expect(caepfAmarrado.valido).toBe(true)
     expect(caepfAmarrado.tipoEsperado).toBe('CAEPF')
 
@@ -91,5 +93,32 @@ describe('validacaoDocumento', () => {
     const cei = validarDocumentoCadastral('192261133509', 'CEI')
     expect(cei.valido).toBe(true)
     expect(cei.tipoEsperado).toBe('CEI')
+  })
+
+  it('rotularDocumentoFiscal: 14 dígitos CAEPF nunca viram CNPJ; CPF/CNPJ inalterados', () => {
+    // CAEPF válido (14 dígitos): rotulado como CAEPF com máscara 000.000.000/000-00
+    const caepf = rotularDocumentoFiscal('29311861000184')
+    expect(caepf.rotulo).toBe('CAEPF')
+    expect(caepf.exibicao).toBe('293.118.610/001-84')
+    const caepfMascarado = rotularDocumentoFiscal('293.118.610/001-84')
+    expect(caepfMascarado.rotulo).toBe('CAEPF')
+    expect(caepfMascarado.exibicao).toBe('293.118.610/001-84')
+    // CNPJ válido: continua CNPJ
+    expect(rotularDocumentoFiscal('08003213000189').rotulo).toBe('CNPJ')
+    // CPF: continua CPF
+    expect(rotularDocumentoFiscal('11144477735').rotulo).toBe('CPF')
+    // Vazio (emitente em branco em NF-e de manifestação): sem dígitos → CNPJ (como antes)
+    expect(rotularDocumentoFiscal('').exibicao).toBe('')
+    // CPF com DV errado (11 dígitos): permanece CPF (como antes)
+    expect(rotularDocumentoFiscal('12345678900').rotulo).toBe('CPF')
+  })
+
+  it('rotularDocumentoFiscal mantém comportamento de tamanho irregular e vazio', () => {
+    // Vazio: exibição vazia, como antes
+    const vazio = rotularDocumentoFiscal('')
+    expect(vazio.exibicao).toBe('')
+    // Tamanho irregular: rótulo pela quantidade de dígitos, número como veio
+    const irregular = rotularDocumentoFiscal('1234567')
+    expect(irregular.exibicao).toBe('1234567')
   })
 })

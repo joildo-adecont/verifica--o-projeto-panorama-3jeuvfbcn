@@ -18,6 +18,7 @@ import {
 } from 'lucide-react'
 import type { NfeRecord, NfeItem } from '@/types/nfes'
 import { listarNfes } from '@/services/nfeService'
+import { rotularDocumentoFiscal } from '@/services/nfeDocumentoExibicao'
 
 interface TabelaNfeItensProps {
   itens: NfeItem[]
@@ -188,6 +189,12 @@ export const NfeCardItem: React.FC<NfeCardItemProps> = ({ nfe, onAnalisar }) => 
   const destEhPF =
     nfe.destinatario_tipo === 'PF' || nfe.vinculo_cliente_status === 'consumidor_final'
 
+  // Rotulagem com amarração CAEPF (validador central): 14 dígitos válidos
+  // como CAEPF aparecem com selo CAEPF e máscara 000.000.000/000-00,
+  // nunca como "CNPJ". CPF e CNPJ continuam exibidos como sempre.
+  const rotuloEmit = rotularDocumentoFiscal(nfe.emit_cnpj_cpf)
+  const rotuloDest = rotularDocumentoFiscal(nfe.dest_cnpj_cpf)
+
   return (
     <Card className="border-border/70 hover:border-primary/40 transition-colors shadow-sm">
       <CardHeader className="p-4 pb-3">
@@ -278,8 +285,7 @@ export const NfeCardItem: React.FC<NfeCardItemProps> = ({ nfe, onAnalisar }) => 
               {nfe.emit_razao_social}
             </div>
             <div className="text-[11px] text-muted-foreground">
-              {nfe.emit_cnpj_cpf.length === 11 ? 'CPF' : 'CNPJ'}: {nfe.emit_cnpj_cpf} (
-              {nfe.emit_uf || 'BR'})
+              {rotuloEmit.rotulo}: {rotuloEmit.exibicao} ({nfe.emit_uf || 'BR'})
             </div>
           </div>
 
@@ -295,7 +301,7 @@ export const NfeCardItem: React.FC<NfeCardItemProps> = ({ nfe, onAnalisar }) => 
               {nfe.dest_razao_social}
             </div>
             <div className="text-[11px] text-muted-foreground">
-              {destEhPF ? 'CPF' : 'CNPJ'}: {nfe.dest_cnpj_cpf} ({nfe.dest_uf || 'BR'})
+              {rotuloDest.rotulo}: {rotuloDest.exibicao} ({nfe.dest_uf || 'BR'})
             </div>
           </div>
 
