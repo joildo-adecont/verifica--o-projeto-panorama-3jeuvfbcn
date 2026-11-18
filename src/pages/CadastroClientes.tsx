@@ -1138,7 +1138,13 @@ export default function CadastroClientes() {
 
             {/* TABELA ANALÍTICA DE CLIENTES */}
             <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-              <div ref={refScrollHorizontalTabela} className="overflow-x-auto">
+              {/* data-barra-rolagem-propria: o gerenciador global de barras ignora
+                  este container — esta tela já monta a própria barra (0.0.763) */}
+              <div
+                ref={refScrollHorizontalTabela}
+                data-barra-rolagem-propria
+                className="overflow-x-auto"
+              >
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
                     <tr className="bg-[#0F294A] text-white font-medium border-b border-[#0A1D34] select-none">

@@ -688,7 +688,7 @@ td{border-bottom:1px solid #ddd;padding:3px 5px}
 
         {/* TABELA DE CLIENTES INATIVOS */}
         <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto" data-sys-scroll>
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="bg-[#2C3E50] text-white font-medium border-b border-[#1F2D3D] select-none">

@@ -205,7 +205,7 @@ export const SecaoClientesArquivados: React.FC<SecaoClientesArquivadosProps> = (
       </div>
 
       {/* Tabela de Arquivados */}
-      <div className="border border-slate-200 rounded-lg overflow-x-auto">
+      <div className="border border-slate-200 rounded-lg overflow-x-auto" data-sys-scroll>
         <table className="w-full text-left text-xs border-collapse">
           <thead>
             <tr className="bg-slate-100/80 border-b border-slate-200 text-slate-700 font-bold uppercase tracking-wider text-[11px]">
