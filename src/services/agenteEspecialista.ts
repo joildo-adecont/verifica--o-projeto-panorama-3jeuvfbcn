@@ -7,6 +7,9 @@
  * - Consultor Contábil Estratégico ('consultor-contabil-estrategico') -> 'consultor-contabil-estrategico'
  * - Gestão Estratégica ('gestao-estrategica') -> 'gestao-estrategica'
  * - Reforma Tributária ('reforma-tributaria') -> 'consultor-reforma-tributaria'
+ * - Trabalhista e Previdenciário ('trabalhista-previdenciario') -> 'trabalhista-previdenciario'
+ * - Tributos Indiretos ('tributos-indiretos') -> 'tributos-indiretos'
+ * - Societário e Compliance ('societario-compliance') -> 'societario-compliance'
  */
 import pb from '@/lib/pocketbase/client'
 import {
@@ -42,6 +45,9 @@ export type SegmentoEspecialista =
   | 'consultor-contabil-estrategico'
   | 'gestao-estrategica'
   | 'reforma-tributaria'
+  | 'trabalhista-previdenciario'
+  | 'tributos-indiretos'
+  | 'societario-compliance'
 
 export interface MensagemEspecialista {
   id: string

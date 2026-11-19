@@ -1518,10 +1518,10 @@ const SECOES_REFORMA = [
 ]
 
 /* ─────────── GRUPO AGENTES — PESQUISA DOS AGENTES ───────────
- * 19/11/2026 (pedido do CEO): os 7 especialistas nativos saem do menu lateral
+ * 19/11/2026 (pedido do CEO): os especialistas nativos saem do menu lateral
  * e passam a viver DENTRO da tela única "Pesquisa dos Agentes" — seletor de
  * agentes + Central de Entregas num ícone exclusivo, tudo na mesma tela ampla.
- * O menu mostra UM item só; os atalhos F1..F7 continuam funcionando (o handler
+ * O menu mostra UM item só; os atalhos F1..F8 continuam funcionando (o handler
  * dos atalhos resolve tecla → item da NAVEGACAO, que agora aponta para a tela
  * única com o agente pré-selecionado via ?agente=slug).
  * Rotas antigas #agente-* continuam montadas em rotas.tsx (compat de links). */
@@ -1539,7 +1539,7 @@ const AGENTES: LinkNavegacao[] = [
     bg: 'bg-indigo-50',
     borda: 'border-indigo-200',
     descricao:
-      'Os 7 especialistas nativos de IA em tela ampla + Central de Entregas num ícone exclusivo',
+      'Os 10 especialistas nativos de IA em tela ampla + Central de Entregas num ícone exclusivo',
     tags: [
       'agente',
       'agentes',
@@ -1554,6 +1554,15 @@ const AGENTES: LinkNavegacao[] = [
       'consultor',
       'gestao',
       'reforma',
+      'trabalhista',
+      'previdenciario',
+      'icms',
+      'ipi',
+      'iss',
+      'ibs',
+      'cbs',
+      'societario',
+      'compliance',
       'central de entregas',
       'entregas',
     ],
@@ -1670,6 +1679,48 @@ export const ITENS_AGENTES_LEGADO: LinkNavegacao[] = [
       'Relatórios exportados pelos agentes: visualize e re-exporte em PDF, TXT, CSV ou XLSX',
     tags: ['agente', 'entregas', 'relatorio', 'pdf', 'csv', 'xlsx', 'exportacao'],
   },
+  /* ── OS 3 NOVOS ESPECIALISTAS (19/11/2026, trio sugerido) ──
+   * Teclas F9–F11: próximas livres após F1–F8, mesmo padrão dos demais —
+   * o handler do header resolve tecla → #pesquisa-agentes?agente=slug. */
+  {
+    href: '#agente-trabalhista-previdenciario',
+    label: 'Especialista Trabalhista e Previdenciário',
+    curto: 'Trabalhista',
+    tecla: 'f9',
+    numero: 'A9',
+    Icon: UsersRound,
+    cor: 'text-orange-700',
+    bg: 'bg-orange-50',
+    borda: 'border-orange-200',
+    descricao: 'CLT, encargos trabalhistas, eSocial e contribuições previdenciárias',
+    tags: ['agente', 'ia', 'trabalhista', 'previdencia', 'clt', 'chat', 'especialista', 'esocial'],
+  },
+  {
+    href: '#agente-tributos-indiretos',
+    label: 'Especialista em Tributos Indiretos',
+    curto: 'Tributos Indiretos',
+    tecla: 'f10',
+    numero: 'A10',
+    Icon: Coins,
+    cor: 'text-teal-700',
+    bg: 'bg-teal-50',
+    borda: 'border-teal-200',
+    descricao: 'ICMS, IPI, ISS e a transição para IBS/CBS da Reforma Tributária',
+    tags: ['agente', 'ia', 'icms', 'ipi', 'iss', 'ibs', 'cbs', 'chat', 'especialista', 'indiretos'],
+  },
+  {
+    href: '#agente-societario-compliance',
+    label: 'Especialista Societário e Compliance',
+    curto: 'Societário',
+    tecla: 'f11',
+    numero: 'A11',
+    Icon: ShieldCheck,
+    cor: 'text-rose-700',
+    bg: 'bg-rose-50',
+    borda: 'border-rose-200',
+    descricao: 'Registros societários, obrigações acessórias e governança',
+    tags: ['agente', 'ia', 'societario', 'compliance', 'governanca', 'chat', 'especialista'],
+  },
 ]
 
 export const GRUPOS: GrupoNavegacao[] = [
@@ -1729,7 +1780,7 @@ export const GRUPOS: GrupoNavegacao[] = [
   {
     id: 'agentes',
     nome: 'Agentes',
-    proposito: 'Os 7 especialistas nativos de IA da ADECONT, em chat direto',
+    proposito: 'Os 10 especialistas nativos de IA da ADECONT, em chat direto',
     Icon: Bot,
     cor: 'text-indigo-700',
     bg: 'bg-indigo-50',

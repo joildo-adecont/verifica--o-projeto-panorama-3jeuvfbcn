@@ -1,7 +1,7 @@
 /// <reference path="../pb_data/types.d.ts" />
 
 /**
- * Hook dos 7 Agentes Especialistas Nativos ADECONT:
+ * Hook dos 10 Agentes Especialistas Nativos ADECONT:
  * - Especialista Jurídico: slug 'especialista-juridico'
  * - Especialista Tributário: slug 'especialista-tributario'
  * - Especialista Contábil: slug 'especialista-contabil'
@@ -9,11 +9,15 @@
  * - Consultor Contábil Estratégico: slug 'consultor-contabil-estrategico'
  * - Especialista em Gestão Estratégica: slug 'gestao-estrategica'
  * - Consultor da Reforma Tributária: slug 'consultor-reforma-tributaria'
+ * - Especialista Trabalhista e Previdenciário: slug 'trabalhista-previdenciario'
+ * - Especialista em Tributos Indiretos: slug 'tributos-indiretos'
+ * - Especialista Societário e Compliance: slug 'societario-compliance'
  *
  * Rotas expostas:
  * POST /backend/v1/agente-especialista/chat
  * Query ou body param: `segmento` = 'juridico' | 'tributario' | 'contabil' | 'administrativo'
  *   | 'consultor-contabil-estrategico' | 'gestao-estrategica' | 'reforma-tributaria'
+ *   | 'trabalhista-previdenciario' | 'tributos-indiretos' | 'societario-compliance'
  */
 
 routerAdd('POST', '/backend/v1/agente-especialista/chat', (e) => {
@@ -26,6 +30,9 @@ routerAdd('POST', '/backend/v1/agente-especialista/chat', (e) => {
       'consultor-contabil-estrategico': 'consultor-contabil-estrategico',
       'gestao-estrategica': 'gestao-estrategica',
       'reforma-tributaria': 'consultor-reforma-tributaria',
+      'trabalhista-previdenciario': 'trabalhista-previdenciario',
+      'tributos-indiretos': 'tributos-indiretos',
+      'societario-compliance': 'societario-compliance',
     }
 
     const info = e.requestInfo()

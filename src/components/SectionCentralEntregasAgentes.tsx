@@ -37,6 +37,9 @@ const NOMES_AGENTES: Record<string, string> = {
   'consultor-contabil-estrategico': 'Consultor Contábil Estratégico',
   'gestao-estrategica': 'Consultor de Gestão Estratégica',
   'reforma-tributaria': 'Consultor da Reforma Tributária',
+  'trabalhista-previdenciario': 'Especialista Trabalhista e Previdenciário',
+  'tributos-indiretos': 'Especialista em Tributos Indiretos',
+  'societario-compliance': 'Especialista Societário e Compliance',
 }
 
 function nomeAgente(e: EntregaAgente): string {
@@ -92,7 +95,7 @@ export function SectionCentralEntregasAgentes() {
               Entregas dos Agentes Especialistas
             </h1>
             <p className="text-xs sm:text-sm text-slate-300 max-w-3xl">
-              Todo relatório exportado pelos 7 especialistas fica registrado aqui — com data,
+              Todo relatório exportado pelos 10 especialistas fica registrado aqui — com data,
               agente, título e conteúdo estruturado — pronto para visualizar e re-exportar em PDF,
               TXT, CSV ou planilha (XLSX).
             </p>

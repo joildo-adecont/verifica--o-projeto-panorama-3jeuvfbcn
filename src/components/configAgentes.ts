@@ -1,5 +1,5 @@
 /**
- * CONFIGURAÇÃO DOS 7 AGENTES ESPECIALISTAS — propriedades de apresentação.
+ * CONFIGURAÇÃO DOS 10 AGENTES ESPECIALISTAS — propriedades de apresentação.
  *
  * Extrai do antigo padrão dos wrappers SectionEspecialista* tudo que a nova
  * tela "Pesquisa dos Agentes" (SectionPesquisaAgentes) precisa para montar o
@@ -7,7 +7,18 @@
  * existindo e montados no roteador (compat de rotas #agente-*) — esta config
  * NÃO substitui as chamadas deles ao backend.
  */
-import { Scale, Percent, Calculator, Building2, Lightbulb, Target, Landmark } from 'lucide-react'
+import {
+  Scale,
+  Percent,
+  Calculator,
+  Building2,
+  Lightbulb,
+  Target,
+  Landmark,
+  HardHat,
+  PackageCheck,
+  Briefcase,
+} from 'lucide-react'
 import type { SegmentoEspecialista } from '@/services/agenteEspecialista'
 
 export interface ConfigAgente {
@@ -133,6 +144,55 @@ export const CONFIG_AGENTES: ConfigAgente[] = [
       'Quais Resoluções CGIBS já publicadas impactam meu setor?',
       'Qual o cronograma de transição do IBS/CBS por tipo de empresa?',
       'Como acompanhar novos Decretos e Portarias da Reforma?',
+    ],
+  },
+  /* ── TRIO SUGERIDO (19/11/2026) — +3 especialistas nativos, total 10 ── */
+  {
+    segmento: 'trabalhista-previdenciario',
+    curto: 'Trabalhista e Previdenciário',
+    titulo: 'Especialista Trabalhista e Previdenciário',
+    subtitulo: 'CLT, encargos, eSocial e contribuições previdenciárias',
+    badge: 'UON 27 · Trabalhista',
+    descricao:
+      'Agente inteligente da ADECONT que apoia equipes e clientes em questões de CLT, encargos trabalhistas (INSS, FGTS, 13º, férias, adicionais e multas), eventos do eSocial, EFD-Reinf, DCTFWeb e contribuições previdenciárias, cobrindo todos os tipos de atos normativos — Resoluções, Decretos, Portarias, Atos e alterações legislativas.',
+    corPrimaria: 'text-rose-700 bg-rose-50 border-rose-200',
+    Icon: HardHat,
+    exemplosProntos: [
+      'Como apurar o INSS e o FGTS sobre horas extras e adicionais?',
+      'Quais eventos do eSocial enviar na rescisão de um empregado?',
+      'Qual o impacto do FAP e do RAT no custo da folha da empresa?',
+    ],
+  },
+  {
+    segmento: 'tributos-indiretos',
+    curto: 'Tributos Indiretos',
+    titulo: 'Especialista em Tributos Indiretos',
+    subtitulo: 'ICMS, IPI, ISS e a transição para IBS/CBS',
+    badge: 'UON 27 · Indiretos',
+    descricao:
+      'Agente inteligente da ADECONT que orienta a apuração e o cumprimento de obrigações de ICMS (Convênios, ST, DIFAL), IPI (TIPI, créditos) e ISS (LC 116/2003), além da transição para IBS/CBS da Reforma Tributária — cobrindo todos os tipos de atos normativos, de Resoluções e Decretos a Portarias, Atos e alterações legislativas.',
+    corPrimaria: 'text-teal-700 bg-teal-50 border-teal-200',
+    Icon: PackageCheck,
+    exemplosProntos: [
+      'Como tratar o DIFAL numa venda interestadual a consumidor final?',
+      'Quais créditos de IPI são admitidos e quais são vedados?',
+      'Como fica a apuração no período de teste de 2026 (0,9% CBS + 0,1% IBS)?',
+    ],
+  },
+  {
+    segmento: 'societario-compliance',
+    curto: 'Societário e Compliance',
+    titulo: 'Especialista Societário e Compliance',
+    subtitulo: 'Registros societários, obrigações acessórias e governança',
+    badge: 'UON 27 · Societário',
+    descricao:
+      'Agente inteligente da ADECONT que orienta registros societários (constituição, alterações, incorporação, fusão e cisão), obrigações acessórias (ECD, ECF, DCTFWeb, NIRF, LGPD) e governança para empresas e contadores — cobrindo todos os tipos de atos normativos, de Resoluções a Decretos, Portarias, Atos e alterações legislativas.',
+    corPrimaria: 'text-blue-700 bg-blue-50 border-blue-200',
+    Icon: Briefcase,
+    exemplosProntos: [
+      'Quais os passos para incorporar uma subsidiária integralmente detida?',
+      'Quais obrigações acessórias uma S.A. precisa cumprir anualmente?',
+      'Como estruturar controles internos de compliance no escritório contábil?',
     ],
   },
 ]
