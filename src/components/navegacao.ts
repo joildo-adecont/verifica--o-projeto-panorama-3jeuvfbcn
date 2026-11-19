@@ -1618,6 +1618,7 @@ const AGENTES: LinkNavegacao[] = [
     href: '#central-entregas-agentes',
     label: 'Central de Entregas',
     curto: 'Central de Entregas',
+    tecla: 'f8',
     numero: 'A8',
     Icon: Inbox,
     cor: 'text-blue-700',

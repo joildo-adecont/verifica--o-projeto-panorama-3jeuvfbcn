@@ -11,8 +11,13 @@
  * (sempre respondem 200 com { ok:false } em erro de negócio).
  */
 routerAdd('POST', '/backend/v1/central-entregas', (e) => {
-  const info = $apis.requestInfo(e)
-  const body = info.body || {}
+  let body = {}
+  try {
+    const info = e.requestInfo()
+    body = (info && info.body) || {}
+  } catch (errInfo) {
+    body = {}
+  }
 
   const agenteSegmento = String(body.agente_segmento || '').trim()
   const agenteNome = String(body.agente_nome || '').trim()

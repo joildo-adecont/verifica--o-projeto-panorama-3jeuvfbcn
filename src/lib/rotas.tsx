@@ -200,6 +200,8 @@ const COMPONENTES: Record<string, ComponentType<PropsAba>> = {
   '#agente-consultor-contabil-estrategico': SectionEspecialistaContabilEstrategico,
   '#agente-gestao-estrategica': SectionEspecialistaGestaoEstrategica,
   '#agente-reforma-tributaria': SectionEspecialistaReformaTributaria,
+  /* ── CENTRAL DE ENTREGAS — relatórios exportados pelos agentes ── */
+  '#central-entregas-agentes': SectionCentralEntregasAgentes,
 }
 
 /**

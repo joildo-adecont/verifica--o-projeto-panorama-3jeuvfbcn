@@ -1,21 +1,10 @@
-import { useState, useRef, useEffect } from 'react'
-import {
-  Send,
-  Bot,
-  User,
-  Loader2,
-  RefreshCw,
-  Scale,
-  Sparkles,
-  BookOpen,
-  ShieldCheck,
-  CheckCircle2,
-} from 'lucide-react'
+import { useState, useRef, useEffect, useMemo } from 'react'
+import { Send, Bot, User, Loader2, RefreshCw, Scale, Sparkles, CheckCircle2 } from 'lucide-react'
 import { AdecontLogo } from '@/components/AdecontLogo'
 import { SeloNivelConfianca } from '@/components/SeloNivelConfianca'
 import { RenderizadorBlocosRelatorio } from '@/components/RenderizadorBlocosRelatorio'
 import { BarraExportacaoRelatorio } from '@/components/BarraExportacaoRelatorio'
-import { parseBlocosRelatorio, type BlocoRelatorio } from '@/services/relatorioAgenteParser'
+import { parseBlocosRelatorio } from '@/services/relatorioAgenteParser'
 import {
   enviarMensagemEspecialista,
   type SegmentoEspecialista,
@@ -113,6 +102,36 @@ export function TelaAgenteEspecialista({
       setCarregando(false)
     }
   }
+
+  // ── RELATÓRIO EM BLOCOS: última resposta do agente estruturada ──
+  const ultimaMensagemRelatorio = useMemo(
+    () =>
+      [...mensagens]
+        .reverse()
+        .find((m) => m.role === 'assistant' && m.id !== `msg-welcome-${segmento}`),
+    [mensagens, segmento],
+  )
+
+  const blocosPorMensagem = useMemo(() => {
+    const mapa = new Map<string, ReturnType<typeof parseBlocosRelatorio>>()
+    for (const msg of mensagens) {
+      if (msg.role !== 'assistant') continue
+      try {
+        mapa.set(msg.id, parseBlocosRelatorio(msg.content))
+      } catch {
+        mapa.set(msg.id, [{ tipo: 'texto', texto: msg.content }])
+      }
+    }
+    return mapa
+  }, [mensagens])
+
+  const perguntaDaUltimaMensagem = useMemo(() => {
+    if (!ultimaMensagemRelatorio) return ''
+    const idx = mensagens.findIndex((m) => m.id === ultimaMensagemRelatorio.id)
+    if (idx <= 0) return ''
+    const anterior = mensagens[idx - 1]
+    return anterior.role === 'user' ? anterior.content : ''
+  }, [mensagens, ultimaMensagemRelatorio])
 
   return (
     <div className="space-y-5 pb-8">
@@ -253,7 +272,14 @@ export function TelaAgenteEspecialista({
                       : 'bg-white border border-slate-200 text-slate-800 rounded-tl-xs space-y-2'
                   }`}
                 >
-                  <div className="whitespace-pre-wrap">{msg.content}</div>
+                  {!isUser && blocosPorMensagem.get(msg.id) ? (
+                    <RenderizadorBlocosRelatorio
+                      blocos={blocosPorMensagem.get(msg.id)!}
+                      modoCompacto
+                    />
+                  ) : (
+                    <div className="whitespace-pre-wrap">{msg.content}</div>
+                  )}
 
                   {msg.citations && msg.citations.length > 0 && (
                     <div className="pt-2 mt-2 border-t border-slate-100 space-y-1">
@@ -315,11 +341,7 @@ export function TelaAgenteEspecialista({
                   dataEmissao: new Date(ultimaMensagemRelatorio.created).toLocaleString('pt-BR'),
                 }}
                 agenteSegmento={segmento}
-                perguntaOrigem={
-                  mensagens[
-                    Math.max(0, mensagens.findIndex((m) => m.id === ultimaMensagemRelatorio.id) - 1)
-                  ]?.content
-                }
+                perguntaOrigem={perguntaDaUltimaMensagem}
               />
             </div>
           )}
