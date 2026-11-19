@@ -22,11 +22,17 @@
  *
  * O parâmetro opcional `agenteInicial` permite abrir a tela já num agente — é o
  * que os atalhos F1–F7 e os links antigos #agente-* usam (rotas.tsx).
+ *
+ * MODO COMPARAÇÃO (pedido "Comparar respostas dos agentes lado a lado"): o
+ * alternador "Comparar agentes" na barra troca entre o chat individual (que
+ * permanece INTACTO) e o painel de comparação — os 7 chats seguem montados
+ * (escondidos), preservando o histórico de cada agente também no modo comparação.
  */
 import { useEffect, useState } from 'react'
-import { Inbox, X, Search } from 'lucide-react'
+import { Inbox, X, Search, Columns3 } from 'lucide-react'
 import { TelaAgenteEspecialista } from '@/components/TelaAgenteEspecialista'
 import { SectionCentralEntregasAgentes } from '@/components/SectionCentralEntregasAgentes'
+import { ModoComparacaoAgentes } from '@/components/ModoComparacaoAgentes'
 import { CONFIG_AGENTES } from '@/components/configAgentes'
 import type { SegmentoEspecialista } from '@/services/agenteEspecialista'
 
@@ -50,6 +56,7 @@ function lerParametrosHash(): { agente?: string; central: boolean } {
 }
 
 export function SectionPesquisaAgentes({ agenteInicial }: PropsSectionPesquisaAgentes) {
+  const [modoComparacao, setModoComparacao] = useState(false)
   const inicial = agenteInicial ?? lerParametrosHash().agente
   const valido = CONFIG_AGENTES.some((a) => a.segmento === inicial)
   const [segmentoAtivo, setSegmentoAtivo] = useState<SegmentoEspecialista>(
@@ -106,6 +113,26 @@ export function SectionPesquisaAgentes({ agenteInicial }: PropsSectionPesquisaAg
             })}
           </div>
 
+          {/* ALTERNADOR DO MODO COMPARAÇÃO — dentro da mesma tela, sem sair dela */}
+          <button
+            onClick={() => setModoComparacao((v) => !v)}
+            className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-bold transition-colors cursor-pointer shrink-0 ${
+              modoComparacao
+                ? 'border-panorama-gold bg-amber-100 text-panorama-navy shadow-sm'
+                : 'border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100'
+            }`}
+            title={
+              modoComparacao
+                ? 'Voltar ao chat individual'
+                : 'Comparar respostas dos agentes lado a lado'
+            }
+          >
+            <Columns3 className="w-4 h-4" />
+            <span className="hidden sm:inline">
+              {modoComparacao ? 'Chat individual' : 'Comparar agentes'}
+            </span>
+          </button>
+
           {/* ÍCONE EXCLUSIVO DA CENTRAL DE ENTREGAS — tudo no mesmo ícone geral */}
           <button
             onClick={() => setCentralAberta(true)}
@@ -118,8 +145,15 @@ export function SectionPesquisaAgentes({ agenteInicial }: PropsSectionPesquisaAg
         </div>
       </div>
 
+      {/* ── MODO COMPARAÇÃO (os 7 chats seguem montados, apenas escondidos) ── */}
+      {modoComparacao && (
+        <div className="mt-4">
+          <ModoComparacaoAgentes />
+        </div>
+      )}
+
       {/* ── CHAT DO AGENTE ATIVO (os 7 permanecem montados: histórico preservado) ── */}
-      <div className="mt-4 space-y-4">
+      <div className="mt-4 space-y-4" hidden={modoComparacao}>
         {CONFIG_AGENTES.map((ag) => (
           <div key={ag.segmento} hidden={ag.segmento !== segmentoAtivo}>
             <TelaAgenteEspecialista
@@ -165,7 +199,7 @@ export function SectionPesquisaAgentes({ agenteInicial }: PropsSectionPesquisaAg
       )}
 
       {/* Rodapé discreto indicando o agente ativo */}
-      <p className="mt-2 text-[11px] text-slate-400">
+      <p className="mt-2 text-[11px] text-slate-400" hidden={modoComparacao}>
         {agenteAtivo.curto} selecionado · o histórico de cada agente é mantido ao trocar de aba
         nesta tela.
       </p>
