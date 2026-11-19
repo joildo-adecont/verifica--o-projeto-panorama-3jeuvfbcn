@@ -13,6 +13,9 @@ import {
 } from 'lucide-react'
 import { AdecontLogo } from '@/components/AdecontLogo'
 import { SeloNivelConfianca } from '@/components/SeloNivelConfianca'
+import { RenderizadorBlocosRelatorio } from '@/components/RenderizadorBlocosRelatorio'
+import { BarraExportacaoRelatorio } from '@/components/BarraExportacaoRelatorio'
+import { parseBlocosRelatorio, type BlocoRelatorio } from '@/services/relatorioAgenteParser'
 import {
   enviarMensagemEspecialista,
   type SegmentoEspecialista,
@@ -298,6 +301,26 @@ export function TelaAgenteEspecialista({
                   O Especialista está pesquisando as bases oficiais e estruturando o parecer...
                 </span>
               </div>
+            </div>
+          )}
+
+          {/* ── BARRA DE EXPORTAÇÃO DO ÚLTIMO RELATÓRIO (PDF · TXT · CSV · XLSX) ── */}
+          {ultimaMensagemRelatorio && (
+            <div className="px-4 pb-4 sm:px-6">
+              <BarraExportacaoRelatorio
+                blocos={blocosPorMensagem.get(ultimaMensagemRelatorio.id)}
+                meta={{
+                  titulo: `${titulo} — Relatório`,
+                  agente: titulo,
+                  dataEmissao: new Date(ultimaMensagemRelatorio.created).toLocaleString('pt-BR'),
+                }}
+                agenteSegmento={segmento}
+                perguntaOrigem={
+                  mensagens[
+                    Math.max(0, mensagens.findIndex((m) => m.id === ultimaMensagemRelatorio.id) - 1)
+                  ]?.content
+                }
+              />
             </div>
           )}
 

@@ -49,6 +49,7 @@ import { SectionEspecialistaAdministrativo } from '@/components/SectionEspeciali
 import { SectionEspecialistaContabilEstrategico } from '@/components/SectionEspecialistaContabilEstrategico'
 import { SectionEspecialistaGestaoEstrategica } from '@/components/SectionEspecialistaGestaoEstrategica'
 import { SectionEspecialistaReformaTributaria } from '@/components/SectionEspecialistaReformaTributaria'
+import { SectionCentralEntregasAgentes } from '@/components/SectionCentralEntregasAgentes'
 import { NAVEGACAO } from '@/components/navegacao'
 import type { TaxNormItem } from '@/types/panorama'
 

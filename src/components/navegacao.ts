@@ -70,6 +70,7 @@ import {
   Bot,
   Lightbulb,
   Target,
+  Inbox,
 } from 'lucide-react'
 
 export interface LinkNavegacao {
@@ -1611,6 +1612,20 @@ const AGENTES: LinkNavegacao[] = [
     borda: 'border-fuchsia-200',
     descricao: 'Consultor da Reforma: todos os atos normativos e a transição',
     tags: ['agente', 'ia', 'reforma', 'chat', 'especialista', 'iva', 'transicao', 'resolucao'],
+  },
+  /* ── CENTRAL DE ENTREGAS: relatórios exportados pelos 7 agentes ── */
+  {
+    href: '#central-entregas-agentes',
+    label: 'Central de Entregas',
+    curto: 'Central de Entregas',
+    numero: 'A8',
+    Icon: Inbox,
+    cor: 'text-blue-700',
+    bg: 'bg-blue-50',
+    borda: 'border-blue-200',
+    descricao:
+      'Relatórios exportados pelos agentes: visualize e re-exporte em PDF, TXT, CSV ou XLSX',
+    tags: ['agente', 'entregas', 'relatorio', 'pdf', 'csv', 'xlsx', 'exportacao'],
   },
 ]
 
