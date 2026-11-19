@@ -191,7 +191,7 @@ export function PanoramaHeader({
         }
         return
       }
-      if (digitando || e.altKey || e.ctrlKey || e.metaKey) return
+      if (digitando || (e.key.length === 1 && (e.altKey || e.ctrlKey || e.metaKey))) return
       if (e.key === '/') {
         e.preventDefault()
         const busca = document.querySelector<HTMLInputElement>('header input[type="text"]')
@@ -203,7 +203,11 @@ export function PanoramaHeader({
         setMobileMenuOpen((v) => !v)
         return
       }
-      let item = NAV_LINKS.find((l) => l.tecla === e.key.toLowerCase())
+      // "shift+X" e "2P": o padrão shift+v (menu) e o 2p (Pesquisa dos Agentes)
+      // checam o modificador antes de comparar com a tecla catalogada.
+      const teclaPressionada =
+        e.shiftKey && e.key.length === 1 ? `shift+${e.key.toLowerCase()}` : e.key.toLowerCase()
+      let item = NAV_LINKS.find((l) => l.tecla === teclaPressionada)
       // F1–F8 (agentes e Central de Entregas): os itens saíram do menu lateral e
       // vivem DENTRO da tela "Pesquisa dos Agentes" — o atalho abre a tela com o
       // agente pré-selecionado via ?agente=slug (e F8 abre a mesma tela com a

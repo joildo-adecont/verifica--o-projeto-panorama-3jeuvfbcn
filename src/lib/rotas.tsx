@@ -50,6 +50,7 @@ import { SectionEspecialistaContabilEstrategico } from '@/components/SectionEspe
 import { SectionEspecialistaGestaoEstrategica } from '@/components/SectionEspecialistaGestaoEstrategica'
 import { SectionEspecialistaReformaTributaria } from '@/components/SectionEspecialistaReformaTributaria'
 import { SectionCentralEntregasAgentes } from '@/components/SectionCentralEntregasAgentes'
+import { SectionPesquisaAgentes } from '@/components/SectionPesquisaAgentes'
 import { NAVEGACAO } from '@/components/navegacao'
 import type { TaxNormItem } from '@/types/panorama'
 
@@ -125,6 +126,14 @@ const SetorFutebol = () => <SectionSetor id="futebol" />
 const SetorExterior = () => <SectionSetor id="exterior" />
 const SetorDiplomatico = () => <SectionSetor id="diplomatico" />
 
+/* ── PESQUISA DOS AGENTES (19/11/2026) ──
+ * Os 7 especialistas saíram do menu lateral e vivem DENTRO desta tela única.
+ * Os atalhos F1–F7 apontam para #pesquisa-agentes?agente=<slug> (o resolverRota
+ * corta no "?" e a tela lê os parâmetros direto do window.location.hash) e o
+ * F8 aponta para #pesquisa-agentes?central=1 (mesma tela, Central aberta).
+ */
+const PesquisaAgentes = () => <SectionPesquisaAgentes />
+
 const BuscaAvancadaGeral = () => <SectionBuscaAvancada />
 const BuscaAvancadaContabil = () => <SectionBuscaAvancada segmentoInicial="contabil" />
 const BuscaAvancadaJuridica = () => <SectionBuscaAvancada segmentoInicial="juridica" />
@@ -192,6 +201,8 @@ const COMPONENTES: Record<string, ComponentType<PropsAba>> = {
   '#documentos-fiscais': SectionNfesPipeline,
   '#parecer-auditoria': SectionParecerSistema,
   '#parecer-sistema': SectionParecerSistema,
+  /* ── PESQUISA DOS AGENTES — os 7 especialistas + Central numa tela ampla ── */
+  '#pesquisa-agentes': PesquisaAgentes,
   /* ── AGENTES ESPECIALISTAS (7 nativos) — grupo "Agentes" do menu ── */
   '#agente-juridico': SectionEspecialistaJuridico,
   '#agente-tributario': SectionEspecialistaTributario,

@@ -1530,7 +1530,9 @@ const AGENTES: LinkNavegacao[] = [
     href: '#pesquisa-agentes',
     label: 'Pesquisa dos Agentes',
     curto: 'Pesquisa dos Agentes',
-    tecla: 'p',
+    /* 'p' já é do Simples Nacional (6E); 2P é livre e não colide com nenhum
+       atalho existente da NAVEGACAO. O PainelAtalhos exibe "2P". */
+    tecla: '2p',
     numero: 'A',
     Icon: SearchCode,
     cor: 'text-indigo-700',

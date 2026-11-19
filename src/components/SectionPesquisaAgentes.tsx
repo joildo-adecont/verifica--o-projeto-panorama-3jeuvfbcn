@@ -31,25 +31,47 @@ import { CONFIG_AGENTES } from '@/components/configAgentes'
 import type { SegmentoEspecialista } from '@/services/agenteEspecialista'
 
 interface PropsSectionPesquisaAgentes {
-  /** slug do segmento a abrir pré-selecionado (atalhos F1–F7 / links #agente-*) */
+  /** slug do segmento a abrir pré-selecionado (compat: uso programático da tela) */
   agenteInicial?: string
 }
 
+/**
+ * Lê ?agente=slug e ?central=1 do hash atual (o resolverRota corta no "?" e o
+ * roteador não passa props — a tela lê os parâmetros direto do window.location).
+ */
+function lerParametrosHash(): { agente?: string; central: boolean } {
+  if (typeof window === 'undefined') return { central: false }
+  const query = window.location.hash.split('?')[1] ?? ''
+  const params = new URLSearchParams(query)
+  return {
+    agente: params.get('agente') ?? undefined,
+    central: params.get('central') === '1',
+  }
+}
+
 export function SectionPesquisaAgentes({ agenteInicial }: PropsSectionPesquisaAgentes) {
-  const valido = CONFIG_AGENTES.some((a) => a.segmento === agenteInicial)
+  const inicial = agenteInicial ?? lerParametrosHash().agente
+  const valido = CONFIG_AGENTES.some((a) => a.segmento === inicial)
   const [segmentoAtivo, setSegmentoAtivo] = useState<SegmentoEspecialista>(
-    (valido ? agenteInicial : CONFIG_AGENTES[0].segmento) as SegmentoEspecialista,
+    (valido ? inicial : CONFIG_AGENTES[0].segmento) as SegmentoEspecialista,
   )
-  const [centralAberta, setCentralAberta] = useState(false)
+  const [centralAberta, setCentralAberta] = useState(lerParametrosHash().central)
 
   const agenteAtivo = CONFIG_AGENTES.find((a) => a.segmento === segmentoAtivo)!
 
-  // Links antigos #agente-* com ?agente= trocam o agente depois de montado.
+  // Atalhos F1–F7 (hash ?agente=slug), F8 (?central=1) e links antigos #agente-*
+  // trocam o agente / abrem a Central DEPOIS de montado — reagem ao hashchange.
   useEffect(() => {
-    if (agenteInicial && CONFIG_AGENTES.some((a) => a.segmento === agenteInicial)) {
-      setSegmentoAtivo(agenteInicial as SegmentoEspecialista)
+    const sincronizar = () => {
+      const { agente, central } = lerParametrosHash()
+      if (agente && CONFIG_AGENTES.some((a) => a.segmento === agente)) {
+        setSegmentoAtivo(agente as SegmentoEspecialista)
+      }
+      setCentralAberta(central)
     }
-  }, [agenteInicial])
+    window.addEventListener('hashchange', sincronizar)
+    return () => window.removeEventListener('hashchange', sincronizar)
+  }, [])
 
   return (
     <div className="relative">
@@ -73,7 +95,7 @@ export function SectionPesquisaAgentes({ agenteInicial }: PropsSectionPesquisaAg
                   title={ag.descricao}
                   className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
                     ativo
-                      ? `${ag.cor} ${ag.bg} ${ag.borda} ring-2 ring-panorama-gold/40 shadow-sm`
+                      ? `${ag.corPrimaria} ring-2 ring-panorama-gold/40 shadow-sm`
                       : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
                   }`}
                 >
