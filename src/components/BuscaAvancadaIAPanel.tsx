@@ -83,6 +83,45 @@ export const METADADOS_ESPECIALISTAS: Record<SegmentoEspecialista, MetaEspeciali
       'Qual o cronograma de obrigações acessórias na fase de teste de 2026 a 2027?',
     ],
   },
+  'consultor-contabil-estrategico': {
+    segmento: 'consultor-contabil-estrategico',
+    titulo: 'Consultor Contábil Estratégico ADECONT',
+    subtitulo: 'Apoio à gestão, contabilidade, fiscal e materiais para equipes e clientes',
+    badge: 'Agente Consultor Contábil Estratégico',
+    descricao:
+      'Apoia a gestão, a contabilidade e o fiscal da assessoria, produzindo materiais e orientações para equipes e clientes.',
+    sugestoes: [
+      'Como preparar um memorando explicando o split payment para a equipe do cliente?',
+      'Quais materiais de treinamento aceleram a adaptação das equipes à LC 214/2025?',
+      'Como transformar os dados de créditos de IBS/CBS em recomendações para a gestão?',
+    ],
+  },
+  'gestao-estrategica': {
+    segmento: 'gestao-estrategica',
+    titulo: 'Especialista em Gestão Estratégica ADECONT',
+    subtitulo: 'Decisões contábeis, fiscais e financeiras para a gestão estratégica',
+    badge: 'Agente Gestão Estratégica',
+    descricao:
+      'Orienta decisões contábeis, fiscais e financeiras no plano estratégico: planejamento, precificação, investimento e risco.',
+    sugestoes: [
+      'Como comparar o regime atual e o IVA Dual pelo impacto na margem líquida?',
+      'Quando compensar migrar créditos de PIS/Cofins durante a transição 2026–2033?',
+      'Como provisionar o efeito do split payment no capital de giro da empresa?',
+    ],
+  },
+  'reforma-tributaria': {
+    segmento: 'reforma-tributaria',
+    titulo: 'Consultor da Reforma Tributária ADECONT',
+    subtitulo: 'Impactos, transição e atos normativos da Reforma para empresas e contadores',
+    badge: 'Agente Consultor RT',
+    descricao:
+      'Orienta empresas e contadores sobre impactos e transição da Reforma Tributária, abrangendo todos os tipos de atos normativos.',
+    sugestoes: [
+      'Quais os impactos da transição 2026–2033 para uma indústria do nosso setor?',
+      'Quais decretos e portarias recentes alteraram as regras da Reforma Tributária?',
+      'Como acompanhar alterações, inclusões e exclusões legislativas da Reforma?',
+    ],
+  },
 }
 
 /**

@@ -1,15 +1,19 @@
 /// <reference path="../pb_data/types.d.ts" />
 
 /**
- * Hook dos 4 Agentes Especialistas Nativos ADECONT:
+ * Hook dos 7 Agentes Especialistas Nativos ADECONT:
  * - Especialista Jurídico: slug 'especialista-juridico'
  * - Especialista Tributário: slug 'especialista-tributario'
  * - Especialista Contábil: slug 'especialista-contabil'
  * - Especialista Administrativo: slug 'especialista-administrativo'
+ * - Consultor Contábil Estratégico: slug 'consultor-contabil-estrategico'
+ * - Especialista em Gestão Estratégica: slug 'gestao-estrategica'
+ * - Consultor da Reforma Tributária: slug 'consultor-reforma-tributaria'
  *
  * Rotas expostas:
  * POST /backend/v1/agente-especialista/chat
  * Query ou body param: `segmento` = 'juridico' | 'tributario' | 'contabil' | 'administrativo'
+ *   | 'consultor-contabil-estrategico' | 'gestao-estrategica' | 'reforma-tributaria'
  */
 
 routerAdd('POST', '/backend/v1/agente-especialista/chat', (e) => {
@@ -19,6 +23,9 @@ routerAdd('POST', '/backend/v1/agente-especialista/chat', (e) => {
       tributario: 'especialista-tributario',
       contabil: 'especialista-contabil',
       administrativo: 'especialista-administrativo',
+      'consultor-contabil-estrategico': 'consultor-contabil-estrategico',
+      'gestao-estrategica': 'gestao-estrategica',
+      'reforma-tributaria': 'consultor-reforma-tributaria',
     }
 
     const info = e.requestInfo()

@@ -4,6 +4,9 @@
  * - Tributário ('tributario') -> 'especialista-tributario'
  * - Contábil ('contabil') -> 'especialista-contabil'
  * - Administrativo ('administrativo') -> 'especialista-administrativo'
+ * - Consultor Contábil Estratégico ('consultor-contabil-estrategico') -> 'consultor-contabil-estrategico'
+ * - Gestão Estratégica ('gestao-estrategica') -> 'gestao-estrategica'
+ * - Reforma Tributária ('reforma-tributaria') -> 'consultor-reforma-tributaria'
  */
 import pb from '@/lib/pocketbase/client'
 import {
@@ -13,7 +16,14 @@ import {
   type StreamAgentChatResult,
 } from '@/lib/skipAi'
 
-export type SegmentoEspecialista = 'juridico' | 'tributario' | 'contabil' | 'administrativo'
+export type SegmentoEspecialista =
+  | 'juridico'
+  | 'tributario'
+  | 'contabil'
+  | 'administrativo'
+  | 'consultor-contabil-estrategico'
+  | 'gestao-estrategica'
+  | 'reforma-tributaria'
 
 export interface MensagemEspecialista {
   id: string
