@@ -49,6 +49,11 @@ import { SectionEspecialistaAdministrativo } from '@/components/SectionEspeciali
 import { SectionEspecialistaContabilEstrategico } from '@/components/SectionEspecialistaContabilEstrategico'
 import { SectionEspecialistaGestaoEstrategica } from '@/components/SectionEspecialistaGestaoEstrategica'
 import { SectionEspecialistaReformaTributaria } from '@/components/SectionEspecialistaReformaTributaria'
+import {
+  SectionEspecialistaTrabalhistaPrevidenciario,
+  SectionEspecialistaTributosIndiretos,
+  SectionEspecialistaSocietarioCompliance,
+} from '@/components/SectionEspecialistaTrioNovo'
 import { SectionCentralEntregasAgentes } from '@/components/SectionCentralEntregasAgentes'
 import { SectionPesquisaAgentes } from '@/components/SectionPesquisaAgentes'
 import { NAVEGACAO } from '@/components/navegacao'
@@ -203,7 +208,7 @@ const COMPONENTES: Record<string, ComponentType<PropsAba>> = {
   '#parecer-sistema': SectionParecerSistema,
   /* ── PESQUISA DOS AGENTES — os 7 especialistas + Central numa tela ampla ── */
   '#pesquisa-agentes': PesquisaAgentes,
-  /* ── AGENTES ESPECIALISTAS (7 nativos) — grupo "Agentes" do menu ── */
+  /* ── AGENTES ESPECIALISTAS (10 nativos) — compat de rotas legadas #agente-* ── */
   '#agente-juridico': SectionEspecialistaJuridico,
   '#agente-tributario': SectionEspecialistaTributario,
   '#agente-contabil': SectionEspecialistaContabil,
@@ -211,6 +216,10 @@ const COMPONENTES: Record<string, ComponentType<PropsAba>> = {
   '#agente-consultor-contabil-estrategico': SectionEspecialistaContabilEstrategico,
   '#agente-gestao-estrategica': SectionEspecialistaGestaoEstrategica,
   '#agente-reforma-tributaria': SectionEspecialistaReformaTributaria,
+  /* ── TRIO SUGERIDO (19/11/2026) — legado A9–A11 / F9–F11 ── */
+  '#agente-trabalhista-previdenciario': SectionEspecialistaTrabalhistaPrevidenciario,
+  '#agente-tributos-indiretos': SectionEspecialistaTributosIndiretos,
+  '#agente-societario-compliance': SectionEspecialistaSocietarioCompliance,
   /* ── CENTRAL DE ENTREGAS — relatórios exportados pelos agentes ── */
   '#central-entregas-agentes': SectionCentralEntregasAgentes,
 }

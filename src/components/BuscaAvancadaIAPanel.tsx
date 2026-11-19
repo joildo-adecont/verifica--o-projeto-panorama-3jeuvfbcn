@@ -122,6 +122,46 @@ export const METADADOS_ESPECIALISTAS: Record<SegmentoEspecialista, MetaEspeciali
       'Como acompanhar alterações, inclusões e exclusões legislativas da Reforma?',
     ],
   },
+  /* ── TRIO SUGERIDO (19/11/2026) — mesmos 3 novos especialistas da CONFIG_AGENTES ── */
+  'trabalhista-previdenciario': {
+    segmento: 'trabalhista-previdenciario',
+    titulo: 'Especialista Trabalhista e Previdenciário ADECONT',
+    subtitulo: 'CLT, encargos, eSocial, EFD-Reinf, DCTFWeb e contribuições previdenciárias',
+    badge: 'Agente Trabalhista e Previdenciário',
+    descricao:
+      'Orienta equipes e clientes em CLT, encargos trabalhistas (INSS, FGTS, 13º, férias, adicionais e multas), eventos do eSocial, EFD-Reinf, DCTFWeb e contribuições previdenciárias.',
+    sugestoes: [
+      'Como apurar o INSS e o FGTS sobre horas extras e adicionais?',
+      'Quais eventos do eSocial enviar na rescisão de um empregado?',
+      'Qual o impacto do FAP e do RAT no custo da folha da empresa?',
+    ],
+  },
+  'tributos-indiretos': {
+    segmento: 'tributos-indiretos',
+    titulo: 'Especialista em Tributos Indiretos ADECONT',
+    subtitulo: 'ICMS, IPI, ISS e a transição para IBS/CBS da Reforma Tributária',
+    badge: 'Agente Tributos Indiretos',
+    descricao:
+      'Orienta a apuração e o cumprimento de obrigações de ICMS (Convênios, ST, DIFAL), IPI (TIPI, créditos) e ISS (LC 116/2003), além da transição para IBS/CBS da Reforma Tributária.',
+    sugestoes: [
+      'Como tratar o DIFAL numa venda interestadual a consumidor final?',
+      'Quais créditos de IPI são admitidos e quais são vedados?',
+      'Como fica a apuração no período de teste de 2026 (0,9% CBS + 0,1% IBS)?',
+    ],
+  },
+  'societario-compliance': {
+    segmento: 'societario-compliance',
+    titulo: 'Especialista Societário e Compliance ADECONT',
+    subtitulo: 'Registros societários, obrigações acessórias, ECD/ECF e governança',
+    badge: 'Agente Societário e Compliance',
+    descricao:
+      'Orienta registros societários (constituição, alterações, incorporação, fusão e cisão), obrigações acessórias (ECD, ECF, DCTFWeb, NIRF, LGPD) e governança para empresas e contadores.',
+    sugestoes: [
+      'Quais os passos para incorporar uma subsidiária integralmente detida?',
+      'Quais obrigações acessórias uma S.A. precisa cumprir anualmente?',
+      'Como estruturar controles internos de compliance no escritório contábil?',
+    ],
+  },
 }
 
 /**
