@@ -16,10 +16,10 @@ import {
   blocosParaCsv,
   blocosParaTexto,
   blocosParaXlsx,
-  imprimirRelatorioAgente,
   nomeArquivoSeguroRelatorio,
   type MetaExportacaoRelatorio,
 } from '@/services/exportarRelatorioAgente'
+import { imprimirRelatorioAgente } from '@/services/imprimirRelatorioAgente'
 import { registrarEntrega } from '@/services/centralEntregas'
 import { parseBlocosRelatorio, type BlocoRelatorio } from '@/services/relatorioAgenteParser'
 import type { SegmentoEspecialista } from '@/services/agenteEspecialista'
@@ -31,6 +31,8 @@ export interface BarraExportacaoRelatorioProps {
   meta: MetaExportacaoRelatorio
   agenteSegmento: SegmentoEspecialista
   perguntaOrigem?: string
+  /** citações das fontes externas usadas pelo agente (vão para o rodapé do PDF/TXT/CSV) */
+  citations?: import('@/lib/skipAi').AgentCitation[]
   /** Central de Entregas já registrou a entrega — evita duplicar */
   entregaJaRegistrada?: boolean
 }
@@ -41,12 +43,14 @@ export function BarraExportacaoRelatorio({
   meta,
   agenteSegmento,
   perguntaOrigem,
+  citations,
   entregaJaRegistrada = false,
 }: BarraExportacaoRelatorioProps) {
   const { toast } = useToast()
   const [registrando, setRegistrando] = useState(false)
 
   const blocosResolvidos = blocos ?? parseBlocosRelatorio(markdown || '')
+  const extras = { pergunta: perguntaOrigem, citations }
 
   async function exportar(formato: 'pdf' | 'txt' | 'csv' | 'xlsx') {
     if (blocosResolvidos.length === 0) {
@@ -59,19 +63,23 @@ export function BarraExportacaoRelatorio({
     }
     try {
       if (formato === 'pdf') {
-        imprimirRelatorioAgente()
+        imprimirRelatorioAgente({
+          meta: { ...meta, pergunta: perguntaOrigem },
+          blocos: blocosResolvidos,
+          citations,
+        })
       } else if (formato === 'txt') {
         baixarTextoRelatorio(
-          blocosParaTexto(blocosResolvidos, meta),
+          blocosParaTexto(blocosResolvidos, meta, extras),
           nomeArquivoSeguroRelatorio(meta.titulo, 'txt'),
         )
       } else if (formato === 'csv') {
         baixarTextoRelatorio(
-          blocosParaCsv(blocosResolvidos, meta),
+          blocosParaCsv(blocosResolvidos, meta, extras),
           nomeArquivoSeguroRelatorio(meta.titulo, 'csv'),
         )
       } else {
-        blocosParaXlsx(blocosResolvidos, meta)
+        blocosParaXlsx(blocosResolvidos, meta, undefined, extras)
       }
     } catch (e) {
       console.warn('[BarraExportacaoRelatorio] falha ao exportar:', e)

@@ -28,6 +28,16 @@ const RX_TABELA_SEPARADOR = /^\s*\|?[\s:|-]+\|?\s*$/
 const RX_VALOR =
   /(R\$\s?\d[\d.,]*)|(\d[\d.,]*\s*%)|(\d[\d.,]*\s*(?:dias?|meses|m[eê]ses|anos?|horas?|unidades?|itens?|mil\b|milh[oõ]es|bilh[oõ]es))/i
 
+/** Remove marcação inline (negrito/itálico/código) para texto puro (TXT/CSV/XLSX). */
+function limparInline(s: string): string {
+  return (s || '')
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, '$1$2')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/\*\*/g, '')
+    .trim()
+}
+
 /** Linha "Rótulo: valor"? Devolve as duas partes quando o valor é reconhecido. */
 function extrairParRotuloValor(linha: string): { rotulo: string; valor: string } | null {
   const m = linha.match(/^([^:]{2,80}):\s*(.+)$/)
@@ -61,7 +71,7 @@ export function parseBlocosRelatorio(markdown: string): BlocoRelatorio[] {
 
   const fecharParagrafo = () => {
     if (paragrafo.length > 0) {
-      blocos.push({ tipo: 'texto', texto: paragrafo.join(' ').trim() })
+      blocos.push({ tipo: 'texto', texto: limparInline(paragrafo.join(' ').trim()) })
       paragrafo = []
     }
   }
@@ -106,6 +116,12 @@ export function parseBlocosRelatorio(markdown: string): BlocoRelatorio[] {
       }
     }
 
+    // ── régua horizontal (---, ***, ___) → separador visual, não vira bloco ──
+    if (/^([-*_])\s*(?:\1\s*)+$/.test(linhaTrim)) {
+      fecharParagrafo()
+      continue
+    }
+
     // ── título ──
     const mTitulo = linhaTrim.match(RX_TITULO)
     if (mTitulo) {
@@ -114,7 +130,7 @@ export function parseBlocosRelatorio(markdown: string): BlocoRelatorio[] {
       blocos.push({
         tipo: 'titulo',
         nivel: mTitulo[1].length as 1 | 2 | 3,
-        texto: mTitulo[2].trim(),
+        texto: limparInline(mTitulo[2].trim()),
       })
       continue
     }

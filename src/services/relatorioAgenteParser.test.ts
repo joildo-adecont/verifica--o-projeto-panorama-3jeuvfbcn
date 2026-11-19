@@ -43,6 +43,23 @@ describe('parseBlocosRelatorio', () => {
     const blocos = parseBlocosRelatorio('## Comparativo de carga')
     expect(blocos[0]).toMatchObject({ tipo: 'titulo', nivel: 2, texto: 'Comparativo de carga' })
   })
+
+  it('não vira bloco "texto" com "---" (respostas reais dos agentes usam régua)', () => {
+    // falha reportada: o material pesquisado não chegava aos arquivos porque a
+    // régua horizontal do markdown dos agentes era acumulada como parágrafo
+    const blocos = parseBlocosRelatorio(
+      '**Consultor da Reforma Tributária – ADECONT**\n---\n## 1. Visão Geral',
+    )
+    expect(blocos.some((b) => b.tipo === 'texto' && b.texto === '---')).toBe(false)
+    expect(blocos[0]).toMatchObject({ tipo: 'texto' })
+    expect(blocos[1]).toMatchObject({ tipo: 'titulo', texto: '1. Visão Geral' })
+  })
+
+  it('limpa negrito/itálico markdown dos blocos texto e títulos', () => {
+    const blocos = parseBlocosRelatorio('## **Título em Negrito**\nTexto com **destaque** interno.')
+    expect(blocos[0]).toMatchObject({ tipo: 'titulo', texto: 'Título em Negrito' })
+    expect(blocos[1]).toMatchObject({ tipo: 'texto', texto: 'Texto com destaque interno.' })
+  })
 })
 
 describe('parseValorNumerico', () => {

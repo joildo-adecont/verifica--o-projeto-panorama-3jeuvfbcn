@@ -342,6 +342,7 @@ export function TelaAgenteEspecialista({
                 }}
                 agenteSegmento={segmento}
                 perguntaOrigem={perguntaDaUltimaMensagem}
+                citations={ultimaMensagemRelatorio.citations}
               />
             </div>
           )}
