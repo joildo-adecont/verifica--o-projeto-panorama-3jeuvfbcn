@@ -10,12 +10,13 @@ import {
   ShieldUser,
   LogOut,
   LogIn,
+  SearchCode,
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { AdecontLogo } from '@/components/AdecontLogo'
 import { AlternadorTema } from '@/components/AlternadorTema'
 import { NormAlertsBell } from '@/components/NormAlertsBell'
-import { NAVEGACAO } from '@/components/navegacao'
+import { NAVEGACAO, ITENS_AGENTES_LEGADO } from '@/components/navegacao'
 import { fetchSourceStatuses, triggerSourceCheck } from '@/services/panorama'
 import { useToast } from '@/hooks/use-toast'
 import {
@@ -202,7 +203,21 @@ export function PanoramaHeader({
         setMobileMenuOpen((v) => !v)
         return
       }
-      const item = NAV_LINKS.find((l) => l.tecla === e.key.toLowerCase())
+      let item = NAV_LINKS.find((l) => l.tecla === e.key.toLowerCase())
+      // F1–F8 (agentes e Central de Entregas): os itens saíram do menu lateral e
+      // vivem DENTRO da tela "Pesquisa dos Agentes" — o atalho abre a tela com o
+      // agente pré-selecionado via ?agente=slug (e F8 abre a mesma tela com a
+      // Central aberta, mantendo o hash legado #central-entregas-agentes vivo).
+      if (!item) {
+        const legado = ITENS_AGENTES_LEGADO.find((l) => l.tecla === e.key.toLowerCase())
+        if (legado) {
+          const destino =
+            legado.href === '#central-entregas-agentes'
+              ? '#pesquisa-agentes?central=1'
+              : `#pesquisa-agentes?agente=${legado.href.replace('#agente-', '')}`
+          item = { ...legado, href: destino }
+        }
+      }
       if (item) {
         e.preventDefault()
         setMobileMenuOpen(false)
@@ -461,6 +476,14 @@ export function PanoramaHeader({
                 className="inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-panorama-navy hover:bg-panorama-navy-light px-3 py-1.5 rounded-md shadow-sm transition-colors border border-panorama-gold/40"
               >
                 <span>Consultar Especialista</span>
+              </a>
+              <a
+                href="#pesquisa-agentes"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-panorama-navy bg-white hover:bg-amber-50 px-3 py-1.5 rounded-md shadow-sm transition-colors border border-panorama-gold/60 hover:-translate-y-px"
+                title="Pesquisa dos Agentes — os 7 especialistas nativos e a Central de Entregas"
+              >
+                <SearchCode className="w-3.5 h-3.5 text-panorama-gold-dark" />
+                <span>Pesquisa dos Agentes</span>
               </a>
             </div>
 

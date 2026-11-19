@@ -1517,11 +1517,51 @@ const SECOES_REFORMA = [
   '#busca-avancada',
 ]
 
-/* ─────────── GRUPO AGENTES — os 7 especialistas nativos de IA ───────────
- * Cada item abre a TelaAgenteEspecialista do próprio segmento, roteada em
- * rotas.tsx. As teclas usam F1..F7 (e.key = 'F1' — minúsculas batem com a
- * tecla): nenhuma colide com as letras simples já usadas pelo sistema. */
+/* ─────────── GRUPO AGENTES — PESQUISA DOS AGENTES ───────────
+ * 19/11/2026 (pedido do CEO): os 7 especialistas nativos saem do menu lateral
+ * e passam a viver DENTRO da tela única "Pesquisa dos Agentes" — seletor de
+ * agentes + Central de Entregas num ícone exclusivo, tudo na mesma tela ampla.
+ * O menu mostra UM item só; os atalhos F1..F7 continuam funcionando (o handler
+ * dos atalhos resolve tecla → item da NAVEGACAO, que agora aponta para a tela
+ * única com o agente pré-selecionado via ?agente=slug).
+ * Rotas antigas #agente-* continuam montadas em rotas.tsx (compat de links). */
 const AGENTES: LinkNavegacao[] = [
+  {
+    href: '#pesquisa-agentes',
+    label: 'Pesquisa dos Agentes',
+    curto: 'Pesquisa dos Agentes',
+    tecla: 'p',
+    numero: 'A',
+    Icon: SearchCode,
+    cor: 'text-indigo-700',
+    bg: 'bg-indigo-50',
+    borda: 'border-indigo-200',
+    descricao:
+      'Os 7 especialistas nativos de IA em tela ampla + Central de Entregas num ícone exclusivo',
+    tags: [
+      'agente',
+      'agentes',
+      'pesquisa dos agentes',
+      'ia',
+      'chat',
+      'especialista',
+      'juridico',
+      'tributario',
+      'contabil',
+      'administrativo',
+      'consultor',
+      'gestao',
+      'reforma',
+      'central de entregas',
+      'entregas',
+    ],
+  },
+]
+
+/* Itens dos 7 especialistas — FORA do menu (compat de rotas/atalhos legados).
+ * Mantidos aqui para o roteador resolver #agente-* e para a busca por tecla
+ * encontrar o destino certo sem apontar para item de menu. */
+export const ITENS_AGENTES_LEGADO: LinkNavegacao[] = [
   {
     href: '#agente-juridico',
     label: 'Agente Jurídico ADECONT',
