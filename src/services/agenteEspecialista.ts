@@ -16,6 +16,24 @@ import {
   type StreamAgentChatResult,
 } from '@/lib/skipAi'
 
+/**
+ * URL base do backend. FALLBACK OBRIGATÓRIO: este é o único serviço do projeto
+ * sem ele, e quando o build de produção não embute a env a URL vira
+ * "undefined/backend/v1/..." — TODAS as colunas do modo Comparar agentes falham
+ * com "Failed to fetch" de uma vez. Mesmo padrão de sistemaUsuarios.ts.
+ */
+const URL_BASE =
+  (import.meta.env.VITE_POCKETBASE_URL as string | undefined)?.replace(/\/$/, '') ||
+  'https://verificacao-projeto-panorama-18549.shrd02.internal.goskip.dev'
+
+export const ROTA_CHAT_ESPECIALISTA = `${URL_BASE}/backend/v1/agente-especialista/chat`
+
+/** Erro de rede do navegador (servidor fora do ar, CORS, DNS, offline…). */
+export function isErroRedeFetch(err: unknown): boolean {
+  if (!(err instanceof TypeError)) return false
+  return /failed to fetch|networkerror|load failed/i.test(err.message)
+}
+
 export type SegmentoEspecialista =
   | 'juridico'
   | 'tributario'
@@ -46,10 +64,16 @@ export async function enviarMensagemEspecialista(params: {
   segmento: SegmentoEspecialista
   message: string
   conversationId?: string | null
+  /** Cancela a requisição (ex.: botão da coluna). Padrão: timer interno. */
+  signal?: AbortSignal
+  /** Teto da chamada síncrona (padrão 90s — agentes levam ~20s+). */
+  timeoutMs?: number
 }): Promise<ChatEspecialistaResponse> {
-  const res = await fetch(
-    `${import.meta.env.VITE_POCKETBASE_URL}/backend/v1/agente-especialista/chat`,
-    {
+  // Resposta síncrona do agente pode levar ~20s+ (pesquisa em fontes externas).
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), params.timeoutMs ?? 90_000)
+  try {
+    const res = await fetch(ROTA_CHAT_ESPECIALISTA, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -61,21 +85,24 @@ export async function enviarMensagemEspecialista(params: {
         conversation_id: params.conversationId || null,
         stream: false,
       }),
-    },
-  )
+      signal: params.signal ?? controller.signal,
+    })
 
-  if (!res.ok) {
-    let errMsg = `Erro no agente especialista (${res.status})`
-    try {
-      const data = await res.json()
-      if (data?.error) errMsg = data.error
-    } catch {
-      /* intentionally ignored */
+    if (!res.ok) {
+      let errMsg = `Erro no agente especialista (${res.status})`
+      try {
+        const data = await res.json()
+        if (data?.error) errMsg = data.error
+      } catch {
+        /* intentionally ignored */
+      }
+      throw new Error(errMsg)
     }
-    throw new Error(errMsg)
-  }
 
-  return (await res.json()) as ChatEspecialistaResponse
+    return (await res.json()) as ChatEspecialistaResponse
+  } finally {
+    clearTimeout(timeout)
+  }
 }
 
 export async function enviarMensagemEspecialistaStream(params: {
@@ -84,23 +111,20 @@ export async function enviarMensagemEspecialistaStream(params: {
   conversationId?: string | null
   handlers: StreamAgentChatHandlers
 }): Promise<StreamAgentChatResult> {
-  const res = await fetch(
-    `${import.meta.env.VITE_POCKETBASE_URL}/backend/v1/agente-especialista/chat`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(pb.authStore.token ? { Authorization: pb.authStore.token } : {}),
-      },
-      body: JSON.stringify({
-        segmento: params.segmento,
-        message: params.message,
-        conversation_id: params.conversationId || null,
-        stream: true,
-      }),
-      signal: params.handlers.signal,
+  const res = await fetch(ROTA_CHAT_ESPECIALISTA, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(pb.authStore.token ? { Authorization: pb.authStore.token } : {}),
     },
-  )
+    body: JSON.stringify({
+      segmento: params.segmento,
+      message: params.message,
+      conversation_id: params.conversationId || null,
+      stream: true,
+    }),
+    signal: params.handlers.signal,
+  })
 
   return await streamAgentChat(res, params.handlers)
 }

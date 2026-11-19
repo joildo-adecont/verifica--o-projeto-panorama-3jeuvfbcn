@@ -11,13 +11,15 @@
  *    (sem derrubar as outras colunas) e a resposta nos MESMOS blocos estruturados
  *    da tela individual (parser + RenderizadorBlocosRelatorio reusados);
  *  - cada coluna tem a MESMA barra de exportação da tela individual
- *    (BarraExportacaoRelatorio: PDF · TXT · CSV · XLSX, com registro na Central).
+ *    (BarraExportacaoRelatorio: PDF · TXT · CSV · XLSX, com registro na Central);
+ *  - erro de rede na coluna ganha mensagem clara + botão de reenvio só da coluna
+ *    (reenviarPerguntaPorColuna), sem precisar reenviar a comparação inteira.
  *
  * As conversas de cada agente são mantidas entre perguntas (conversation_id por
  * segmento), então uma segunda pergunta continua cada conversa de onde parou.
  */
 import { useMemo, useState } from 'react'
-import { Columns3, Loader2, Send, AlertTriangle, X, Sparkles } from 'lucide-react'
+import { Columns3, Loader2, Send, AlertTriangle, X, Sparkles, RotateCcw } from 'lucide-react'
 import { CONFIG_AGENTES } from '@/components/configAgentes'
 import { RenderizadorBlocosRelatorio } from '@/components/RenderizadorBlocosRelatorio'
 import { BarraExportacaoRelatorio } from '@/components/BarraExportacaoRelatorio'
@@ -25,6 +27,7 @@ import { SeloNivelConfianca } from '@/components/SeloNivelConfianca'
 import { parseBlocosRelatorio } from '@/services/relatorioAgenteParser'
 import {
   enviarMensagemEspecialista,
+  isErroRedeFetch,
   type SegmentoEspecialista,
 } from '@/services/agenteEspecialista'
 import type { AgentCitation } from '@/lib/skipAi'
@@ -42,11 +45,18 @@ type EstadoColuna =
       emitidoEm: string
     }
   | { estado: 'erro'; mensagem: string }
+  /** Erro isolado de rede na coluna — guarda a pergunta p/ reenvio individual. */
+  | { estado: 'erro-rede'; mensagem: string; pergunta: string }
 
 function classeColunas(quantidade: number): string {
   if (quantidade >= 4) return 'grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-4 gap-4'
   if (quantidade === 3) return 'grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-4'
   return 'grid grid-cols-1 md:grid-cols-2 gap-4'
+}
+
+/** Mensagem amigável quando o fetch não chega ao backend (rede/CORS/DNS). */
+function mensagemDeRede(agCurto: string): string {
+  return `Falha de conexão com o servidor ao consultar o ${agCurto}. Verifique sua internet e clique em “Reenviar” nesta coluna — as demais não são afetadas.`
 }
 
 export function ModoComparacaoAgentes() {
@@ -58,6 +68,8 @@ export function ModoComparacaoAgentes() {
   const [estados, setEstados] = useState<Record<string, EstadoColuna>>({})
   const [conversationIds, setConversationIds] = useState<Record<string, string | null>>({})
   const [comparando, setComparando] = useState(false)
+  /** Última pergunta enviada — usada pelo reenvio individual de coluna. */
+  const [ultimaPergunta, setUltimaPergunta] = useState('')
 
   const agentesSelecionados = useMemo(
     () =>
@@ -88,6 +100,47 @@ export function ModoComparacaoAgentes() {
     setConversationIds({})
   }
 
+  /** Consulta UM agente e atualiza SÓ a coluna dele (Promise por agente). */
+  async function consultarColuna(seg: SegmentoEspecialista, texto: string) {
+    const ag = CONFIG_AGENTES.find((a) => a.segmento === seg)
+    try {
+      const resp = await enviarMensagemEspecialista({
+        segmento: seg,
+        message: texto,
+        conversationId: conversationIds[seg] ?? null,
+      })
+      if (resp.conversation_id) {
+        setConversationIds((prev) => ({ ...prev, [seg]: resp.conversation_id }))
+      }
+      setEstados((prev) => ({
+        ...prev,
+        [seg]: {
+          estado: 'ok',
+          content: resp.content,
+          citations: resp.citations,
+          emitidoEm: new Date().toISOString(),
+        },
+      }))
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Falha na comunicação com o agente'
+      if (isErroRedeFetch(err)) {
+        setEstados((prev) => ({
+          ...prev,
+          [seg]: {
+            estado: 'erro-rede',
+            mensagem: mensagemDeRede(ag?.curto ?? 'agente'),
+            pergunta: texto,
+          },
+        }))
+      } else {
+        setEstados((prev) => ({
+          ...prev,
+          [seg]: { estado: 'erro', mensagem: msg },
+        }))
+      }
+    }
+  }
+
   async function comparar() {
     const texto = pergunta.trim()
     if (!podeComparar) return
@@ -96,39 +149,20 @@ export function ModoComparacaoAgentes() {
     for (const seg of selecionados) iniciais[seg] = { estado: 'carregando' }
     setEstados(iniciais)
     setComparando(true)
+    setUltimaPergunta(texto)
 
     // Chamadas em paralelo — uma falha NÃO derruba as outras colunas.
-    await Promise.all(
-      selecionados.map(async (seg) => {
-        try {
-          const resp = await enviarMensagemEspecialista({
-            segmento: seg,
-            message: texto,
-            conversationId: conversationIds[seg] ?? null,
-          })
-          if (resp.conversation_id) {
-            setConversationIds((prev) => ({ ...prev, [seg]: resp.conversation_id }))
-          }
-          setEstados((prev) => ({
-            ...prev,
-            [seg]: {
-              estado: 'ok',
-              content: resp.content,
-              citations: resp.citations,
-              emitidoEm: new Date().toISOString(),
-            },
-          }))
-        } catch (err: unknown) {
-          const msg = err instanceof Error ? err.message : 'Falha na comunicação com o agente'
-          setEstados((prev) => ({
-            ...prev,
-            [seg]: { estado: 'erro', mensagem: msg },
-          }))
-        }
-      }),
-    )
+    await Promise.all(selecionados.map((seg) => consultarColuna(seg, texto)))
 
     setComparando(false)
+  }
+
+  /** Reenvia a última pergunta para UM agente, sem mexer nas outras colunas. */
+  async function reenviarPerguntaPorColuna(seg: SegmentoEspecialista) {
+    const texto = ultimaPergunta || pergunta.trim()
+    if (!texto) return
+    setEstados((prev) => ({ ...prev, [seg]: { estado: 'carregando' } }))
+    await consultarColuna(seg, texto)
   }
 
   return (
@@ -255,6 +289,24 @@ export function ModoComparacaoAgentes() {
                         demais colunas seguem normalmente — reenvie a comparação para tentar de
                         novo.
                       </span>
+                    </div>
+                  )}
+
+                  {estado.estado === 'erro-rede' && (
+                    <div className="flex flex-col items-start gap-2 text-xs text-amber-800 rounded-xl border border-amber-200 bg-amber-50 p-3">
+                      <div className="flex items-start gap-2">
+                        <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                        <span>{estado.mensagem}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => reenviarPerguntaPorColuna(ag.segmento)}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold transition-colors cursor-pointer"
+                        title="Reenviar a pergunta somente a este agente"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5" />
+                        Reenviar
+                      </button>
                     </div>
                   )}
 
