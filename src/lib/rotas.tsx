@@ -42,6 +42,13 @@ import { SectionParecerSistema } from '@/components/SectionParecerSistema'
 import { SectionLefisc } from '@/components/SectionLefisc'
 import { SectionRadarNacional } from '@/components/SectionRadarNacional'
 import { SectionNfesPipeline } from '@/components/SectionNfesPipeline'
+import { SectionEspecialistaJuridico } from '@/components/SectionEspecialistaJuridico'
+import { SectionEspecialistaTributario } from '@/components/SectionEspecialistaTributario'
+import { SectionEspecialistaContabil } from '@/components/SectionEspecialistaContabil'
+import { SectionEspecialistaAdministrativo } from '@/components/SectionEspecialistaAdministrativo'
+import { SectionEspecialistaContabilEstrategico } from '@/components/SectionEspecialistaContabilEstrategico'
+import { SectionEspecialistaGestaoEstrategica } from '@/components/SectionEspecialistaGestaoEstrategica'
+import { SectionEspecialistaReformaTributaria } from '@/components/SectionEspecialistaReformaTributaria'
 import { NAVEGACAO } from '@/components/navegacao'
 import type { TaxNormItem } from '@/types/panorama'
 
@@ -184,6 +191,14 @@ const COMPONENTES: Record<string, ComponentType<PropsAba>> = {
   '#documentos-fiscais': SectionNfesPipeline,
   '#parecer-auditoria': SectionParecerSistema,
   '#parecer-sistema': SectionParecerSistema,
+  /* ── AGENTES ESPECIALISTAS (7 nativos) — grupo "Agentes" do menu ── */
+  '#agente-juridico': SectionEspecialistaJuridico,
+  '#agente-tributario': SectionEspecialistaTributario,
+  '#agente-contabil': SectionEspecialistaContabil,
+  '#agente-administrativo': SectionEspecialistaAdministrativo,
+  '#agente-consultor-contabil-estrategico': SectionEspecialistaContabilEstrategico,
+  '#agente-gestao-estrategica': SectionEspecialistaGestaoEstrategica,
+  '#agente-reforma-tributaria': SectionEspecialistaReformaTributaria,
 }
 
 /**

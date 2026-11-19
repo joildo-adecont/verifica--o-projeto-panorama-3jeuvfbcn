@@ -67,6 +67,9 @@ import {
   Ban,
   Coins,
   BarChart3,
+  Bot,
+  Lightbulb,
+  Target,
 } from 'lucide-react'
 
 export interface LinkNavegacao {
@@ -1513,6 +1516,104 @@ const SECOES_REFORMA = [
   '#busca-avancada',
 ]
 
+/* ─────────── GRUPO AGENTES — os 7 especialistas nativos de IA ───────────
+ * Cada item abre a TelaAgenteEspecialista do próprio segmento, roteada em
+ * rotas.tsx. As teclas usam F1..F7 (e.key = 'F1' — minúsculas batem com a
+ * tecla): nenhuma colide com as letras simples já usadas pelo sistema. */
+const AGENTES: LinkNavegacao[] = [
+  {
+    href: '#agente-juridico',
+    label: 'Agente Jurídico ADECONT',
+    curto: 'Jurídico',
+    tecla: 'f1',
+    numero: 'A1',
+    Icon: Scale,
+    cor: 'text-indigo-700',
+    bg: 'bg-indigo-50',
+    borda: 'border-indigo-200',
+    descricao: 'Especialista jurídico: norma, interpretação e fontes oficiais',
+    tags: ['agente', 'ia', 'juridico', 'chat', 'especialista', 'norma', 'consulta'],
+  },
+  {
+    href: '#agente-tributario',
+    label: 'Agente Tributário ADECONT',
+    curto: 'Tributário',
+    tecla: 'f2',
+    numero: 'A2',
+    Icon: Percent,
+    cor: 'text-violet-700',
+    bg: 'bg-violet-50',
+    borda: 'border-violet-200',
+    descricao: 'Especialista tributário: regimes, alíquotas e apuração',
+    tags: ['agente', 'ia', 'tributario', 'chat', 'especialista', 'imposto', 'apuracao'],
+  },
+  {
+    href: '#agente-contabil',
+    label: 'Agente Contábil ADECONT',
+    curto: 'Contábil',
+    tecla: 'f3',
+    numero: 'A3',
+    Icon: Calculator,
+    cor: 'text-emerald-700',
+    bg: 'bg-emerald-50',
+    borda: 'border-emerald-200',
+    descricao: 'Especialista contábil: lançamento, escrituração e fechamento',
+    tags: ['agente', 'ia', 'contabil', 'chat', 'especialista', 'escrituracao', 'balanco'],
+  },
+  {
+    href: '#agente-administrativo',
+    label: 'Agente Administrativo ADECONT',
+    curto: 'Administrativo',
+    tecla: 'f4',
+    numero: 'A4',
+    Icon: Building2,
+    cor: 'text-slate-700',
+    bg: 'bg-slate-100',
+    borda: 'border-slate-300',
+    descricao: 'Especialista administrativo: rotinas, prazos e gestão do escritório',
+    tags: ['agente', 'ia', 'administrativo', 'chat', 'especialista', 'rotina', 'prazo'],
+  },
+  {
+    href: '#agente-consultor-contabil-estrategico',
+    label: 'Consultor Contábil Estratégico',
+    curto: 'Consultor Contábil',
+    tecla: 'f5',
+    numero: 'A5',
+    Icon: Lightbulb,
+    cor: 'text-cyan-700',
+    bg: 'bg-cyan-50',
+    borda: 'border-cyan-200',
+    descricao: 'Contabilidade estratégica: indicadores e decisões do negócio',
+    tags: ['agente', 'ia', 'estrategico', 'chat', 'especialista', 'indicadores', 'decisao'],
+  },
+  {
+    href: '#agente-gestao-estrategica',
+    label: 'Especialista em Gestão Estratégica',
+    curto: 'Gestão Estratégica',
+    tecla: 'f6',
+    numero: 'A6',
+    Icon: Target,
+    cor: 'text-amber-700',
+    bg: 'bg-amber-50',
+    borda: 'border-amber-200',
+    descricao: 'Gestão estratégica: planejamento, precificação e risco',
+    tags: ['agente', 'ia', 'gestao', 'estrategia', 'chat', 'especialista', 'planejamento'],
+  },
+  {
+    href: '#agente-reforma-tributaria',
+    label: 'Consultor da Reforma Tributária',
+    curto: 'Consultor RT',
+    tecla: 'f7',
+    numero: 'A7',
+    Icon: Landmark,
+    cor: 'text-fuchsia-700',
+    bg: 'bg-fuchsia-50',
+    borda: 'border-fuchsia-200',
+    descricao: 'Consultor da Reforma: todos os atos normativos e a transição',
+    tags: ['agente', 'ia', 'reforma', 'chat', 'especialista', 'iva', 'transicao', 'resolucao'],
+  },
+]
+
 export const GRUPOS: GrupoNavegacao[] = [
   /* ── MACRO: tudo que é assunto da reforma num lugar só ── */
   {
@@ -1566,6 +1667,16 @@ export const GRUPOS: GrupoNavegacao[] = [
     dominios: ['sistema'],
     secoes: SECOES_ADMINISTRATIVA,
     itens: itensDaPlataforma(SECOES_ADMINISTRATIVA),
+  },
+  {
+    id: 'agentes',
+    nome: 'Agentes',
+    proposito: 'Os 7 especialistas nativos de IA da ADECONT, em chat direto',
+    Icon: Bot,
+    cor: 'text-indigo-700',
+    bg: 'bg-indigo-50',
+    borda: 'border-indigo-300',
+    itens: AGENTES,
   },
 ]
 
